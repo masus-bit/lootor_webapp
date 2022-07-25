@@ -21,27 +21,30 @@ export class AuthService {
    * Авторизация поьзователя
    */
   async signIn({
-    login,
+    email,
     password,
   }: SignInDto): Promise<false | string | never> {
-    try {
-      const user = await this.usersRepository.getPasswordsByLogin(login);
+    if (email) {
+      try {
+        const user = await this.usersRepository.getByEmail(email);
+        console.log(user)
+        if (AuthService.verifyPassword(user, password)) {
+          return this.getToken(user);
+        }
 
-      if (AuthService.verifyPassword(user, password)) {
-        return this.getToken(user);
+        return false;
+      } catch (err) {
+        throw new HttpUnauthorizedError();
       }
-
-      return false;
-    } catch (err) {
-      throw new HttpUnauthorizedError();
     }
+    return false
   }
+
 
   /**
    * Регистрация нового пользователя
    */
   async signUp(signUpDto: SignUpDto): Promise<User | never> {
-    console.log(signUpDto);
     try {
       if (await this.usersRepository.getById(signUpDto.login)) {
         throw new HttpBadRequestError('userId must be unique');

@@ -16,6 +16,7 @@ export class AuthController {
 
   @Post('/public/auth/signin')
   async signIn(@Body() sigInDto: SignInDto, @Res() response: Response) {
+    console.log(sigInDto);
     const token = await this.authService.signIn(sigInDto);
 
     if (!token) {

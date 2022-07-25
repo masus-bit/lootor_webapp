@@ -13,4 +13,7 @@ export class TokenPayloadDto {
 
   @Expose({ name: 'user_name' })
   userName: string;
+
+  @Expose()
+  email: string;
 }

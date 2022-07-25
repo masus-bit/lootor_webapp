@@ -10,10 +10,10 @@ export class UserRepository {
     @InjectRepository(User) private usersRepository: Repository<User>,
   ) {}
 
-  async getPasswordsByLogin(login: string): Promise<User | never> {
+  async getPasswordsByEmail(email: string): Promise<User | never> {
     return await this.usersRepository.findOneOrFail({
       where: {
-        login: login,
+        email: email,
       },
       select: ['login', 'password', 'user_name', 'password_encrypted'],
     });
@@ -45,8 +45,9 @@ export class UserRepository {
   }
 
   async getByEmail(email: string): Promise<User | never> {
-    return await this.usersRepository.findOne({
+    return await this.usersRepository.findOneOrFail({
       where: { email },
+      select: ['password', 'login', 'email', 'user_name']
     });
   }
 
