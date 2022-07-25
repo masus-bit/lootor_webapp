@@ -1,0 +1,60 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { DeepPartial } from 'typeorm/common/DeepPartial';
+import { User } from '../entities/User';
+
+@Injectable()
+export class UserRepository {
+  constructor(
+    @InjectRepository(User) private usersRepository: Repository<User>,
+  ) {}
+
+  async getPasswordsByLogin(login: string): Promise<User | never> {
+    return await this.usersRepository.findOneOrFail({
+      where: {
+        login: login,
+      },
+      select: ['login', 'password', 'user_name', 'password_encrypted'],
+    });
+  }
+  async save(data: DeepPartial<User>): Promise<User> {
+    return await this.usersRepository.save(data);
+  }
+
+  createModel(data: DeepPartial<User>): User {
+    return this.usersRepository.create(data);
+  }
+
+  async getById(login: string): Promise<User | never> {
+    return await this.usersRepository.findOne({
+      where: { login: login },
+    });
+  }
+
+  async getByUserName(userName: string): Promise<User | never> {
+    return await this.usersRepository.findOne({
+      where: { user_name: userName },
+    });
+  }
+
+  async getByIdOrFail(login: string): Promise<User | never> {
+    return await this.usersRepository.findOneOrFail({
+      where: { login: login },
+    });
+  }
+
+  async getByEmail(email: string): Promise<User | never> {
+    return await this.usersRepository.findOne({
+      where: { email },
+    });
+  }
+
+  async getFullById(login: string): Promise<User | never> {
+    return await this.usersRepository.findOneOrFail({
+      where: {
+        login: login,
+      },
+    });
+  }
+}
