@@ -26,7 +26,7 @@ export class AuthService {
   }: SignInDto): Promise<false | string | never> {
     if (email) {
       try {
-        const user = await this.usersRepository.getByEmail(email);
+        const user = await this.usersRepository.getPasswordsByEmail(email);
         console.log(user)
         if (AuthService.verifyPassword(user, password)) {
           return this.getToken(user);

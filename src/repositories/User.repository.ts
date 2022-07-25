@@ -15,7 +15,7 @@ export class UserRepository {
       where: {
         email: email,
       },
-      select: ['login', 'password', 'user_name', 'password_encrypted'],
+      select: ['password', 'login', 'email', 'user_name']
     });
   }
   async save(data: DeepPartial<User>): Promise<User> {
@@ -45,9 +45,8 @@ export class UserRepository {
   }
 
   async getByEmail(email: string): Promise<User | never> {
-    return await this.usersRepository.findOneOrFail({
+    return await this.usersRepository.findOne({
       where: { email },
-      select: ['password', 'login', 'email', 'user_name']
     });
   }
 
