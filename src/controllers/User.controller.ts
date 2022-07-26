@@ -11,6 +11,7 @@ import { UserService } from '../services/User.service';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { ChangePasswordDto } from '../dto/user/ChangePasswordDto';
 import { AuthGuard } from '../guards/Auth.guard';
+import { QueryUserDto } from '../dto/user/GetUserByIdDto';
 
 @Controller()
 export class UserController {
@@ -20,7 +21,7 @@ export class UserController {
   @UseGuards(AuthGuard)
   async changePassword(
     @Body() changeDto: ChangePasswordDto,
-    @Query() query: { login: string },
+    @Query() query: QueryUserDto,
   ) {
     try {
       return await this.userService.changePassword(changeDto, query.login);
@@ -33,7 +34,7 @@ export class UserController {
 
   @Get('/secured/user')
   @UseGuards(AuthGuard)
-  async getByLogin(@Query() query: { login: string }) {
+  async getByLogin(@Query() query: QueryUserDto) {
     try {
       return this.userService.getByLogin(query.login);
     } catch (err) {

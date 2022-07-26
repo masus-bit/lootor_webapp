@@ -1,4 +1,10 @@
 import { User } from '../../entities/User';
+import { IsNotEmpty } from 'class-validator';
+
+export class QueryUserDto {
+  @IsNotEmpty()
+  readonly login: string;
+}
 
 export class UserByIdDto {
   readonly login: string;

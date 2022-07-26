@@ -15,9 +15,10 @@ export class UserRepository {
       where: {
         email: email,
       },
-      select: ['password', 'login', 'email', 'user_name']
+      select: ['password', 'login', 'email', 'user_name'],
     });
   }
+
   async save(data: DeepPartial<User>): Promise<User> {
     return await this.usersRepository.save(data);
   }
@@ -27,9 +28,10 @@ export class UserRepository {
   }
 
   async getById(login: string): Promise<User | never> {
-    return await this.usersRepository.findOne({
-      where: { login: login },
-    });
+    return await this.usersRepository
+      .createQueryBuilder('user')
+      .where('user.login = :login', { login })
+      .getOne();
   }
 
   async getByUserName(userName: string): Promise<User | never> {
