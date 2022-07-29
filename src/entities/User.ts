@@ -1,4 +1,6 @@
-import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, OneToMany, PrimaryColumn } from 'typeorm';
+import { Lot } from './Lot';
+import { DraftLot } from './DraftLot';
 
 @Entity()
 export class User {
@@ -16,7 +18,7 @@ export class User {
   @Column({
     nullable: true,
     length: 100,
-    select: false
+    select: false,
   })
   password: string;
 
@@ -24,7 +26,7 @@ export class User {
   @Column({
     nullable: true,
     length: 100,
-    select: false
+    select: false,
   })
   password_encrypted: string;
 
@@ -34,4 +36,10 @@ export class User {
     length: 100,
   })
   email: string;
+
+  @OneToMany(() => Lot, (lot) => lot.created_by)
+  lots_of: Lot[];
+
+  @OneToMany(() => DraftLot, (draftLot) => draftLot.created_by)
+  draft_lots_of: Lot[];
 }
