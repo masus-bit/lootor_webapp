@@ -28,7 +28,8 @@ cache:
 
 deploy to dev:
   stage: deploy
-
+  tags:
+    - oleg
   when: manual
   script:
     - echo ${CI_PIPELINE_ID}
