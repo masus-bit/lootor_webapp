@@ -35,5 +35,5 @@ export class Collection {
     () => CollectionImage,
     (collectionImage) => collectionImage.collection_id,
   )
-  images: CollectionImage[];
+  images: CollectionImage[]
 }
