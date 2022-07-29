@@ -28,8 +28,6 @@ cache:
 
 deploy to dev:
   stage: deploy
-  tags:
-    - backendYC
 
   when: manual
   script:
