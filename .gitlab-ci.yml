@@ -22,27 +22,19 @@ services:
 
 # This folder is cached between builds
 # https://docs.gitlab.com/ee/ci/yaml/index.html#cache
-cache:
-  paths:
-    - node_modules/
+stages:
+  - production
 
-deploy to dev:
-  stage: deploy
+deploy:
   tags:
     - oleg
-  when: manual
+  stage: production
   script:
-    - echo ${CI_PIPELINE_ID}
-      - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
-      - eval $(ssh-agent -s)
-      - mkdir -p ~/.ssh
-      - chmod 700 ~/.ssh
-      - echo "=================deploy to host================="
-      - |
-      ssh -o StrictHostKeyChecking=no -t -t root@134.0.115.88 << EOF
-      cd /home/flexoffice/compose/
-      sed -i 's/TAG_BACK = .*/TAG_BACK = ${CI_PIPELINE_ID}/' .env
-      docker-compose up -d --force-recreate nodejs
-      exit
-      EOF
+    - npm install
+    - npm run build
+    - npm start
+    - rm -rf /var/web/taxmon/build/* && rsync -av build/* /var/web/taxmon/build/
+  variables:
+  only:
+    - develop
 
