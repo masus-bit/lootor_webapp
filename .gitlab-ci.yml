@@ -26,10 +26,7 @@ deploy:
     - oleg
   stage: production
   script:
-    - npm install
-    - npm run build
-    - npm start
-    - rm -rf /var/web/taxmon/build/* && rsync -av build/* /var/web/taxmon/build/
+    - docker-compose up -d
   variables:
   only:
     - develop
