@@ -29,7 +29,6 @@ deploy:
   stage: production
   script:
     - cd /
-    - apk add --no-cache docker-compose
     - docker-compose down
     - docker-compose up -d --force-recreate nodejs
   only:
