@@ -29,6 +29,12 @@ deploy:
   stage: production
   script:
     - ls
+    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "=================deploy to host================="
+    - ssh -o StrictHostKeyChecking=no -t -t root@51.250.70.178 << EOF
     - cd /
     - docker-compose down
     - docker-compose up -d --force-recreate nodejs
