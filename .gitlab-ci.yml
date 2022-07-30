@@ -25,7 +25,7 @@ stages:
 
 deploy:
   tags:
-    - oleg
+    - deploy
   stage: production
   script:
     - cd /
