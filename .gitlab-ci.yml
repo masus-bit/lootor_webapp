@@ -28,9 +28,9 @@ deploy:
     - oleg
   stage: production
   script:
+    - cd /
     - apk add --no-cache docker-compose
     - docker-compose down
-    - cd /
     - docker-compose up -d --force-recreate nodejs
   only:
     - develop
