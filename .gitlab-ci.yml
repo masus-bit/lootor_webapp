@@ -38,7 +38,7 @@ deploy:
       ssh -o StrictHostKeyChecking=no -t -t root@134.0.115.88 << EOF
       cd /
       docker-compose down
-      docker-compose -p app up -d 
+      docker-compose up -d 
       exit 
       EOF
 
