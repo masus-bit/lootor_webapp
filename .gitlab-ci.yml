@@ -31,13 +31,12 @@ deploy:
     - ls
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
-    #    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+      - echo "${SSH_PRIVATE_KEY}" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - echo "=================deploy to host================="
     - |
       ssh -o StrictHostKeyChecking=no -t -t root@134.0.115.88 << EOF
-      $PWD
       cd /
       docker-compose down
       docker-compose up -d --force-recreate nodejs
