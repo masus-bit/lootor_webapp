@@ -28,10 +28,8 @@ deploy:
     - oleg
   stage: production
   script:
-    - root@134.0.115.88
     - cd /
     - docker-compose up -d --force-recreate nodejs
-  variables:
   only:
     - develop
 
