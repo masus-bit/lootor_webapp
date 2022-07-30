@@ -28,6 +28,7 @@ deploy:
     - deploy
   stage: production
   script:
+    - root@134.0.115.88
     - cd /
     - docker-compose down
     - docker-compose up -d --force-recreate nodejs
