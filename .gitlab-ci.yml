@@ -39,6 +39,9 @@ deploy:
       cd /
       docker-compose down
       docker-compose up -d --force-recreate app
+      exit 
+      EOF
+
   only:
     - develop
 
