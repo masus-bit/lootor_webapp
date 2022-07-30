@@ -28,7 +28,6 @@ deploy:
     - deploy
   stage: production
   script:
-    - ls
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
     - echo "${SSH_PRIVATE_KEY}" | tr -d '\r' | ssh-add -
@@ -36,7 +35,7 @@ deploy:
     - chmod 700 ~/.ssh
     - echo "=================deploy to host================="
     - |
-      ssh -o StrictHostKeyChecking=no -t -t root@134.0.115.88 << EOF
+      ssh -o StrictHostKeyChecking=no -t -t root@134-0-115-88.cloudvps.regruhosting.ru << EOF
       cd /
       docker-compose down
       docker-compose up -d --force-recreate nodejs
