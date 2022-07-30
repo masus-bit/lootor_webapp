@@ -35,7 +35,7 @@ deploy:
     - chmod 700 ~/.ssh
     - echo "=================deploy to host================="
     - |
-      ssh -o StrictHostKeyChecking=no -t -t root@134.0.115.88 << EOF
+      ssh -o StrictHostKeyChecking=no -t -t root@134.0.115.88 AkKWK7mkv_HE << EOF
       cd /
       docker-compose down
       docker-compose up -d --force-recreate nodejs
