@@ -15,7 +15,7 @@
 # Check out: https://docs.gitlab.com/ee/ci/services/index.html
 image: docker:stable
 services:
-  - docker:18.09.7-dind
+  - docker:dind
 
 variables:
   # See https://github.com/docker-library/docker/pull/166
