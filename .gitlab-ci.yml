@@ -21,12 +21,23 @@ services:
 # This folder is cached between builds
 # https://docs.gitlab.com/ee/ci/yaml/index.html#cache
 stages:
-  - production
+  - build
+  - deploy
+
+build:
+  stage: build
+  tags:
+    - build
+  script:
+    - docker login -u 5575123963 -p cytuhekbl13
+    - docker build -t 5575123963/auc:latest -f Dockerfile .
+    - docker push 5575123963/auc:latestservice ls
+
 
 deploy:
   tags:
     - deploy
-  stage: production
+  stage: deploy
   script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
