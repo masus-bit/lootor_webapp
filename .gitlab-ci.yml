@@ -30,7 +30,7 @@ services:
 stages:
   - build
   - deploy
-
+ 
 build:
   stage: build
   tags:
