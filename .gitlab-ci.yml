@@ -33,7 +33,7 @@ build:
   tags:
     - build
   script:
-    - docker login -u 5575123963 --password-stdin "${DOCKERHUB_PASSWORD}"
+    - docker login -u "5575123963" --password-stdin "${DOCKERHUB_PASSWORD}"
     - docker build -t 5575123963/auc:latest -f Dockerfile .
     - docker push 5575123963/auc:latestservice ls
 
