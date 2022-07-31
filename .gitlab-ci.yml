@@ -17,10 +17,13 @@ image: docker:stable
 variables:
   DOCKER_TLS_CERTDIR: ""
   GIT_STRATEGY: clone
-
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
 
 services:
-  - docker:stable-dind
+  - name: docker:dind
+    entrypoint: [ "env", "-u", "DOCKER_HOST" ]
+    command: [ "dockerd-entrypoint.sh" ]
 
 # This folder is cached between builds
 # https://docs.gitlab.com/ee/ci/yaml/index.html#cache
