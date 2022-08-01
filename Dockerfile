@@ -4,13 +4,13 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
+COPY . .
+
 ENV PORT 5000
 
 RUN npm install -g npm@8.3.0
 
 RUN npm install
-
-COPY . .
 
 RUN npm run build
 
