@@ -36,6 +36,7 @@ build:
   before_script:
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
+    - echo "120.0.0.1 docker" > /etc/hosts
 
   script:
     - docker login https://index.docker.io/v1
