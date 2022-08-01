@@ -14,4 +14,10 @@ COPY . .
 
 RUN npm run build
 
+RUN pwd
+
+RUN ls -la
+
+RUN cat package.json
+
 CMD ["npm", "run", "start"]
