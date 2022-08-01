@@ -43,7 +43,7 @@ build:
     - cat config.json
 
   script:
-    - docker login index.docker.io
+    - docker login https://index.docker.io/v1
     - docker build -t 5575123963/auc:latest -f Dockerfile .
     - docker push 5575123963/auc:latest
 
