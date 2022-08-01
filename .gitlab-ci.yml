@@ -33,7 +33,7 @@ build:
   tags:
     - build
   before_script:
-    - mkdir -p $HOME/.docker
+    - mkdir -p ~/.docker
     - cd ~
     - ls -la
     - echo $DOCKER_AUTH_CONFIG > $HOME/.docker/config.json
