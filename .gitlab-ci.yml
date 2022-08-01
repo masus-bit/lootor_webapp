@@ -13,9 +13,9 @@
 # Pick zero or more services to be used on all builds.
 # Only needed when using a docker container to run your tests in.
 # Check out: https://docs.gitlab.com/ee/ci/services/index.html
-image: docker:latest
+image: docker:20.10.16
 services:
-  - docker:dind
+  - docker:20.10.16-dind
 
 variables:
   # See https://github.com/docker-library/docker/pull/166
@@ -38,7 +38,7 @@ build:
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
 
   script:
-    - echo -n $DOCKERHUB_PASSWORD | docker login index.docker.io -u $DOCKERHUB_LOGIN --password-stdin $DOCKERHUB_PASSWORD
+    - echo -n $DOCKERHUB_PASSWORD | docker -u $DOCKERHUB_LOGIN --password-stdin $DOCKERHUB_PASSWORD
     - docker build -t 5575123963/auc:latest -f Dockerfile .
     - docker push 5575123963/auc:latest
 
