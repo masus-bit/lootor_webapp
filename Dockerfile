@@ -18,6 +18,4 @@ RUN npm install
 
 RUN npm run build
 
-WORKDIR /
-
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
