@@ -40,8 +40,8 @@ build:
 
   script:
     - docker login https://index.docker.io
-    - docker build -t 5575123963/auc:${CI_PIPELINE_ID} -f Dockerfile .
-    - sudo docker push 5575123963/auc:${CI_PIPELINE_ID}
+    - docker build -t 5575123963/auc:latest -f Dockerfile .
+    - docker push 5575123963/auc:latest
 
 
 deploy:
