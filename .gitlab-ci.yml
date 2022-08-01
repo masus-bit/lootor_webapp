@@ -36,6 +36,9 @@ build:
     - mkdir -p ~/.docker
     - cd ~
     - ls -la
+    - cd /.docker
+    - ls -la
+    - cat config.json
     - echo $DOCKER_AUTH_CONFIG > $HOME/.docker/config.json
   script:
     - echo -n $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_LOGIN --password-stdin $DOCKERHUB_PASSWORD
