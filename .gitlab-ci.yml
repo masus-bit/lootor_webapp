@@ -40,8 +40,8 @@ build:
 
   script:
     - docker login https://index.docker.io/v2
-    - docker build -t 5575123963/auc:latest -f Dockerfile .
-    - docker push 5575123963/auc:latest
+    - docker build -t repository/docker/5575123963/auc:latest -f Dockerfile .
+    - docker push repository/docker/5575123963/auc:latest
 
 
 deploy:
