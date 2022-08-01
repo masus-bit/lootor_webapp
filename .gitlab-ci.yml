@@ -56,13 +56,12 @@ deploy:
     - chmod 700 ~/.ssh
     - echo "=================deploy to host================="
     - |
-        ssh -o StrictHostKeyChecking=no -t -t root@134.0.115.88 << EOF
-        cd /
-      #      sed -i 's/TAG_BACK = .*/TAG_BACK = ${CI_PIPELINE_ID}/' .env
-        docker-compose down
-        docker-compose up -d --force-recreate
-        exit
-        EOF
+      ssh -o StrictHostKeyChecking=no -t -t root@134.0.115.88 << EOF
+      cd /
+      docker-compose down
+      docker-compose up -d --force-recreate
+      exit 
+      EOF
 
   only:
     - develop
