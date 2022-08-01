@@ -41,7 +41,7 @@ build:
   script:
     - docker login https://index.docker.io
     - docker build -t 5575123963/auc:${CI_PIPELINE_ID} -f Dockerfile .
-    - docker push 5575123963/auc:${CI_PIPELINE_ID}
+    - sudo docker push 5575123963/auc:${CI_PIPELINE_ID}
 
 
 deploy:
