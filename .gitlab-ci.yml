@@ -39,7 +39,7 @@ build:
     - echo "127.0.0.1 docker" > /etc/hosts
 
   script:
-    - docker login https://docker.io
+    - docker login https://registry.hub.docker.com
     - docker build -t 5575123963/auc:latest -f Dockerfile .
     - docker push 5575123963/auc:latest
 
