@@ -35,16 +35,10 @@ build:
     - build
   before_script:
     - mkdir -p ~/.docker
-    - cd ~
-    - ls -la
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
-    - cd ~/.docker
-    - ls -la
-    - cat config.json
-    - cat /etc/hosts
 
   script:
-    - docker login https://index.docker.io/v1
+    - echo -n $DOCKERHUB_PASSWORD | docker login https://index.docker.io/v1 -u $DOCKERHUB_LOGIN --password-stdin $DOCKERHUB_PASSWORD
     - docker build -t 5575123963/auc:latest -f Dockerfile .
     - docker push 5575123963/auc:latest
 
