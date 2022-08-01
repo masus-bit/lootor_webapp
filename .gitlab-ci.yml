@@ -39,7 +39,7 @@ build:
     - echo "127.0.0.1 docker" > /etc/hosts
 
   script:
-    - echo -n $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_LOGIN --password-stdin $DOCKERHUB_PASSWORD docker.io
+    - echo -n $DOCKERHUB_PASSWORD | docker login docker.io --username $DOCKERHUB_LOGIN --password-stdin
     - docker build -t 5575123963/auc:latest -f Dockerfile .
     - docker push 5575123963/auc:latest
 
