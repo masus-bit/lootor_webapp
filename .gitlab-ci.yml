@@ -38,7 +38,7 @@ build:
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
 
   script:
-    - echo -n $DOCKERHUB_PASSWORD | docker --username $DOCKERHUB_LOGIN --password-stdin $DOCKERHUB_PASSWORD
+    - echo -n $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_LOGIN --password-stdin $DOCKERHUB_PASSWORD
     - docker build -t 5575123963/auc:latest -f Dockerfile .
     - docker push 5575123963/auc:latest
 
