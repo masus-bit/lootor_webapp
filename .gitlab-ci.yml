@@ -39,9 +39,9 @@ build:
     - echo "127.0.0.1 docker" > /etc/hosts
 
   script:
-    - docker login https://index.docker.io/v2
-    - docker build -t hub.docker.com/repository/docker/5575123963/auc:latest -f Dockerfile .
-    - docker push hub.docker.com/repository/docker/5575123963/auc:latest
+    - docker login docker.io
+    - docker build -t 5575123963/auc:latest -f Dockerfile .
+    - docker push 5575123963/auc:latest
 
 
 deploy:
