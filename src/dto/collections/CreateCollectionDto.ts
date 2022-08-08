@@ -11,10 +11,10 @@ export class CreateCollectionDto {
   @Expose()
   readonly description: string;
 
-  @Expose({ name: 'isPrivate' })
+  @Expose({name: 'isPrivate'})
   readonly is_private: boolean;
 
-  @Expose({ name: 'userLogin' })
+  @Expose({name: 'userLogin'})
   readonly user: string;
 }
 
@@ -40,5 +40,13 @@ export class ReturnCreateCollection {
 
   constructor(data: Readonly<ReturnedCollectionDto>) {
     this.data = data;
+  }
+}
+
+export class ReturnCollectionsDto {
+  readonly data: ReadonlyArray<ReturnedCollectionDto>;
+
+  constructor(data: ReadonlyArray<ReturnedCollectionDto>) {
+    this.data = data
   }
 }

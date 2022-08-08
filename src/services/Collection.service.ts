@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
   CreateCollectionDto,
+  ReturnCollectionsDto,
   ReturnCreateCollection,
   ReturnedCollectionDto,
 } from '../dto/collections/CreateCollectionDto';
@@ -51,7 +52,6 @@ export class CollectionService {
     const existsCollection = await this.collectionRepository.getByIdWithoutUser(
       collectionId,
     );
-    console.log(existsCollection);
     if (existsCollection) {
       const collection = await this.collectionRepository.updateById(
         dto,
@@ -60,5 +60,17 @@ export class CollectionService {
       const result = await this.collectionRepository.getById(collection.id);
       return new ReturnCreateCollection(new ReturnedCollectionDto(result));
     }
+  }
+
+  /**
+   * ПОлучение всех коллекциq по логину юзера
+   */
+  async getByUserId(id: string): Promise<ReturnCollectionsDto> {
+    const collections = await this.collectionRepository.getByUserId(id);
+    const result: ReturnedCollectionDto[] = [];
+    collections.forEach((collection) =>
+      result.push(new ReturnedCollectionDto(collection)),
+    );
+    return new ReturnCollectionsDto(result);
   }
 }
