@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Inject,
   Patch,
   Post,
@@ -56,5 +57,11 @@ export class CollectionController {
     } catch (e) {
       throw new HttpBadRequestError(e);
     }
+  }
+
+  @Get()
+  @UseGuards(AuthGuard)
+  async getAllByUserLogin(@Query() query: { userLogin }) {
+    return await this.collectionsService.getByUserId(query.userLogin);
   }
 }
