@@ -4,11 +4,9 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './User';
-import { CollectionImage } from './CollectionImage';
 
 @Entity()
 export class Collection {
@@ -19,21 +17,19 @@ export class Collection {
   @Column({
     nullable: false,
   })
-  game_id: string;
-
-  @ManyToOne(() => User, (user) => user.login)
-  @JoinColumn({ name: 'user' })
-  user: string;
+  name: string;
 
   @Index()
   @Column({
-    nullable: false,
+    nullable: true,
   })
   description: string;
 
-  @OneToMany(
-    () => CollectionImage,
-    (collectionImage) => collectionImage.collection_id,
-  )
-  images: CollectionImage[]
+  @Index()
+  @Column()
+  is_private: boolean;
+
+  @ManyToOne(() => User, (user) => user.login, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user' })
+  user: string;
 }
