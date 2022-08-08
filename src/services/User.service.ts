@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { User } from '../entities/User';
 import { UserRepository } from '../repositories/User.repository';
-import { GetUserByIdDto } from '../dto/user/GetUserByIdDto';
+import { GetUserByIdDto, UserByIdDto } from '../dto/user/GetUserByIdDto';
 import { ChangePasswordDto } from '../dto/user/ChangePasswordDto';
 import { hashSync } from 'bcrypt';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
@@ -19,7 +19,7 @@ export class UserService {
 
   async getByLogin(login: string): Promise<GetUserByIdDto> {
     const user = await this.userRepository.getById(login);
-    return new GetUserByIdDto(user);
+    return new GetUserByIdDto(new UserByIdDto(user));
   }
 
   async changePassword(
@@ -32,7 +32,7 @@ export class UserService {
       userModel.password = dto.password;
       userModel.password_encrypted = UserService.getHashPassword(dto.password);
       const user = await this.userRepository.save(userModel);
-      return new GetUserByIdDto(user);
+      return new GetUserByIdDto(new UserByIdDto(user));
     } catch (err) {
       throw new HttpBadRequestError('Что-то пошло не так');
     }
