@@ -8,12 +8,12 @@ export class QueryUserDto {
 
 export class UserByIdDto {
   readonly login: string;
-  readonly user_name: string;
+  readonly userName: string;
   readonly email: string;
 
   constructor(user: Readonly<User>) {
     this.login = user.login;
-    this.user_name = user.user_name;
+    this.userName = user.user_name;
     this.email = user.email;
   }
 }
