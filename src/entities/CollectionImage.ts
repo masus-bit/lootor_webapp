@@ -6,16 +6,16 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Collection } from './Collection';
+import { CollectionItem } from './CollectionItem';
 
 @Entity()
 export class CollectionImage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Collection, (collection) => collection.id)
-  @JoinColumn({ name: 'collection_id' })
-  collection_id: string;
+  @ManyToOne(() => CollectionItem, (collection_item) => collection_item.id)
+  @JoinColumn({ name: 'collection_item_id' })
+  collection_item_id: string;
 
   @Index()
   @Column({
