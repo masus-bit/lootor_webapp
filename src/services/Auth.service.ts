@@ -9,6 +9,7 @@ import { User } from '../entities/User';
 import { HttpUnauthorizedError } from '../errors/HttpUnauthorizedError';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { UserRepository } from '../repositories/User.repository';
+import { ReturnUser } from '../dto/collections/CreateCollectionDto';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +28,7 @@ export class AuthService {
     if (email) {
       try {
         const user = await this.usersRepository.getPasswordsByEmail(email);
-        console.log(user)
+        console.log(user);
         if (AuthService.verifyPassword(user, password)) {
           return this.getToken(user);
         }
@@ -37,9 +38,8 @@ export class AuthService {
         throw new HttpUnauthorizedError();
       }
     }
-    return false
+    return false;
   }
-
 
   /**
    * Регистрация нового пользователя
@@ -61,7 +61,10 @@ export class AuthService {
       );
 
       const user = await this.usersRepository.save(userModel);
-      return await this.usersRepository.getByIdOrFail(user.login);
+
+      const returnedUser = await this.usersRepository.getById(user.login);
+      // @ts-ignore
+      return new ReturnUser(returnedUser);
     } catch (err) {
       console.error(err.message);
       throw err;
