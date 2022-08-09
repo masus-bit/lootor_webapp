@@ -1,5 +1,6 @@
 import { Exclude, Expose } from 'class-transformer';
 import { Collection } from '../../entities/Collection';
+import { User } from '../../entities/User';
 
 class Attributes {}
 
@@ -11,11 +12,23 @@ export class CreateCollectionDto {
   @Expose()
   readonly description: string;
 
-  @Expose({name: 'isPrivate'})
+  @Expose({ name: 'isPrivate' })
   readonly is_private: boolean;
 
-  @Expose({name: 'userLogin'})
+  @Expose({ name: 'userLogin' })
   readonly user: string;
+}
+
+export class ReturnUser {
+  readonly login: string;
+  readonly userName: string;
+  readonly email: string;
+
+  constructor(user: Readonly<User>) {
+    this.login = user.login;
+    this.userName = user.user_name;
+    this.email = user.email;
+  }
 }
 
 export class ReturnedCollectionDto {
@@ -26,12 +39,12 @@ export class ReturnedCollectionDto {
   readonly isPrivate: boolean;
 
   constructor(collection: Readonly<Collection>) {
-    console.log(collection);
     this.id = collection.id;
     this.isPrivate = collection.is_private;
     this.name = collection.name;
     this.description = collection.description;
-    this.user = collection.user;
+    // @ts-ignore
+    this.user = new ReturnUser(collection.user);
   }
 }
 
@@ -47,6 +60,6 @@ export class ReturnCollectionsDto {
   readonly data: ReadonlyArray<ReturnedCollectionDto>;
 
   constructor(data: ReadonlyArray<ReturnedCollectionDto>) {
-    this.data = data
+    this.data = data;
   }
 }
