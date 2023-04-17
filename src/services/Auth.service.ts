@@ -55,6 +55,7 @@ export class AuthService {
       }
 
       const userModel = this.usersRepository.createModel(signUpDto);
+      userModel.created = new Date(Date.now());
 
       userModel.password_encrypted = AuthService.getHashPassword(
         userModel.password,

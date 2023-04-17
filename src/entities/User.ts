@@ -37,6 +37,24 @@ export class User {
   })
   email: string;
 
+  @Index()
+  @Column({
+    nullable: true,
+  })
+  created: Date;
+
+  @Index()
+  @Column({
+    nullable: true,
+  })
+  likes: number;
+
+  @Index()
+  @Column({
+    nullable: true,
+  })
+  dislikes: number;
+
   @OneToMany(() => Lot, (lot) => lot.created_by)
   lots_of: Lot[];
 

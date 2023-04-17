@@ -10,11 +10,13 @@ export class UserByIdDto {
   readonly login: string;
   readonly userName: string;
   readonly email: string;
+  readonly created: Date;
 
   constructor(user: Readonly<User>) {
     this.login = user.login;
     this.userName = user.user_name;
     this.email = user.email;
+    this.created = user.created
   }
 }
 

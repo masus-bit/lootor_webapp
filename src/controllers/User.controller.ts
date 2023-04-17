@@ -12,6 +12,7 @@ import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { ChangePasswordDto } from '../dto/user/ChangePasswordDto';
 import { AuthGuard } from '../guards/Auth.guard';
 import { QueryUserDto } from '../dto/user/GetUserByIdDto';
+import {RatingDto} from "../dto/user/RatingDto";
 
 @Controller()
 export class UserController {
@@ -28,6 +29,21 @@ export class UserController {
     } catch (err) {
       throw new HttpBadRequestError(
         'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, обратитесь в техподдержку',
+      );
+    }
+  }
+
+  @Post('/secured/user/rating')
+  @UseGuards(AuthGuard)
+  async changeRating(
+      @Body() ratingDto: RatingDto,
+      @Query() query: QueryUserDto,
+  ) {
+    try {
+      return await this.userService.changeRating(ratingDto, query.login);
+    } catch (err) {
+      throw new HttpBadRequestError(
+          'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, обратитесь в техподдержку',
       );
     }
   }
