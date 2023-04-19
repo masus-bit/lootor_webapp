@@ -29,6 +29,12 @@ export class Collection {
   @Column()
   is_private: boolean;
 
+  @Index()
+  @Column({
+    nullable: true,
+  })
+  banner_url: string;
+
   @ManyToOne(() => User, (user) => user.login, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user' })
   user: string;
