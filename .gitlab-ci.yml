@@ -1,0 +1,58 @@
+# This file is a template, and might need editing before it works on your project.
+# You can copy and paste this template into a new `.gitlab-ci.yml` file.
+# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
+
+image: docker:19-dind
+services:
+  - docker:19-dind
+
+variables:
+  # See https://github.com/docker-library/docker/pull/166
+  DOCKER_TLS_CERTDIR: ""
+  GIT_STRATEGY: clone
+  DOCKER_DRIVER: overlay2
+
+# This folder is cached between builds
+# https://docs.gitlab.com/ee/ci/yaml/index.html#cache
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  tags:
+    - build
+  before_script:
+    - mkdir -p ~/.docker
+    - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
+    - echo "127.0.0.1 docker" > /etc/hosts
+
+  script:
+    - echo -n $DOCKERHUB_PASSWORD | docker login docker.io --username $DOCKERHUB_LOGIN --password-stdin
+    - docker build -t 5575123963/auc:latest -f Dockerfile .
+    - docker push 5575123963/auc:latest
+  only:
+    - develop
+
+deploy:
+  tags:
+    - deploy
+  stage: deploy
+  script:
+    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "${SSH_PRIVATE_KEY}" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "=================deploy to host================="
+    - |
+      ssh -o StrictHostKeyChecking=no -t -t root@134.0.115.88 << EOF
+      cd /
+      docker-compose down
+      docker-compose up -d --force-recreate
+      exit 
+      EOF
+
+  only:
+    - develop
+

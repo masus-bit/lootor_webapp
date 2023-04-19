@@ -1,19 +1,16 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../../entities/User';
-import { UserController } from '../../controllers/User.controller';
-import { UserService } from '../../services/User.service';
-import { UserRepository } from '../../repositories/User.repository';
 import crypto from 'crypto';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { Algorithm } from 'jsonwebtoken';
+import { Lot } from '../../entities/Lot';
 
 @Module({
-  controllers: [UserController],
-  providers: [UserService, UserRepository],
+  controllers: [],
+  providers: [],
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([Lot]),
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
@@ -28,6 +25,6 @@ import { Algorithm } from 'jsonwebtoken';
       },
     }),
   ],
-  exports: [UserService],
+  exports: [],
 })
-export class UserModule {}
+export class LotModule {}

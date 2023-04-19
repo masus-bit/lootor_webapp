@@ -2,8 +2,8 @@ import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
 export class TokenPayloadDto {
-  @Expose({ name: 'id' })
-  userId: string;
+  @Expose({ name: 'login' })
+  login: string;
 
   @Expose()
   iat: number;
