@@ -11,12 +11,18 @@ export class UserByIdDto {
   readonly userName: string;
   readonly email: string;
   readonly created: Date;
+  readonly avatarUrl: string;
+  readonly likes: number;
+  readonly dislikes: number;
 
   constructor(user: Readonly<User>) {
     this.login = user.login;
     this.userName = user.user_name;
     this.email = user.email;
-    this.created = user.created
+    this.created = user.created;
+    this.avatarUrl = user.avatar_url;
+    this.likes = user.likes;
+    this.dislikes = user.dislikes;
   }
 }
 
