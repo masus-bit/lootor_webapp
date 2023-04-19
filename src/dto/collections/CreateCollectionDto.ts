@@ -17,6 +17,9 @@ export class CreateCollectionDto {
 
   @Expose({ name: 'userLogin' })
   readonly user: string;
+
+  @Expose({ name: 'bannerUrl' })
+  readonly banner_url: string;
 }
 
 export class ReturnUser {
@@ -37,12 +40,14 @@ export class ReturnedCollectionDto {
   readonly description: string;
   readonly user: string;
   readonly isPrivate: boolean;
+  readonly bannerUrl: string;
 
   constructor(collection: Readonly<Collection>) {
     this.id = collection.id;
     this.isPrivate = collection.is_private;
     this.name = collection.name;
     this.description = collection.description;
+    this.bannerUrl = collection.banner_url;
     // @ts-ignore
     this.user = new ReturnUser(collection.user);
   }

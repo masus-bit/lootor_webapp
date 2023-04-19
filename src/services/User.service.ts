@@ -7,10 +7,6 @@ import { hashSync } from 'bcrypt';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { RatingDto } from '../dto/user/RatingDto';
 import { UpdateUserDto } from '../dto/user/UpdateUserDto';
-import {
-  ReturnCreateCollection,
-  ReturnedCollectionDto,
-} from '../dto/collections/CreateCollectionDto';
 
 @Injectable()
 export class UserService {
@@ -23,9 +19,14 @@ export class UserService {
     return await this.userRepository.getByUserName(userName);
   }
 
-  async getByLogin(login: string): Promise<GetUserByIdDto> {
+  async getByLogin(login: string, authUser: User): Promise<GetUserByIdDto> {
     const user = await this.userRepository.getById(login);
-    return new GetUserByIdDto(new UserByIdDto(user));
+    if (login === authUser.login) {
+      return new GetUserByIdDto(new UserByIdDto(user));
+    }
+    const subArray = authUser.subscriptions;
+    const canSubscribe = !subArray.includes(login);
+    return new GetUserByIdDto(new UserByIdDto(user, canSubscribe));
   }
 
   async changeRating(dto: RatingDto, login: string): Promise<string> {
@@ -69,6 +70,37 @@ export class UserService {
       const user = await this.userRepository.updateByLogin(dto, login);
       const result = await this.userRepository.getById(user.login);
       return new GetUserByIdDto(new UserByIdDto(result));
+    }
+  }
+
+  async subscribe(
+    subscriptionTargetUserLogin: string,
+    subscriber: User,
+    isSubscribe: string,
+  ): Promise<string> {
+    try {
+      const subscriberModel = await this.userRepository.createModel(subscriber);
+      if (JSON.parse(isSubscribe)) {
+        subscriberModel.subscriptions
+          ? // @ts-ignore
+            (subscriberModel.subscriptions = `{ ${subscriberModel.subscriptions}, ${subscriptionTargetUserLogin} }`)
+          : subscriberModel.subscriptions.push(
+              `{ ${subscriptionTargetUserLogin} }`,
+            );
+        await this.userRepository.save(subscriberModel);
+        return 'Подписка оформлена';
+      } else {
+        const subscribers = subscriberModel.subscriptions.filter(
+          (s) => s !== subscriptionTargetUserLogin,
+        );
+        // @ts-ignore
+        subscriberModel.subscriptions = `{${subscribers}}`;
+        await this.userRepository.save(subscriberModel);
+        return 'Отписка оформлена :D';
+      }
+    } catch (err) {
+      console.log(err);
+      throw new HttpBadRequestError('Что-то пошло не так');
     }
   }
 

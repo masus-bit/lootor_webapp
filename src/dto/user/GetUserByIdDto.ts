@@ -14,8 +14,9 @@ export class UserByIdDto {
   readonly avatarUrl: string;
   readonly likes: number;
   readonly dislikes: number;
+  readonly canSubscribe?: boolean;
 
-  constructor(user: Readonly<User>) {
+  constructor(user: Readonly<User>, canSubscribe?: boolean) {
     this.login = user.login;
     this.userName = user.user_name;
     this.email = user.email;
@@ -23,6 +24,7 @@ export class UserByIdDto {
     this.avatarUrl = user.avatar_url;
     this.likes = user.likes;
     this.dislikes = user.dislikes;
+    this.canSubscribe = canSubscribe;
   }
 }
 

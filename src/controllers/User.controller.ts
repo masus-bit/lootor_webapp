@@ -6,6 +6,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from '../services/User.service';
@@ -14,9 +15,9 @@ import { ChangePasswordDto } from '../dto/user/ChangePasswordDto';
 import { AuthGuard } from '../guards/Auth.guard';
 import { QueryUserDto } from '../dto/user/GetUserByIdDto';
 import { RatingDto } from '../dto/user/RatingDto';
-import { CreateCollectionDto } from '../dto/collections/CreateCollectionDto';
 import { plainToClass } from 'class-transformer';
 import { UpdateUserDto } from '../dto/user/UpdateUserDto';
+import { Request } from '../types/base';
 
 @Controller('/secured/user')
 export class UserController {
@@ -56,9 +57,9 @@ export class UserController {
 
   @Get()
   @UseGuards(AuthGuard)
-  async getByLogin(@Query() query: QueryUserDto) {
+  async getByLogin(@Query() query: QueryUserDto, @Req() request: Request) {
     try {
-      return this.userService.getByLogin(query.login);
+      return this.userService.getByLogin(query.login, request.user);
     } catch (err) {
       throw new HttpBadRequestError(
         'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, обратитесь в техподдержку',
@@ -76,6 +77,23 @@ export class UserController {
       return await this.userService.update(
         plainToClass(UpdateUserDto, dto),
         query.login,
+      );
+    } catch (e) {
+      throw new HttpBadRequestError(e);
+    }
+  }
+
+  @Get('/subscriptions')
+  @UseGuards(AuthGuard)
+  async subscribe(
+    @Req() request: Request,
+    @Query() query: { login: string; isSubscribe: string },
+  ) {
+    try {
+      return await this.userService.subscribe(
+        query.login,
+        request.user,
+        query.isSubscribe,
       );
     } catch (e) {
       throw new HttpBadRequestError(e);
