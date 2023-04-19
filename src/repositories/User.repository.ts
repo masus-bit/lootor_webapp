@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { User } from '../entities/User';
+import { Collection } from '../entities/Collection';
 
 @Injectable()
 export class UserRepository {
@@ -58,5 +59,13 @@ export class UserRepository {
         login: login,
       },
     });
+  }
+
+  async updateByLogin(user: DeepPartial<User>, login: string): Promise<User> {
+    const updatedUser = this.usersRepository.create({
+      login,
+      ...user,
+    });
+    return await this.usersRepository.save(updatedUser);
   }
 }

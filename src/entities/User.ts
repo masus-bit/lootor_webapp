@@ -55,6 +55,13 @@ export class User {
   })
   dislikes: number;
 
+  @Index()
+  @Column({
+    nullable: true,
+    length: 100,
+  })
+  avatar_url: string;
+
   @OneToMany(() => Lot, (lot) => lot.created_by)
   lots_of: Lot[];
 
