@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { User } from '../entities/User';
+import { Collection } from '../entities/Collection';
 
 @Injectable()
 export class UserRepository {
@@ -15,9 +16,10 @@ export class UserRepository {
       where: {
         email: email,
       },
-      select: ['login', 'password', 'user_name', 'password_encrypted'],
+      select: ['password', 'login', 'email', 'user_name'],
     });
   }
+
   async save(data: DeepPartial<User>): Promise<User> {
     return await this.usersRepository.save(data);
   }
@@ -27,9 +29,10 @@ export class UserRepository {
   }
 
   async getById(login: string): Promise<User | never> {
-    return await this.usersRepository.findOne({
-      where: { login: login },
-    });
+    return await this.usersRepository
+      .createQueryBuilder('user')
+      .where('user.login = :login', { login })
+      .getOne();
   }
 
   async getByUserName(userName: string): Promise<User | never> {
@@ -45,9 +48,8 @@ export class UserRepository {
   }
 
   async getByEmail(email: string): Promise<User | never> {
-    return await this.usersRepository.findOneOrFail({
+    return await this.usersRepository.findOne({
       where: { email },
-      select: ['password', 'login', 'email', 'user_name']
     });
   }
 
@@ -57,5 +59,13 @@ export class UserRepository {
         login: login,
       },
     });
+  }
+
+  async updateByLogin(user: DeepPartial<User>, login: string): Promise<User> {
+    const updatedUser = this.usersRepository.create({
+      login,
+      ...user,
+    });
+    return await this.usersRepository.save(updatedUser);
   }
 }

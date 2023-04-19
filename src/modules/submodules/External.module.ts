@@ -1,17 +1,18 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../../entities/User';
-import { UserController } from '../../controllers/User.controller';
-import { UserService } from '../../services/User.service';
-import { UserRepository } from '../../repositories/User.repository';
-import crypto from 'crypto';
+import { ExternalService } from '../../services/External.service';
+import { HttpModule } from '@nestjs/axios';
+import { ExternalController } from '../../controllers/External.controller';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import crypto from 'crypto';
 import { Algorithm } from 'jsonwebtoken';
+import { UserRepository } from '../../repositories/User.repository';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from '../../entities/User';
 
 @Module({
-  controllers: [UserController],
-  providers: [UserService, UserRepository],
+  controllers: [ExternalController],
+  providers: [ExternalService, UserRepository],
   imports: [
     TypeOrmModule.forFeature([User]),
     ConfigModule.forRoot({
@@ -27,7 +28,8 @@ import { Algorithm } from 'jsonwebtoken';
         algorithms: [(process.env.JWT_ALGORITHM as Algorithm) || 'HS512'],
       },
     }),
+    HttpModule,
   ],
-  exports: [UserService],
+  exports: [ExternalService],
 })
-export class UserModule {}
+export class ExternalModule {}

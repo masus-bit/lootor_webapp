@@ -9,6 +9,7 @@ import { User } from '../entities/User';
 import { HttpUnauthorizedError } from '../errors/HttpUnauthorizedError';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { UserRepository } from '../repositories/User.repository';
+import { ReturnUser } from '../dto/collections/CreateCollectionDto';
 
 @Injectable()
 export class AuthService {
@@ -26,8 +27,8 @@ export class AuthService {
   }: SignInDto): Promise<false | string | never> {
     if (email) {
       try {
-        const user = await this.usersRepository.getByEmail(email);
-        console.log(user)
+        const user = await this.usersRepository.getPasswordsByEmail(email);
+        console.log(user);
         if (AuthService.verifyPassword(user, password)) {
           return this.getToken(user);
         }
@@ -37,9 +38,8 @@ export class AuthService {
         throw new HttpUnauthorizedError();
       }
     }
-    return false
+    return false;
   }
-
 
   /**
    * Регистрация нового пользователя
@@ -55,13 +55,17 @@ export class AuthService {
       }
 
       const userModel = this.usersRepository.createModel(signUpDto);
+      userModel.created = new Date(Date.now());
 
       userModel.password_encrypted = AuthService.getHashPassword(
         userModel.password,
       );
 
       const user = await this.usersRepository.save(userModel);
-      return await this.usersRepository.getByIdOrFail(user.login);
+
+      const returnedUser = await this.usersRepository.getById(user.login);
+      // @ts-ignore
+      return new ReturnUser(returnedUser);
     } catch (err) {
       console.error(err.message);
       throw err;
