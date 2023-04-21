@@ -49,7 +49,7 @@ export class ReturnedCollectionDto {
     this.name = collection.name;
     this.description = collection.description;
     this.bannerUrl = collection.banner_url;
-    this.likes = collection.likes.length;
+    this.likes = collection?.likes?.length;
     // @ts-ignore
     this.user = new ReturnUser(collection.user);
   }
