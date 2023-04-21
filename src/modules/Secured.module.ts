@@ -4,10 +4,18 @@ import { LotModule } from './submodules/Lot.module';
 import { DraftLot } from '../entities/DraftLot';
 import { ExternalModule } from './submodules/External.module';
 import { CollectionModule } from './submodules/Collection.module';
+import { CollectionItemModule } from './submodules/CollectionItem.module';
 
 @Module({
   controllers: [],
   providers: [],
-  imports: [UserModule, LotModule, DraftLot, ExternalModule, CollectionModule],
+  imports: [
+    UserModule,
+    LotModule,
+    DraftLot,
+    ExternalModule,
+    CollectionModule,
+    CollectionItemModule,
+  ],
 })
 export class SecuredModule {}

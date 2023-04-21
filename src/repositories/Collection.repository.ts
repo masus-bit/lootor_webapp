@@ -23,7 +23,9 @@ export class CollectionRepository {
     return await this.collectionRepository
       .createQueryBuilder('collection')
       .where('collection.id = :id', { id })
-      .innerJoinAndSelect('collection.user', 'user')
+      .leftJoinAndSelect('collection.user', 'user')
+      .leftJoinAndSelect('collection.collectionItems', 'collection_item')
+      .innerJoinAndSelect('collection_item.collection', 'collection_item.id')
       .getOne();
   }
 

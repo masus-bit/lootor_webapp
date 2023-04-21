@@ -2,8 +2,6 @@ import { Exclude, Expose } from 'class-transformer';
 import { Collection } from '../../entities/Collection';
 import { User } from '../../entities/User';
 
-class Attributes {}
-
 @Exclude()
 export class CreateCollectionDto {
   @Expose()
@@ -26,11 +24,13 @@ export class ReturnUser {
   readonly login: string;
   readonly userName: string;
   readonly email: string;
+  readonly subscriptions: string[];
 
   constructor(user: Readonly<User>) {
     this.login = user.login;
     this.userName = user.user_name;
     this.email = user.email;
+    this.subscriptions = user.subscriptions;
   }
 }
 
@@ -48,6 +48,7 @@ export class ReturnedCollectionDto {
     this.name = collection.name;
     this.description = collection.description;
     this.bannerUrl = collection.banner_url;
+
     // @ts-ignore
     this.user = new ReturnUser(collection.user);
   }
