@@ -41,6 +41,7 @@ export class ReturnedCollectionDto {
   readonly user: string;
   readonly isPrivate: boolean;
   readonly bannerUrl: string;
+  readonly likes: number;
 
   constructor(collection: Readonly<Collection>) {
     this.id = collection.id;
@@ -48,7 +49,7 @@ export class ReturnedCollectionDto {
     this.name = collection.name;
     this.description = collection.description;
     this.bannerUrl = collection.banner_url;
-
+    this.likes = collection.likes.length;
     // @ts-ignore
     this.user = new ReturnUser(collection.user);
   }

@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { CollectionService } from '../services/Collection.service';
@@ -14,6 +15,7 @@ import { CreateCollectionDto } from '../dto/collections/CreateCollectionDto';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { AuthGuard } from '../guards/Auth.guard';
 import { plainToClass } from 'class-transformer';
+import { Request } from '../types/base';
 
 @Controller('/secured/collections')
 export class CollectionController {
@@ -69,5 +71,11 @@ export class CollectionController {
   @UseGuards(AuthGuard)
   async getOne(@Query() query: { id: string }) {
     return await this.collectionsService.getOne(query.id);
+  }
+
+  @Get('/like')
+  @UseGuards(AuthGuard)
+  async like(@Query() query: { id: string }, @Req() request: Request) {
+    return await this.collectionsService.like(query.id, request.user.login);
   }
 }

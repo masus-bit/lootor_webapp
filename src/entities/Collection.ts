@@ -37,6 +37,10 @@ export class Collection {
   })
   banner_url: string;
 
+  @Index()
+  @Column('simple-array', { array: true, nullable: true })
+  likes: string[];
+
   @OneToMany(
     () => CollectionItem,
     (collectionItem) => collectionItem.collection,

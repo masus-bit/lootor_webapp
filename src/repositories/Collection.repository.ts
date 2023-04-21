@@ -29,6 +29,14 @@ export class CollectionRepository {
       .getOne();
   }
 
+  async getByIdWithoutCollections(id: string): Promise<Collection | never> {
+    return await this.collectionRepository
+      .createQueryBuilder('collection')
+      .where('collection.id = :id', { id })
+      .leftJoinAndSelect('collection.user', 'user')
+      .getOne();
+  }
+
   async getByUserId(id: string): Promise<Collection[]> {
     return await this.collectionRepository
       .createQueryBuilder('collection')
