@@ -28,7 +28,11 @@ export class CollectionService {
     try {
       const collectionModel = this.collectionRepository.createModel(dto);
       const collection = await this.collectionRepository.save(collectionModel);
-      const result = await this.collectionRepository.getById(collection.id);
+
+      const result = await this.collectionRepository.getByIdWithoutCollections(
+        collection.id,
+      );
+      console.log(result);
       return new ReturnCreateCollection(new ReturnedCollectionDto(result));
     } catch (err) {
       console.error(err.message);
@@ -61,7 +65,9 @@ export class CollectionService {
         dto,
         collectionId,
       );
-      const result = await this.collectionRepository.getById(collection.id);
+      const result = await this.collectionRepository.getByIdWithoutCollections(
+        collection.id,
+      );
       return new ReturnCreateCollection(new ReturnedCollectionDto(result));
     }
   }
@@ -81,5 +87,26 @@ export class CollectionService {
   async getOne(id: string) {
     const collection = await this.collectionRepository.getById(id);
     return new GetOneCollectionDto(new CollectionDto(collection));
+  }
+
+  async like(id: string, userId: string) {
+    const exists = await this.collectionRepository.getByIdWithoutCollections(
+      id,
+    );
+
+    const model = await this.collectionRepository.createModel(exists);
+    if (exists?.likes?.length) {
+      !model.likes.includes(userId)
+        ? // @ts-ignore
+          (model.likes = `{${exists.likes}, ${userId}}`)
+        : model.likes.filter((l) => l !== userId);
+      await this.collectionRepository.save(model);
+      return 'Liked';
+    }
+
+    // @ts-ignore
+    model.likes = `{${userId}}`;
+    await this.collectionRepository.save(model);
+    return 'Liked';
   }
 }

@@ -11,6 +11,8 @@ export class CollectionDto {
   readonly bannerUrl: string;
   readonly collectionItems: ReturnedCollectionItemDto[];
   readonly collectionItemsCount: number;
+  readonly canLike: boolean;
+  readonly likes: number;
 
   constructor(collection: Readonly<Collection>) {
     this.id = collection.id;
@@ -25,6 +27,9 @@ export class CollectionDto {
       (item) => new ReturnedCollectionItemDto(item),
     );
     this.collectionItemsCount = collection.collectionItems.length;
+    // @ts-ignore
+    this.canLike = !collection.likes?.includes(collection.user.login);
+    this.likes = collection.likes.length;
   }
 }
 
