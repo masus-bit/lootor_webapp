@@ -4,9 +4,11 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './User';
+import { CollectionItem } from './CollectionItem';
 
 @Entity()
 export class Collection {
@@ -34,6 +36,12 @@ export class Collection {
     nullable: true,
   })
   banner_url: string;
+
+  @OneToMany(
+    () => CollectionItem,
+    (collectionItem) => collectionItem.collection,
+  )
+  collectionItems: CollectionItem[];
 
   @ManyToOne(() => User, (user) => user.login, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user' })

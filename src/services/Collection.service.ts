@@ -6,6 +6,10 @@ import {
   ReturnedCollectionDto,
 } from '../dto/collections/CreateCollectionDto';
 import { CollectionRepository } from '../repositories/Collection.repository';
+import {
+  CollectionDto,
+  GetOneCollectionDto,
+} from '../dto/collections/CollectionDto';
 
 @Injectable()
 export class CollectionService {
@@ -72,5 +76,10 @@ export class CollectionService {
       result.push(new ReturnedCollectionDto(collection)),
     );
     return new ReturnCollectionsDto(result);
+  }
+
+  async getOne(id: string) {
+    const collection = await this.collectionRepository.getById(id);
+    return new GetOneCollectionDto(new CollectionDto(collection));
   }
 }

@@ -63,7 +63,7 @@ export class User {
   avatar_url: string;
 
   @Index()
-  @Column('simple-array', { array: true, nullable: true, default: [] })
+  @Column('simple-array', { array: true, nullable: true })
   subscriptions: string[];
 
   @OneToMany(() => Lot, (lot) => lot.created_by)

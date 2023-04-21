@@ -9,24 +9,27 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { CollectionService } from '../services/Collection.service';
 import { CreateCollectionDto } from '../dto/collections/CreateCollectionDto';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { AuthGuard } from '../guards/Auth.guard';
 import { plainToClass } from 'class-transformer';
+import { CollectionItemService } from '../services/CollectionItem.service';
+import { CollectionItemCreateDto } from '../dto/collectionItem/CollectionItemCreateDto';
+import { HttpInternalServerError } from '../errors/HttpInternalServerError';
 
-@Controller('/secured/collections')
-export class CollectionController {
+@Controller('/secured/collection_item')
+export class CollectionItemController {
   constructor(
-    @Inject(CollectionService) private collectionsService: CollectionService,
+    @Inject(CollectionItemService)
+    private collectionItemsService: CollectionItemService,
   ) {}
 
   @Post()
   @UseGuards(AuthGuard)
   async createCollection(@Body() dto: CreateCollectionDto) {
     try {
-      return await this.collectionsService.createCollection(
-        plainToClass(CreateCollectionDto, dto),
+      return await this.collectionItemsService.create(
+        plainToClass(CollectionItemCreateDto, dto),
       );
     } catch (e) {
       throw new HttpBadRequestError('Bad request');
@@ -37,7 +40,7 @@ export class CollectionController {
   @UseGuards(AuthGuard)
   async deleteCollection(@Query() query: { id: string }) {
     try {
-      return await this.collectionsService.delete(query.id);
+      return await this.collectionItemsService.delete(query.id);
     } catch (e) {
       throw new HttpBadRequestError(e);
     }
@@ -50,8 +53,8 @@ export class CollectionController {
     @Query() query: { id: string },
   ) {
     try {
-      return await this.collectionsService.update(
-        plainToClass(CreateCollectionDto, dto),
+      return await this.collectionItemsService.update(
+        plainToClass(CollectionItemCreateDto, dto),
         query.id,
       );
     } catch (e) {
@@ -59,15 +62,13 @@ export class CollectionController {
     }
   }
 
-  @Get('/all')
-  @UseGuards(AuthGuard)
-  async getAllByUserLogin(@Query() query: { userLogin }) {
-    return await this.collectionsService.getByUserId(query.userLogin);
-  }
-
   @Get()
   @UseGuards(AuthGuard)
-  async getOne(@Query() query: { id: string }) {
-    return await this.collectionsService.getOne(query.id);
+  async getById(@Query() query: { id: string }) {
+    try {
+      return await this.collectionItemsService.getById(query.id);
+    } catch (err) {
+      throw new HttpInternalServerError(err);
+    }
   }
 }

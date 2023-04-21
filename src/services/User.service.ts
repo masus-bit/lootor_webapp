@@ -81,12 +81,11 @@ export class UserService {
     try {
       const subscriberModel = await this.userRepository.createModel(subscriber);
       if (JSON.parse(isSubscribe)) {
-        subscriberModel.subscriptions
+        subscriberModel.subscriptions.length
           ? // @ts-ignore
             (subscriberModel.subscriptions = `{ ${subscriberModel.subscriptions}, ${subscriptionTargetUserLogin} }`)
-          : subscriberModel.subscriptions.push(
-              `{ ${subscriptionTargetUserLogin} }`,
-            );
+          : // @ts-ignore
+            (subscriberModel.subscriptions = `{ ${subscriptionTargetUserLogin} }`);
         await this.userRepository.save(subscriberModel);
         return 'Подписка оформлена';
       } else {
