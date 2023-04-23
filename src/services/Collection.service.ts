@@ -32,7 +32,6 @@ export class CollectionService {
       const result = await this.collectionRepository.getByIdWithoutCollections(
         collection.id,
       );
-      console.log(result);
       return new ReturnCreateCollection(new ReturnedCollectionDto(result));
     } catch (err) {
       console.error(err.message);
@@ -96,10 +95,13 @@ export class CollectionService {
 
     const model = await this.collectionRepository.createModel(exists);
     if (exists?.likes?.length) {
+      let likes = [];
       !model.likes.includes(userId)
         ? // @ts-ignore
           (model.likes = `{${exists.likes}, ${userId}}`)
-        : model.likes.filter((l) => l !== userId);
+        : (likes = model.likes.filter((l) => l !== userId));
+      // @ts-ignore
+      model.likes = `{${likes}}`;
       await this.collectionRepository.save(model);
       return 'Liked';
     }

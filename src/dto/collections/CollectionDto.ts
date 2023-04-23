@@ -29,7 +29,7 @@ export class CollectionDto {
     this.collectionItemsCount = collection.collectionItems.length;
     // @ts-ignore
     this.canLike = !collection.likes?.includes(collection.user.login);
-    this.likes = collection.likes.length;
+    this.likes = collection?.likes?.length;
   }
 }
 
