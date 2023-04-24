@@ -69,8 +69,19 @@ export class CollectionController {
 
   @Get()
   @UseGuards(AuthGuard)
-  async getOne(@Query() query: { id: string }) {
-    return await this.collectionsService.getOne(query.id);
+  async getOne(
+    @Query()
+    query: {
+      id?: string;
+      transliteration?: string;
+      userLogin?: string;
+    },
+  ) {
+    return await this.collectionsService.getOne(
+      query.id,
+      query.transliteration,
+      query.userLogin,
+    );
   }
 
   @Get('/like')

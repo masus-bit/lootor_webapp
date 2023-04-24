@@ -83,8 +83,16 @@ export class CollectionService {
     return new ReturnCollectionsDto(result);
   }
 
-  async getOne(id: string) {
-    const collection = await this.collectionRepository.getById(id);
+  async getOne(id?: string, transliteration?: string, login?: string) {
+    let collection;
+    if (id) {
+      collection = await this.collectionRepository.getById(id);
+    } else {
+      collection = await this.collectionRepository.getOneByTransliteration(
+        login,
+        transliteration,
+      );
+    }
     return new GetOneCollectionDto(new CollectionDto(collection));
   }
 

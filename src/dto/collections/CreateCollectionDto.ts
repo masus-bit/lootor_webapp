@@ -18,6 +18,9 @@ export class CreateCollectionDto {
 
   @Expose({ name: 'bannerUrl' })
   readonly banner_url: string;
+
+  @Expose()
+  readonly transliteration: string;
 }
 
 export class ReturnUser {
@@ -42,6 +45,9 @@ export class ReturnedCollectionDto {
   readonly isPrivate: boolean;
   readonly bannerUrl: string;
   readonly likes: number;
+  readonly transliteration: string;
+  readonly canLike: boolean;
+  readonly collectionItemsCount: number;
 
   constructor(collection: Readonly<Collection>) {
     this.id = collection.id;
@@ -49,9 +55,13 @@ export class ReturnedCollectionDto {
     this.name = collection.name;
     this.description = collection.description;
     this.bannerUrl = collection.banner_url;
-    this.likes = collection?.likes?.length;
+    this.likes = collection?.likes?.length || 0;
+    this.transliteration = collection.transliteration;
     // @ts-ignore
     this.user = new ReturnUser(collection.user);
+    // @ts-ignore
+    this.canLike = !collection.likes?.includes(collection.user.login);
+    this.collectionItemsCount = collection.collectionItems?.length || 0;
   }
 }
 
