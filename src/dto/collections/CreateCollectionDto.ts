@@ -1,32 +1,44 @@
 import { Exclude, Expose } from 'class-transformer';
 import { Collection } from '../../entities/Collection';
 import { User } from '../../entities/User';
+import { ApiProperty } from '@nestjs/swagger';
+import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 
 @Exclude()
 export class CreateCollectionDto {
   @Expose()
+  @ApiProperty()
   readonly name: string;
 
   @Expose()
+  @ApiProperty()
   readonly description: string;
 
   @Expose({ name: 'isPrivate' })
+  @ApiProperty({ name: 'isPrivate' })
   readonly is_private: boolean;
 
   @Expose({ name: 'userLogin' })
+  @ApiProperty({ name: 'userLogin' })
   readonly user: string;
 
   @Expose({ name: 'bannerUrl' })
+  @ApiProperty({ name: 'bannerUrl' })
   readonly banner_url: string;
 
   @Expose()
+  @ApiProperty()
   readonly transliteration: string;
 }
 
 export class ReturnUser {
+  @ApiProperty()
   readonly login: string;
+  @ApiProperty()
   readonly userName: string;
+  @ApiProperty()
   readonly email: string;
+  @ApiProperty()
   readonly subscriptions: string[];
 
   constructor(user: Readonly<User>) {
@@ -38,15 +50,25 @@ export class ReturnUser {
 }
 
 export class ReturnedCollectionDto {
+  @ApiProperty()
   readonly id: string;
+  @ApiProperty()
   readonly name: string;
+  @ApiProperty()
   readonly description: string;
+  @ApiModelProperty({ type: ReturnUser })
   readonly user: string;
+  @ApiProperty()
   readonly isPrivate: boolean;
+  @ApiProperty()
   readonly bannerUrl: string;
+  @ApiProperty()
   readonly likes: number;
+  @ApiProperty()
   readonly transliteration: string;
+  @ApiProperty()
   readonly canLike: boolean;
+  @ApiProperty()
   readonly collectionItemsCount: number;
 
   constructor(collection: Readonly<Collection>) {
@@ -66,6 +88,7 @@ export class ReturnedCollectionDto {
 }
 
 export class ReturnCreateCollection {
+  @ApiModelProperty({ type: ReturnedCollectionDto })
   readonly data: Readonly<ReturnedCollectionDto>;
 
   constructor(data: Readonly<ReturnedCollectionDto>) {
@@ -74,6 +97,7 @@ export class ReturnCreateCollection {
 }
 
 export class ReturnCollectionsDto {
+  @ApiModelProperty({ type: ReturnedCollectionDto, isArray: true })
   readonly data: ReadonlyArray<ReturnedCollectionDto>;
 
   constructor(data: ReadonlyArray<ReturnedCollectionDto>) {
