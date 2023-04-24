@@ -41,6 +41,12 @@ export class Collection {
   @Column('simple-array', { array: true, nullable: true })
   likes: string[];
 
+  @Index()
+  @Column({
+    nullable: true,
+  })
+  transliteration: string;
+
   @OneToMany(
     () => CollectionItem,
     (collectionItem) => collectionItem.collection,
