@@ -1,3 +1,6 @@
+import { ApiProperty } from '@nestjs/swagger';
+
 export class RatingDto {
-    readonly isLike: boolean;
+  @ApiProperty()
+  readonly isLike: boolean;
 }

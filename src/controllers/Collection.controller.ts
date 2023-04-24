@@ -11,11 +11,17 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CollectionService } from '../services/Collection.service';
-import { CreateCollectionDto } from '../dto/collections/CreateCollectionDto';
+import {
+  CreateCollectionDto,
+  ReturnCollectionsDto,
+  ReturnCreateCollection,
+} from '../dto/collections/CreateCollectionDto';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { AuthGuard } from '../guards/Auth.guard';
 import { plainToClass } from 'class-transformer';
 import { Request } from '../types/base';
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { GetOneCollectionDto } from '../dto/collections/CollectionDto';
 
 @Controller('/secured/collections')
 export class CollectionController {
@@ -23,7 +29,13 @@ export class CollectionController {
     @Inject(CollectionService) private collectionsService: CollectionService,
   ) {}
 
+  @ApiOperation({ summary: 'Создание коллекции' })
+  @ApiResponse({
+    status: 200,
+    type: ReturnCreateCollection,
+  })
   @Post()
+  @ApiBody({ type: CreateCollectionDto })
   @UseGuards(AuthGuard)
   async createCollection(@Body() dto: CreateCollectionDto) {
     try {
@@ -35,8 +47,14 @@ export class CollectionController {
     }
   }
 
+  @ApiOperation({ summary: 'Удаление коллекции' })
+  @ApiResponse({
+    status: 200,
+    type: String,
+  })
   @Delete()
   @UseGuards(AuthGuard)
+  @ApiQuery({ name: 'id', type: String })
   async deleteCollection(@Query() query: { id: string }) {
     try {
       return await this.collectionsService.delete(query.id);
@@ -45,8 +63,15 @@ export class CollectionController {
     }
   }
 
+  @ApiOperation({ summary: 'Изменение коллекции' })
+  @ApiResponse({
+    status: 200,
+    type: ReturnCreateCollection,
+  })
   @Patch()
   @UseGuards(AuthGuard)
+  @ApiBody({ type: CreateCollectionDto })
+  @ApiQuery({ name: 'id', type: String })
   async updateCollections(
     @Body() dto: CreateCollectionDto,
     @Query() query: { id: string },
@@ -61,14 +86,30 @@ export class CollectionController {
     }
   }
 
+  @ApiOperation({ summary: 'Получение коллекций по логину пользователя' })
+  @ApiResponse({
+    status: 200,
+    type: ReturnCollectionsDto,
+  })
   @Get('/all')
   @UseGuards(AuthGuard)
+  @ApiQuery({ name: 'userLogin', type: String })
   async getAllByUserLogin(@Query() query: { userLogin }) {
     return await this.collectionsService.getByUserId(query.userLogin);
   }
 
+  @ApiOperation({
+    summary: 'Получение одной коллекциb по id или по транслиту имени',
+  })
+  @ApiResponse({
+    status: 200,
+    type: GetOneCollectionDto,
+  })
   @Get()
   @UseGuards(AuthGuard)
+  @ApiQuery({ name: 'id', type: String, required: false })
+  @ApiQuery({ name: 'transliteration', type: String, required: false })
+  @ApiQuery({ name: 'userLogin', type: String, required: false })
   async getOne(
     @Query()
     query: {
@@ -84,8 +125,16 @@ export class CollectionController {
     );
   }
 
+  @ApiOperation({
+    summary: 'Лайк коллекции',
+  })
+  @ApiResponse({
+    status: 200,
+    type: String,
+  })
   @Get('/like')
   @UseGuards(AuthGuard)
+  @ApiQuery({ name: 'id', type: String })
   async like(@Query() query: { id: string }, @Req() request: Request) {
     return await this.collectionsService.like(query.id, request.user.login);
   }
