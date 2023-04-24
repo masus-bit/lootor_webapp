@@ -46,12 +46,14 @@ export class User {
   @Index()
   @Column({
     nullable: true,
+    default: 0,
   })
   likes: number;
 
   @Index()
   @Column({
     nullable: true,
+    default: 0,
   })
   dislikes: number;
 
