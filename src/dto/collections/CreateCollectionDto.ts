@@ -40,12 +40,15 @@ export class ReturnUser {
   readonly email: string;
   @ApiProperty()
   readonly subscriptions: string[];
+  @ApiProperty()
+  readonly avatarUrl: string;
 
   constructor(user: Readonly<User>) {
     this.login = user.login;
     this.userName = user.user_name;
     this.email = user.email;
     this.subscriptions = user.subscriptions;
+    this.avatarUrl = user.avatar_url;
   }
 }
 
@@ -57,7 +60,7 @@ export class ReturnedCollectionDto {
   @ApiProperty()
   readonly description: string;
   @ApiModelProperty({ type: ReturnUser })
-  readonly user: string;
+  readonly user?: string;
   @ApiProperty()
   readonly isPrivate: boolean;
   @ApiProperty()
@@ -80,9 +83,9 @@ export class ReturnedCollectionDto {
     this.likes = collection?.likes?.length || 0;
     this.transliteration = collection.transliteration;
     // @ts-ignore
-    this.user = new ReturnUser(collection.user);
+    this.user = collection.user ? new ReturnUser(collection?.user) : null;
     // @ts-ignore
-    this.canLike = !collection.likes?.includes(collection.user.login);
+    this.canLike = !collection.likes?.includes(collection.user?.login);
     this.collectionItemsCount = collection.collectionItems?.length || 0;
   }
 }

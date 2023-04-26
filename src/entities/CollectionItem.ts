@@ -64,6 +64,10 @@ export class CollectionItem {
   copy_number: string;
 
   @Index()
+  @Column({ default: false, select: false })
+  deleted: boolean;
+
+  @Index()
   @Column({ nullable: true })
   @ManyToOne(() => Collection, (collection) => collection.id)
   @JoinColumn({ name: 'collection' })

@@ -8,12 +8,14 @@ import crypto from 'crypto';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { Algorithm } from 'jsonwebtoken';
+import { EventRepository } from '../../repositories/Event.repository';
+import { Event } from '../../entities/Event';
 
 @Module({
   controllers: [UserController],
-  providers: [UserService, UserRepository],
+  providers: [UserService, UserRepository, EventRepository],
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Event]),
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),

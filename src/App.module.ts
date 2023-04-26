@@ -10,6 +10,7 @@ import { CollectionItem } from './entities/CollectionItem';
 import { CollectionImage } from './entities/CollectionImage';
 import { LotImage } from './entities/LotImage';
 import { Collection } from './entities/Collection';
+import { Event } from './entities/Event';
 
 @Module({
   controllers: [],
@@ -34,6 +35,7 @@ import { Collection } from './entities/Collection';
         CollectionImage,
         Collection,
         LotImage,
+        Event,
       ],
       synchronize: true,
       autoLoadEntities: true,

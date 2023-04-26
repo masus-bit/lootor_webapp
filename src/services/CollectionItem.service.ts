@@ -6,12 +6,16 @@ import {
   ReturnedCollectionItemDto,
 } from '../dto/collectionItem/CollectionItemCreateDto';
 import { HttpInternalServerError } from '../errors/HttpInternalServerError';
+import { EventActions, EventTargets } from '../types/base';
+import { EventRepository } from '../repositories/Event.repository';
 
 @Injectable()
 export class CollectionItemService {
   constructor(
     @Inject(CollectionItemRepository)
     private collectionItemRepository: CollectionItemRepository,
+    @Inject(EventRepository)
+    private eventRepository: EventRepository,
   ) {}
 
   /**
@@ -22,17 +26,29 @@ export class CollectionItemService {
     dto: CollectionItemCreateDto,
   ): Promise<ReturnCreateCollectionItem> {
     try {
-      console.log(dto);
       const model = this.collectionItemRepository.createModel(dto);
       // @ts-ignore
       model.item_photos = `{${dto.item_photos}}`;
       const instance = await this.collectionItemRepository.save(model);
       const result = await this.collectionItemRepository.getById(instance.id);
+      // @ts-ignore
+      if (!result.collection.is_private) {
+        console.log(result.collection);
+        await this.eventRepository.addEvent(
+          // @ts-ignore
+          result.collection.user.login,
+          EventActions.create,
+          EventTargets.collectionItem,
+          null,
+          null,
+          instance.id,
+        );
+      }
       return new ReturnCreateCollectionItem(
         new ReturnedCollectionItemDto(result),
       );
     } catch (err) {
-      console.error(err.message);
+      console.error(err);
       throw err;
     }
   }
@@ -41,9 +57,22 @@ export class CollectionItemService {
    * Удаляет запись коллекции
    */
   async delete(id: string) {
+    const exists = await this.collectionItemRepository.getById(id);
     const deleted = await this.collectionItemRepository.delete(id);
 
-    if (deleted.affected > 0) {
+    if (deleted) {
+      // @ts-ignore
+      if (!exists.collection.is_private) {
+        await this.eventRepository.addEvent(
+          // @ts-ignore
+          exists.collection.user.login,
+          EventActions.delete,
+          EventTargets.collectionItem,
+          null,
+          null,
+          id,
+        );
+      }
       return 'Collection item has deleted successfully!';
     } else {
       throw new Error('Nothing to delete');
