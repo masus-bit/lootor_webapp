@@ -23,7 +23,9 @@ export class CollectionItemRepository {
     return await this.collectionItemRepository
       .createQueryBuilder('collection_item')
       .where('collection_item.id = :id', { id })
+      .andWhere('collection_item.deleted = :deleted', { deleted: false })
       .innerJoinAndSelect('collection_item.collection', 'collection')
+      .innerJoinAndSelect('collection.user', 'user')
       .getOne();
   }
 
@@ -42,6 +44,16 @@ export class CollectionItemRepository {
   }
 
   async delete(id: string) {
-    return await this.collectionItemRepository.delete({ id });
+    const collectionItem = await this.collectionItemRepository
+      .createQueryBuilder('collection_item')
+      .where('collection_item.id = :id', { id })
+      .getOne();
+    const updatedCollectionItem = this.collectionItemRepository.create({
+      id,
+      deleted: true,
+      ...collectionItem,
+    });
+    await this.collectionItemRepository.save(updatedCollectionItem);
+    return 'Deleted successfully';
   }
 }

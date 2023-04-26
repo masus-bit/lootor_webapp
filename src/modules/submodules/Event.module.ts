@@ -1,35 +1,33 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { CollectionService } from '../../services/Collection.service';
-import { CollectionController } from '../../controllers/Collection.controller';
-import { Collection } from '../../entities/Collection';
-import { CollectionRepository } from '../../repositories/Collection.repository';
 import { UserRepository } from '../../repositories/User.repository';
 import { User } from '../../entities/User';
+import { EventController } from '../../controllers/Event.controller';
+import { EventService } from '../../services/Event.service';
 import { EventRepository } from '../../repositories/Event.repository';
 import { Event } from '../../entities/Event';
-import { EventService } from '../../services/Event.service';
+import { Collection } from '../../entities/Collection';
+import { CollectionRepository } from '../../repositories/Collection.repository';
 import { JwtRegisterModule } from './jwt.module';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  controllers: [CollectionController],
+  controllers: [EventController],
   providers: [
-    CollectionService,
-    CollectionRepository,
-    UserRepository,
-    EventRepository,
     EventService,
+    EventRepository,
+    UserRepository,
+    CollectionRepository,
   ],
   imports: [
-    TypeOrmModule.forFeature([Collection, User, Event]),
+    TypeOrmModule.forFeature([Event, User, Collection]),
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
     JwtRegisterModule,
     HttpModule,
   ],
-  exports: [CollectionService],
+  exports: [EventService],
 })
-export class CollectionModule {}
+export class EventModule {}

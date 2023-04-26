@@ -25,12 +25,13 @@ export class CollectionRepository {
       return await this.collectionRepository
         .createQueryBuilder('collection')
         .where('collection.id = :id', { id })
+        .andWhere('collection.deleted = :deleted', { deleted: false })
         .leftJoinAndSelect('collection.user', 'user')
         .leftJoinAndMapMany(
           'collection.collectionItems',
           CollectionItem,
           'collection_item',
-          'collection_item.collection = collection.id',
+          'collection_item.collection = collection.id AND collection_item.deleted = false',
         )
         .getOne();
     } catch (e) {
@@ -42,6 +43,7 @@ export class CollectionRepository {
     return await this.collectionRepository
       .createQueryBuilder('collection')
       .where('collection.id = :id', { id })
+      .andWhere('collection.deleted = :deleted', { deleted: false })
       .leftJoinAndSelect('collection.user', 'user')
       .getOne();
   }
@@ -57,6 +59,7 @@ export class CollectionRepository {
         .andWhere('collection.transliteration = :translit', {
           translit: transliteration,
         })
+        .andWhere('collection.deleted = :deleted', { deleted: false })
         .leftJoinAndSelect('collection.user', 'user')
         .leftJoinAndMapMany(
           'collection.collectionItems',
@@ -64,6 +67,7 @@ export class CollectionRepository {
           'collection_item',
           'collection_item.collection = collection.id',
         )
+        .where('collection_item.deleted = :deleted', { deleted: false })
         .getOne();
     } catch (err) {
       console.log(err.message);
@@ -74,6 +78,7 @@ export class CollectionRepository {
     return await this.collectionRepository
       .createQueryBuilder('collection')
       .where('collection.user = :id', { id })
+      .andWhere('collection.deleted = :deleted', { deleted: false })
       .innerJoinAndSelect('collection.user', 'user')
       .getMany();
   }
@@ -82,6 +87,7 @@ export class CollectionRepository {
     return await this.collectionRepository
       .createQueryBuilder('collection')
       .where('collection.id = :id', { id })
+      .andWhere('collection.deleted = :deleted', { deleted: false })
       .getOne();
   }
 
@@ -97,6 +103,16 @@ export class CollectionRepository {
   }
 
   async delete(id: string) {
-    return await this.collectionRepository.delete({ id });
+    const collection = await this.collectionRepository
+      .createQueryBuilder('collection')
+      .where('collection.id = :id', { id })
+      .getOne();
+    const updatedCollection = this.collectionRepository.create({
+      id,
+      deleted: true,
+      ...collection,
+    });
+    await this.collectionRepository.save(updatedCollection);
+    return 'Deleted successfully';
   }
 }

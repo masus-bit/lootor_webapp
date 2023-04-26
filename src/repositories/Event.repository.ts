@@ -1,0 +1,79 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { DeepPartial } from 'typeorm/common/DeepPartial';
+import { plainToClass } from 'class-transformer';
+import { CreateEventDto } from '../dto/events/CreateEventDto';
+import { Event } from '../entities/Event';
+import { CollectionItem } from '../entities/CollectionItem';
+import { User } from '../entities/User';
+import { Collection } from '../entities/Collection';
+
+@Injectable()
+export class EventRepository {
+  constructor(
+    @InjectRepository(Event)
+    private eventRepository: Repository<Event>,
+  ) {}
+
+  async save(data: DeepPartial<Event>): Promise<Event> {
+    return await this.eventRepository.save(data);
+  }
+
+  createModel(data: CreateEventDto): Event {
+    return this.eventRepository.create(data as DeepPartial<Event>);
+  }
+
+  async addEvent(
+    user: string,
+    action: string,
+    eventTarget: string,
+    targetUser?: string,
+    targetCollection?: string,
+    targetCollectionItem?: string,
+  ): Promise<Event> {
+    const model = this.createModel(
+      plainToClass(CreateEventDto, {
+        user,
+        action,
+        eventTarget,
+        targetUser,
+        targetCollection,
+        targetCollectionItem,
+        date: new Date(Date.now()),
+      }),
+    );
+    return await this.save(model);
+  }
+
+  async getEvents(subscriptions: string[]): Promise<Event[] | never> {
+    try {
+      return await this.eventRepository
+        .createQueryBuilder('event')
+        .where('event.user IN (:...subscriptions)', { subscriptions })
+        .leftJoinAndSelect('event.user', 'user')
+        .leftJoinAndMapOne(
+          'event.target_user',
+          User,
+          'event.user',
+          'user.login = event.target_user',
+        )
+        .leftJoinAndMapOne(
+          'event.target_collection',
+          Collection,
+          'collection',
+          'collection.id = event.target_collection',
+        )
+        .leftJoinAndMapOne(
+          'event.target_collection_item',
+          CollectionItem,
+          'collection_item',
+          'collection_item.id = event.target_collection_item',
+        )
+        .orderBy('date', 'DESC')
+        .getMany();
+    } catch (e) {
+      console.log(e);
+    }
+  }
+}

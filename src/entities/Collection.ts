@@ -42,6 +42,10 @@ export class Collection {
   likes: string[];
 
   @Index()
+  @Column({ default: false, select: false })
+  deleted: boolean;
+
+  @Index()
   @Column({
     nullable: true,
   })

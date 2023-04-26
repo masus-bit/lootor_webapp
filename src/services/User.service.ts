@@ -7,12 +7,16 @@ import { hashSync } from 'bcrypt';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { RatingDto } from '../dto/user/RatingDto';
 import { UpdateUserDto } from '../dto/user/UpdateUserDto';
+import { EventRepository } from '../repositories/Event.repository';
+import { EventActions, EventTargets } from '../types/base';
 
 @Injectable()
 export class UserService {
   constructor(
     @Inject(UserRepository)
     private userRepository: UserRepository,
+    @Inject(EventRepository)
+    private eventRepository: EventRepository,
   ) {}
 
   async getByUserName(userName: string): Promise<User> {
@@ -87,6 +91,13 @@ export class UserService {
           : // @ts-ignore
             (subscriberModel.subscriptions = `{ ${subscriptionTargetUserLogin} }`);
         await this.userRepository.save(subscriberModel);
+        await this.eventRepository.addEvent(
+          // @ts-ignore
+          subscriber.login,
+          EventActions.subscribe,
+          EventTargets.user,
+          subscriptionTargetUserLogin,
+        );
         return 'Подписка оформлена';
       } else {
         const subscribers = subscriberModel.subscriptions.filter(

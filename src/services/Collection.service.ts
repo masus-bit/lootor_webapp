@@ -10,12 +10,16 @@ import {
   CollectionDto,
   GetOneCollectionDto,
 } from '../dto/collections/CollectionDto';
+import { EventRepository } from '../repositories/Event.repository';
+import { EventActions, EventTargets } from '../types/base';
 
 @Injectable()
 export class CollectionService {
   constructor(
     @Inject(CollectionRepository)
     private collectionRepository: CollectionRepository,
+    @Inject(EventRepository)
+    private eventRepository: EventRepository,
   ) {}
 
   /**
@@ -32,6 +36,16 @@ export class CollectionService {
       const result = await this.collectionRepository.getByIdWithoutCollections(
         collection.id,
       );
+      if (!result.is_private) {
+        await this.eventRepository.addEvent(
+          // @ts-ignore
+          result.user.login,
+          EventActions.create,
+          EventTargets.collection,
+          null,
+          collection.id,
+        );
+      }
       return new ReturnCreateCollection(new ReturnedCollectionDto(result));
     } catch (err) {
       console.error(err.message);
@@ -43,12 +57,29 @@ export class CollectionService {
    * Удаляет запись коллекции
    */
   async delete(id: string) {
-    const deletedCollections = await this.collectionRepository.delete(id);
+    try {
+      const exists = await this.collectionRepository.getByIdWithoutCollections(
+        id,
+      );
+      const deleted = await this.collectionRepository.delete(id);
 
-    if (deletedCollections.affected > 0) {
-      return 'Collection has deleted successfully!';
-    } else {
-      throw new Error('Nothing to delete');
+      if (deleted) {
+        if (!exists.is_private) {
+          await this.eventRepository.addEvent(
+            // @ts-ignore
+            exists.user.login,
+            EventActions.delete,
+            EventTargets.collection,
+            null,
+            id,
+          );
+        }
+        return 'Collection has deleted successfully!';
+      } else {
+        throw new Error('Nothing to delete');
+      }
+    } catch (e) {
+      console.log(e);
     }
   }
 
@@ -111,12 +142,28 @@ export class CollectionService {
       // @ts-ignore
       model.likes = `{${likes}}`;
       await this.collectionRepository.save(model);
+      await this.eventRepository.addEvent(
+        // @ts-ignore
+        userId,
+        EventActions.like,
+        EventTargets.collection,
+        null,
+        exists.id,
+      );
       return 'Liked';
     }
 
     // @ts-ignore
     model.likes = `{${userId}}`;
     await this.collectionRepository.save(model);
+    await this.eventRepository.addEvent(
+      // @ts-ignore
+      userId,
+      EventActions.like,
+      EventTargets.collection,
+      null,
+      exists.id,
+    );
     return 'Liked';
   }
 }
