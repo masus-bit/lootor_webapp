@@ -85,7 +85,7 @@ export class UserService {
     try {
       const subscriberModel = await this.userRepository.createModel(subscriber);
       if (JSON.parse(isSubscribe)) {
-        subscriberModel.subscriptions.length
+        subscriberModel.subscriptions?.length
           ? // @ts-ignore
             (subscriberModel.subscriptions = `{ ${subscriberModel.subscriptions}, ${subscriptionTargetUserLogin} }`)
           : // @ts-ignore
