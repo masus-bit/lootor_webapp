@@ -107,6 +107,12 @@ export class UserService {
         // @ts-ignore
         subscriberModel.subscriptions = `{${subscribers}}`;
         await this.userRepository.save(subscriberModel);
+        await this.eventRepository.deleteEvent(
+          subscriber.login,
+          subscriptionTargetUserLogin,
+          EventTargets.user,
+          subscriptionTargetUserLogin,
+        );
         return 'Отписка оформлена :D';
       }
     } catch (err) {

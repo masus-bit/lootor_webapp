@@ -135,21 +135,31 @@ export class CollectionService {
     const model = await this.collectionRepository.createModel(exists);
     if (exists?.likes?.length) {
       let likes = [];
-      !model.likes.includes(userId)
-        ? // @ts-ignore
-          (model.likes = `{${exists.likes}, ${userId}}`)
-        : (likes = model.likes.filter((l) => l !== userId));
+      if (!model.likes.includes(userId)) {
+        // @ts-ignore
+        model.likes = `{${exists.likes}, ${userId}}`;
+        await this.eventRepository.addEvent(
+          // @ts-ignore
+          userId,
+          EventActions.like,
+          EventTargets.collection,
+          exists.name,
+          null,
+          id,
+        );
+      } else {
+        likes = model.likes.filter((l) => l !== userId);
+        await this.eventRepository.deleteEvent(
+          userId,
+          exists.name,
+          EventTargets.collection,
+          exists.id,
+        );
+      }
       // @ts-ignore
       model.likes = `{${likes}}`;
       await this.collectionRepository.save(model);
-      await this.eventRepository.addEvent(
-        // @ts-ignore
-        userId,
-        EventActions.like,
-        EventTargets.collection,
-        null,
-        exists.id,
-      );
+
       return 'Liked';
     }
 
@@ -161,6 +171,7 @@ export class CollectionService {
       userId,
       EventActions.like,
       EventTargets.collection,
+      exists.name,
       null,
       exists.id,
     );

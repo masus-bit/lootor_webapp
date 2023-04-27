@@ -78,4 +78,27 @@ export class EventRepository {
       console.log(e);
     }
   }
+
+  async deleteEvent(
+    user: string,
+    targetName: string,
+    eventTarget,
+    target: string,
+  ): Promise<any> {
+    const targetField = {
+      targetUser: 'target_user',
+      targetCollection: 'target_collection',
+      targetCollectionItem: 'target_collection_item',
+    };
+    const exists = await this.eventRepository
+      .createQueryBuilder('event')
+      .where('event.user =:user', { user })
+      .andWhere('event.target_name =:targetName', { targetName })
+      .andWhere('event.event_target =:eventTarget', { eventTarget })
+      .andWhere(`event.${targetField[eventTarget]} =:target`, { target })
+      .getOne();
+    if (exists) {
+      await this.eventRepository.delete({ id: exists.id });
+    }
+  }
 }
