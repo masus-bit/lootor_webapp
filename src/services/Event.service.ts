@@ -13,10 +13,13 @@ export class EventService {
   async getEvents(authUser: User): Promise<any> {
     try {
       const subscriptions = authUser.subscriptions;
-      const events = await this.eventRepository.getEvents(subscriptions);
-      const result = [];
-      events.map((e) => result.push(new EventsDto(e)));
-      return new GetEventsDto(result);
+      if (authUser.subscriptions?.length) {
+        const events = await this.eventRepository.getEvents(subscriptions);
+        const result = [];
+        events.map((e) => result.push(new EventsDto(e)));
+        return new GetEventsDto(result);
+      }
+      return { data: [] };
     } catch (e) {
       console.log(e);
     }
