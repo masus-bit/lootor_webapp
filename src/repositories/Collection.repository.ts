@@ -103,16 +103,17 @@ export class CollectionRepository {
   }
 
   async delete(id: string) {
-    const collection = await this.collectionRepository
-      .createQueryBuilder('collection')
-      .where('collection.id = :id', { id })
-      .getOne();
-    const updatedCollection = this.collectionRepository.create({
-      id,
-      deleted: true,
-      ...collection,
-    });
-    await this.collectionRepository.save(updatedCollection);
-    return 'Deleted successfully';
+    return await this.collectionRepository.delete({ id });
+    // const collection = await this.collectionRepository
+    //   .createQueryBuilder('collection')
+    //   .where('collection.id = :id', { id })
+    //   .getOne();
+    // const updatedCollection = this.collectionRepository.create({
+    //   id,
+    //   deleted: true,
+    //   ...collection,
+    // });
+    // await this.collectionRepository.save(updatedCollection);
+    // return 'Deleted successfully';
   }
 }

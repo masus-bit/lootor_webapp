@@ -97,6 +97,7 @@ export class UserService {
           EventActions.subscribe,
           EventTargets.user,
           subscriptionTargetUserLogin,
+          subscriptionTargetUserLogin,
         );
         return 'Подписка оформлена';
       } else {

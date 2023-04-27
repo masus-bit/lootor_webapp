@@ -33,12 +33,12 @@ export class CollectionItemService {
       const result = await this.collectionItemRepository.getById(instance.id);
       // @ts-ignore
       if (!result.collection.is_private) {
-        console.log(result.collection);
         await this.eventRepository.addEvent(
           // @ts-ignore
           result.collection.user.login,
           EventActions.create,
           EventTargets.collectionItem,
+          result.name,
           null,
           null,
           instance.id,
@@ -60,7 +60,7 @@ export class CollectionItemService {
     const exists = await this.collectionItemRepository.getById(id);
     const deleted = await this.collectionItemRepository.delete(id);
 
-    if (deleted) {
+    if (deleted.affected > 0) {
       // @ts-ignore
       if (!exists.collection.is_private) {
         await this.eventRepository.addEvent(
@@ -68,9 +68,7 @@ export class CollectionItemService {
           exists.collection.user.login,
           EventActions.delete,
           EventTargets.collectionItem,
-          null,
-          null,
-          id,
+          exists.name,
         );
       }
       return 'Collection item has deleted successfully!';

@@ -16,6 +16,8 @@ export class EventsDto {
   readonly eventTarget: string;
   @ApiProperty()
   readonly date: Date;
+  @ApiProperty()
+  readonly targetName: string;
   @ApiModelProperty({ type: ReturnUser })
   readonly user: string;
   @ApiModelProperty({ type: ReturnUser })
@@ -30,6 +32,7 @@ export class EventsDto {
     this.date = event.date;
     this.action = event.action;
     this.eventTarget = event.event_target;
+    this.targetName = event.target_name;
     // @ts-ignore
     this.user = new ReturnUser(event.user);
     // @ts-ignore

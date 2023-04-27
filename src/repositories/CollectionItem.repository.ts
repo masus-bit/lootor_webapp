@@ -44,16 +44,17 @@ export class CollectionItemRepository {
   }
 
   async delete(id: string) {
-    const collectionItem = await this.collectionItemRepository
-      .createQueryBuilder('collection_item')
-      .where('collection_item.id = :id', { id })
-      .getOne();
-    const updatedCollectionItem = this.collectionItemRepository.create({
-      id,
-      deleted: true,
-      ...collectionItem,
-    });
-    await this.collectionItemRepository.save(updatedCollectionItem);
-    return 'Deleted successfully';
+    return await this.collectionItemRepository.delete({ id });
+    // const collectionItem = await this.collectionItemRepository
+    //   .createQueryBuilder('collection_item')
+    //   .where('collection_item.id = :id', { id })
+    //   .getOne();
+    // const updatedCollectionItem = this.collectionItemRepository.create({
+    //   id,
+    //   deleted: true,
+    //   ...collectionItem,
+    // });
+    // await this.collectionItemRepository.save(updatedCollectionItem);
+    // return 'Deleted successfully';
   }
 }

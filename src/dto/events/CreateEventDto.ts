@@ -31,6 +31,10 @@ export class CreateEventDto {
   @ApiProperty()
   readonly type: string;
 
+  @Expose({ name: 'targetName' })
+  @ApiProperty({ name: 'targetName' })
+  readonly target_name: string;
+
   @Expose({ name: 'eventTarget' })
   @ApiProperty({ name: 'eventTarget' })
   readonly event_target: string;

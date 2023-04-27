@@ -42,6 +42,7 @@ export class CollectionService {
           result.user.login,
           EventActions.create,
           EventTargets.collection,
+          result.name,
           null,
           collection.id,
         );
@@ -63,15 +64,14 @@ export class CollectionService {
       );
       const deleted = await this.collectionRepository.delete(id);
 
-      if (deleted) {
+      if (deleted.affected > 0) {
         if (!exists.is_private) {
           await this.eventRepository.addEvent(
             // @ts-ignore
             exists.user.login,
             EventActions.delete,
             EventTargets.collection,
-            null,
-            id,
+            exists.name,
           );
         }
         return 'Collection has deleted successfully!';

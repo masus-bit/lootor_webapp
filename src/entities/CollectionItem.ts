@@ -69,7 +69,9 @@ export class CollectionItem {
 
   @Index()
   @Column({ nullable: true })
-  @ManyToOne(() => Collection, (collection) => collection.id)
+  @ManyToOne(() => Collection, (collection) => collection.id, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'collection' })
   collection: string;
 
