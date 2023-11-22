@@ -138,4 +138,18 @@ export class CollectionController {
   async like(@Query() query: { id: string }, @Req() request: Request) {
     return await this.collectionsService.like(query.id, request.user.login);
   }
+
+  @ApiOperation({
+    summary: 'Подписка на коллекцию',
+  })
+  @ApiResponse({
+    status: 200,
+    type: String,
+  })
+  @Get('/subscribe')
+  @UseGuards(AuthGuard)
+  @ApiQuery({ name: 'id', type: String })
+  async subscribe(@Query() query: { id: string }, @Req() request: Request) {
+    return await this.collectionsService.like(query.id, request.user.login);
+  }
 }

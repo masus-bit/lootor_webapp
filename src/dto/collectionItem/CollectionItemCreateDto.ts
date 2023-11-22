@@ -83,7 +83,7 @@ export class ReturnedCollectionItemDto {
   readonly itemPhotos: string[];
   @ApiProperty()
   readonly purchaseDate: Date;
-  @ApiProperty()
+  @ApiProperty({ description: 'Цена' })
   readonly price: string;
   @ApiProperty()
   readonly sealed: boolean;

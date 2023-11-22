@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { User } from '../entities/User';
-import { Collection } from '../entities/Collection';
 
 @Injectable()
 export class UserRepository {
@@ -16,7 +15,15 @@ export class UserRepository {
       where: {
         email: email,
       },
-      select: ['password', 'login', 'email', 'user_name'],
+      select: [
+        'password',
+        'login',
+        'email',
+        'user_name',
+        'likes',
+        'dislikes',
+        'subscriptions',
+      ],
     });
   }
 

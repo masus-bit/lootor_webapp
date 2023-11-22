@@ -16,4 +16,16 @@ export class TokenPayloadDto {
 
   @Expose()
   email: string;
+
+  @Expose()
+  likes: number;
+
+  @Expose()
+  dislikes: number;
+
+  @Expose()
+  created: string;
+
+  @Expose()
+  subscriptions: string[];
 }
