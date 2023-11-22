@@ -28,4 +28,7 @@ export class TokenPayloadDto {
 
   @Expose()
   subscriptions: string[];
+
+  @Expose({ name: 'avatar_url' })
+  avatarUrl: string;
 }

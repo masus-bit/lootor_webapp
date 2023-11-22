@@ -21,6 +21,10 @@ class AccessTokenPayload {
   dislikes: number;
   @ApiProperty()
   subscriptions: string[] | null;
+  @ApiProperty()
+  avatarUrl: string;
+  @ApiProperty()
+  created: string;
 }
 
 export class SignInResponse {

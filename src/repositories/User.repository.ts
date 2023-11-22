@@ -24,6 +24,7 @@ export class UserRepository {
         'dislikes',
         'subscriptions',
         'created',
+        'avatar_url',
       ],
     });
   }
