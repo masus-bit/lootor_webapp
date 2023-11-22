@@ -23,6 +23,7 @@ export class UserRepository {
         'likes',
         'dislikes',
         'subscriptions',
+        'created',
       ],
     });
   }
