@@ -23,7 +23,7 @@ let variant = 'stage';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: variant === 'dev' ? process.env.POSTGRES_HOST : 'localhost:5432',
+      host: variant === 'dev' ? process.env.POSTGRES_HOST : '127.0.0.1:5432',
       port: Number(process.env.POSTGRES_PORT),
       username: 'auc',
       password: 'aucer',
