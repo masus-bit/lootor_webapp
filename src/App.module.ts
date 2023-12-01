@@ -23,15 +23,12 @@ let variant = 'stage';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host:
-        variant === 'dev'
-          ? process.env.POSTGRES_HOST
-          : 'host.docker.internal:5432',
+      host: variant === 'dev' ? process.env.POSTGRES_HOST : 'localhost:5432',
       port: Number(process.env.POSTGRES_PORT),
-      username: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      database: process.env.POSTGRES_DB,
-      schema: process.env.POSTGRES_SCHEMA,
+      username: 'auc',
+      password: 'aucer',
+      database: 'aucdb',
+      schema: 'public',
       entities: [
         User,
         Lot,

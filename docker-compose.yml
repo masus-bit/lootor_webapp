@@ -4,8 +4,6 @@ services:
     image: 5575123963/auc:latest
     env_file:
       - .env
-    environment:
-      PORT: ${PORT}
     ports:
       - "5000:5000"
   db_auc:
