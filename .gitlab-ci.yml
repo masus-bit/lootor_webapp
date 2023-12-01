@@ -22,6 +22,8 @@ build:
   stage: build
   tags:
     - auc
+  variables:
+    DOCKER_HOST: DOCKER_HOST='tcp://localhost:2375'
   before_script:
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
