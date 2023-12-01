@@ -5,7 +5,7 @@ services:
     env_file:
       - .env
     ports:
-      - "5000:5000"
+      - "5111:5111"
   db_auc:
     image: postgres:latest
     environment:
