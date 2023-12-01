@@ -4,19 +4,16 @@
 
 image: docker:20-dind
 services:
-  - name: docker:20-dind
-    alias: docker
+      - name: docker:20-dind
+        alias: docker
     # in our experience although you'd assume this would be sufficient, this did
     # nothing to prevent connection errors without `DOCKER_TLS_CERTDIR` being set
     # to an empty string, and I would call that beyond mildly infuriating.
-    command: [ "--tls=false" ]
-
-
+        command: [ "--tls=false" ]
 variables:
-  # See https://github.com/docker-library/docker/pull/166
-  DOCKER_TLS_CERTDIR: ""
-  GIT_STRATEGY: clone
-  DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
 
 # This folder is cached between builds
 # https://docs.gitlab.com/ee/ci/yaml/index.html#cache
@@ -28,17 +25,6 @@ build:
   stage: build
   tags:
     - auc
-  services:
-    - name: docker:20-dind
-      alias: docker
-      # in our experience although you'd assume this would be sufficient, this did
-      # nothing to prevent connection errors without `DOCKER_TLS_CERTDIR` being set
-      # to an empty string, and I would call that beyond mildly infuriating.
-      command: [ "--tls=false" ]
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
   before_script:
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
