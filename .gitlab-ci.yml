@@ -21,7 +21,7 @@ stages:
 build:
   stage: build
   tags:
-    - build
+    - auc
   before_script:
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
