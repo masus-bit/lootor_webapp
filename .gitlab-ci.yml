@@ -46,7 +46,7 @@ deploy:
     - chmod 700 ~/.ssh
     - echo "=================deploy to host================="
     - |
-      ssh -o StrictHostKeyChecking=no -t -t root@134.0.115.88 << EOF
+      ssh -o StrictHostKeyChecking=no -t -t auc@188.120.241.102 << EOF
       cd /
       docker-compose down
       docker-compose up -d --force-recreate
