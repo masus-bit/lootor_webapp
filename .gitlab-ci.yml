@@ -1,22 +1,14 @@
-# This file is a template, and might need editing before it works on your project.
-# You can copy and paste this template into a new `.gitlab-ci.yml` file.
-# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
 
 image: docker:20-dind
 services:
       - name: docker:20-dind
         alias: docker
-    # in our experience although you'd assume this would be sufficient, this did
-    # nothing to prevent connection errors without `DOCKER_TLS_CERTDIR` being set
-    # to an empty string, and I would call that beyond mildly infuriating.
         command: [ "--tls=false" ]
 variables:
-    DOCKER_HOST: tcp://docker:2375
+    DOCKER_HOST: tcp://172.17.0.1:2375
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
 
-# This folder is cached between builds
-# https://docs.gitlab.com/ee/ci/yaml/index.html#cache
 stages:
   - build
   - deploy
