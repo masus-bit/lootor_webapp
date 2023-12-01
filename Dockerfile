@@ -10,9 +10,9 @@ COPY . .
 #
 #RUN chmod +x /entrypoint.sh
 
-ENV PORT 5000
+ENV PORT 5111
 
-EXPOSE 5000
+EXPOSE 5111
 
 RUN cat .env
 
