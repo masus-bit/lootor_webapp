@@ -1,10 +1,7 @@
 version: "3"
 services:
   backend:
-    build:
-      dockerfile: Dockerfile
-      context: ./
-    image: node:alpine
+    image: 5575123963/auc:tagname
     env_file:
       - .env
     environment:
