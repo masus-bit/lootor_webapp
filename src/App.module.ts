@@ -12,8 +12,6 @@ import { LotImage } from './entities/LotImage';
 import { Collection } from './entities/Collection';
 import { Event } from './entities/Event';
 
-let variant = 'stage';
-
 @Module({
   controllers: [],
   providers: [],
@@ -23,12 +21,12 @@ let variant = 'stage';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: variant === 'dev' ? process.env.POSTGRES_HOST : '127.0.0.1:5432',
+      host: process.env.POSTGRES_HOST,
       port: Number(process.env.POSTGRES_PORT),
-      username: 'auc',
-      password: 'aucer',
-      database: 'aucdb',
-      schema: 'public',
+      username: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      database: process.env.POSTGRES_DB,
+      schema: process.env.POSTGRES_SCHEMA,
       entities: [
         User,
         Lot,
