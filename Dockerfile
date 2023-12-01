@@ -14,6 +14,8 @@ ENV PORT 5000
 
 EXPOSE 5000
 
+RUN sudo apt install git
+
 RUN git checkout develop
 
 RUN npm install -g npm@8.3.0
