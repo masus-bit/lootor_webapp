@@ -12,6 +12,8 @@ import { LotImage } from './entities/LotImage';
 import { Collection } from './entities/Collection';
 import { Event } from './entities/Event';
 
+let variant = 'stage';
+
 @Module({
   controllers: [],
   providers: [],
@@ -21,7 +23,8 @@ import { Event } from './entities/Event';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.POSTGRES_HOST,
+      host:
+        variant === 'dev' ? process.env.POSTGRES_HOST : 'host.docker.internal',
       port: Number(process.env.POSTGRES_PORT),
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
