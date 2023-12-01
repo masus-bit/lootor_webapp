@@ -17,6 +17,8 @@ variables:
   DOCKER_TLS_CERTDIR: ""
   GIT_STRATEGY: clone
   DOCKER_DRIVER: overlay2
+  DOCKER_HOST: 'tcp://localhost:2375'
+
 
 # This folder is cached between builds
 # https://docs.gitlab.com/ee/ci/yaml/index.html#cache
