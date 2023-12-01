@@ -24,7 +24,9 @@ let variant = 'stage';
     TypeOrmModule.forRoot({
       type: 'postgres',
       host:
-        variant === 'dev' ? process.env.POSTGRES_HOST : 'host.docker.internal',
+        variant === 'dev'
+          ? process.env.POSTGRES_HOST
+          : 'host.docker.internal:5432',
       port: Number(process.env.POSTGRES_PORT),
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
