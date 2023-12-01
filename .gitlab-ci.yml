@@ -46,7 +46,7 @@ deploy:
     - echo "=================deploy to host================="
     - |
       ssh -o StrictHostKeyChecking=no -t -t root@188.120.241.102 << EOF
-      cd /
+      cd ../auc_backend
       docker-compose down
       docker-compose up -d --force-recreate
       exit 
