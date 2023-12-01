@@ -11,7 +11,7 @@ services:
     # to an empty string, and I would call that beyond mildly infuriating.
         command: [ "--tls=false" ]
 variables:
-    DOCKER_HOST: tcp://127.0.0.1:2375
+    DOCKER_HOST: tcp://docker:2375
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
 
