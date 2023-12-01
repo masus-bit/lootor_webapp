@@ -12,6 +12,13 @@ import { LotImage } from './entities/LotImage';
 import { Collection } from './entities/Collection';
 import { Event } from './entities/Event';
 
+console.log(
+  process.env.POSTGRES_HOST,
+  process.env.POSTGRES_PORT,
+  process.env.POSTGRES_USER,
+  process.env.POSTGRES_PASSWORD,
+  process.env.POSTGRES_DB,
+);
 @Module({
   controllers: [],
   providers: [],
