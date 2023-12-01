@@ -1,7 +1,7 @@
 
-image: docker:20-dind
+image: docker:stable
 services:
-      - name: docker:20-dind
+      - name: docker:stable
         alias: docker
         command: [ "--tls=false" ]
 variables:
