@@ -16,7 +16,7 @@ EXPOSE 5000
 
 RUN cat .env
 
-RUN npm install -g npm@10.2.4
+RUN npm install -g npm@8.3.0
 
 RUN npm install
 
