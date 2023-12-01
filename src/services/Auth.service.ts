@@ -9,7 +9,6 @@ import { User } from '../entities/User';
 import { HttpUnauthorizedError } from '../errors/HttpUnauthorizedError';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { UserRepository } from '../repositories/User.repository';
-import { ReturnUser } from '../dto/collections/CreateCollectionDto';
 
 @Injectable()
 export class AuthService {
@@ -44,7 +43,9 @@ export class AuthService {
   /**
    * Регистрация нового пользователя
    */
-  async signUp(signUpDto: SignUpDto): Promise<User | never> {
+  async signUp(
+    signUpDto: SignUpDto,
+  ): Promise<false | { accessToken: string | false } | never> {
     try {
       if (await this.usersRepository.getById(signUpDto.login)) {
         throw new HttpBadRequestError('userId must be unique');
@@ -63,9 +64,16 @@ export class AuthService {
 
       const user = await this.usersRepository.save(userModel);
 
-      const returnedUser = await this.usersRepository.getById(user.login);
-      // @ts-ignore
-      return new ReturnUser(returnedUser);
+      const returnedUser = await this.usersRepository.getPasswordsByEmail(
+        user.email,
+      );
+      const token = await this.signIn({
+        email: returnedUser.email,
+        password: returnedUser.password,
+      });
+      return {
+        accessToken: token,
+      };
     } catch (err) {
       console.error(err.message);
       throw err;

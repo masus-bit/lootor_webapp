@@ -2,7 +2,7 @@ import { Body, Controller, Inject, Post, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { SignInDto, SignInResponse } from '../dto/SignInDto';
-import { SignUpDto, SignUpDtoResponse } from '../dto/SignUpDto';
+import { SignUpDto } from '../dto/SignUpDto';
 import { HttpUnauthorizedError } from '../errors/HttpUnauthorizedError';
 import { AuthService } from '../services/Auth.service';
 import { plainToClass } from 'class-transformer';
@@ -34,7 +34,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Регистрация' })
   @ApiResponse({
     status: 200,
-    type: SignUpDtoResponse,
+    type: SignInResponse,
   })
   @Post('/public/auth/signup')
   @ApiBody({ type: SignUpDto })
