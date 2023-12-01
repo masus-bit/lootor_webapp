@@ -14,7 +14,7 @@ ENV PORT 5000
 
 EXPOSE 5000
 
-RUN sudo apt install git
+RUN apt install git
 
 RUN git checkout develop
 
