@@ -2,9 +2,9 @@
 # You can copy and paste this template into a new `.gitlab-ci.yml` file.
 # You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
 
-image: docker:19-dind
+image: docker:20-dind
 services:
-  - docker:19-dind
+  - docker:20-dind
 
 variables:
   # See https://github.com/docker-library/docker/pull/166
