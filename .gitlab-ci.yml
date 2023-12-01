@@ -47,6 +47,7 @@ deploy:
     - |
       ssh -o StrictHostKeyChecking=no -t -t root@188.120.241.102 << EOF
       cd ../auc_backend
+      git checkout develop
       ls
       docker-compose down
       docker-compose up -d --force-recreate
