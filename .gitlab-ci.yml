@@ -1,7 +1,7 @@
 
-image: docker:stable
+image: docker:20-dind
 services:
-      - name: docker:stable
+      - name: docker:20-dind
         alias: docker
 variables:
     DOCKER_HOST: tcp://docker:2375
