@@ -43,7 +43,7 @@ export class CollectionItemCreateDto {
 
   @Expose()
   @ApiProperty()
-  readonly price: string;
+  readonly price: number;
 
   @Expose()
   @ApiProperty()
@@ -84,7 +84,7 @@ export class ReturnedCollectionItemDto {
   @ApiProperty()
   readonly purchaseDate: Date;
   @ApiProperty({ description: 'Цена' })
-  readonly price: string;
+  readonly price: number;
   @ApiProperty()
   readonly sealed: boolean;
   @ApiProperty()

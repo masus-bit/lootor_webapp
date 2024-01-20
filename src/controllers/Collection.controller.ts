@@ -149,7 +149,34 @@ export class CollectionController {
   @Get('/subscribe')
   @UseGuards(AuthGuard)
   @ApiQuery({ name: 'id', type: String })
-  async subscribe(@Query() query: { id: string }, @Req() request: Request) {
-    return await this.collectionsService.like(query.id, request.user.login);
+  @ApiQuery({ name: 'isSubscribe', type: Boolean })
+  async subscribe(
+    @Query() query: { id: string; isSubscribe: string },
+    @Req() request: Request,
+  ) {
+    return await this.collectionsService.subscribe(
+      query.id,
+      request.user,
+      query.isSubscribe,
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Получение одной коллекциb по id или по транслиту имени',
+  })
+  @ApiResponse({
+    status: 200,
+    type: GetOneCollectionDto,
+  })
+  @Get('/tag')
+  @UseGuards(AuthGuard)
+  @ApiQuery({ name: 'tag', type: String, required: true })
+  async getAllByTag(
+    @Query()
+    query: {
+      tag: string;
+    },
+  ) {
+    return await this.collectionsService.getByTag(query.tag);
   }
 }

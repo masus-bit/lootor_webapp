@@ -11,6 +11,7 @@ import { CollectionImage } from './entities/CollectionImage';
 import { LotImage } from './entities/LotImage';
 import { Collection } from './entities/Collection';
 import { Event } from './entities/Event';
+import { Tags } from './entities/Tags';
 
 console.log(
   process.env.POSTGRES_HOST,
@@ -43,6 +44,7 @@ console.log(
         Collection,
         LotImage,
         Event,
+        Tags,
       ],
       synchronize: true,
       autoLoadEntities: true,

@@ -3,6 +3,7 @@ import { ReturnUser } from './CreateCollectionDto';
 import { ReturnedCollectionItemDto } from '../collectionItem/CollectionItemCreateDto';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Tags } from '../../entities/Tags';
 
 export class CollectionDto {
   @ApiProperty()
@@ -27,6 +28,14 @@ export class CollectionDto {
   readonly likes: number;
   @ApiProperty()
   readonly transliteration: string;
+  @ApiModelProperty({ type: Tags, isArray: true })
+  readonly tags: Tags[];
+  @ApiProperty()
+  readonly created: number;
+  @ApiProperty({ name: 'subscribers_count' })
+  readonly subscribersCount: number;
+  @ApiProperty()
+  readonly totalPrice: number;
 
   constructor(collection: Readonly<Collection>) {
     this.id = collection.id;
@@ -46,6 +55,10 @@ export class CollectionDto {
     this.canLike = !collection.likes?.includes(collection.user.login);
     this.likes = collection?.likes?.length || 0;
     this.transliteration = collection.transliteration;
+    this.tags = collection.tags;
+    this.created = collection.created;
+    this.subscribersCount = collection.subscribers_count;
+    this.totalPrice = collection.totalPrice;
   }
 }
 

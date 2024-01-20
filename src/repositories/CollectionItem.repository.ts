@@ -43,6 +43,12 @@ export class CollectionItemRepository {
     return await this.collectionItemRepository.save(updatedCollectionItem);
   }
 
+  sum(collectionId: string) {
+    return this.collectionItemRepository.sum('price', {
+      collection: collectionId,
+    });
+  }
+
   async delete(id: string) {
     return await this.collectionItemRepository.delete({ id });
     // const collectionItem = await this.collectionItemRepository

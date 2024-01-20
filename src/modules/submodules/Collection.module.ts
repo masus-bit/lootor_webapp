@@ -12,6 +12,12 @@ import { Event } from '../../entities/Event';
 import { EventService } from '../../services/Event.service';
 import { JwtRegisterModule } from './jwt.module';
 import { HttpModule } from '@nestjs/axios';
+import { TagsRepository } from '../../repositories/Tags.repository';
+import { TagsService } from '../../services/Tags.service';
+import { Tags } from '../../entities/Tags';
+import { CollectionItemRepository } from '../../repositories/CollectionItem.repository';
+import { CollectionItemService } from '../../services/CollectionItem.service';
+import { CollectionItem } from '../../entities/CollectionItem';
 
 @Module({
   controllers: [CollectionController],
@@ -21,9 +27,13 @@ import { HttpModule } from '@nestjs/axios';
     UserRepository,
     EventRepository,
     EventService,
+    TagsRepository,
+    TagsService,
+    CollectionItemRepository,
+    CollectionItemService,
   ],
   imports: [
-    TypeOrmModule.forFeature([Collection, User, Event]),
+    TypeOrmModule.forFeature([Collection, User, Event, Tags, CollectionItem]),
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
