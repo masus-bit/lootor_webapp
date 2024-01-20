@@ -27,6 +27,7 @@ export class CollectionRepository {
         .where('collection.id = :id', { id })
         .andWhere('collection.deleted = :deleted', { deleted: false })
         .leftJoinAndSelect('collection.user', 'user')
+        .leftJoinAndSelect('collection.tags', 'tags')
         .leftJoinAndMapMany(
           'collection.collectionItems',
           CollectionItem,
@@ -45,6 +46,7 @@ export class CollectionRepository {
       .where('collection.id = :id', { id })
       .andWhere('collection.deleted = :deleted', { deleted: false })
       .leftJoinAndSelect('collection.user', 'user')
+      .leftJoinAndSelect('collection.tags', 'tags')
       .getOne();
   }
 
@@ -61,6 +63,7 @@ export class CollectionRepository {
         })
         .andWhere('collection.deleted = :deleted', { deleted: false })
         .leftJoinAndSelect('collection.user', 'user')
+        .leftJoinAndSelect('collection.tags', 'tags')
         .leftJoinAndMapMany(
           'collection.collectionItems',
           CollectionItem,
@@ -80,6 +83,8 @@ export class CollectionRepository {
       .where('collection.user = :id', { id })
       .andWhere('collection.deleted = :deleted', { deleted: false })
       .innerJoinAndSelect('collection.user', 'user')
+      .leftJoinAndSelect('collection.tags', 'tags')
+      .orderBy('collection.created', 'ASC')
       .getMany();
   }
 
@@ -88,7 +93,20 @@ export class CollectionRepository {
       .createQueryBuilder('collection')
       .where('collection.id = :id', { id })
       .andWhere('collection.deleted = :deleted', { deleted: false })
+      .leftJoinAndSelect('collection.tags', 'tags')
       .getOne();
+  }
+
+  async getByTag(tag: string): Promise<Collection[] | never> {
+    return await this.collectionRepository
+      .createQueryBuilder('collection')
+      .innerJoinAndSelect('collection.tags', 'tags')
+      .leftJoin('collection.tags', 'tagsForFilter')
+      .where('collection.is_private = :isPrivate', { isPrivate: false })
+      .andWhere('tagsForFilter.name = :tag', { tag })
+      .orderBy('collection.created', 'ASC')
+
+      .getMany();
   }
 
   async updateById(

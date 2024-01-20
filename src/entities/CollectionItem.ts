@@ -48,8 +48,8 @@ export class CollectionItem {
   purchase_date: Date;
 
   @Index()
-  @Column({ nullable: false })
-  price: string;
+  @Column({ nullable: false, default: 0 })
+  price: number;
 
   @Index()
   @Column()

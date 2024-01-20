@@ -68,6 +68,10 @@ export class User {
   @Column('simple-array', { array: true, nullable: false, default: [] })
   subscriptions: string[];
 
+  @Index()
+  @Column('simple-array', { array: true, nullable: false, default: [] })
+  collection_subscriptions: string[];
+
   @OneToMany(() => Lot, (lot) => lot.created_by)
   lots_of: Lot[];
 

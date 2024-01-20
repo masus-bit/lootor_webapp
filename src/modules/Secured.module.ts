@@ -5,6 +5,7 @@ import { DraftLot } from '../entities/DraftLot';
 import { CollectionModule } from './submodules/Collection.module';
 import { CollectionItemModule } from './submodules/CollectionItem.module';
 import { EventModule } from './submodules/Event.module';
+import { TagsModule } from './submodules/Tags.module';
 
 @Module({
   controllers: [],
@@ -16,6 +17,7 @@ import { EventModule } from './submodules/Event.module';
     CollectionModule,
     CollectionItemModule,
     EventModule,
+    TagsModule,
   ],
 })
 export class SecuredModule {}

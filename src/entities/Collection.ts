@@ -3,12 +3,14 @@ import {
   Entity,
   Index,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './User';
 import { CollectionItem } from './CollectionItem';
+import { Tags } from './Tags';
 
 @Entity()
 export class Collection {
@@ -26,6 +28,10 @@ export class Collection {
     nullable: true,
   })
   description: string;
+
+  @Index()
+  @Column({ nullable: true, type: 'bigint' })
+  created: number;
 
   @Index()
   @Column()
@@ -56,6 +62,23 @@ export class Collection {
     (collectionItem) => collectionItem.collection,
   )
   collectionItems: CollectionItem[];
+
+  @Index()
+  @Column({
+    nullable: false,
+    default: 0,
+  })
+  subscribers_count: number;
+
+  @Index()
+  @Column({
+    nullable: false,
+    default: 0,
+  })
+  totalPrice: number;
+
+  @ManyToMany(() => Tags, (tag) => tag.collections)
+  tags: Tags[];
 
   @ManyToOne(() => User, (user) => user.login, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user' })

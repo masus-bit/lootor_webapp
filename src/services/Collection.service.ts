@@ -12,6 +12,10 @@ import {
 } from '../dto/collections/CollectionDto';
 import { EventRepository } from '../repositories/Event.repository';
 import { EventActions, EventTargets } from '../types/base';
+import { User } from '../entities/User';
+import { HttpBadRequestError } from '../errors/HttpBadRequestError';
+import { UserRepository } from '../repositories/User.repository';
+import { CollectionItemRepository } from '../repositories/CollectionItem.repository';
 
 @Injectable()
 export class CollectionService {
@@ -20,6 +24,10 @@ export class CollectionService {
     private collectionRepository: CollectionRepository,
     @Inject(EventRepository)
     private eventRepository: EventRepository,
+    @Inject(UserRepository)
+    private userRepository: UserRepository,
+    @Inject(CollectionItemRepository)
+    private collectionItemRepository: CollectionItemRepository,
   ) {}
 
   /**
@@ -31,8 +39,9 @@ export class CollectionService {
   ): Promise<ReturnCreateCollection> {
     try {
       const collectionModel = this.collectionRepository.createModel(dto);
+      collectionModel.created = Math.floor(+new Date() / 1000);
       const collection = await this.collectionRepository.save(collectionModel);
-
+      collection.totalPrice = 0;
       const result = await this.collectionRepository.getByIdWithoutCollections(
         collection.id,
       );
@@ -92,7 +101,7 @@ export class CollectionService {
     );
     if (existsCollection) {
       const collection = await this.collectionRepository.updateById(
-        dto,
+        { ...dto, tags: [...existsCollection.tags, ...dto.tags] },
         collectionId,
       );
       const result = await this.collectionRepository.getByIdWithoutCollections(
@@ -107,10 +116,22 @@ export class CollectionService {
    */
   async getByUserId(id: string): Promise<ReturnCollectionsDto> {
     const collections = await this.collectionRepository.getByUserId(id);
+
     const result: ReturnedCollectionDto[] = [];
-    collections.forEach((collection) =>
-      result.push(new ReturnedCollectionDto(collection)),
-    );
+
+    const process = async (array) => {
+      for (const item of array) {
+        item.totalPrice =
+          (await this.collectionItemRepository.sum(item.id)) || 0;
+        result.push(new ReturnedCollectionDto(item));
+      }
+    };
+    await process(collections);
+    // collections.forEach((collection) => {
+    //   collection.totalPrice = this.collectionItemRepository.sum(collection.id);
+    //   result.push(new ReturnedCollectionDto(collection));
+    // });
+    console.log(result);
     return new ReturnCollectionsDto(result);
   }
 
@@ -118,10 +139,16 @@ export class CollectionService {
     let collection;
     if (id) {
       collection = await this.collectionRepository.getById(id);
+      collection.totalPrice = await this.collectionItemRepository.sum(
+        collection.id,
+      );
     } else {
       collection = await this.collectionRepository.getOneByTransliteration(
         login,
         transliteration,
+      );
+      collection.totalPrice = await this.collectionItemRepository.sum(
+        collection.id,
       );
     }
     return new GetOneCollectionDto(new CollectionDto(collection));
@@ -176,5 +203,78 @@ export class CollectionService {
       exists.id,
     );
     return 'Liked';
+  }
+
+  async subscribe(
+    subscriptionTargetId: string,
+    subscriber: User,
+    isSubscribe: string,
+  ): Promise<string> {
+    try {
+      const subscriberModel = await this.userRepository.createModel(subscriber);
+      const targetCollection = await this.collectionRepository.getById(
+        subscriptionTargetId,
+      );
+
+      if (JSON.parse(isSubscribe)) {
+        subscriberModel.collection_subscriptions?.length
+          ? // @ts-ignore
+            (subscriberModel.collection_subscriptions = `{ ${subscriberModel.collection_subscriptions}, ${subscriptionTargetId} }`)
+          : // @ts-ignore
+            (subscriberModel.collection_subscriptions = `{ ${subscriptionTargetId} }`);
+        await this.userRepository.save(subscriberModel);
+        await this.collectionRepository.updateById(
+          {
+            ...targetCollection,
+            subscribers_count: (targetCollection.subscribers_count += 1),
+          },
+          subscriptionTargetId,
+        );
+        // TODO реализовать собтие для ленты "подписка на коллекцию" и сделать вывод в ленте
+        // await this.eventRepository.addEvent(
+        //   // @ts-ignore
+        //   subscriber.login,
+        //   EventActions.subscribe,
+        //   EventTargets.user,
+        //   subscriptionTargetId,
+        //   subscriptionTargetId,
+        // );
+        return 'Подписка на коллекцию оформлена';
+      } else {
+        const subscribers = subscriberModel.collection_subscriptions.filter(
+          (s) => s !== subscriptionTargetId,
+        );
+        // @ts-ignore
+        subscriberModel.collection_subscriptions = `{${subscribers}}`;
+        await this.userRepository.save(subscriberModel);
+        await this.eventRepository.deleteEvent(
+          subscriber.login,
+          subscriptionTargetId,
+          EventTargets.user,
+          subscriptionTargetId,
+        );
+        await this.collectionRepository.updateById(
+          {
+            ...targetCollection,
+            subscribers_count: (targetCollection.subscribers_count -= 1),
+          },
+          subscriptionTargetId,
+        );
+        return 'Отписка оформлена :D';
+      }
+    } catch (err) {
+      console.log(err);
+      throw new HttpBadRequestError('Что-то пошло не так');
+    }
+  }
+
+  async getByTag(tag: string): Promise<ReturnCollectionsDto> {
+    const final = [];
+    const result = await this.collectionRepository.getByTag(tag);
+    result.map((collection) =>
+      final.push(new ReturnedCollectionDto(collection)),
+    );
+
+    return new ReturnCollectionsDto(final);
   }
 }

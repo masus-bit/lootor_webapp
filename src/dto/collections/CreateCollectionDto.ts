@@ -3,6 +3,7 @@ import { Collection } from '../../entities/Collection';
 import { User } from '../../entities/User';
 import { ApiProperty } from '@nestjs/swagger';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
+import { Tags } from '../../entities/Tags';
 
 @Exclude()
 export class CreateCollectionDto {
@@ -29,6 +30,10 @@ export class CreateCollectionDto {
   @Expose()
   @ApiProperty()
   readonly transliteration: string;
+
+  @Expose()
+  @ApiProperty()
+  readonly tags: { id: string; name: string }[];
 }
 
 export class ReturnUser {
@@ -73,6 +78,14 @@ export class ReturnedCollectionDto {
   readonly canLike: boolean;
   @ApiProperty()
   readonly collectionItemsCount: number;
+  @ApiModelProperty({ type: Tags, isArray: true })
+  readonly tags: Tags[];
+  @ApiProperty()
+  readonly created: number;
+  @ApiProperty({ name: 'subscribers_count' })
+  readonly subscribersCount: number;
+  @ApiProperty()
+  readonly totalPrice: number;
 
   constructor(collection: Readonly<Collection>) {
     this.id = collection.id;
@@ -87,6 +100,10 @@ export class ReturnedCollectionDto {
     // @ts-ignore
     this.canLike = !collection.likes?.includes(collection.user?.login);
     this.collectionItemsCount = collection.collectionItems?.length || 0;
+    this.tags = collection.tags;
+    this.created = collection.created;
+    this.subscribersCount = collection.subscribers_count;
+    this.totalPrice = collection.totalPrice;
   }
 }
 
