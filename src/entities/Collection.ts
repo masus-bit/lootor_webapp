@@ -77,6 +77,12 @@ export class Collection {
   })
   totalPrice: number;
 
+  @Index()
+  @Column({
+    nullable: true,
+  })
+  share_string: string;
+
   @ManyToMany(() => Tags, (tag) => tag.collections)
   tags: Tags[];
 

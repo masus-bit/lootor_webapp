@@ -17,6 +17,8 @@ import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { UserRepository } from '../repositories/User.repository';
 import { CollectionItemRepository } from '../repositories/CollectionItem.repository';
 
+var randomstring = require('randomstring');
+
 @Injectable()
 export class CollectionService {
   constructor(
@@ -40,6 +42,7 @@ export class CollectionService {
     try {
       const collectionModel = this.collectionRepository.createModel(dto);
       collectionModel.created = Math.floor(+new Date() / 1000);
+      collectionModel.share_string = randomstring.generate(8);
       const collection = await this.collectionRepository.save(collectionModel);
       collection.totalPrice = 0;
       const result = await this.collectionRepository.getByIdWithoutCollections(
@@ -125,6 +128,11 @@ export class CollectionService {
 
     const process = async (array) => {
       for (const item of array) {
+        if (authorizedUser.login === id && item.is_private) {
+          item.share_string;
+        } else {
+          item.share_string = '';
+        }
         item.totalPrice =
           (await this.collectionItemRepository.sum(item.id)) || 0;
         result.push(
@@ -145,6 +153,7 @@ export class CollectionService {
     id?: string,
     transliteration?: string,
     login?: string,
+    shareString?: string,
   ) {
     let collection;
     if (id) {
@@ -152,7 +161,15 @@ export class CollectionService {
       collection.totalPrice = await this.collectionItemRepository.sum(
         collection.id,
       );
-    } else {
+      if (
+        authorizedUser.login === collection.user.login &&
+        collection.is_private
+      ) {
+        collection.share_string;
+      } else {
+        collection.share_string = '';
+      }
+    } else if (login) {
       collection = await this.collectionRepository.getOneByTransliteration(
         login,
         transliteration,
@@ -161,6 +178,23 @@ export class CollectionService {
       collection.totalPrice = await this.collectionItemRepository.sum(
         collection.id,
       );
+      if (
+        authorizedUser.login === collection.user.login &&
+        collection.is_private
+      ) {
+        collection.share_string;
+      } else {
+        collection.share_string = '';
+      }
+    } else if (shareString) {
+      collection = await this.collectionRepository.getByShareString(
+        shareString,
+      );
+
+      collection.totalPrice = await this.collectionItemRepository.sum(
+        collection.id,
+      );
+      collection.share_string = '';
     }
     const authUser = await this.userRepository.getById(authorizedUser.login);
     const subArray = authUser.collection_subscriptions;
@@ -291,14 +325,23 @@ export class CollectionService {
     const result = await this.collectionRepository.getByTag(tag);
     const authUser = await this.userRepository.getById(authorizedUser.login);
     const subArray = authUser.collection_subscriptions;
-    result.map((collection) =>
+    result.map((collection) => {
+      if (
+        //@ts-ignore
+        authorizedUser.login === collection.user.login &&
+        collection.is_private
+      ) {
+        collection.share_string;
+      } else {
+        collection.share_string = '';
+      }
       final.push(
         new ReturnedCollectionDto(
           collection,
           !subArray.includes(collection.id),
         ),
-      ),
-    );
+      );
+    });
 
     return new ReturnCollectionsDto(final);
   }

@@ -40,6 +40,26 @@ export class CollectionRepository {
     }
   }
 
+  async getByShareString(shareString: string): Promise<Collection | never> {
+    try {
+      return await this.collectionRepository
+        .createQueryBuilder('collection')
+        .where('collection.share_string = :shareString', { shareString })
+        .andWhere('collection.deleted = :deleted', { deleted: false })
+        .leftJoinAndSelect('collection.user', 'user')
+        .leftJoinAndSelect('collection.tags', 'tags')
+        .leftJoinAndMapMany(
+          'collection.collectionItems',
+          CollectionItem,
+          'collection_item',
+          'collection_item.collection = collection.id AND collection_item.deleted = false',
+        )
+        .getOne();
+    } catch (e) {
+      console.log(e.message);
+    }
+  }
+
   async getByIdWithoutCollections(id: string): Promise<Collection | never> {
     return await this.collectionRepository
       .createQueryBuilder('collection')
@@ -100,6 +120,7 @@ export class CollectionRepository {
   async getByTag(tag: string): Promise<Collection[] | never> {
     return await this.collectionRepository
       .createQueryBuilder('collection')
+      .innerJoinAndSelect('collection.user', 'user')
       .innerJoinAndSelect('collection.tags', 'tags')
       .leftJoin('collection.tags', 'tagsForFilter')
       .where('collection.is_private = :isPrivate', { isPrivate: false })

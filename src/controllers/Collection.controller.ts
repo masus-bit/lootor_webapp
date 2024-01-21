@@ -105,7 +105,8 @@ export class CollectionController {
   }
 
   @ApiOperation({
-    summary: 'Получение одной коллекциb по id или по транслиту имени',
+    summary:
+      'Получение одной коллекциb по id или по транслиту имени или по shareString',
   })
   @ApiResponse({
     status: 200,
@@ -116,12 +117,14 @@ export class CollectionController {
   @ApiQuery({ name: 'id', type: String, required: false })
   @ApiQuery({ name: 'transliteration', type: String, required: false })
   @ApiQuery({ name: 'userLogin', type: String, required: false })
+  @ApiQuery({ name: 'shareString', type: String, required: false })
   async getOne(
     @Query()
     query: {
       id?: string;
       transliteration?: string;
       userLogin?: string;
+      shareString?: string;
     },
     @Req() request: Request,
   ) {
@@ -130,6 +133,7 @@ export class CollectionController {
       query.id,
       query.transliteration,
       query.userLogin,
+      query.shareString,
     );
   }
 
