@@ -9,6 +9,8 @@ import { User } from '../entities/User';
 import { HttpUnauthorizedError } from '../errors/HttpUnauthorizedError';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { UserRepository } from '../repositories/User.repository';
+import { Algorithm } from 'jsonwebtoken';
+import { RefreshDto } from '../dto/RefreshDto';
 
 @Injectable()
 export class AuthService {
@@ -23,13 +25,17 @@ export class AuthService {
   async signIn({
     email,
     password,
-  }: SignInDto): Promise<false | string | never> {
+  }: SignInDto): Promise<
+    | false
+    | { accessToken: string | false; refreshToken: string | false }
+    | never
+  > {
     if (email) {
       try {
         const user = await this.usersRepository.getPasswordsByEmail(email);
-        console.log(user);
         if (AuthService.verifyPassword(user, password)) {
-          return this.getToken(user);
+          const { access, refresh } = this.getToken(user);
+          return { accessToken: access, refreshToken: refresh };
         }
 
         return false;
@@ -40,12 +46,47 @@ export class AuthService {
     return false;
   }
 
+  async refreshTokens(
+    refreshDto: RefreshDto,
+  ): Promise<
+    | false
+    | { accessToken: string | false; refreshToken: string | false }
+    | never
+  > {
+    try {
+      const canActivate = await this.jwtService.verify(
+        refreshDto.refreshToken,
+        {
+          secret: process.env.JWT_REFRESH_SECRET,
+        },
+      );
+      const exp = canActivate.exp * 1000;
+      const now = +new Date();
+      if (now > exp) {
+        throw new HttpUnauthorizedError('Авторизуйтесь заново.');
+      }
+      const returnedUser = await this.usersRepository.getPasswordsByEmail(
+        canActivate.email,
+      );
+      return await this.signIn({
+        email: returnedUser.email,
+        password: returnedUser.password,
+      });
+    } catch (err) {
+      throw new HttpUnauthorizedError();
+    }
+  }
+
   /**
    * Регистрация нового пользователя
    */
   async signUp(
     signUpDto: SignUpDto,
-  ): Promise<false | { accessToken: string | false } | never> {
+  ): Promise<
+    | false
+    | { accessToken: string | false; refreshToken: string | false }
+    | never
+  > {
     try {
       if (await this.usersRepository.getById(signUpDto.login)) {
         throw new HttpBadRequestError('userId must be unique');
@@ -67,13 +108,10 @@ export class AuthService {
       const returnedUser = await this.usersRepository.getPasswordsByEmail(
         user.email,
       );
-      const token = await this.signIn({
+      return await this.signIn({
         email: returnedUser.email,
         password: returnedUser.password,
       });
-      return {
-        accessToken: token,
-      };
     } catch (err) {
       console.error(err.message);
       throw err;
@@ -109,8 +147,16 @@ export class AuthService {
   /**
    * Генерация токена
    */
-  public getToken(user: User): string {
+  public getToken(user: User): { access: string; refresh: string } {
     const payload = plainToClass(TokenPayloadDto, user);
-    return this.jwtService.sign(JSON.parse(JSON.stringify(payload)));
+    let refresh = this.jwtService.sign(JSON.parse(JSON.stringify(payload)), {
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: process.env.JWT_REFRESH_EXPIRES,
+      algorithm: process.env.JWT_ALGORITHM as Algorithm,
+    });
+    return {
+      access: this.jwtService.sign(JSON.parse(JSON.stringify(payload))),
+      refresh,
+    };
   }
 }

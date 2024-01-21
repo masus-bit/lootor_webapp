@@ -114,16 +114,22 @@ export class CollectionService {
   /**
    * ПОлучение всех коллекциq по логину юзера
    */
-  async getByUserId(id: string): Promise<ReturnCollectionsDto> {
+  async getByUserId(
+    id: string,
+    authorizedUser: User,
+  ): Promise<ReturnCollectionsDto> {
     const collections = await this.collectionRepository.getByUserId(id);
-
+    const authUser = await this.userRepository.getById(authorizedUser.login);
+    const subArray = authUser.collection_subscriptions;
     const result: ReturnedCollectionDto[] = [];
 
     const process = async (array) => {
       for (const item of array) {
         item.totalPrice =
           (await this.collectionItemRepository.sum(item.id)) || 0;
-        result.push(new ReturnedCollectionDto(item));
+        result.push(
+          new ReturnedCollectionDto(item, !subArray.includes(item.id)),
+        );
       }
     };
     await process(collections);
@@ -131,11 +137,15 @@ export class CollectionService {
     //   collection.totalPrice = this.collectionItemRepository.sum(collection.id);
     //   result.push(new ReturnedCollectionDto(collection));
     // });
-    console.log(result);
     return new ReturnCollectionsDto(result);
   }
 
-  async getOne(id?: string, transliteration?: string, login?: string) {
+  async getOne(
+    authorizedUser: User,
+    id?: string,
+    transliteration?: string,
+    login?: string,
+  ) {
     let collection;
     if (id) {
       collection = await this.collectionRepository.getById(id);
@@ -147,11 +157,16 @@ export class CollectionService {
         login,
         transliteration,
       );
+
       collection.totalPrice = await this.collectionItemRepository.sum(
         collection.id,
       );
     }
-    return new GetOneCollectionDto(new CollectionDto(collection));
+    const authUser = await this.userRepository.getById(authorizedUser.login);
+    const subArray = authUser.collection_subscriptions;
+    return new GetOneCollectionDto(
+      new CollectionDto(collection, !subArray.includes(collection.id)),
+    );
   }
 
   async like(id: string, userId: string) {
@@ -247,12 +262,12 @@ export class CollectionService {
         // @ts-ignore
         subscriberModel.collection_subscriptions = `{${subscribers}}`;
         await this.userRepository.save(subscriberModel);
-        await this.eventRepository.deleteEvent(
-          subscriber.login,
-          subscriptionTargetId,
-          EventTargets.user,
-          subscriptionTargetId,
-        );
+        // await this.eventRepository.deleteEvent(
+        //   subscriber.login,
+        //   subscriptionTargetId,
+        //   EventTargets.user,
+        //   subscriptionTargetId,
+        // );
         await this.collectionRepository.updateById(
           {
             ...targetCollection,
@@ -268,11 +283,21 @@ export class CollectionService {
     }
   }
 
-  async getByTag(tag: string): Promise<ReturnCollectionsDto> {
+  async getByTag(
+    tag: string,
+    authorizedUser: User,
+  ): Promise<ReturnCollectionsDto> {
     const final = [];
     const result = await this.collectionRepository.getByTag(tag);
+    const authUser = await this.userRepository.getById(authorizedUser.login);
+    const subArray = authUser.collection_subscriptions;
     result.map((collection) =>
-      final.push(new ReturnedCollectionDto(collection)),
+      final.push(
+        new ReturnedCollectionDto(
+          collection,
+          !subArray.includes(collection.id),
+        ),
+      ),
     );
 
     return new ReturnCollectionsDto(final);

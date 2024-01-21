@@ -7,6 +7,7 @@ import { HttpUnauthorizedError } from '../errors/HttpUnauthorizedError';
 import { AuthService } from '../services/Auth.service';
 import { plainToClass } from 'class-transformer';
 import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { RefreshDto } from '../dto/RefreshDto';
 
 @Controller()
 export class AuthController {
@@ -23,12 +24,12 @@ export class AuthController {
   @Post('/public/auth/signin')
   @ApiBody({ type: SignInDto })
   async signIn(@Body() sigInDto: SignInDto, @Res() response: Response) {
-    const token = await this.authService.signIn(sigInDto);
+    const tokens = await this.authService.signIn(sigInDto);
 
-    if (!token) {
+    if (!tokens) {
       throw new HttpUnauthorizedError();
     }
-    response.status(200).send({ accessToken: token });
+    response.status(200).send(tokens);
   }
 
   @ApiOperation({ summary: 'Регистрация' })
@@ -40,5 +41,16 @@ export class AuthController {
   @ApiBody({ type: SignUpDto })
   async signUp(@Body() signUpDto: SignUpDto) {
     return await this.authService.signUp(plainToClass(SignUpDto, signUpDto));
+  }
+
+  @ApiOperation({ summary: 'Обновление токенov' })
+  @ApiResponse({
+    status: 200,
+    type: SignInResponse,
+  })
+  @Post('/public/auth/refresh')
+  @ApiBody({ type: RefreshDto })
+  async refresh(@Body() refreshDto: RefreshDto) {
+    return await this.authService.refreshTokens(refreshDto);
   }
 }

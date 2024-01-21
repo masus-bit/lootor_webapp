@@ -94,8 +94,14 @@ export class CollectionController {
   @Get('/all')
   @UseGuards(AuthGuard)
   @ApiQuery({ name: 'userLogin', type: String })
-  async getAllByUserLogin(@Query() query: { userLogin }) {
-    return await this.collectionsService.getByUserId(query.userLogin);
+  async getAllByUserLogin(
+    @Query() query: { userLogin },
+    @Req() request: Request,
+  ) {
+    return await this.collectionsService.getByUserId(
+      query.userLogin,
+      request.user,
+    );
   }
 
   @ApiOperation({
@@ -117,8 +123,10 @@ export class CollectionController {
       transliteration?: string;
       userLogin?: string;
     },
+    @Req() request: Request,
   ) {
     return await this.collectionsService.getOne(
+      request.user,
       query.id,
       query.transliteration,
       query.userLogin,
@@ -176,7 +184,8 @@ export class CollectionController {
     query: {
       tag: string;
     },
+    @Req() request: Request,
   ) {
-    return await this.collectionsService.getByTag(query.tag);
+    return await this.collectionsService.getByTag(query.tag, request.user);
   }
 }

@@ -86,8 +86,10 @@ export class ReturnedCollectionDto {
   readonly subscribersCount: number;
   @ApiProperty()
   readonly totalPrice: number;
+  @ApiProperty()
+  readonly canSubscribe: boolean;
 
-  constructor(collection: Readonly<Collection>) {
+  constructor(collection: Readonly<Collection>, canSubscribe?: boolean) {
     this.id = collection.id;
     this.isPrivate = collection.is_private;
     this.name = collection.name;
@@ -104,6 +106,7 @@ export class ReturnedCollectionDto {
     this.created = collection.created;
     this.subscribersCount = collection.subscribers_count;
     this.totalPrice = collection.totalPrice;
+    this.canSubscribe = canSubscribe;
   }
 }
 
