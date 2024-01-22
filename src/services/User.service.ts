@@ -9,6 +9,8 @@ import { RatingDto } from '../dto/user/RatingDto';
 import { UpdateUserDto } from '../dto/user/UpdateUserDto';
 import { EventRepository } from '../repositories/Event.repository';
 import { EventActions, EventTargets } from '../types/base';
+import { CollectionItemRepository } from '../repositories/CollectionItem.repository';
+import { CollectionRepository } from '../repositories/Collection.repository';
 
 @Injectable()
 export class UserService {
@@ -17,6 +19,10 @@ export class UserService {
     private userRepository: UserRepository,
     @Inject(EventRepository)
     private eventRepository: EventRepository,
+    @Inject(CollectionItemRepository)
+    private collectionItemRepository: CollectionItemRepository,
+    @Inject(CollectionRepository)
+    private collectionRepository: CollectionRepository,
   ) {}
 
   async getByUserName(userName: string): Promise<User> {
@@ -25,12 +31,28 @@ export class UserService {
 
   async getByLogin(login: string, authUser: User): Promise<GetUserByIdDto> {
     const user = await this.userRepository.getById(login);
+    const collectionsItemsCount =
+      await this.collectionItemRepository.getCountByUserLogin(login);
+    const sum = await this.collectionItemRepository.sumByUserLogin(login);
+    const collectionsCount =
+      await this.collectionRepository.getCountByUserLogin(login);
+
     if (login === authUser.login) {
-      return new GetUserByIdDto(new UserByIdDto(user));
+      return new GetUserByIdDto(
+        new UserByIdDto(user, collectionsItemsCount, collectionsCount, sum),
+      );
     }
     const subArray = authUser.subscriptions;
     const canSubscribe = !subArray.includes(login);
-    return new GetUserByIdDto(new UserByIdDto(user, canSubscribe));
+    return new GetUserByIdDto(
+      new UserByIdDto(
+        user,
+        collectionsItemsCount,
+        collectionsCount,
+        sum,
+        canSubscribe,
+      ),
+    );
   }
 
   async changeRating(dto: RatingDto, login: string): Promise<string> {
@@ -84,12 +106,22 @@ export class UserService {
   ): Promise<string> {
     try {
       const subscriberModel = await this.userRepository.createModel(subscriber);
+      const subscribeTargetUser = await this.userRepository.getById(
+        subscriptionTargetUserLogin,
+      );
+      const subscribeTargetModel = await this.userRepository.createModel(
+        subscribeTargetUser,
+      );
+
       if (JSON.parse(isSubscribe)) {
         subscriberModel.subscriptions?.length
           ? // @ts-ignore
             (subscriberModel.subscriptions = `{ ${subscriberModel.subscriptions}, ${subscriptionTargetUserLogin} }`)
           : // @ts-ignore
             (subscriberModel.subscriptions = `{ ${subscriptionTargetUserLogin} }`);
+        subscribeTargetModel.subscribers =
+          subscribeTargetModel.subscribers += 1;
+        await this.userRepository.save(subscribeTargetModel);
         await this.userRepository.save(subscriberModel);
         await this.eventRepository.addEvent(
           // @ts-ignore
@@ -106,6 +138,9 @@ export class UserService {
         );
         // @ts-ignore
         subscriberModel.subscriptions = `{${subscribers}}`;
+        subscribeTargetModel.subscribers =
+          subscribeTargetModel.subscribers -= 1;
+        await this.userRepository.save(subscribeTargetModel);
         await this.userRepository.save(subscriberModel);
         await this.eventRepository.deleteEvent(
           subscriber.login,

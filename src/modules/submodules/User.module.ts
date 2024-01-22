@@ -10,12 +10,26 @@ import { JwtModule } from '@nestjs/jwt';
 import { Algorithm } from 'jsonwebtoken';
 import { EventRepository } from '../../repositories/Event.repository';
 import { Event } from '../../entities/Event';
+import { CollectionRepository } from '../../repositories/Collection.repository';
+import { CollectionService } from '../../services/Collection.service';
+import { CollectionItemService } from '../../services/CollectionItem.service';
+import { CollectionItemRepository } from '../../repositories/CollectionItem.repository';
+import { Collection } from '../../entities/Collection';
+import { CollectionItem } from '../../entities/CollectionItem';
 
 @Module({
   controllers: [UserController],
-  providers: [UserService, UserRepository, EventRepository],
+  providers: [
+    UserService,
+    UserRepository,
+    EventRepository,
+    CollectionRepository,
+    CollectionService,
+    CollectionItemService,
+    CollectionItemRepository,
+  ],
   imports: [
-    TypeOrmModule.forFeature([User, Event]),
+    TypeOrmModule.forFeature([User, Event, Collection, CollectionItem]),
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),

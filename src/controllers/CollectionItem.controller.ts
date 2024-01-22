@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
@@ -19,6 +20,7 @@ import {
 } from '../dto/collectionItem/CollectionItemCreateDto';
 import { HttpInternalServerError } from '../errors/HttpInternalServerError';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { Request } from '../types/base';
 
 @Controller('/secured/collection_item')
 export class CollectionItemController {
@@ -37,10 +39,11 @@ export class CollectionItemController {
   @Post()
   @UseGuards(AuthGuard)
   @ApiBody({ type: CollectionItemCreateDto })
-  async create(@Body() dto: CollectionItemCreateDto) {
+  async create(@Body() dto: CollectionItemCreateDto, @Req() request: Request) {
     try {
       return await this.collectionItemsService.create(
         plainToClass(CollectionItemCreateDto, dto),
+        request.user,
       );
     } catch (e) {
       throw new HttpBadRequestError('Bad request');

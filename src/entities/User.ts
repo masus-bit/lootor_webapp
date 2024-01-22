@@ -65,6 +65,13 @@ export class User {
   avatar_url: string;
 
   @Index()
+  @Column({
+    nullable: true,
+    default: 0,
+  })
+  subscribers: number;
+
+  @Index()
   @Column('simple-array', { array: true, nullable: false, default: [] })
   subscriptions: string[];
 

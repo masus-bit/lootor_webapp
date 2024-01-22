@@ -34,7 +34,25 @@ export class UserByIdDto {
   @ApiProperty()
   readonly canSubscribe?: boolean;
 
-  constructor(user: Readonly<User>, canSubscribe?: boolean) {
+  @ApiProperty()
+  readonly subscribers?: number;
+
+  @ApiProperty()
+  readonly collectionItemsCount?: number;
+
+  @ApiProperty()
+  readonly collectionsCount?: number;
+
+  @ApiProperty()
+  readonly totalSum?: number;
+
+  constructor(
+    user: Readonly<User>,
+    collectionsItemsCount?: number,
+    collectionCount?: number,
+    totalSum?: number,
+    canSubscribe?: boolean,
+  ) {
     this.login = user.login;
     this.userName = user.user_name;
     this.email = user.email;
@@ -43,6 +61,10 @@ export class UserByIdDto {
     this.likes = user.likes;
     this.dislikes = user.dislikes;
     this.canSubscribe = canSubscribe;
+    this.subscribers = user.subscribers;
+    this.collectionItemsCount = collectionsItemsCount;
+    this.collectionsCount = collectionCount;
+    this.totalSum = totalSum || 0;
   }
 }
 

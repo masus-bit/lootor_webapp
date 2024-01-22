@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Collection } from './Collection';
+import { User } from './User';
 
 @Entity()
 export class CollectionItem {
@@ -74,6 +75,14 @@ export class CollectionItem {
   })
   @JoinColumn({ name: 'collection' })
   collection: string;
+
+  @Index()
+  @Column({ nullable: true })
+  @ManyToOne(() => User, (user) => user.login, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'owner' })
+  owner: string;
 
   @Index()
   @Column({

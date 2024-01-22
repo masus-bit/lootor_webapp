@@ -29,6 +29,14 @@ export class CollectionItemRepository {
       .getOne();
   }
 
+  async getCountByUserLogin(login: string): Promise<number | never> {
+    return await this.collectionItemRepository
+      .createQueryBuilder('collection_item')
+      .where('collection_item.owner = :login', { login })
+      .andWhere('collection_item.deleted = :deleted', { deleted: false })
+      .getCount();
+  }
+
   async updateById(
     collectionItem: DeepPartial<CollectionItem>,
     id: string,
@@ -47,6 +55,9 @@ export class CollectionItemRepository {
     return this.collectionItemRepository.sum('price', {
       collection: collectionId,
     });
+  }
+  sumByUserLogin(userLogin: string) {
+    return this.collectionItemRepository.sum('price', { owner: userLogin });
   }
 
   async delete(id: string) {

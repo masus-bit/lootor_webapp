@@ -141,6 +141,13 @@ export class CollectionRepository {
     return await this.collectionRepository.save(updatedCollection);
   }
 
+  async getCountByUserLogin(login: string): Promise<number | never> {
+    return await this.collectionRepository
+      .createQueryBuilder('collection')
+      .where('collection.user = :login', { login })
+      .getCount();
+  }
+
   async delete(id: string) {
     return await this.collectionRepository.delete({ id });
     // const collection = await this.collectionRepository

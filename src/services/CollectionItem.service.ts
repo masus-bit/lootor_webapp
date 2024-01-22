@@ -8,6 +8,7 @@ import {
 import { HttpInternalServerError } from '../errors/HttpInternalServerError';
 import { EventActions, EventTargets } from '../types/base';
 import { EventRepository } from '../repositories/Event.repository';
+import { User } from '../entities/User';
 
 @Injectable()
 export class CollectionItemService {
@@ -24,9 +25,11 @@ export class CollectionItemService {
    */
   async create(
     dto: CollectionItemCreateDto,
+    user: User,
   ): Promise<ReturnCreateCollectionItem> {
     try {
       const model = this.collectionItemRepository.createModel(dto);
+      model.owner = user.login;
       // @ts-ignore
       model.item_photos = `{${dto.item_photos}}`;
       const instance = await this.collectionItemRepository.save(model);
