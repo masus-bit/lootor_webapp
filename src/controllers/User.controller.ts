@@ -20,7 +20,7 @@ import { UpdateUserDto } from '../dto/user/UpdateUserDto';
 import { Request } from '../types/base';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
-@Controller('/secured/user')
+@Controller()
 export class UserController {
   constructor(@Inject(UserService) private userService: UserService) {}
 
@@ -32,7 +32,7 @@ export class UserController {
     status: 200,
     type: GetUserByIdDto,
   })
-  @Post()
+  @Post('/secured/user')
   @UseGuards(AuthGuard)
   @ApiBody({ type: ChangePasswordDto })
   async changePassword(
@@ -59,7 +59,7 @@ export class UserController {
     status: 200,
     type: String,
   })
-  @Post('/rating')
+  @Post('/secured/user/rating')
   @UseGuards(AuthGuard)
   @ApiQuery({ name: 'login', type: String })
   @ApiBody({ type: RatingDto })
@@ -83,7 +83,7 @@ export class UserController {
     status: 200,
     type: GetUserByIdDto,
   })
-  @Get()
+  @Get('/public/user')
   @UseGuards(AuthGuard)
   async getByLogin(@Query() query: QueryUserDto, @Req() request: Request) {
     try {
@@ -102,7 +102,7 @@ export class UserController {
     status: 200,
     type: GetUserByIdDto,
   })
-  @Patch('/update')
+  @Patch('/secured/user/update')
   @UseGuards(AuthGuard)
   @ApiBody({ type: UpdateUserDto })
   async updateUser(@Body() dto: UpdateUserDto, @Req() request: Request) {
@@ -123,7 +123,7 @@ export class UserController {
     status: 200,
     type: String,
   })
-  @Get('/subscriptions')
+  @Get('/secured/user/subscriptions')
   @UseGuards(AuthGuard)
   @ApiQuery({ type: Boolean, name: 'isSubscribe' })
   @ApiQuery({ type: QueryUserDto })

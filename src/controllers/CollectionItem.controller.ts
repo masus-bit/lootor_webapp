@@ -22,7 +22,7 @@ import { HttpInternalServerError } from '../errors/HttpInternalServerError';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { Request } from '../types/base';
 
-@Controller('/secured/collection_item')
+@Controller()
 export class CollectionItemController {
   constructor(
     @Inject(CollectionItemService)
@@ -36,7 +36,7 @@ export class CollectionItemController {
     status: 200,
     type: ReturnCreateCollectionItem,
   })
-  @Post()
+  @Post('/secured/collection_item')
   @UseGuards(AuthGuard)
   @ApiBody({ type: CollectionItemCreateDto })
   async create(@Body() dto: CollectionItemCreateDto, @Req() request: Request) {
@@ -57,7 +57,7 @@ export class CollectionItemController {
     status: 200,
     type: String,
   })
-  @Delete()
+  @Delete('/secured/collection_item')
   @UseGuards(AuthGuard)
   @ApiQuery({ type: String, name: 'id' })
   async delete(@Query() query: { id: string }) {
@@ -75,7 +75,7 @@ export class CollectionItemController {
     status: 200,
     type: ReturnCreateCollectionItem,
   })
-  @Patch()
+  @Patch('/secured/collection_item')
   @UseGuards(AuthGuard)
   @ApiBody({ type: CollectionItemCreateDto })
   @ApiQuery({ name: 'id', type: String })
@@ -100,7 +100,7 @@ export class CollectionItemController {
     status: 200,
     type: ReturnCreateCollectionItem,
   })
-  @Get()
+  @Get('/public/collection_item')
   @UseGuards(AuthGuard)
   @ApiQuery({ name: 'id', type: String })
   async getById(@Query() query: { id: string }) {

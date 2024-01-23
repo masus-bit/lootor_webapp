@@ -23,7 +23,7 @@ import { Request } from '../types/base';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { GetOneCollectionDto } from '../dto/collections/CollectionDto';
 
-@Controller('/secured/collections')
+@Controller()
 export class CollectionController {
   constructor(
     @Inject(CollectionService) private collectionsService: CollectionService,
@@ -34,7 +34,7 @@ export class CollectionController {
     status: 200,
     type: ReturnCreateCollection,
   })
-  @Post()
+  @Post('/secured/collections')
   @ApiBody({ type: CreateCollectionDto })
   @UseGuards(AuthGuard)
   async createCollection(@Body() dto: CreateCollectionDto) {
@@ -52,7 +52,7 @@ export class CollectionController {
     status: 200,
     type: String,
   })
-  @Delete()
+  @Delete('/secured/collections')
   @UseGuards(AuthGuard)
   @ApiQuery({ name: 'id', type: String })
   async deleteCollection(@Query() query: { id: string }) {
@@ -68,7 +68,7 @@ export class CollectionController {
     status: 200,
     type: ReturnCreateCollection,
   })
-  @Patch()
+  @Patch('/secured/collections')
   @UseGuards(AuthGuard)
   @ApiBody({ type: CreateCollectionDto })
   @ApiQuery({ name: 'id', type: String })
@@ -91,7 +91,7 @@ export class CollectionController {
     status: 200,
     type: ReturnCollectionsDto,
   })
-  @Get('/all')
+  @Get('/public/collections/all')
   @UseGuards(AuthGuard)
   @ApiQuery({ name: 'userLogin', type: String })
   async getAllByUserLogin(
@@ -112,7 +112,7 @@ export class CollectionController {
     status: 200,
     type: GetOneCollectionDto,
   })
-  @Get()
+  @Get('/public/collections')
   @UseGuards(AuthGuard)
   @ApiQuery({ name: 'id', type: String, required: false })
   @ApiQuery({ name: 'transliteration', type: String, required: false })
@@ -144,7 +144,7 @@ export class CollectionController {
     status: 200,
     type: String,
   })
-  @Get('/like')
+  @Get('/secured/collections/like')
   @UseGuards(AuthGuard)
   @ApiQuery({ name: 'id', type: String })
   async like(@Query() query: { id: string }, @Req() request: Request) {
@@ -158,7 +158,7 @@ export class CollectionController {
     status: 200,
     type: String,
   })
-  @Get('/subscribe')
+  @Get('/secured/collections/subscribe')
   @UseGuards(AuthGuard)
   @ApiQuery({ name: 'id', type: String })
   @ApiQuery({ name: 'isSubscribe', type: Boolean })
@@ -174,13 +174,13 @@ export class CollectionController {
   }
 
   @ApiOperation({
-    summary: 'Получение одной коллекциb по id или по транслиту имени',
+    summary: 'Получение одной коллекциb po tag',
   })
   @ApiResponse({
     status: 200,
     type: GetOneCollectionDto,
   })
-  @Get('/tag')
+  @Get('/public/collections/tag')
   @UseGuards(AuthGuard)
   @ApiQuery({ name: 'tag', type: String, required: true })
   async getAllByTag(
