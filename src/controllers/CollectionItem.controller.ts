@@ -101,7 +101,6 @@ export class CollectionItemController {
     type: ReturnCreateCollectionItem,
   })
   @Get('/public/collection_item')
-  @UseGuards(AuthGuard)
   @ApiQuery({ name: 'id', type: String })
   async getById(@Query() query: { id: string }) {
     try {

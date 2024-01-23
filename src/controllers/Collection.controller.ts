@@ -92,7 +92,6 @@ export class CollectionController {
     type: ReturnCollectionsDto,
   })
   @Get('/public/collections/all')
-  @UseGuards(AuthGuard)
   @ApiQuery({ name: 'userLogin', type: String })
   async getAllByUserLogin(
     @Query() query: { userLogin },
@@ -113,7 +112,6 @@ export class CollectionController {
     type: GetOneCollectionDto,
   })
   @Get('/public/collections')
-  @UseGuards(AuthGuard)
   @ApiQuery({ name: 'id', type: String, required: false })
   @ApiQuery({ name: 'transliteration', type: String, required: false })
   @ApiQuery({ name: 'userLogin', type: String, required: false })
@@ -181,7 +179,6 @@ export class CollectionController {
     type: GetOneCollectionDto,
   })
   @Get('/public/collections/tag')
-  @UseGuards(AuthGuard)
   @ApiQuery({ name: 'tag', type: String, required: true })
   async getAllByTag(
     @Query()

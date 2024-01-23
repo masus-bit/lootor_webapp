@@ -84,7 +84,6 @@ export class UserController {
     type: GetUserByIdDto,
   })
   @Get('/public/user')
-  @UseGuards(AuthGuard)
   async getByLogin(@Query() query: QueryUserDto, @Req() request: Request) {
     try {
       return this.userService.getByLogin(query.login, request.user);
