@@ -8,6 +8,7 @@ services:
 
 variables:
   # See https://github.com/docker-library/docker/pull/166
+  DOCKER_HOST: tcp://docker:2375
   DOCKER_TLS_CERTDIR: ""
   GIT_STRATEGY: clone
   DOCKER_DRIVER: overlay2
