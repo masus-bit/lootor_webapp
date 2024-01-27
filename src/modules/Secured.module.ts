@@ -6,6 +6,7 @@ import { CollectionModule } from './submodules/Collection.module';
 import { CollectionItemModule } from './submodules/CollectionItem.module';
 import { EventModule } from './submodules/Event.module';
 import { TagsModule } from './submodules/Tags.module';
+import { GamesModule } from './submodules/Games.module';
 
 @Module({
   controllers: [],
@@ -18,7 +19,7 @@ import { TagsModule } from './submodules/Tags.module';
     CollectionItemModule,
     EventModule,
     TagsModule,
-    // GamesModule,
+    GamesModule,
   ],
 })
 export class SecuredModule {}

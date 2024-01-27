@@ -1,5 +1,6 @@
 import {
   Column,
+  Entity,
   Index,
   JoinColumn,
   JoinTable,
@@ -12,7 +13,7 @@ import { Genres } from './Genres';
 import { Platforms } from './Platforms';
 import { Developers } from './Developers';
 
-// @Entity()
+@Entity()
 export class Games {
   @PrimaryColumn()
   id: number;

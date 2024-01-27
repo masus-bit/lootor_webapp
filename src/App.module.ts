@@ -12,6 +12,12 @@ import { LotImage } from './entities/LotImage';
 import { Collection } from './entities/Collection';
 import { Event } from './entities/Event';
 import { Tags } from './entities/Tags';
+import { Games } from './entities/Games';
+import { Publishers } from './entities/Publishers';
+import { Genres } from './entities/Genres';
+import { Banners } from './entities/Banners';
+import { Platforms } from './entities/Platforms';
+import { Developers } from './entities/Developers';
 
 console.log(
   process.env.POSTGRES_HOST,
@@ -45,14 +51,14 @@ console.log(
         LotImage,
         Event,
         Tags,
-        // Games,
-        // Publishers,
-        // Genres,
-        // Banners,
-        // Platforms,
-        // Developers,
+        Games,
+        Publishers,
+        Genres,
+        Banners,
+        Platforms,
+        Developers,
       ],
-      synchronize: true,
+      synchronize: false,
       autoLoadEntities: true,
     }),
     SecuredModule,
