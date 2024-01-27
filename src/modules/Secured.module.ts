@@ -18,6 +18,7 @@ import { TagsModule } from './submodules/Tags.module';
     CollectionItemModule,
     EventModule,
     TagsModule,
+    // GamesModule,
   ],
 })
 export class SecuredModule {}

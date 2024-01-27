@@ -22,11 +22,13 @@ import { plainToClass } from 'class-transformer';
 import { Request } from '../types/base';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { GetOneCollectionDto } from '../dto/collections/CollectionDto';
+import { GamesService } from '../services/Games.service';
 
 @Controller()
 export class CollectionController {
   constructor(
     @Inject(CollectionService) private collectionsService: CollectionService,
+    @Inject(GamesService) private gamesService: GamesService,
   ) {}
 
   @ApiOperation({ summary: 'Создание коллекции' })
@@ -99,13 +101,15 @@ export class CollectionController {
   ) {
     return await this.collectionsService.getByUserId(
       query.userLogin,
-      request.user,
+      request?.user,
     );
   }
 
   @ApiOperation({
     summary:
       'Получение одной коллекциb по id или по транслиту имени или по shareString',
+    description:
+      'Чтобы получить по транслиту, необходимо в параметрах передать сам транслит имени коллекции и userLogin',
   })
   @ApiResponse({
     status: 200,

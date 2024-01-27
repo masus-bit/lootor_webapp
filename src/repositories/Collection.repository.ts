@@ -88,10 +88,11 @@ export class CollectionRepository {
           'collection.collectionItems',
           CollectionItem,
           'collection_item',
-          'collection_item.collection = collection.id',
+          'collection_item.collection = collection.id AND collection_item.deleted = :deleted',
+          { deleted: false },
         )
-        .where('collection_item.deleted = :deleted', { deleted: false })
-        .getOne();
+        // .where('collection_item.deleted = :deleted', { deleted: false })
+        .getOneOrFail();
     } catch (err) {
       console.log(err.message);
     }

@@ -41,7 +41,7 @@ export class User {
   @Column({
     nullable: true,
   })
-  created: Date;
+  created: number;
 
   @Index()
   @Column({
@@ -63,6 +63,13 @@ export class User {
     length: 100,
   })
   avatar_url: string;
+
+  @Index()
+  @Column({
+    nullable: true,
+    length: 100,
+  })
+  background_url: string;
 
   @Index()
   @Column({

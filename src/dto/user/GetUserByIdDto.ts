@@ -20,7 +20,7 @@ export class UserByIdDto {
   readonly email: string;
 
   @ApiProperty()
-  readonly created: Date;
+  readonly created: number;
 
   @ApiProperty()
   readonly avatarUrl: string;
@@ -46,6 +46,9 @@ export class UserByIdDto {
   @ApiProperty()
   readonly totalSum?: number;
 
+  @ApiProperty()
+  readonly backgroundUrl: string;
+
   constructor(
     user: Readonly<User>,
     collectionsItemsCount?: number,
@@ -65,6 +68,7 @@ export class UserByIdDto {
     this.collectionItemsCount = collectionsItemsCount;
     this.collectionsCount = collectionCount;
     this.totalSum = totalSum || 0;
+    this.backgroundUrl = user.background_url;
   }
 }
 

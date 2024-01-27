@@ -45,7 +45,7 @@ deploy:
     - chmod 700 ~/.ssh
     - echo "=================deploy to host================="
     - |
-      ssh -o StrictHostKeyChecking=no -t -t root@188.120.241.102 << EOF
+      ssh -o StrictHostKeyChecking=no -t -t root@82.146.40.181 << EOF
       cd ../auc_backend
       ls
       docker-compose down

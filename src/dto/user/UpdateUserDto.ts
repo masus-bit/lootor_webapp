@@ -14,4 +14,8 @@ export class UpdateUserDto {
   @Expose({ name: 'avatarUrl' })
   @ApiProperty({ name: 'avatarUrl' })
   readonly avatar_url: string;
+
+  @Expose({ name: 'backgroundUrl' })
+  @ApiProperty({ name: 'backgroundUrl' })
+  readonly background_url: string;
 }

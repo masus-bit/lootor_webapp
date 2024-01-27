@@ -119,16 +119,20 @@ export class CollectionService {
    */
   async getByUserId(
     id: string,
-    authorizedUser: User,
+    authorizedUser?: User,
   ): Promise<ReturnCollectionsDto> {
     const collections = await this.collectionRepository.getByUserId(id);
-    const authUser = await this.userRepository.getById(authorizedUser.login);
-    const subArray = authUser.collection_subscriptions;
+    let authUser;
+    let subArray;
+    if (authorizedUser) {
+      authUser = await this.userRepository.getById(authorizedUser.login);
+      subArray = authUser.collection_subscriptions;
+    }
     const result: ReturnedCollectionDto[] = [];
 
     const process = async (array) => {
       for (const item of array) {
-        if (authorizedUser.login === id && item.is_private) {
+        if (authorizedUser?.login === id && item.is_private) {
           item.share_string;
         } else {
           item.share_string = '';
@@ -136,7 +140,10 @@ export class CollectionService {
         item.totalPrice =
           (await this.collectionItemRepository.sum(item.id)) || 0;
         result.push(
-          new ReturnedCollectionDto(item, !subArray.includes(item.id)),
+          new ReturnedCollectionDto(
+            item,
+            authorizedUser ? !subArray.includes(item.id) : false,
+          ),
         );
       }
     };
@@ -149,7 +156,7 @@ export class CollectionService {
   }
 
   async getOne(
-    authorizedUser: User,
+    authorizedUser?: User,
     id?: string,
     transliteration?: string,
     login?: string,
@@ -162,7 +169,7 @@ export class CollectionService {
         collection.id,
       );
       if (
-        authorizedUser.login === collection.user.login &&
+        authorizedUser?.login === collection.user.login &&
         collection.is_private
       ) {
         collection.share_string;
@@ -179,7 +186,7 @@ export class CollectionService {
         collection.id,
       );
       if (
-        authorizedUser.login === collection.user.login &&
+        authorizedUser?.login === collection.user.login &&
         collection.is_private
       ) {
         collection.share_string;
@@ -196,10 +203,18 @@ export class CollectionService {
       );
       collection.share_string = '';
     }
-    const authUser = await this.userRepository.getById(authorizedUser.login);
-    const subArray = authUser.collection_subscriptions;
+
+    let authUser;
+    let subArray;
+    if (authorizedUser) {
+      authUser = await this.userRepository.getById(authorizedUser.login);
+      subArray = authUser.collection_subscriptions;
+    }
     return new GetOneCollectionDto(
-      new CollectionDto(collection, !subArray.includes(collection.id)),
+      new CollectionDto(
+        collection,
+        authorizedUser ? !subArray.includes(collection.id) : false,
+      ),
     );
   }
 
@@ -323,12 +338,16 @@ export class CollectionService {
   ): Promise<ReturnCollectionsDto> {
     const final = [];
     const result = await this.collectionRepository.getByTag(tag);
-    const authUser = await this.userRepository.getById(authorizedUser.login);
-    const subArray = authUser.collection_subscriptions;
+    let authUser;
+    let subArray;
+    if (authorizedUser) {
+      authUser = await this.userRepository.getById(authorizedUser.login);
+      subArray = authUser.collection_subscriptions;
+    }
     result.map((collection) => {
       if (
         //@ts-ignore
-        authorizedUser.login === collection.user.login &&
+        authorizedUser?.login === collection.user.login &&
         collection.is_private
       ) {
         collection.share_string;
@@ -338,7 +357,7 @@ export class CollectionService {
       final.push(
         new ReturnedCollectionDto(
           collection,
-          !subArray.includes(collection.id),
+          authorizedUser ? !subArray.includes(collection.id) : false,
         ),
       );
     });

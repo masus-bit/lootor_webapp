@@ -16,7 +16,7 @@ import * as crypto from 'crypto';
       secret: process.env.JWT_SECRET || crypto.randomBytes(1024).toString(),
       signOptions: {
         algorithm: (process.env.JWT_ALGORITHM as Algorithm) || 'HS512',
-        expiresIn: process.env.JWT_EXPIRESS || 86400000,
+        expiresIn: process.env.JWT_EXPIRESS || 300000,
       },
       verifyOptions: {
         algorithms: [(process.env.JWT_ALGORITHM as Algorithm) || 'HS512'],

@@ -18,6 +18,9 @@ import { Tags } from '../../entities/Tags';
 import { CollectionItemRepository } from '../../repositories/CollectionItem.repository';
 import { CollectionItemService } from '../../services/CollectionItem.service';
 import { CollectionItem } from '../../entities/CollectionItem';
+import { GamesService } from '../../services/Games.service';
+import { Games } from '../../entities/Games';
+import { GamesRepository } from '../../repositories/Games.repository';
 
 @Module({
   controllers: [CollectionController],
@@ -31,9 +34,18 @@ import { CollectionItem } from '../../entities/CollectionItem';
     TagsService,
     CollectionItemRepository,
     CollectionItemService,
+    GamesService,
+    GamesRepository,
   ],
   imports: [
-    TypeOrmModule.forFeature([Collection, User, Event, Tags, CollectionItem]),
+    TypeOrmModule.forFeature([
+      Collection,
+      User,
+      Event,
+      Tags,
+      CollectionItem,
+      Games,
+    ]),
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
