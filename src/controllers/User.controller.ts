@@ -19,10 +19,15 @@ import { plainToClass } from 'class-transformer';
 import { UpdateUserDto } from '../dto/user/UpdateUserDto';
 import { Request } from '../types/base';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { getUserLoginFromJwt } from '../utils/getUserLoginFromJwt';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller()
 export class UserController {
-  constructor(@Inject(UserService) private userService: UserService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    @Inject(UserService) private userService: UserService,
+  ) {}
 
   // api для смены пароля
   @ApiOperation({
@@ -86,7 +91,14 @@ export class UserController {
   @Get('/public/user')
   async getByLogin(@Query() query: QueryUserDto, @Req() request: Request) {
     try {
-      return this.userService.getByLogin(query.login, request.user);
+      let requestUser;
+      if (request.headers?.authorization) {
+        requestUser = getUserLoginFromJwt(
+          this.jwtService,
+          request.headers.authorization.split(' ')[1],
+        );
+      }
+      return this.userService.getByLogin(query.login, requestUser);
     } catch (err) {
       throw new HttpBadRequestError(
         'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, обратитесь в техподдержку',

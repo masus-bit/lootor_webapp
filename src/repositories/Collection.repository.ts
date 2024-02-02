@@ -109,6 +109,18 @@ export class CollectionRepository {
       .getMany();
   }
 
+  async getByUserIdWithoutPrivates(id: string): Promise<Collection[]> {
+    return await this.collectionRepository
+      .createQueryBuilder('collection')
+      .where('collection.user = :id', { id })
+      .andWhere('collection.deleted = :deleted', { deleted: false })
+      .andWhere('collection.is_private = :isPrivate', { isPrivate: false })
+      .innerJoinAndSelect('collection.user', 'user')
+      .leftJoinAndSelect('collection.tags', 'tags')
+      .orderBy('collection.created', 'ASC')
+      .getMany();
+  }
+
   async getByIdWithoutUser(id: string): Promise<Collection | never> {
     return await this.collectionRepository
       .createQueryBuilder('collection')

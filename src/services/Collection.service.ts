@@ -16,6 +16,7 @@ import { User } from '../entities/User';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { UserRepository } from '../repositories/User.repository';
 import { CollectionItemRepository } from '../repositories/CollectionItem.repository';
+import { defineShareString } from '../utils/defineShareString';
 
 var randomstring = require('randomstring');
 
@@ -119,24 +120,27 @@ export class CollectionService {
    */
   async getByUserId(
     id: string,
-    authorizedUser?: User,
+    authorizedUser?: string,
   ): Promise<ReturnCollectionsDto> {
-    const collections = await this.collectionRepository.getByUserId(id);
+    let collections;
+    if (authorizedUser === id) {
+      collections = await this.collectionRepository.getByUserId(id);
+    } else {
+      collections = await this.collectionRepository.getByUserIdWithoutPrivates(
+        id,
+      );
+    }
     let authUser;
     let subArray;
     if (authorizedUser) {
-      authUser = await this.userRepository.getById(authorizedUser.login);
+      authUser = await this.userRepository.getById(authorizedUser);
       subArray = authUser.collection_subscriptions;
     }
     const result: ReturnedCollectionDto[] = [];
 
     const process = async (array) => {
       for (const item of array) {
-        if (authorizedUser?.login === id && item.is_private) {
-          item.share_string;
-        } else {
-          item.share_string = '';
-        }
+        item.share_string = defineShareString(authorizedUser, id, item);
         item.totalPrice =
           (await this.collectionItemRepository.sum(item.id)) || 0;
         result.push(
@@ -156,7 +160,7 @@ export class CollectionService {
   }
 
   async getOne(
-    authorizedUser?: User,
+    authorizedUser?: string,
     id?: string,
     transliteration?: string,
     login?: string,
@@ -168,14 +172,11 @@ export class CollectionService {
       collection.totalPrice = await this.collectionItemRepository.sum(
         collection.id,
       );
-      if (
-        authorizedUser?.login === collection.user.login &&
-        collection.is_private
-      ) {
-        collection.share_string;
-      } else {
-        collection.share_string = '';
-      }
+      collection.share_string = defineShareString(
+        authorizedUser,
+        collection.user.login,
+        collection,
+      );
     } else if (login) {
       collection = await this.collectionRepository.getOneByTransliteration(
         login,
@@ -185,14 +186,11 @@ export class CollectionService {
       collection.totalPrice = await this.collectionItemRepository.sum(
         collection.id,
       );
-      if (
-        authorizedUser?.login === collection.user.login &&
-        collection.is_private
-      ) {
-        collection.share_string;
-      } else {
-        collection.share_string = '';
-      }
+      collection.share_string = defineShareString(
+        authorizedUser,
+        collection.user.login,
+        collection,
+      );
     } else if (shareString) {
       collection = await this.collectionRepository.getByShareString(
         shareString,
@@ -207,7 +205,7 @@ export class CollectionService {
     let authUser;
     let subArray;
     if (authorizedUser) {
-      authUser = await this.userRepository.getById(authorizedUser.login);
+      authUser = await this.userRepository.getById(authorizedUser);
       subArray = authUser.collection_subscriptions;
     }
     return new GetOneCollectionDto(
@@ -334,26 +332,24 @@ export class CollectionService {
 
   async getByTag(
     tag: string,
-    authorizedUser: User,
+    authorizedUser: string,
   ): Promise<ReturnCollectionsDto> {
     const final = [];
     const result = await this.collectionRepository.getByTag(tag);
     let authUser;
     let subArray;
     if (authorizedUser) {
-      authUser = await this.userRepository.getById(authorizedUser.login);
+      authUser = await this.userRepository.getById(authorizedUser);
       subArray = authUser.collection_subscriptions;
     }
     result.map((collection) => {
-      if (
-        //@ts-ignore
-        authorizedUser?.login === collection.user.login &&
-        collection.is_private
-      ) {
-        collection.share_string;
-      } else {
-        collection.share_string = '';
-      }
+      collection.share_string = defineShareString(
+        authorizedUser,
+        // @ts-ignore
+        collection.user.login,
+        collection,
+      );
+
       final.push(
         new ReturnedCollectionDto(
           collection,

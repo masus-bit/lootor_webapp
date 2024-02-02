@@ -23,10 +23,13 @@ import { Request } from '../types/base';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { GetOneCollectionDto } from '../dto/collections/CollectionDto';
 import { GamesService } from '../services/Games.service';
+import { JwtService } from '@nestjs/jwt';
+import { getUserLoginFromJwt } from '../utils/getUserLoginFromJwt';
 
 @Controller()
 export class CollectionController {
   constructor(
+    private readonly jwtService: JwtService,
     @Inject(CollectionService) private collectionsService: CollectionService,
     @Inject(GamesService) private gamesService: GamesService,
   ) {}
@@ -99,9 +102,16 @@ export class CollectionController {
     @Query() query: { userLogin },
     @Req() request: Request,
   ) {
+    let requestUser;
+    if (request.headers?.authorization) {
+      requestUser = getUserLoginFromJwt(
+        this.jwtService,
+        request.headers.authorization.split(' ')[1],
+      );
+    }
     return await this.collectionsService.getByUserId(
       query.userLogin,
-      request?.user,
+      requestUser,
     );
   }
 
@@ -130,8 +140,15 @@ export class CollectionController {
     },
     @Req() request: Request,
   ) {
+    let requestUser;
+    if (request.headers?.authorization) {
+      requestUser = getUserLoginFromJwt(
+        this.jwtService,
+        request.headers.authorization.split(' ')[1],
+      );
+    }
     return await this.collectionsService.getOne(
-      request.user,
+      requestUser,
       query.id,
       query.transliteration,
       query.userLogin,
@@ -176,7 +193,7 @@ export class CollectionController {
   }
 
   @ApiOperation({
-    summary: 'Получение одной коллекциb po tag',
+    summary: 'Получение коллекциq po tag',
   })
   @ApiResponse({
     status: 200,
@@ -191,6 +208,13 @@ export class CollectionController {
     },
     @Req() request: Request,
   ) {
-    return await this.collectionsService.getByTag(query.tag, request.user);
+    let requestUser;
+    if (request.headers?.authorization) {
+      requestUser = getUserLoginFromJwt(
+        this.jwtService,
+        request.headers.authorization.split(' ')[1],
+      );
+    }
+    return await this.collectionsService.getByTag(query.tag, requestUser);
   }
 }

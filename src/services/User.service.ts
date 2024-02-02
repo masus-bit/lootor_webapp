@@ -29,22 +29,26 @@ export class UserService {
     return await this.userRepository.getByUserName(userName);
   }
 
-  async getByLogin(login: string, authUser?: User): Promise<GetUserByIdDto> {
+  async getByLogin(login: string, authUser?: string): Promise<GetUserByIdDto> {
     const user = await this.userRepository.getById(login);
+    let authorizedUser;
+    if (authUser) {
+      authorizedUser = await this.userRepository.getById(authUser);
+    }
     const collectionsItemsCount =
       await this.collectionItemRepository.getCountByUserLogin(login);
     const sum = await this.collectionItemRepository.sumByUserLogin(login);
     const collectionsCount =
       await this.collectionRepository.getCountByUserLogin(login);
 
-    if (login === authUser?.login) {
+    if (login === authUser) {
       return new GetUserByIdDto(
         new UserByIdDto(user, collectionsItemsCount, collectionsCount, sum),
       );
     }
     let subArray;
     if (authUser) {
-      subArray = authUser?.subscriptions;
+      subArray = authorizedUser?.subscriptions;
     }
     const canSubscribe = authUser ? !subArray.includes(login) : false;
     return new GetUserByIdDto(
