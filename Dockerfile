@@ -20,8 +20,8 @@ RUN npm install -g npm@8.3.0
 
 RUN npm install
 
-RUN npm run build
-
 RUN npm run typeorm migration:run
+
+RUN npm run build
 
 CMD ["npm", "run", "start"]
