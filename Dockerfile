@@ -23,5 +23,3 @@ RUN npm install
 RUN npm run build
 
 CMD ["npm", "run", "start"]
-
-RUN npm run typeorm migration:run

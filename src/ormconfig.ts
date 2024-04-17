@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 export const ormconfig = new DataSource({
   migrationsTableName: 'migrations',
   type: 'postgres',
-  host: 'host.docker.internal',
+  host: 'localhost',
   port: 5432,
   username: 'auc',
   password: 'aucer',

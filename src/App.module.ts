@@ -41,6 +41,7 @@ console.log(
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
       schema: process.env.POSTGRES_SCHEMA,
+      migrationsRun: true,
       entities: [
         User,
         Lot,
