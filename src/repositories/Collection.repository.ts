@@ -105,7 +105,7 @@ export class CollectionRepository {
       .andWhere('collection.deleted = :deleted', { deleted: false })
       .innerJoinAndSelect('collection.user', 'user')
       .leftJoinAndSelect('collection.tags', 'tags')
-      .orderBy('collection.created', 'ASC')
+      .orderBy('collection.created', 'DESC')
       .getMany();
   }
 
@@ -117,7 +117,7 @@ export class CollectionRepository {
       .andWhere('collection.is_private = :isPrivate', { isPrivate: false })
       .innerJoinAndSelect('collection.user', 'user')
       .leftJoinAndSelect('collection.tags', 'tags')
-      .orderBy('collection.created', 'ASC')
+      .orderBy('collection.created', 'DESC')
       .getMany();
   }
 

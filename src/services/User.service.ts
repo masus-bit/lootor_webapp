@@ -159,7 +159,7 @@ export class UserService {
       }
     } catch (err) {
       console.log(err);
-      throw new HttpBadRequestError('Что-то пошло не так');
+      throw new HttpBadRequestError('Что-то пошло не так, закройте еблище');
     }
   }
 

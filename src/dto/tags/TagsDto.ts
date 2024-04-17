@@ -5,5 +5,10 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreateTagsDto {
   @Expose()
   @ApiProperty()
-  readonly name: string;
+  readonly names: string[];
+}
+export class CreateTagDto {
+  @Expose()
+  @ApiProperty()
+  readonly names: string;
 }

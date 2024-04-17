@@ -11,6 +11,7 @@ import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { UserRepository } from '../repositories/User.repository';
 import { Algorithm } from 'jsonwebtoken';
 import { RefreshDto } from '../dto/RefreshDto';
+import { getUnixDate } from '../utils/date';
 
 @Injectable()
 export class AuthService {
@@ -97,7 +98,7 @@ export class AuthService {
       }
 
       const userModel = this.usersRepository.createModel(signUpDto);
-      userModel.created = Math.floor(+new Date() / 1000);
+      userModel.created = getUnixDate();
 
       userModel.password_encrypted = AuthService.getHashPassword(
         userModel.password,

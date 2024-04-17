@@ -46,9 +46,9 @@ export class TagsController {
   @Post()
   @ApiBody({ type: CreateTagsDto })
   @UseGuards(AuthGuard)
-  async createCollection(@Body() dto: CreateTagsDto) {
+  async createTag(@Body() dto: CreateTagsDto) {
     try {
-      return await this.tagsService.saveTag(dto.name);
+      return await this.tagsService.saveTag(dto.names);
     } catch (e) {
       throw new HttpBadRequestError('Bad request');
     }

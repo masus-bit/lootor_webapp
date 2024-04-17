@@ -17,6 +17,7 @@ import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { UserRepository } from '../repositories/User.repository';
 import { CollectionItemRepository } from '../repositories/CollectionItem.repository';
 import { defineShareString } from '../utils/defineShareString';
+import { getUnixDate } from '../utils/date';
 
 var randomstring = require('randomstring');
 
@@ -42,7 +43,7 @@ export class CollectionService {
   ): Promise<ReturnCreateCollection> {
     try {
       const collectionModel = this.collectionRepository.createModel(dto);
-      collectionModel.created = Math.floor(+new Date() / 1000);
+      collectionModel.created = getUnixDate();
       collectionModel.share_string = randomstring.generate(8);
       const collection = await this.collectionRepository.save(collectionModel);
       collection.totalPrice = 0;

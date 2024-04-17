@@ -8,6 +8,7 @@ import { Event } from '../entities/Event';
 import { CollectionItem } from '../entities/CollectionItem';
 import { User } from '../entities/User';
 import { Collection } from '../entities/Collection';
+import { getUnixDate } from '../utils/date';
 
 @Injectable()
 export class EventRepository {
@@ -21,7 +22,7 @@ export class EventRepository {
   }
 
   createModel(data: CreateEventDto): Event {
-    return this.eventRepository.create(data as DeepPartial<Event>);
+    return this.eventRepository.create(data);
   }
 
   async addEvent(
@@ -42,7 +43,7 @@ export class EventRepository {
         targetUser,
         targetCollection,
         targetCollectionItem,
-        date: new Date(Date.now()),
+        date: getUnixDate(),
       }),
     );
     return await this.save(model);
@@ -53,11 +54,11 @@ export class EventRepository {
       return await this.eventRepository
         .createQueryBuilder('event')
         .where('event.user IN (:...subscriptions)', { subscriptions })
-        .leftJoinAndSelect('event.user', 'user')
+        .leftJoinAndSelect('event.user', 'user as other')
         .leftJoinAndMapOne(
           'event.target_user',
           User,
-          'event.user',
+          'user',
           'user.login = event.target_user',
         )
         .leftJoinAndMapOne(

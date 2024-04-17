@@ -22,8 +22,8 @@ export class Event {
   action: string;
 
   @Index()
-  @Column()
-  date: Date;
+  @Column({ nullable: true, type: 'bigint' })
+  date: number;
 
   @Index()
   @Column({ nullable: true })

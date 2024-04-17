@@ -15,7 +15,7 @@ export class Tags {
 
   @Index()
   @Column({
-    nullable: false,
+    nullable: true,
   })
   name: string;
 
