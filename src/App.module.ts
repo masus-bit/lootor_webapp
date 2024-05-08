@@ -18,6 +18,7 @@ import { Genres } from './entities/Genres';
 import { Banners } from './entities/Banners';
 import { Platforms } from './entities/Platforms';
 import { Developers } from './entities/Developers';
+import { Migration1712844978693 } from './migrations/1712844978693-migration';
 
 console.log(
   process.env.POSTGRES_HOST,
@@ -41,7 +42,7 @@ console.log(
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
       schema: process.env.POSTGRES_SCHEMA,
-      migrations: ['src/migrations/*.ts'],
+      migrations: [Migration1712844978693],
       migrationsRun: true,
       entities: [
         User,
