@@ -24,4 +24,25 @@ export class EventService {
       console.log(e);
     }
   }
+
+  async getFilteredEvents(
+    userLogin: string | null,
+    collectionId: string | null,
+    collectionItem: string | null,
+  ): Promise<any> {
+    try {
+      return await this.eventRepository.getFilteredEvents(
+        userLogin,
+        collectionId,
+        collectionItem,
+      );
+      // const result = [];
+      // events.map((e) => result.push(new EventsDto(e)));
+      // return new GetEventsDto(result);
+      //
+      // return { data: [] };
+    } catch (e) {
+      console.log(e);
+    }
+  }
 }

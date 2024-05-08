@@ -1,8 +1,8 @@
-import { Controller, Get, Inject, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Inject, Query, Req, UseGuards } from '@nestjs/common';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { AuthGuard } from '../guards/Auth.guard';
 import { Request } from '../types/base';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { EventService } from '../services/Event.service';
 import { GetEventsDto } from '../dto/events/GetEventsDto';
 
@@ -22,6 +22,51 @@ export class EventController {
   async getEvents(@Req() request: Request) {
     try {
       return await this.eventService.getEvents(request.user);
+    } catch (err) {
+      throw new HttpBadRequestError(
+        'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, обратитесь в техподдержку',
+      );
+    }
+  }
+
+  @ApiOperation({
+    summary: 'Получить историю событий по конкретной сущности',
+  })
+  @ApiResponse({
+    status: 200,
+    type: GetEventsDto,
+  })
+  @Get('/filter')
+  @UseGuards(AuthGuard)
+  @ApiQuery({
+    name: 'userLogin',
+    type: String,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'collectionId',
+    type: String,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'collectionItemId',
+    type: String,
+    required: false,
+  })
+  async getFilteredEvents(
+    @Query()
+    query: {
+      userLogin: string;
+      collectionId: string;
+      collectionItemId;
+    },
+  ) {
+    try {
+      return await this.eventService.getFilteredEvents(
+        query?.userLogin,
+        query?.collectionId,
+        query?.collectionItemId,
+      );
     } catch (err) {
       throw new HttpBadRequestError(
         'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, обратитесь в техподдержку',

@@ -80,6 +80,44 @@ export class EventRepository {
     }
   }
 
+  async getFilteredEvents(
+    userLogin: string | null,
+    collectionId: string | null,
+    collectionItemId: string | null,
+  ): Promise<Event[] | never> {
+    try {
+      return await this.eventRepository
+        .createQueryBuilder('event')
+        .where('event.user = :userLogin', { userLogin })
+        .orWhere('event.target_collection = :collectionId', { collectionId })
+        .orWhere('event.target_collection_item = :collectionItemId', {
+          collectionItemId,
+        })
+        .leftJoinAndMapOne(
+          'event.target_user',
+          User,
+          'user',
+          'user.login = event.target_user',
+        )
+        .leftJoinAndMapOne(
+          'event.target_collection',
+          Collection,
+          'collection',
+          'collection.id = event.target_collection',
+        )
+        .leftJoinAndMapOne(
+          'event.target_collection_item',
+          CollectionItem,
+          'collection_item',
+          'collection_item.id = event.target_collection_item',
+        )
+        .orderBy('date', 'DESC')
+        .getMany();
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   async deleteEvent(
     user: string,
     targetName: string,
