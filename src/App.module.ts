@@ -41,7 +41,7 @@ console.log(
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
       schema: process.env.POSTGRES_SCHEMA,
-      migrations: ['src/migrations/**/*{.ts,.js}'],
+      migrations: ['src/migrations/*.ts'],
       migrationsRun: true,
       entities: [
         User,
