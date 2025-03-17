@@ -11,6 +11,10 @@ import { TagsRepository } from '../../repositories/Tags.repository';
 import { TagsController } from '../../controllers/Tags.controller';
 import { CollectionRepository } from '../../repositories/Collection.repository';
 import { Tags } from '../../entities/Tags';
+import { ElasticsearchService } from '../../services/ElasticSearch.service';
+import { TagsSubscriber } from '../../subscribers/Tags.subscriber';
+import { EntityRepository } from '../../repositories/Entity.repository';
+import { EntityModel } from '../../entities/EntityModel';
 
 @Module({
   controllers: [TagsController],
@@ -19,9 +23,12 @@ import { Tags } from '../../entities/Tags';
     TagsService,
     UserRepository,
     CollectionRepository,
+    ElasticsearchService,
+    TagsSubscriber,
+    EntityRepository,
   ],
   imports: [
-    TypeOrmModule.forFeature([User, Collection, Tags]),
+    TypeOrmModule.forFeature([User, Collection, Tags, EntityModel]),
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),

@@ -3,16 +3,31 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { CollectionItem } from '../entities/CollectionItem';
+import { ElasticsearchService } from '../services/ElasticSearch.service';
 
 @Injectable()
 export class CollectionItemRepository {
   constructor(
     @InjectRepository(CollectionItem)
     private collectionItemRepository: Repository<CollectionItem>,
+    private readonly elasticsearchService: ElasticsearchService,
   ) {}
 
   async save(data: DeepPartial<CollectionItem>): Promise<CollectionItem> {
-    return await this.collectionItemRepository.save(data);
+    const collectionItem = await this.collectionItemRepository.save(data);
+    await this.elasticsearchService.createIndexIfNotExists('collection_item', {
+      properties: {
+        name: {
+          type: 'text',
+          analyzer: 'common_analyzer',
+        },
+      },
+    });
+    await this.elasticsearchService.indexDocument('collection_item', {
+      id: collectionItem.id,
+      name: collectionItem.name,
+    });
+    return collectionItem;
   }
 
   createModel(data: DeepPartial<CollectionItem>): CollectionItem {
@@ -72,7 +87,13 @@ export class CollectionItemRepository {
   }
 
   async delete(id: string) {
-    return await this.collectionItemRepository.delete({ id });
+    const deleted = await this.collectionItemRepository.delete({ id });
+    await this.elasticsearchService.deleteDocument(
+      'collection_item',
+      id.toString(),
+    );
+    return deleted;
+
     // const collectionItem = await this.collectionItemRepository
     //   .createQueryBuilder('collection_item')
     //   .where('collection_item.id = :id', { id })

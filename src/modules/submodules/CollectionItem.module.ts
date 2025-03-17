@@ -14,6 +14,8 @@ import { Event } from '../../entities/Event';
 import { EntityRepository } from '../../repositories/Entity.repository';
 import { EntityModel } from '../../entities/EntityModel';
 import { EntityService } from '../../services/Entity.service';
+import { ElasticsearchService } from '../../services/ElasticSearch.service';
+import { CollectionItemSubscriber } from '../../subscribers/CollectionItem.subscriber';
 
 @Module({
   controllers: [CollectionItemController],
@@ -24,6 +26,8 @@ import { EntityService } from '../../services/Entity.service';
     EventRepository,
     EntityRepository,
     EntityService,
+    ElasticsearchService,
+    CollectionItemSubscriber,
   ],
   imports: [
     TypeOrmModule.forFeature([CollectionItem, User, Event, EntityModel]),

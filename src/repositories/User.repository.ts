@@ -3,11 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { User } from '../entities/User';
+import { ElasticsearchService } from '../services/ElasticSearch.service';
 
 @Injectable()
 export class UserRepository {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
+    private readonly elasticsearchService: ElasticsearchService,
   ) {}
 
   async getPasswordsByEmail(email: string): Promise<User | never> {
@@ -30,7 +32,29 @@ export class UserRepository {
   }
 
   async save(data: DeepPartial<User>): Promise<User> {
-    return await this.usersRepository.save(data);
+    const user = await this.usersRepository.save(data);
+    await this.elasticsearchService.createIndexIfNotExists('collection_item', {
+      properties: {
+        login: {
+          type: 'text',
+          analyzer: 'common_analyzer',
+        },
+        user_name: {
+          type: 'text',
+          analyzer: 'common_analyzer',
+        },
+        email: {
+          type: 'text',
+          analyzer: 'common_analyzer',
+        },
+      },
+    });
+    await this.elasticsearchService.indexDocument('user', {
+      login: user.login,
+      user_name: user.user_name,
+      email: user.email,
+    });
+    return user;
   }
 
   createModel(data: DeepPartial<User>): User {

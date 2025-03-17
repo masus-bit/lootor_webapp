@@ -8,10 +8,11 @@ import { AuthController } from '../controllers/Auth.controller';
 import { AuthService } from '../services/Auth.service';
 import { UserRepository } from '../repositories/User.repository';
 import { User } from '../entities/User';
+import { ElasticsearchService } from '../services/ElasticSearch.service';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, UserRepository],
+  providers: [AuthService, UserRepository, ElasticsearchService],
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',

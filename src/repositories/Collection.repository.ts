@@ -4,16 +4,31 @@ import { Collection } from '../entities/Collection';
 import { Repository } from 'typeorm';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { CollectionItem } from '../entities/CollectionItem';
+import { ElasticsearchService } from '../services/ElasticSearch.service';
 
 @Injectable()
 export class CollectionRepository {
   constructor(
     @InjectRepository(Collection)
     private collectionRepository: Repository<Collection>,
+    private readonly elasticsearchService: ElasticsearchService,
   ) {}
 
   async save(data: DeepPartial<Collection>): Promise<Collection> {
-    return await this.collectionRepository.save(data);
+    const collection = await this.collectionRepository.save(data);
+    await this.elasticsearchService.createIndexIfNotExists('collection', {
+      properties: {
+        name: {
+          type: 'text',
+          analyzer: 'common_analyzer',
+        },
+      },
+    });
+    await this.elasticsearchService.indexDocument('collection', {
+      id: collection.id,
+      name: collection.name,
+    });
+    return collection;
   }
 
   createModel(data: DeepPartial<Collection>): Collection {
@@ -151,6 +166,17 @@ export class CollectionRepository {
       id,
       ...collection,
     });
+    await this.elasticsearchService.createIndexIfNotExists('collection', {
+      properties: {
+        name: {
+          type: 'text',
+          analyzer: 'common_analyzer',
+        },
+      },
+    });
+    await this.elasticsearchService.indexDocument('collection', {
+      name: updatedCollection.name,
+    });
     return await this.collectionRepository.save(updatedCollection);
   }
 
@@ -162,7 +188,9 @@ export class CollectionRepository {
   }
 
   async delete(id: string) {
-    return await this.collectionRepository.delete({ id });
+    const del = await this.collectionRepository.delete({ id });
+    await this.elasticsearchService.deleteDocument('collection', id.toString());
+    return del;
     // const collection = await this.collectionRepository
     //   .createQueryBuilder('collection')
     //   .where('collection.id = :id', { id })

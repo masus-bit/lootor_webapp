@@ -5,31 +5,34 @@ import { UserRepository } from '../../repositories/User.repository';
 import { User } from '../../entities/User';
 import { JwtRegisterModule } from './jwt.module';
 import { HttpModule } from '@nestjs/axios';
-import { EntityService } from '../../services/Entity.service';
-import { EntityController } from '../../controllers/Entity.controller';
-import { EntityRepository } from '../../repositories/Entity.repository';
-import { CollectionItem } from '../../entities/CollectionItem';
-import { CollectionItemRepository } from '../../repositories/CollectionItem.repository';
-import { EntityModel } from '../../entities/EntityModel';
+import { SearchController } from '../../controllers/Search.controller';
 import { ElasticsearchService } from '../../services/ElasticSearch.service';
-import { EntitySubscriber } from '../../subscribers/Entity.subscriber';
+import { EntityModel } from '../../entities/EntityModel';
+import { CollectionItem } from '../../entities/CollectionItem';
+import { Collection } from '../../entities/Collection';
+import { Tags } from '../../entities/Tags';
+import { TagsRepository } from '../../repositories/Tags.repository';
+import { EntityRepository } from '../../repositories/Entity.repository';
+import { CollectionRepository } from '../../repositories/Collection.repository';
+import { CollectionItemRepository } from '../../repositories/CollectionItem.repository';
 
 @Module({
-  controllers: [EntityController],
+  controllers: [SearchController],
   providers: [
-    EntityRepository,
-    EntityService,
-    UserRepository,
-    CollectionItemRepository,
     ElasticsearchService,
-    EntitySubscriber,
+    UserRepository,
+    TagsRepository,
+    EntityRepository,
+    CollectionRepository,
+    CollectionItemRepository,
   ],
   imports: [
     TypeOrmModule.forFeature([
       User,
-      CollectionItem,
       EntityModel,
       CollectionItem,
+      Collection,
+      Tags,
     ]),
     ConfigModule.forRoot({
       envFilePath: '.env',
@@ -37,6 +40,6 @@ import { EntitySubscriber } from '../../subscribers/Entity.subscriber';
     JwtRegisterModule,
     HttpModule,
   ],
-  exports: [EntityService],
+  exports: [ElasticsearchService],
 })
-export class EntityModule {}
+export class ElasticSearchModule {}

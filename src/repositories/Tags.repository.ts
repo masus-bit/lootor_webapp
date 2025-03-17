@@ -5,16 +5,31 @@ import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { plainToClass } from 'class-transformer';
 import { Tags } from '../entities/Tags';
 import { CreateTagDto } from '../dto/tags/TagsDto';
+import { ElasticsearchService } from '../services/ElasticSearch.service';
 
 @Injectable()
 export class TagsRepository {
   constructor(
     @InjectRepository(Tags)
     private tagsRepository: Repository<Tags>,
+    private readonly elasticsearchService: ElasticsearchService,
   ) {}
 
   async save(data: DeepPartial<Tags>): Promise<Tags> {
-    return await this.tagsRepository.save(data);
+    const tags = await this.tagsRepository.save(data);
+    await this.elasticsearchService.createIndexIfNotExists('tags', {
+      properties: {
+        name: {
+          type: 'text',
+          analyzer: 'common_analyzer',
+        },
+      },
+    });
+    await this.elasticsearchService.indexDocument('tags', {
+      id: tags.id,
+      name: tags.name,
+    });
+    return tags;
   }
 
   createModel(data: CreateTagDto): Tags {

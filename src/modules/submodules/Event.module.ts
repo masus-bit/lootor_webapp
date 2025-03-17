@@ -11,6 +11,7 @@ import { Collection } from '../../entities/Collection';
 import { CollectionRepository } from '../../repositories/Collection.repository';
 import { JwtRegisterModule } from './jwt.module';
 import { HttpModule } from '@nestjs/axios';
+import { ElasticsearchService } from '../../services/ElasticSearch.service';
 
 @Module({
   controllers: [EventController],
@@ -19,6 +20,7 @@ import { HttpModule } from '@nestjs/axios';
     EventRepository,
     UserRepository,
     CollectionRepository,
+    ElasticsearchService,
   ],
   imports: [
     TypeOrmModule.forFeature([Event, User, Collection]),

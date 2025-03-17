@@ -7,6 +7,7 @@ import { CollectionItemModule } from './submodules/CollectionItem.module';
 import { EventModule } from './submodules/Event.module';
 import { TagsModule } from './submodules/Tags.module';
 import { EntityModule } from './submodules/Entity.module';
+import { ElasticSearchModule } from './submodules/ElasticSearch.module';
 
 @Module({
   controllers: [],
@@ -20,6 +21,7 @@ import { EntityModule } from './submodules/Entity.module';
     EventModule,
     TagsModule,
     EntityModule,
+    ElasticSearchModule,
   ],
 })
 export class SecuredModule {}

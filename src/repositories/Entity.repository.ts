@@ -5,16 +5,32 @@ import { DeepPartial } from 'typeorm/common/DeepPartial';
 import { plainToClass } from 'class-transformer';
 import { EntityModel } from '../entities/EntityModel';
 import { CreateEntityDto } from '../dto/entities/EntitiesDto';
+import { ElasticsearchService } from '../services/ElasticSearch.service';
 
 @Injectable()
 export class EntityRepository {
   constructor(
     @InjectRepository(EntityModel)
     private entityRepository: Repository<EntityModel>,
+    private readonly elasticsearchService: ElasticsearchService,
   ) {}
 
   async save(data: DeepPartial<EntityModel>): Promise<EntityModel> {
-    return await this.entityRepository.save(data);
+    const entity = await this.entityRepository.save(data);
+    await this.elasticsearchService.createIndexIfNotExists('entity_model', {
+      properties: {
+        name: {
+          type: 'text',
+          analyzer: 'common_analyzer',
+        },
+      },
+    });
+    await this.elasticsearchService.indexDocument('entity_model', {
+      id: entity.id,
+      name: entity.name,
+      collection_item: entity.collection_item,
+    });
+    return entity;
   }
 
   createModel(data: CreateEntityDto): EntityModel {
@@ -50,5 +66,9 @@ export class EntityRepository {
     } catch (e) {
       console.log(e);
     }
+  }
+
+  async find(): Promise<EntityModel[]> | never {
+    return await this.entityRepository.find();
   }
 }
