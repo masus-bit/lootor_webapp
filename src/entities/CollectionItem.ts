@@ -3,8 +3,8 @@ import {
   Entity,
   Index,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Collection } from './Collection';
@@ -86,6 +86,6 @@ export class CollectionItem {
   })
   transliteration: string;
 
-  @OneToMany(() => EntityModel, (entity) => entity.collection_item)
+  @ManyToMany(() => EntityModel, (entity) => entity.collection_item)
   entities: EntityModel[];
 }

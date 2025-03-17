@@ -21,11 +21,10 @@ export class EntityRepository {
     return this.entityRepository.create(data as DeepPartial<EntityModel>);
   }
 
-  async addEntity(name: string, collectionItem: string): Promise<EntityModel> {
+  async addEntity(name: string): Promise<EntityModel> {
     const model = this.createModel(
       plainToClass(CreateEntityDto, {
         name,
-        collectionItem,
       }),
     );
     return await this.save(model);

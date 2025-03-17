@@ -2,8 +2,8 @@ import {
   Column,
   Entity,
   Index,
-  JoinColumn,
-  ManyToOne,
+  JoinTable,
+  ManyToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CollectionItem } from './CollectionItem';
@@ -17,11 +17,13 @@ export class EntityModel {
   @Column({ nullable: false })
   name: string;
 
-  @Index()
-  @Column({ nullable: true })
-  @ManyToOne(() => CollectionItem, (collectionItem) => collectionItem.id, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'collection_item' })
-  collection_item: string;
+  @ManyToMany(
+    () => CollectionItem,
+    (collectionItem) => collectionItem.entities,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
+  @JoinTable()
+  collection_item: CollectionItem[];
 }

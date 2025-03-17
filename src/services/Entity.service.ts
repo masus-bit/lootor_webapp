@@ -18,12 +18,7 @@ export class EntityService {
       for (const item of entities) {
         const exist = await this.entityRepository.getEntityByName(item);
         if (!exist) {
-          //@ts-ignore
-          const collectionItem = dto.collectionItem;
-          const saved = await this.entityRepository.addEntity(
-            item,
-            collectionItem,
-          );
+          const saved = await this.entityRepository.addEntity(item);
           result.push(saved);
         }
       }
