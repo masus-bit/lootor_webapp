@@ -2,7 +2,7 @@ import { Exclude, Expose } from 'class-transformer';
 import { CollectionItem } from '../../entities/CollectionItem';
 import { ApiProperty } from '@nestjs/swagger';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
-import { GetEntityDto } from '../entities/GetEntitiesDto';
+import { EntityModel } from '../../entities/EntityModel';
 
 @Exclude()
 export class CollectionItemCreateDto {
@@ -74,8 +74,8 @@ export class ReturnedCollectionItemDto {
   readonly copyNumber?: string;
   @ApiProperty()
   readonly collection: string;
-  @ApiModelProperty({ type: GetEntityDto, isArray: true })
-  readonly entities: GetEntityDto[];
+  @ApiModelProperty({ type: EntityModel, isArray: true })
+  readonly entities: EntityModel[];
 
   constructor(collectionItem: Readonly<CollectionItem>) {
     this.id = collectionItem?.id;
@@ -91,8 +91,7 @@ export class ReturnedCollectionItemDto {
     // @ts-ignore
     this.collection = collectionItem.collection.id;
     this.shipping_cost = collectionItem.shipping_cost;
-    this.entities =
-      collectionItem.entities?.map((item) => new GetEntityDto(item)) || [];
+    this.entities = collectionItem.entities;
   }
 }
 
