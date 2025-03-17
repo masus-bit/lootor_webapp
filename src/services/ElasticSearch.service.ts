@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Client } from '@elastic/elasticsearch';
+import { SearchDto, SearchResultDto } from '../dto/search/SearchDto';
 
 @Injectable()
 export class ElasticsearchService {
@@ -82,12 +83,17 @@ export class ElasticsearchService {
    * @param query - Поисковый запрос
    */
   async searchInIndices(indices: string[], query: any) {
-    return this.client.search({
+    const result = await this.client.search({
       index: indices.join(','),
       body: {
         query,
       },
     });
+    let objects = [];
+    result.hits.hits.forEach((hit) => {
+      objects.push(new SearchDto(hit));
+    });
+    return new SearchResultDto(objects);
   }
 
   async indexDocument(index: string, body: any) {

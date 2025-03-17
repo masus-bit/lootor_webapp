@@ -14,13 +14,11 @@ export class SearchController {
       'collection',
       'entity_model',
     ];
-    const result = await this.elasticsearchService.searchInIndices(indices, {
+    return await this.elasticsearchService.searchInIndices(indices, {
       multi_match: {
         query: query.search,
         fields: ['*'],
       },
     });
-    console.log(result);
-    return result.hits.hits;
   }
 }

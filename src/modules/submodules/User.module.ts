@@ -17,7 +17,6 @@ import { CollectionItemRepository } from '../../repositories/CollectionItem.repo
 import { Collection } from '../../entities/Collection';
 import { CollectionItem } from '../../entities/CollectionItem';
 import { ElasticsearchService } from '../../services/ElasticSearch.service';
-import { UserSubscriber } from '../../subscribers/User.subscriber';
 import { EntityRepository } from '../../repositories/Entity.repository';
 import { EntityModel } from '../../entities/EntityModel';
 
@@ -32,7 +31,6 @@ import { EntityModel } from '../../entities/EntityModel';
     CollectionItemService,
     CollectionItemRepository,
     ElasticsearchService,
-    UserSubscriber,
     EntityRepository,
   ],
   imports: [

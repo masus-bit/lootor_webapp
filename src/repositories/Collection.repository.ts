@@ -174,9 +174,11 @@ export class CollectionRepository {
         },
       },
     });
+
     await this.elasticsearchService.indexDocument('collection', {
       name: updatedCollection.name,
     });
+    console.log('INDEXED');
     return await this.collectionRepository.save(updatedCollection);
   }
 

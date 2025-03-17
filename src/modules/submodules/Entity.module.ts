@@ -12,7 +12,6 @@ import { CollectionItem } from '../../entities/CollectionItem';
 import { CollectionItemRepository } from '../../repositories/CollectionItem.repository';
 import { EntityModel } from '../../entities/EntityModel';
 import { ElasticsearchService } from '../../services/ElasticSearch.service';
-import { EntitySubscriber } from '../../subscribers/Entity.subscriber';
 
 @Module({
   controllers: [EntityController],
@@ -22,7 +21,6 @@ import { EntitySubscriber } from '../../subscribers/Entity.subscriber';
     UserRepository,
     CollectionItemRepository,
     ElasticsearchService,
-    EntitySubscriber,
   ],
   imports: [
     TypeOrmModule.forFeature([

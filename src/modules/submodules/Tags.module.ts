@@ -12,7 +12,6 @@ import { TagsController } from '../../controllers/Tags.controller';
 import { CollectionRepository } from '../../repositories/Collection.repository';
 import { Tags } from '../../entities/Tags';
 import { ElasticsearchService } from '../../services/ElasticSearch.service';
-import { TagsSubscriber } from '../../subscribers/Tags.subscriber';
 import { EntityRepository } from '../../repositories/Entity.repository';
 import { EntityModel } from '../../entities/EntityModel';
 
@@ -24,7 +23,6 @@ import { EntityModel } from '../../entities/EntityModel';
     UserRepository,
     CollectionRepository,
     ElasticsearchService,
-    TagsSubscriber,
     EntityRepository,
   ],
   imports: [
