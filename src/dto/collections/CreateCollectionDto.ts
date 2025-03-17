@@ -87,6 +87,8 @@ export class ReturnedCollectionDto {
   @ApiProperty()
   readonly totalPrice: number;
   @ApiProperty()
+  readonly shippingTotal: number;
+  @ApiProperty()
   readonly canSubscribe: boolean;
   @ApiProperty()
   readonly shareString: string;
@@ -108,6 +110,7 @@ export class ReturnedCollectionDto {
     this.created = collection.created;
     this.subscribersCount = collection.subscribers_count;
     this.totalPrice = collection.totalPrice;
+    this.shippingTotal = collection.shippingTotal;
     this.canSubscribe = canSubscribe;
     this.shareString = collection.share_string;
   }

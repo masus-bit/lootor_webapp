@@ -2,6 +2,7 @@ import { Exclude, Expose } from 'class-transformer';
 import { CollectionItem } from '../../entities/CollectionItem';
 import { ApiProperty } from '@nestjs/swagger';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
+import { GetEntityDto } from '../entities/GetEntitiesDto';
 
 @Exclude()
 export class CollectionItemCreateDto {
@@ -13,45 +14,29 @@ export class CollectionItemCreateDto {
   @ApiProperty()
   readonly description: string;
 
-  @Expose({ name: 'gameId' })
-  @ApiProperty({ name: 'gameId' })
-  readonly game_id?: string;
-
-  @Expose()
-  @ApiProperty()
-  readonly developer: string;
-
-  @Expose()
-  @ApiProperty()
-  readonly publisher: string;
-
   @Expose()
   @ApiProperty()
   readonly platform: string;
 
-  @Expose({ name: 'itemPicture' })
-  @ApiProperty({ name: 'itemPicture' })
-  readonly item_picture: string;
-
-  @Expose({ name: 'itemPhotos' })
-  @ApiProperty({ name: 'itemPhotos' })
-  readonly item_photos: string[];
+  @Expose({ name: 'images' })
+  @ApiProperty({ name: 'images' })
+  readonly images: string[];
 
   @Expose({ name: 'purchaseDate' })
   @ApiProperty({ name: 'purchaseDate' })
   readonly purchase_date: Date;
 
-  @Expose()
-  @ApiProperty()
-  readonly price: number;
+  @Expose({ name: 'purchasePrice' })
+  @ApiProperty({ name: 'purchasePrice' })
+  readonly purchase_price: number;
 
   @Expose()
   @ApiProperty()
   readonly sealed: boolean;
 
-  @Expose({ name: 'limitedEdition' })
-  @ApiProperty({ name: 'limitedEdition' })
-  readonly limited_edition: boolean;
+  @Expose({ name: 'shippingCost' })
+  @ApiProperty({ name: 'shippingCost' })
+  readonly shipping_cost: number;
 
   @Expose({ name: 'copyNumber' })
   @ApiProperty({ name: 'copyNumber' })
@@ -60,6 +45,10 @@ export class CollectionItemCreateDto {
   @Expose({ name: 'collection' })
   @ApiProperty({ name: 'collection' })
   readonly collection: string;
+
+  @Expose()
+  @ApiProperty()
+  readonly entities: { id: string; name: string }[];
 }
 
 export class ReturnedCollectionItemDto {
@@ -70,47 +59,40 @@ export class ReturnedCollectionItemDto {
   @ApiProperty()
   readonly description: string;
   @ApiProperty()
-  readonly gameId?: string;
-  @ApiProperty()
-  readonly developer: string;
-  @ApiProperty()
-  readonly publisher: string;
+  readonly shipping_cost: number;
   @ApiProperty()
   readonly platform: string;
   @ApiProperty()
-  readonly itemPicture: string;
-  @ApiProperty()
-  readonly itemPhotos: string[];
+  readonly images: string[];
   @ApiProperty()
   readonly purchaseDate: Date;
   @ApiProperty({ description: 'Цена' })
-  readonly price: number;
+  readonly purchasePrice: number;
   @ApiProperty()
   readonly sealed: boolean;
-  @ApiProperty()
-  readonly limitedEdition: boolean;
   @ApiProperty()
   readonly copyNumber?: string;
   @ApiProperty()
   readonly collection: string;
+  @ApiModelProperty({ type: GetEntityDto, isArray: true })
+  readonly entities: GetEntityDto[];
 
   constructor(collectionItem: Readonly<CollectionItem>) {
     this.id = collectionItem?.id;
     this.name = collectionItem.name;
     this.description = collectionItem.description;
-    this.gameId = collectionItem?.game_id;
-    this.developer = collectionItem.developer;
-    this.publisher = collectionItem.publisher;
-    this.platform = collectionItem.platform;
-    this.itemPicture = collectionItem.item_picture;
-    this.itemPhotos = collectionItem.item_photos;
+    // @ts-ignore
+    this.platform = collectionItem.platform.id;
+    this.images = collectionItem.images;
     this.purchaseDate = collectionItem.purchase_date;
-    this.price = collectionItem.price;
+    this.purchasePrice = collectionItem.purchase_price;
     this.sealed = collectionItem.sealed;
-    this.limitedEdition = collectionItem.limited_edition;
     this.copyNumber = collectionItem?.copy_number;
     // @ts-ignore
     this.collection = collectionItem.collection.id;
+    this.shipping_cost = collectionItem.shipping_cost;
+    this.entities =
+      collectionItem.entities?.map((item) => new GetEntityDto(item)) || [];
   }
 }
 

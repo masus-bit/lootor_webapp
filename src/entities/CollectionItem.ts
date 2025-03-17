@@ -4,10 +4,13 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Collection } from './Collection';
 import { User } from './User';
+import { Platforms } from './Platforms';
+import { EntityModel } from './EntityModel';
 
 @Entity()
 export class CollectionItem {
@@ -15,34 +18,12 @@ export class CollectionItem {
   id: string;
 
   @Index()
-  @Column({
-    nullable: true,
-  })
-  game_id: string;
-
-  @Index()
   @Column({ nullable: false })
   name: string;
 
   @Index()
-  @Column({ nullable: false })
-  developer: string;
-
-  @Index()
-  @Column({ nullable: false })
-  publisher: string;
-
-  @Index()
-  @Column({ nullable: false })
-  platform: string;
-
-  @Index()
-  @Column({ nullable: false })
-  item_picture: string;
-
-  @Index()
   @Column('simple-array', { array: true, nullable: true })
-  item_photos: string[];
+  images: string[];
 
   @Index()
   @Column({ nullable: false })
@@ -50,15 +31,11 @@ export class CollectionItem {
 
   @Index()
   @Column({ nullable: false, default: 0 })
-  price: number;
+  purchase_price: number;
 
   @Index()
   @Column()
   sealed: boolean;
-
-  @Index()
-  @Column()
-  limited_edition: boolean;
 
   @Index()
   @Column({ nullable: true })
@@ -85,8 +62,30 @@ export class CollectionItem {
   owner: string;
 
   @Index()
+  @Column({ nullable: true })
+  @ManyToOne(() => Platforms, (platform) => platform.id, {
+    onDelete: 'CASCADE',
+  })
+  platform: string;
+
+  @Index()
   @Column({
     nullable: true,
   })
   description: string;
+
+  @Index()
+  @Column({
+    nullable: true,
+  })
+  shipping_cost: number;
+
+  @Index()
+  @Column({
+    nullable: true,
+  })
+  transliteration: string;
+
+  @OneToMany(() => EntityModel, (entity) => entity.collection_item)
+  entities: EntityModel[];
 }

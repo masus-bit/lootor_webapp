@@ -12,21 +12,11 @@ import { LotImage } from './entities/LotImage';
 import { Collection } from './entities/Collection';
 import { Event } from './entities/Event';
 import { Tags } from './entities/Tags';
-import { Games } from './entities/Games';
-import { Publishers } from './entities/Publishers';
 import { Genres } from './entities/Genres';
 import { Banners } from './entities/Banners';
 import { Platforms } from './entities/Platforms';
-import { Developers } from './entities/Developers';
-import { Migration1712844978693 } from './migrations/1712844978693-migration';
+import { EntityModel } from './entities/EntityModel';
 
-console.log(
-  process.env.POSTGRES_HOST,
-  process.env.POSTGRES_PORT,
-  process.env.POSTGRES_USER,
-  process.env.POSTGRES_PASSWORD,
-  process.env.POSTGRES_DB,
-);
 @Module({
   controllers: [],
   providers: [],
@@ -42,8 +32,6 @@ console.log(
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
       schema: process.env.POSTGRES_SCHEMA,
-      migrations: [Migration1712844978693],
-      migrationsRun: true,
       entities: [
         User,
         Lot,
@@ -54,14 +42,12 @@ console.log(
         LotImage,
         Event,
         Tags,
-        Games,
-        Publishers,
         Genres,
         Banners,
         Platforms,
-        Developers,
+        EntityModel,
       ],
-      synchronize: false,
+      synchronize: true,
       autoLoadEntities: true,
     }),
     SecuredModule,

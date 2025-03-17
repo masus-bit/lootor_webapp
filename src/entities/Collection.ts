@@ -79,6 +79,13 @@ export class Collection {
 
   @Index()
   @Column({
+    nullable: false,
+    default: 0,
+  })
+  shippingTotal: number;
+
+  @Index()
+  @Column({
     nullable: true,
   })
   share_string: string;

@@ -11,6 +11,9 @@ import { JwtRegisterModule } from './jwt.module';
 import { HttpModule } from '@nestjs/axios';
 import { EventRepository } from '../../repositories/Event.repository';
 import { Event } from '../../entities/Event';
+import { EntityRepository } from '../../repositories/Entity.repository';
+import { EntityModel } from '../../entities/EntityModel';
+import { EntityService } from '../../services/Entity.service';
 
 @Module({
   controllers: [CollectionItemController],
@@ -19,9 +22,11 @@ import { Event } from '../../entities/Event';
     CollectionItemRepository,
     UserRepository,
     EventRepository,
+    EntityRepository,
+    EntityService,
   ],
   imports: [
-    TypeOrmModule.forFeature([CollectionItem, User, Event]),
+    TypeOrmModule.forFeature([CollectionItem, User, Event, EntityModel]),
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),

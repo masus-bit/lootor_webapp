@@ -22,7 +22,6 @@ import { plainToClass } from 'class-transformer';
 import { Request } from '../types/base';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { GetOneCollectionDto } from '../dto/collections/CollectionDto';
-import { GamesService } from '../services/Games.service';
 import { JwtService } from '@nestjs/jwt';
 import { getUserLoginFromJwt } from '../utils/getUserLoginFromJwt';
 
@@ -31,7 +30,6 @@ export class CollectionController {
   constructor(
     private readonly jwtService: JwtService,
     @Inject(CollectionService) private collectionsService: CollectionService,
-    @Inject(GamesService) private gamesService: GamesService,
   ) {}
 
   @ApiOperation({ summary: 'Создание коллекции' })

@@ -31,8 +31,13 @@ export class CollectionItemService {
       const model = this.collectionItemRepository.createModel(dto);
       model.owner = user.login;
       // @ts-ignore
-      model.item_photos = `{${dto.item_photos}}`;
-      const instance = await this.collectionItemRepository.save(model);
+      model.images = `{${dto.images}}`;
+      const instance = await this.collectionItemRepository.save({
+        ...model,
+        entities: !dto?.entities
+          ? model.entities
+          : [...model?.entities, ...dto.entities],
+      });
       const result = await this.collectionItemRepository.getById(instance.id);
       // @ts-ignore
       if (!result.collection.is_private) {
@@ -88,10 +93,11 @@ export class CollectionItemService {
     if (exists) {
       const model = await this.collectionItemRepository.createModel(dto);
       // @ts-ignore
-      model.item_photos = `{${dto.item_photos}}`;
+      model.images = `{${dto.images}}`;
       const instance = await this.collectionItemRepository.save({
         id,
         ...model,
+        entities: [...exists.entities, ...dto.entities],
       });
       const result = await this.collectionItemRepository.getById(instance.id);
       return new ReturnCreateCollectionItem(
@@ -101,6 +107,7 @@ export class CollectionItemService {
   }
 
   async getById(id: string) {
+    console.log(id);
     try {
       const exists = await this.collectionItemRepository.getById(id);
       return new ReturnCreateCollectionItem(

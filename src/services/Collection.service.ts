@@ -47,6 +47,7 @@ export class CollectionService {
       collectionModel.share_string = randomstring.generate(8);
       const collection = await this.collectionRepository.save(collectionModel);
       collection.totalPrice = 0;
+      collection.shippingTotal = 0;
       const result = await this.collectionRepository.getByIdWithoutCollections(
         collection.id,
       );
@@ -144,6 +145,8 @@ export class CollectionService {
         item.share_string = defineShareString(authorizedUser, id, item);
         item.totalPrice =
           (await this.collectionItemRepository.sum(item.id)) || 0;
+        item.shippingTotal =
+          (await this.collectionItemRepository.sumShippingCost(item.id)) || 0;
         result.push(
           new ReturnedCollectionDto(
             item,
@@ -173,6 +176,8 @@ export class CollectionService {
       collection.totalPrice = await this.collectionItemRepository.sum(
         collection.id,
       );
+      collection.shippingTotal =
+        await this.collectionItemRepository.sumShippingCost(collection.id);
       collection.share_string = defineShareString(
         authorizedUser,
         collection.user.login,
@@ -187,6 +192,8 @@ export class CollectionService {
       collection.totalPrice = await this.collectionItemRepository.sum(
         collection.id,
       );
+      collection.shippingTotal =
+        await this.collectionItemRepository.sumShippingCost(collection.id);
       collection.share_string = defineShareString(
         authorizedUser,
         collection.user.login,
@@ -200,6 +207,8 @@ export class CollectionService {
       collection.totalPrice = await this.collectionItemRepository.sum(
         collection.id,
       );
+      collection.shippingTotal =
+        await this.collectionItemRepository.sumShippingCost(collection.id);
       collection.share_string = '';
     }
 

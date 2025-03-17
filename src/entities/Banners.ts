@@ -1,12 +1,4 @@
-import {
-  Column,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryColumn,
-} from 'typeorm';
-import { Games } from './Games';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Banners {
@@ -24,10 +16,6 @@ export class Banners {
     nullable: true,
   })
   side: string;
-
-  @ManyToOne(() => Games, (game) => game.id, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'games_id' })
-  games_id: number;
 
   @Index()
   @Column({

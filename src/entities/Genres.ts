@@ -1,5 +1,4 @@
-import { Column, Entity, Index, ManyToMany, PrimaryColumn } from 'typeorm';
-import { Games } from './Games';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Genres {
@@ -11,7 +10,4 @@ export class Genres {
     nullable: true,
   })
   genre: string;
-
-  @ManyToMany(() => Games, (game) => game.pubs)
-  games: Games[];
 }

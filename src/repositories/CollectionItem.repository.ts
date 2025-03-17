@@ -26,6 +26,8 @@ export class CollectionItemRepository {
       .andWhere('collection_item.deleted = :deleted', { deleted: false })
       .innerJoinAndSelect('collection_item.collection', 'collection')
       .innerJoinAndSelect('collection.user', 'user')
+      .innerJoinAndSelect('collection_item.platform', 'platforms')
+      .leftJoinAndSelect('collection_item.entities', 'entity_model')
       .getOne();
   }
 
@@ -44,7 +46,7 @@ export class CollectionItemRepository {
     // @ts-ignore
     const updatedCollectionItem = this.collectionItemRepository.create({
       id,
-      item_photos: `{${collectionItem.item_photos}}`,
+      images: `{${collectionItem.images}}`,
       ...collectionItem,
     });
     // @ts-ignore
@@ -52,12 +54,21 @@ export class CollectionItemRepository {
   }
 
   sum(collectionId: string) {
-    return this.collectionItemRepository.sum('price', {
+    return this.collectionItemRepository.sum('purchase_price', {
       collection: collectionId,
     });
   }
+
+  sumShippingCost(collectionId: string) {
+    return this.collectionItemRepository.sum('shipping_cost', {
+      collection: collectionId,
+    });
+  }
+
   sumByUserLogin(userLogin: string) {
-    return this.collectionItemRepository.sum('price', { owner: userLogin });
+    return this.collectionItemRepository.sum('purchase_price', {
+      owner: userLogin,
+    });
   }
 
   async delete(id: string) {
