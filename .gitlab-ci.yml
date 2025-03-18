@@ -26,7 +26,7 @@ build:
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
     - whoami
-    - sudo echo "127.0.0.1 docker" > /etc/hosts
+    - echo "127.0.0.1 docker" > /etc/hosts
 
   script:
     - echo -n $DOCKERHUB_PASSWORD | docker login docker.io --username $DOCKERHUB_LOGIN --password-stdin
