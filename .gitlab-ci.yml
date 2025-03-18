@@ -11,8 +11,6 @@ variables:
   DOCKER_TLS_CERTDIR: ""
   GIT_STRATEGY: clone
   DOCKER_DRIVER: overlay2
-  DOCKER_HOST: tcp://docker:2375
-
 # This folder is cached between builds
 # https://docs.gitlab.com/ee/ci/yaml/index.html#cache
 stages:
@@ -31,8 +29,8 @@ build:
 
   script:
     - echo -n $DOCKERHUB_PASSWORD | docker login docker.io --username $DOCKERHUB_LOGIN --password-stdin
-    - docker build -t 5575123963/auc:latest -f Dockerfile .
-    - docker push 5575123963/auc:latest
+    - sudo docker build -t 5575123963/auc:latest -f Dockerfile .
+    - sudo docker push 5575123963/auc:latest
 
 
 deploy:
