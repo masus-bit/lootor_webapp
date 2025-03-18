@@ -2,9 +2,9 @@
 # You can copy and paste this template into a new `.gitlab-ci.yml` file.
 # You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
 
-image: docker:latest
+image: docker:19-dind
 services:
-  - docker:latest
+  - docker:19-dind
 
 variables:
   # See https://github.com/docker-library/docker/pull/166
@@ -29,8 +29,9 @@ build:
 
   script:
     - echo -n $DOCKERHUB_PASSWORD | docker login docker.io --username $DOCKERHUB_LOGIN --password-stdin
-    - docker build -t 5575123963/auc:latest -f Dockerfile .
-    - docker push 5575123963/auc:latest
+    - sudo -i
+    - sudo docker build -t 5575123963/auc:latest -f Dockerfile .
+    - sudo docker push 5575123963/auc:latest
 
 
 deploy:
