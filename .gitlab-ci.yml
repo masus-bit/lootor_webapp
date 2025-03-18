@@ -2,15 +2,16 @@
 # You can copy and paste this template into a new `.gitlab-ci.yml` file.
 # You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
 
-image: docker:19-dind
+image: docker:20.10.16
 services:
-  - docker:19-dind
+  - docker:20.10.16
 
 variables:
   # See https://github.com/docker-library/docker/pull/166
   DOCKER_TLS_CERTDIR: ""
   GIT_STRATEGY: clone
   DOCKER_DRIVER: overlay2
+  DOCKER_HOST: tcp://docker:2375
 # This folder is cached between builds
 # https://docs.gitlab.com/ee/ci/yaml/index.html#cache
 stages:
