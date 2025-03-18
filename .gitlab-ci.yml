@@ -25,6 +25,7 @@ build:
   before_script:
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
+    - echo whoami
     - sudo echo "127.0.0.1 docker" > /etc/hosts
 
   script:
@@ -45,7 +46,7 @@ deploy:
     - chmod 700 ~/.ssh
     - echo "=================deploy to host================="
     - |
-      ssh -o StrictHostKeyChecking=no -t -t root@82.146.40.181 << EOF
+      ssh -o StrictHostKeyChecking=no -t -t root@62.109.30.145 << EOF
       cd ../auc_backend
       ls
       docker-compose down
