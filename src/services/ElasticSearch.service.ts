@@ -9,7 +9,7 @@ export class ElasticsearchService {
   constructor() {
     // private readonly tagsRepository: Repository<Tags>, // @InjectRepository(Tags) // private readonly collectionItemRepository: Repository<CollectionItem>, // @InjectRepository(CollectionItem) // private readonly collectionRepository: Repository<Collection>, // @InjectRepository(Collection) // private readonly userRepository: Repository<User>, // @InjectRepository(User) // private entityRepository: EntityRepository, // @Inject(EntityRepository)
     this.client = new Client({
-      node: 'http://localhost:9200',
+      node: `http://${process.env.ELASTIC_URL}:9200`,
     });
   }
 
