@@ -24,14 +24,12 @@ build:
   before_script:
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
-    - whoami
     - echo "127.0.0.1 docker" > /etc/hosts
 
   script:
     - echo -n $DOCKERHUB_PASSWORD | docker login docker.io --username $DOCKERHUB_LOGIN --password-stdin
-    - sudo -i
-    - sudo docker build -t 5575123963/auc:latest -f Dockerfile .
-    - sudo docker push 5575123963/auc:latest
+    - docker build -t 5575123963/auc:latest -f Dockerfile .
+    - docker push 5575123963/auc:latest
 
 
 deploy:
