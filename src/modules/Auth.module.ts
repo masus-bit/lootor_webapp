@@ -9,6 +9,7 @@ import { AuthService } from '../services/Auth.service';
 import { UserRepository } from '../repositories/User.repository';
 import { User } from '../entities/User';
 import { ElasticsearchService } from '../services/ElasticSearch.service';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   controllers: [AuthController],
@@ -17,6 +18,7 @@ import { ElasticsearchService } from '../services/ElasticSearch.service';
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || crypto.randomBytes(1024).toString(),
       signOptions: {
@@ -27,8 +29,8 @@ import { ElasticsearchService } from '../services/ElasticSearch.service';
         algorithms: [(process.env.JWT_ALGORITHM as Algorithm) || 'HS512'],
       },
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, UserRepository]),
   ],
-  exports: [AuthService],
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

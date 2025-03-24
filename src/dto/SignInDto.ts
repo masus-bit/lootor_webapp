@@ -1,11 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
+;
 
 export class SignInDto {
   @ApiProperty()
   email: string;
   @ApiProperty()
   password: string;
+
+  login?: string
 }
 
 class AccessTokenPayload {
@@ -28,6 +30,6 @@ class AccessTokenPayload {
 }
 
 export class SignInResponse {
-  @ApiModelProperty({ type: AccessTokenPayload })
+  @ApiProperty({ type: AccessTokenPayload })
   accessToken: AccessTokenPayload;
 }

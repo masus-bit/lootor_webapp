@@ -1,7 +1,6 @@
 import { Exclude, Expose } from 'class-transformer';
 import { CollectionItem } from '../../entities/CollectionItem';
 import { ApiProperty } from '@nestjs/swagger';
-import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { EntityModel } from '../../entities/EntityModel';
 
 @Exclude()
@@ -74,7 +73,7 @@ export class ReturnedCollectionItemDto {
   readonly copyNumber?: string;
   @ApiProperty()
   readonly collection: string;
-  @ApiModelProperty({ type: EntityModel, isArray: true })
+  @ApiProperty({ type: EntityModel, isArray: true })
   readonly entities: EntityModel[];
 
   constructor(collectionItem: Readonly<CollectionItem>) {
@@ -96,7 +95,7 @@ export class ReturnedCollectionItemDto {
 }
 
 export class ReturnCreateCollectionItem {
-  @ApiModelProperty({ type: ReturnedCollectionItemDto })
+  @ApiProperty({ type: ReturnedCollectionItemDto })
   readonly data: Readonly<ReturnedCollectionItemDto>;
 
   constructor(data: Readonly<ReturnedCollectionItemDto>) {

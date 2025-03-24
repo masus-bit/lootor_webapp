@@ -1,7 +1,7 @@
 import { User } from '../../entities/User';
 import { IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
+;
 
 export class QueryUserDto {
   @IsNotEmpty()
@@ -73,7 +73,7 @@ export class UserByIdDto {
 }
 
 export class GetUserByIdDto {
-  @ApiModelProperty({ type: UserByIdDto })
+  @ApiProperty({ type: UserByIdDto })
   readonly data: Readonly<UserByIdDto>;
 
   constructor(data: Readonly<UserByIdDto>) {

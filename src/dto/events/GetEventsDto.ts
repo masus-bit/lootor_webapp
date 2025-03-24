@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import {
   ReturnedCollectionDto,
   ReturnUser,
@@ -18,13 +17,13 @@ export class EventsDto {
   readonly date: number;
   @ApiProperty()
   readonly targetName: string;
-  @ApiModelProperty({ type: ReturnUser })
+  @ApiProperty({ type: ReturnUser })
   readonly user: string;
-  @ApiModelProperty({ type: ReturnUser })
+  @ApiProperty({ type: ReturnUser })
   readonly targetUser?: string;
-  @ApiModelProperty({ type: ReturnedCollectionDto })
+  @ApiProperty({ type: ReturnedCollectionDto })
   readonly targetCollection?: string;
-  @ApiModelProperty({ type: ReturnedCollectionItemDto })
+  @ApiProperty({ type: ReturnedCollectionItemDto })
   readonly targetCollectionItem?: string;
 
   constructor(event: Readonly<Event>) {
@@ -56,7 +55,7 @@ export class EventsDto {
 }
 
 export class GetEventsDto {
-  @ApiModelProperty({ type: EventsDto, isArray: true })
+  @ApiProperty({ type: EventsDto, isArray: true })
   readonly data: ReadonlyArray<EventsDto>;
 
   constructor(data: ReadonlyArray<EventsDto>) {

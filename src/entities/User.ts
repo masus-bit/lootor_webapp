@@ -28,6 +28,22 @@ export class User {
     length: 100,
     select: false,
   })
+  vk_id: string;
+
+  @Index()
+  @Column({
+    nullable: true,
+    length: 100,
+    select: false,
+  })
+  telegram_id: string;
+
+  @Index()
+  @Column({
+    nullable: true,
+    length: 100,
+    select: false,
+  })
   password_encrypted: string;
 
   @Index()

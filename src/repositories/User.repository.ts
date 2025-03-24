@@ -27,6 +27,29 @@ export class UserRepository {
         'subscriptions',
         'created',
         'avatar_url',
+        'vk_id',
+        'telegram_id'
+      ],
+    });
+  }
+
+  async getPasswordsByLogin(login: string): Promise<User | never> {
+    return await this.usersRepository.findOneOrFail({
+      where: {
+        login: login,
+      },
+      select: [
+        'password',
+        'login',
+        'email',
+        'user_name',
+        'likes',
+        'dislikes',
+        'subscriptions',
+        'created',
+        'avatar_url',
+        'vk_id',
+        'telegram_id'
       ],
     });
   }
@@ -100,5 +123,15 @@ export class UserRepository {
       ...user,
     });
     return await this.usersRepository.save(updatedUser);
+  }
+
+  async findByVkId(vkId: string): Promise<User | never> {
+    return await this.usersRepository.findOne({
+      where: { vk_id: vkId },    });
+  }
+
+  async findByTgId(tgId: string): Promise<User | never> {
+    return await this.usersRepository.findOne({
+      where: { telegram_id: tgId },    });
   }
 }

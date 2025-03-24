@@ -1,7 +1,6 @@
 import { Collection } from '../../entities/Collection';
 import { ReturnUser } from './CreateCollectionDto';
 import { ReturnedCollectionItemDto } from '../collectionItem/CollectionItemCreateDto';
-import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Tags } from '../../entities/Tags';
 
@@ -12,13 +11,13 @@ export class CollectionDto {
   readonly name: string;
   @ApiProperty()
   readonly description: string;
-  @ApiModelProperty({ type: ReturnUser })
+  @ApiProperty({ type: ReturnUser })
   readonly user: string;
   @ApiProperty()
   readonly isPrivate: boolean;
   @ApiProperty()
   readonly bannerUrl: string;
-  @ApiModelProperty({ type: ReturnedCollectionItemDto, isArray: true })
+  @ApiProperty({ type: ReturnedCollectionItemDto, isArray: true })
   readonly collectionItems: ReturnedCollectionItemDto[];
   @ApiProperty()
   readonly collectionItemsCount: number;
@@ -28,7 +27,7 @@ export class CollectionDto {
   readonly likes: number;
   @ApiProperty()
   readonly transliteration: string;
-  @ApiModelProperty({ type: Tags, isArray: true })
+  @ApiProperty({ type: Tags, isArray: true })
   readonly tags: Tags[];
   @ApiProperty()
   readonly created: number;
@@ -69,7 +68,7 @@ export class CollectionDto {
 }
 
 export class GetOneCollectionDto {
-  @ApiModelProperty({ type: CollectionDto })
+  @ApiProperty({ type: CollectionDto })
   readonly data: Readonly<CollectionDto>;
 
   constructor(data: Readonly<CollectionDto>) {
