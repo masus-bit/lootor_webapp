@@ -48,7 +48,7 @@ deploy:
       cd ../lootor
       ls
       docker-compose -f docker-compose.backend.yml down
-      docker-compose -f docker-compose.backend.yml -p lootor --network lootor_network up -d
+      docker-compose -f docker-compose.backend.yml -p lootor up -d
       exit 
       EOF
 

@@ -13,7 +13,7 @@ services:
   backend:
     image: 5575123963/auc:latest
     env_file:
-      - .env
+      - .env.backend
     ports:
       - "5111:5111"
     networks:
