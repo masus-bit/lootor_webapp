@@ -49,7 +49,7 @@ deploy:
       ls
       docker-compose down
       docker rmi -f $(docker images -aq)
-      docker-compose up -d --force-recreate
+      docker-compose -p lootor up -d --force-recreate
       exit 
       EOF
 

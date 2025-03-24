@@ -58,5 +58,5 @@ volumes:
   data:
   elasticsearch_data:
 networks:
-  lootor_network:  # Создаём сеть с таким же именем
+  lootor_network:
     driver: bridge
