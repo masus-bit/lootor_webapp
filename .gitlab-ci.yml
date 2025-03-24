@@ -47,8 +47,8 @@ deploy:
       ssh -o StrictHostKeyChecking=no -t -t root@62.109.30.145 << EOF
       cd ../lootor
       ls
-      docker-compose -f docker-compose.backend.yml down
-      docker-compose -f docker-compose.backend.yml -p lootor up -d
+      docker-compose -f docker-compose.backend.yml down backend
+      docker-compose -f docker-compose.backend.yml -p lootor up -d backend
       exit 
       EOF
 

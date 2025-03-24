@@ -5,11 +5,11 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 (async () => {
   const PORT = process.env.PORT || 5000;
-  const options = {
-    cors: true,
-  };
+  // const options = {
+  //   cors: true,
+  // };
 
-  const app = await NestFactory.create(AppModule, options);
+  const app = await NestFactory.create(AppModule);
   const config = new DocumentBuilder()
     .setTitle('auc documentation')
     .setDescription('Дока для ауса')
@@ -18,6 +18,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/api/v0/docs', app, document);
   app.useGlobalPipes(new ValidationPipe());
+  app.enableCors({
+    origin: '*',})
   await (
     await app
   ).listen(PORT, '0.0.0.0', () =>
