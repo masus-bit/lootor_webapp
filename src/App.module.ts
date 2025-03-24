@@ -47,7 +47,7 @@ import { EntityModel } from './entities/EntityModel';
         Platforms,
         EntityModel,
       ],
-      synchronize: true,
+      synchronize: false,
       autoLoadEntities: true,
     }),
     SecuredModule,
