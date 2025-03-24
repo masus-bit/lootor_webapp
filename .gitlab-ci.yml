@@ -49,7 +49,10 @@ deploy:
       ls
       docker-compose -f docker-compose.backend.yml stop backend
       docker-compose -f docker-compose.backend.yml rm -f backend
-      docker-compose -f docker-compose.backend.yml -p lootor up -d backend
+      docker rm -f lootor_backend_1
+      docker network disconnect -f lootor_network lootor_backend_1
+      docker-compose -p lootor -f docker-compose.backend.yml up -d --force-recreate backend
+      docker network connect lootor_network lootor_backend_1 
       exit 
       EOF
 
