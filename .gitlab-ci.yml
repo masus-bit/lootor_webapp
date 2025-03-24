@@ -47,12 +47,12 @@ deploy:
       ssh -o StrictHostKeyChecking=no -t -t root@62.109.30.145 << EOF
       cd ../lootor
       ls
+      docker network inspect lootor_network >/dev/null 2>&1 || docker network create lootor_network
       docker-compose -f docker-compose.backend.yml stop backend
+      docker-compose -p lootor -f docker-compose.backend.yml rm -f backend
       docker rm -f lootor_backend_1 2>/dev/null || true
       docker network disconnect -f lootor_network lootor_backend_1 2>/dev/null || true
-      docker network create lootor_network 2>/dev/null || true
       docker-compose -p lootor -f docker-compose.backend.yml up -d --force-recreate backend
-      docker network connect lootor_network lootor_backend_1
       
       exit 
       EOF
