@@ -45,11 +45,10 @@ deploy:
     - echo "=================deploy to host================="
     - |
       ssh -o StrictHostKeyChecking=no -t -t root@62.109.30.145 << EOF
-      cd ../auc_backend
+      cd ../lootor
       ls
-      docker-compose down
-      docker rmi -f $(docker images -aq)
-      docker-compose -p lootor up -d --force-recreate
+      docker-compose -f docker-compose.backend.yml down
+      docker-compose -f docker-compose.backend.yml -p lootor --network lootor_network up -d
       exit 
       EOF
 
