@@ -39,6 +39,8 @@ export class CollectionDto {
   readonly canSubscribe: boolean;
   @ApiProperty()
   readonly shareString: string;
+  @ApiProperty()
+  readonly shippingTotal: number;
 
   constructor(collection: Readonly<Collection>, canSubscribe?: boolean) {
     this.id = collection.id;
@@ -64,6 +66,7 @@ export class CollectionDto {
     this.totalPrice = collection.totalPrice;
     this.canSubscribe = canSubscribe;
     this.shareString = collection.share_string;
+    this.shippingTotal = collection.shippingTotal;
   }
 }
 
