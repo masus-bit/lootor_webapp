@@ -32,9 +32,7 @@ export class TagsController {
     try {
       return await this.tagsService.searchTags(query.name);
     } catch (err) {
-      throw new HttpBadRequestError(
-        'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, обратитесь в техподдержку',
-      );
+      throw new HttpBadRequestError();
     }
   }
 
@@ -50,7 +48,7 @@ export class TagsController {
     try {
       return await this.tagsService.saveTag(dto.names);
     } catch (e) {
-      throw new HttpBadRequestError('Bad request');
+      throw new HttpBadRequestError();
     }
   }
 }

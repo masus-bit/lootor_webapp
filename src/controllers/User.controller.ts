@@ -50,9 +50,7 @@ export class UserController {
         request.user.login,
       );
     } catch (err) {
-      throw new HttpBadRequestError(
-        'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, обратитесь в техподдержку',
-      );
+      throw new HttpBadRequestError();
     }
   }
 
@@ -75,9 +73,7 @@ export class UserController {
     try {
       return await this.userService.changeRating(ratingDto, query.login);
     } catch (err) {
-      throw new HttpBadRequestError(
-        'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, обратитесь в техподдержку',
-      );
+      throw new HttpBadRequestError();
     }
   }
 
@@ -100,9 +96,7 @@ export class UserController {
       }
       return this.userService.getByLogin(query.login, requestUser);
     } catch (err) {
-      throw new HttpBadRequestError(
-        'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, обратитесь в техподдержку',
-      );
+      throw new HttpBadRequestError();
     }
   }
 

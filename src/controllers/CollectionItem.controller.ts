@@ -46,7 +46,7 @@ export class CollectionItemController {
         request.user,
       );
     } catch (e) {
-      throw new HttpBadRequestError('Bad request');
+      throw new HttpBadRequestError();
     }
   }
 

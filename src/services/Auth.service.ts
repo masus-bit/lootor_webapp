@@ -108,11 +108,11 @@ export class AuthService {
   > {
     try {
       if (await this.usersRepository.getById(signUpDto.login)) {
-        throw new HttpBadRequestError('userId must be unique');
+        throw new HttpBadRequestError('Логин должен быть уникальным');
       }
 
       if (await this.usersRepository.getByEmail(signUpDto.email)) {
-        throw new HttpBadRequestError('email must be unique');
+        throw new HttpBadRequestError('Email должен быть уникальным');
       }
 
       const userModel = this.usersRepository.createModel(signUpDto);

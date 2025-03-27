@@ -176,6 +176,7 @@ export class CollectionService {
       collection.totalPrice = await this.collectionItemRepository.sum(
         collection.id,
       );
+      console.log(collection);
       collection.shippingTotal =
         await this.collectionItemRepository.sumShippingCost(collection.id);
       collection.share_string = defineShareString(
@@ -336,7 +337,7 @@ export class CollectionService {
       }
     } catch (err) {
       console.log(err);
-      throw new HttpBadRequestError('Что-то пошло не так');
+      throw new HttpBadRequestError();
     }
   }
 

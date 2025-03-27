@@ -9,6 +9,14 @@ export class PlatformDto {
 
   constructor(platform: Readonly<Platforms>) {
     this.id = platform?.id;
-    this.name = platform.name;
+    this.name = platform?.name;
+  }
+}
+
+export class GetPlatformsDto {
+  readonly data: ReadonlyArray<Platforms>;
+
+  constructor(data: ReadonlyArray<Platforms>) {
+    this.data = data;
   }
 }

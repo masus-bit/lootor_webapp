@@ -77,7 +77,7 @@ export class UserService {
       await this.userRepository.save(userModel);
       return 'Рейтинг успешно изменен';
     } catch (err) {
-      throw new HttpBadRequestError('Что-то пошло не так');
+      throw new HttpBadRequestError();
     }
   }
 
@@ -93,7 +93,7 @@ export class UserService {
       const user = await this.userRepository.save(userModel);
       return new GetUserByIdDto(new UserByIdDto(user));
     } catch (err) {
-      throw new HttpBadRequestError('Что-то пошло не так');
+      throw new HttpBadRequestError();
     }
   }
 

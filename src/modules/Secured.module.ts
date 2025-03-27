@@ -8,6 +8,7 @@ import { EventModule } from './submodules/Event.module';
 import { TagsModule } from './submodules/Tags.module';
 import { EntityModule } from './submodules/Entity.module';
 import { ElasticSearchModule } from './submodules/ElasticSearch.module';
+import { PlatformsModule } from './submodules/Platforms.module';
 
 @Module({
   controllers: [],
@@ -22,6 +23,7 @@ import { ElasticSearchModule } from './submodules/ElasticSearch.module';
     TagsModule,
     EntityModule,
     ElasticSearchModule,
+    PlatformsModule,
   ],
 })
 export class SecuredModule {}

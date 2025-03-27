@@ -32,9 +32,7 @@ export class EntityController {
     try {
       return await this.entityService.searchEntities(query.name);
     } catch (err) {
-      throw new HttpBadRequestError(
-        'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, обратитесь в техподдержку',
-      );
+      throw new HttpBadRequestError();
     }
   }
 
@@ -50,7 +48,7 @@ export class EntityController {
     try {
       return await this.entityService.saveEntity(dto);
     } catch (e) {
-      throw new HttpBadRequestError('Bad request');
+      throw new HttpBadRequestError();
     }
   }
 }

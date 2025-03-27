@@ -23,9 +23,7 @@ export class EventController {
     try {
       return await this.eventService.getEvents(request.user);
     } catch (err) {
-      throw new HttpBadRequestError(
-        'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, обратитесь в техподдержку',
-      );
+      throw new HttpBadRequestError();
     }
   }
 
@@ -68,9 +66,7 @@ export class EventController {
         query?.collectionItemId,
       );
     } catch (err) {
-      throw new HttpBadRequestError(
-        'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, обратитесь в техподдержку',
-      );
+      throw new HttpBadRequestError();
     }
   }
 }

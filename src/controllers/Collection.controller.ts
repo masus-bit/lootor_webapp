@@ -46,7 +46,7 @@ export class CollectionController {
         plainToClass(CreateCollectionDto, dto),
       );
     } catch (e) {
-      throw new HttpBadRequestError('Bad request');
+      throw new HttpBadRequestError();
     }
   }
 
