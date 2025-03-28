@@ -13,45 +13,37 @@ export class UserRepository {
   ) {}
 
   async getPasswordsByEmail(email: string): Promise<User | never> {
-    return await this.usersRepository.findOneOrFail({
-      where: {
-        email: email,
-      },
-      select: [
-        'password',
-        'login',
-        'email',
-        'user_name',
-        'likes',
-        'dislikes',
-        'subscriptions',
-        'created',
-        'avatar_url',
-        'vk_id',
-        'telegram_id'
-      ],
-    });
+    return await this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect(['user.password'])
+      .where('user.email = :email', { email })
+      .getOne();
   }
 
   async getPasswordsByLogin(login: string): Promise<User | never> {
-    return await this.usersRepository.findOneOrFail({
-      where: {
-        login: login,
-      },
-      select: [
-        'password',
-        'login',
-        'email',
-        'user_name',
-        'likes',
-        'dislikes',
-        'subscriptions',
-        'created',
-        'avatar_url',
-        'vk_id',
-        'telegram_id'
-      ],
-    });
+    return await this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect(['user.password'])
+      .where('user.login = :login', { login })
+      .getOne();
+    // return await this.usersRepository.findOneOrFail({
+    //   where: {
+    //     login: login,
+    //   },
+    //   select: [
+    //     'password',
+    //     'login',
+    //     'email',
+    //     'user_name',
+    //     'likes',
+    //     'dislikes',
+    //     'subscriptions',
+    //     'created',
+    //     'avatar_url',
+    //     'vk_id',
+    //     'telegram_id'
+    //   ],
+    // });
   }
 
   async save(data: DeepPartial<User>): Promise<User> {
@@ -127,11 +119,13 @@ export class UserRepository {
 
   async findByVkId(vkId: string): Promise<User | never> {
     return await this.usersRepository.findOne({
-      where: { vk_id: vkId },    });
+      where: { vk_id: vkId },
+    });
   }
 
   async findByTgId(tgId: string): Promise<User | never> {
     return await this.usersRepository.findOne({
-      where: { telegram_id: tgId },    });
+      where: { telegram_id: tgId },
+    });
   }
 }

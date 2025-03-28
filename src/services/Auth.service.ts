@@ -4,7 +4,7 @@ import { compareSync, hashSync } from 'bcrypt';
 import { plainToClass } from 'class-transformer';
 import { SignInDto } from '../dto/SignInDto';
 import { SignUpDto } from '../dto/SignUpDto';
-import { TokenPayloadDto } from '../dto/TokenPayloadDto';
+import { AuthDto } from '../dto/TokenPayloadDto';
 import { User } from '../entities/User';
 import { HttpUnauthorizedError } from '../errors/HttpUnauthorizedError';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
@@ -12,10 +12,8 @@ import { UserRepository } from '../repositories/User.repository';
 import { Algorithm } from 'jsonwebtoken';
 import { RefreshDto } from '../dto/RefreshDto';
 import { getUnixDate } from '../utils/date';
-import { firstValueFrom } from 'rxjs';
 import * as CryptoJS from 'crypto-js';
 import axios from 'axios';
-import chalk from 'chalk';
 
 @Injectable()
 export class AuthService {
@@ -36,15 +34,16 @@ export class AuthService {
     | { accessToken: string | false; refreshToken: string | false }
     | never
   > {
+    let tokens;
     if (email) {
       try {
         const user = await this.usersRepository.getPasswordsByEmail(email);
         if (AuthService.verifyPassword(user, password)) {
           const { access, refresh } = this.getToken(user);
-          return { accessToken: access, refreshToken: refresh };
+          tokens = { accessToken: access, refreshToken: refresh };
+        } else {
+          tokens = false;
         }
-
-        return false;
       } catch (err) {
         throw new HttpUnauthorizedError();
       }
@@ -54,15 +53,16 @@ export class AuthService {
         const user = await this.usersRepository.getPasswordsByLogin(login);
         if (AuthService.verifyPassword(user, password)) {
           const { access, refresh } = this.getToken(user);
-          return { accessToken: access, refreshToken: refresh };
+          tokens = { accessToken: access, refreshToken: refresh };
+        } else {
+          tokens = false;
         }
-
-        return false;
       } catch (err) {
         throw new HttpUnauthorizedError();
       }
     }
-    return false;
+    return tokens;
+    // return false;
   }
 
   async refreshTokens(
@@ -167,7 +167,7 @@ export class AuthService {
    * Генерация токена
    */
   public getToken(user: User): { access: string; refresh: string } {
-    const payload = plainToClass(TokenPayloadDto, user);
+    const payload = plainToClass(AuthDto, user);
     let refresh = this.jwtService.sign(JSON.parse(JSON.stringify(payload)), {
       secret: process.env.JWT_REFRESH_SECRET,
       expiresIn: process.env.JWT_REFRESH_EXPIRES,
@@ -179,28 +179,31 @@ export class AuthService {
     };
   }
 
-  async exchangeCodeForTokens(code: string, codeVerifier: string, deviceId: string, state: string) {
+  async vkOauth(
+    code: string,
+    codeVerifier: string,
+    deviceId: string,
+    state: string,
+    codeChallenge: string,
+  ) {
     const params = new URLSearchParams();
     params.append('grant_type', 'authorization_code');
     params.append('client_id', process.env.VK_CLIENT_ID);
     params.append('code', code);
     params.append('code_verifier', codeVerifier);
-    params.append('redirect_uri', 'https://0cc9ee0046213c.lhr.life/sign-in');
+    params.append('redirect_uri', `${process.env.FRONTEND_URL}/sign-in`);
     params.append('device_id', deviceId);
     params.append('state', state);
-
-
+    params.append('code_challenge', codeChallenge);
 
     const response = await axios.post('https://id.vk.com/oauth2/auth', params, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
-    console.log(response.data, codeVerifier, code, deviceId);
-    return {
-      accessToken: response.data.access_token,
-      refreshToken: response.data.refresh_token,
-    };
+    const userInfo = await this.getUserInfo(response.data.access_token);
+
+    return await this.findOrCreateUser(userInfo);
   }
 
   async getUserInfo(accessToken: string) {
@@ -211,21 +214,22 @@ export class AuthService {
         fields: 'email,photo_200',
       },
     });
-    console.log(response.data);
-    return response.data.response[0];
+    return response.data?.response?.[0];
   }
 
   async findOrCreateUser(userInfo: any) {
     let user = await this.usersRepository.findByVkId(userInfo.id);
-
     if (!user) {
       const userModel = this.usersRepository.createModel({
-        vk_id: userInfo.id,
-        email: userInfo.email,
-        user_name: userInfo.first_name,
-        avatar_url: userInfo.photo_200,
+        vk_id: userInfo?.id,
+        email: userInfo?.email,
+        user_name: userInfo?.first_name,
+        avatar_url: userInfo?.photo_200,
+        login: userInfo?.id.toString(),
       });
       userModel.created = getUnixDate();
+
+      userModel.password = `${userInfo?.id.toString()}@${userInfo?.first_name}`;
 
       userModel.password_encrypted = AuthService.getHashPassword(
         userModel.password,
@@ -233,23 +237,32 @@ export class AuthService {
       // await this.usersRepository.save(userModel);
       const userFinal = await this.usersRepository.save(userModel);
 
-      const returnedUser = await this.usersRepository.getPasswordsByEmail(
-        userFinal.email,
+      const returnedUser = await this.usersRepository.getPasswordsByLogin(
+        userFinal.login,
       );
       return await this.signIn({
-        email: returnedUser.email,
+        email: null,
         password: returnedUser.password,
+        login: returnedUser.login,
       });
     }
-
-    return user;
+    const returnedUser = await this.usersRepository.getPasswordsByLogin(
+      userInfo.id,
+    );
+    return await this.signIn({
+      email: null,
+      password: returnedUser.password,
+      login: returnedUser.login,
+    });
   }
 
- async verifyTelegramData(data: any): Promise<
-   | false
-   | { accessToken: string | false; refreshToken: string | false }
-   | never
- > {
+  async verifyTelegramData(
+    data: any,
+  ): Promise<
+    | false
+    | { accessToken: string | false; refreshToken: string | false }
+    | never
+  > {
     const { hash, ...userData } = data;
     let dataCheckArr = [];
     for (const [key, value] of Object.entries(userData)) {
@@ -257,8 +270,11 @@ export class AuthService {
     }
     dataCheckArr.sort();
     const dataCheckString = dataCheckArr.join('\n');
-    const secretKey = CryptoJS.SHA256(process.env.TELEGRAM_BOT_TOKEN)
-    const computedHash = CryptoJS.HmacSHA256(dataCheckString, secretKey).toString(CryptoJS.enc.Hex);
+    const secretKey = CryptoJS.SHA256(process.env.TELEGRAM_BOT_TOKEN);
+    const computedHash = CryptoJS.HmacSHA256(
+      dataCheckString,
+      secretKey,
+    ).toString(CryptoJS.enc.Hex);
     if (computedHash === hash) {
       let user = await this.usersRepository.findByTgId(userData.id);
 
@@ -268,7 +284,7 @@ export class AuthService {
           user_name: `${userData.first_name} ${userData?.last_name}`,
           avatar_url: userData.photo_url,
           login: userData.username,
-          password: userData.id
+          password: userData.id,
         });
         userModel.created = getUnixDate();
 
@@ -284,9 +300,17 @@ export class AuthService {
         return await this.signIn({
           email: null,
           password: returnedUser.password,
-          login: returnedUser.login
+          login: returnedUser.login,
         });
       }
-    };
+      const returnedUser = await this.usersRepository.getPasswordsByLogin(
+        userData.username,
+      );
+      return await this.signIn({
+        email: null,
+        password: returnedUser.password,
+        login: returnedUser.login,
+      });
+    }
   }
 }

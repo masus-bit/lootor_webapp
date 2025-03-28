@@ -76,7 +76,7 @@ export class User {
   @Index()
   @Column({
     nullable: true,
-    length: 100,
+    length: 999,
   })
   avatar_url: string;
 

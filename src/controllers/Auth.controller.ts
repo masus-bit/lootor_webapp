@@ -1,7 +1,14 @@
-import { Body, Controller, Get, Inject, Post, Query, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Post,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
-import { AuthGuard } from '@nestjs/passport';
 import { SignInDto, SignInResponse } from '../dto/SignInDto';
 import { SignUpDto } from '../dto/SignUpDto';
 import { HttpUnauthorizedError } from '../errors/HttpUnauthorizedError';
@@ -17,8 +24,7 @@ export class AuthController {
   constructor(
     @Inject(AuthService) private authService: AuthService,
     @Inject(ConfigService) private configService: ConfigService,
-  ) {
-  }
+  ) {}
 
   @ApiOperation({ summary: 'Вход' })
   @ApiResponse({
@@ -64,36 +70,39 @@ export class AuthController {
     @Query('state') state: string,
     @Query('device_id') deviceId: string,
     @Query('code_verifier') codeVerifier: string,
+    @Query('code_challenge') codeChallenge: string,
     @Res() res: Response,
   ) {
     try {
-      // Проверяем state (если нужно)
-      // if (state !== expectedState) throw new Error('Invalid state');
-
-      // Получаем code_verifier из localStorage (или другого хранилища)
-      // Обмен кода на токены
-      const tokens = await this.authService.exchangeCodeForTokens(code, codeVerifier, deviceId, state);
-
-      // Получение данных пользователя
-      const userInfo = await this.authService.getUserInfo(tokens.accessToken);
-
-      // Регистрация или обновление пользователя в базе данных
-      const user = await this.authService.findOrCreateUser(userInfo);
-
+      const tokens = await this.authService.vkOauth(
+        code,
+        codeVerifier,
+        deviceId,
+        state,
+        codeChallenge,
+      );
+      if (!tokens) {
+        throw new HttpUnauthorizedError();
+      }
+      res.status(200).send(tokens);
     } catch (error) {
       console.error('Error:', error);
       res.status(500).send('Authorization failed');
     }
   }
+
   @Post('/public/auth/telegram')
   @ApiBody({ type: TelegramSignInDto })
   async telegramAuth(
     @Body() authData: TelegramSignInDto,
-    @Res() res: Response
+    @Res() res: Response,
   ) {
     try {
-      return await this.authService.verifyTelegramData(authData)
-
+      const tokens = await this.authService.verifyTelegramData(authData);
+      if (!tokens) {
+        throw new HttpUnauthorizedError();
+      }
+      res.status(200).send(tokens);
     } catch (error) {
       console.error('Error:', error);
       res.status(500).send('Authorization failed');

@@ -11,6 +11,8 @@ export class PlatformsRepository {
   ) {}
 
   async findAll(): Promise<Platforms[]> | never {
-    return await this.platformsRepository.find();
+    return await this.platformsRepository
+      .createQueryBuilder('platforms')
+      .getMany();
   }
 }
