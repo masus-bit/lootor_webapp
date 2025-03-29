@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Collection } from '../entities/Collection';
 import { Repository } from 'typeorm';
 import { DeepPartial } from 'typeorm/common/DeepPartial';
-import { CollectionItem } from '../entities/CollectionItem';
 import { ElasticsearchService } from '../services/ElasticSearch.service';
 
 @Injectable()
@@ -43,12 +42,13 @@ export class CollectionRepository {
         .andWhere('collection.deleted = :deleted', { deleted: false })
         .leftJoinAndSelect('collection.user', 'user')
         .leftJoinAndSelect('collection.tags', 'tags')
-        .leftJoinAndMapMany(
-          'collection.collectionItems',
-          CollectionItem,
-          'collection_item',
-          'collection_item.collection = collection.id AND collection_item.deleted = false',
-        )
+        .leftJoinAndSelect('collection.collectionItems', 'collection_item')
+        // .leftJoinAndMapMany(
+        //   'collection.collectionItems',
+        //   CollectionItem,
+        //   'collection_item',
+        //   'collection_item.collection = collection.id AND collection_item.deleted = false',
+        // )
         .getOne();
     } catch (e) {
       console.log(e.message);
@@ -63,12 +63,13 @@ export class CollectionRepository {
         .andWhere('collection.deleted = :deleted', { deleted: false })
         .leftJoinAndSelect('collection.user', 'user')
         .leftJoinAndSelect('collection.tags', 'tags')
-        .leftJoinAndMapMany(
-          'collection.collectionItems',
-          CollectionItem,
-          'collection_item',
-          'collection_item.collection = collection.id AND collection_item.deleted = false',
-        )
+        .leftJoinAndSelect('collection.collectionItems', 'collection_item')
+        // .leftJoinAndMapMany(
+        //   'collection.collectionItems',
+        //   CollectionItem,
+        //   'collection_item',
+        //   'collection_item.collection = collection.id AND collection_item.deleted = false',
+        // )
         .getOne();
     } catch (e) {
       console.log(e.message);
@@ -99,13 +100,14 @@ export class CollectionRepository {
         .andWhere('collection.deleted = :deleted', { deleted: false })
         .leftJoinAndSelect('collection.user', 'user')
         .leftJoinAndSelect('collection.tags', 'tags')
-        .leftJoinAndMapMany(
-          'collection.collectionItems',
-          CollectionItem,
-          'collection_item',
-          'collection_item.collection = collection.id AND collection_item.deleted = :deleted',
-          { deleted: false },
-        )
+        .leftJoinAndSelect('collection.collectionItems', 'collection_item')
+        // .leftJoinAndMapMany(
+        //   'collection.collectionItems',
+        //   CollectionItem,
+        //   'collection_item',
+        //   'collection_item.collection = collection.id AND collection_item.deleted = :deleted',
+        //   { deleted: false },
+        // )
         // .where('collection_item.deleted = :deleted', { deleted: false })
         .getOneOrFail();
     } catch (err) {

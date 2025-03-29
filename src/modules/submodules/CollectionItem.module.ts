@@ -15,6 +15,8 @@ import { EntityRepository } from '../../repositories/Entity.repository';
 import { EntityModel } from '../../entities/EntityModel';
 import { EntityService } from '../../services/Entity.service';
 import { ElasticsearchService } from '../../services/ElasticSearch.service';
+import { CollectionRepository } from '../../repositories/Collection.repository';
+import { Collection } from '../../entities/Collection';
 
 @Module({
   controllers: [CollectionItemController],
@@ -26,9 +28,16 @@ import { ElasticsearchService } from '../../services/ElasticSearch.service';
     EntityRepository,
     EntityService,
     ElasticsearchService,
+    CollectionRepository,
   ],
   imports: [
-    TypeOrmModule.forFeature([CollectionItem, User, Event, EntityModel]),
+    TypeOrmModule.forFeature([
+      CollectionItem,
+      User,
+      Event,
+      EntityModel,
+      Collection,
+    ]),
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),

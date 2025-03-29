@@ -45,13 +45,10 @@ export class CollectionItem {
   @Column({ default: false, select: false })
   deleted: boolean;
 
-  @Index()
-  @Column({ nullable: true })
-  @ManyToOne(() => Collection, (collection) => collection.id, {
+  @ManyToMany(() => Collection, (collection) => collection.collectionItems, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'collection' })
-  collection: string;
+  collections: Collection[];
 
   @Index()
   @Column({ nullable: true })

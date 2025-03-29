@@ -2,6 +2,7 @@ import { Exclude, Expose } from 'class-transformer';
 import { CollectionItem } from '../../entities/CollectionItem';
 import { ApiProperty } from '@nestjs/swagger';
 import { EntityModel } from '../../entities/EntityModel';
+import { Collection } from '../../entities/Collection';
 
 @Exclude()
 export class CollectionItemCreateDto {
@@ -43,7 +44,7 @@ export class CollectionItemCreateDto {
 
   @Expose({ name: 'collection' })
   @ApiProperty({ name: 'collection' })
-  readonly collection: string;
+  collection?: Collection;
 
   @Expose()
   @ApiProperty()
@@ -87,8 +88,7 @@ export class ReturnedCollectionItemDto {
     this.purchasePrice = collectionItem.purchase_price;
     this.sealed = collectionItem.sealed;
     this.copyNumber = collectionItem?.copy_number;
-    // @ts-ignore
-    this.collection = collectionItem.collection.id;
+    this.collection = collectionItem?.collections?.[0].id || '';
     this.shipping_cost = collectionItem.shipping_cost;
     this.entities = collectionItem.entities;
   }

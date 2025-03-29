@@ -9,6 +9,8 @@ import { HttpInternalServerError } from '../errors/HttpInternalServerError';
 import { EventActions, EventTargets } from '../types/base';
 import { EventRepository } from '../repositories/Event.repository';
 import { User } from '../entities/User';
+import { CollectionRepository } from '../repositories/Collection.repository';
+import { EntityRepository } from '../repositories/Entity.repository';
 
 @Injectable()
 export class CollectionItemService {
@@ -17,6 +19,10 @@ export class CollectionItemService {
     private collectionItemRepository: CollectionItemRepository,
     @Inject(EventRepository)
     private eventRepository: EventRepository,
+    @Inject(CollectionRepository)
+    private collectionRepository: CollectionRepository,
+    @Inject(EntityRepository)
+    private entityRepository: EntityRepository,
   ) {}
 
   /**
@@ -28,22 +34,33 @@ export class CollectionItemService {
     user: User,
   ): Promise<ReturnCreateCollectionItem> {
     try {
-      const model = this.collectionItemRepository.createModel(dto);
+      const data = { ...dto };
+      delete data.collection;
+      const model = this.collectionItemRepository.createModel(data);
+      const collection = await this.collectionRepository.getById(
+        //@ts-ignore
+        dto.collection,
+      );
+      model.collections = [collection];
       model.owner = user.login;
       // @ts-ignore
       model.images = `{${dto.images}}`;
+      let resultEntities = [];
+      if (data?.entities) {
+        resultEntities = await this.getEntities(data?.entities);
+      }
       const instance = await this.collectionItemRepository.save({
         ...model,
         entities: !dto?.entities
           ? model.entities
-          : [...model?.entities, ...dto.entities],
+          : [...model?.entities, ...resultEntities],
       });
       const result = await this.collectionItemRepository.getById(instance.id);
       // @ts-ignore
-      if (!result.collection.is_private) {
+      if (!collection.is_private) {
         await this.eventRepository.addEvent(
           // @ts-ignore
-          result.collection.user.login,
+          collection.user.login,
           EventActions.create,
           EventTargets.collectionItem,
           result.name,
@@ -91,18 +108,40 @@ export class CollectionItemService {
   async update(dto: CollectionItemCreateDto, id: string) {
     const exists = await this.collectionItemRepository.getById(id);
     if (exists) {
-      const model = await this.collectionItemRepository.createModel(dto);
+      const data = { ...dto };
+      delete data.collection;
+      // const model = this.collectionItemRepository.createModel(data);
       // @ts-ignore
-      model.images = `{${dto.images}}`;
-      const instance = await this.collectionItemRepository.save({
-        id,
-        ...model,
-        entities: [...exists.entities, ...dto.entities],
-      });
-      const result = await this.collectionItemRepository.getById(instance.id);
-      return new ReturnCreateCollectionItem(
-        new ReturnedCollectionItemDto(result),
-      );
+      // model.images = `{${dto.images}}`;
+      // console.log({
+      //   id,
+      //   ...exists,
+      //   ...data,
+      //   images: `{${dto.images}}`,
+      //   entities: [...exists.entities, ...dto.entities],
+      // });
+      try {
+        let result = [];
+
+        if (data?.entities) {
+          result = await this.getEntities(data?.entities);
+        }
+        const instance = await this.collectionItemRepository.save({
+          id,
+          ...exists,
+          ...data,
+          // @ts-ignore
+          images: `{${data.images}}`,
+          entities: [...exists?.entities, ...result],
+        });
+        const resultCollectionItem =
+          await this.collectionItemRepository.getById(instance.id);
+        return new ReturnCreateCollectionItem(
+          new ReturnedCollectionItemDto(resultCollectionItem),
+        );
+      } catch (e) {
+        console.log(e);
+      }
     }
   }
 
@@ -118,5 +157,13 @@ export class CollectionItemService {
         'Что-то пошло не так, обратитесь к кому-либо',
       );
     }
+  }
+
+  async getEntities(array) {
+    const result = [];
+    for (const item of array) {
+      result.push(await this.entityRepository.getEntityByName(item));
+    }
+    return result;
   }
 }

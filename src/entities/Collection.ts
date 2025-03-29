@@ -3,9 +3,9 @@ import {
   Entity,
   Index,
   JoinColumn,
+  JoinTable,
   ManyToMany,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './User';
@@ -57,10 +57,11 @@ export class Collection {
   })
   transliteration: string;
 
-  @OneToMany(
+  @ManyToMany(
     () => CollectionItem,
-    (collectionItem) => collectionItem.collection,
+    (collectionItem) => collectionItem.collections,
   )
+  @JoinTable()
   collectionItems: CollectionItem[];
 
   @Index()
