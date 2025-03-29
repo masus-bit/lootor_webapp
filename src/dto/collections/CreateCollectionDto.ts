@@ -3,6 +3,7 @@ import { Collection } from '../../entities/Collection';
 import { User } from '../../entities/User';
 import { ApiProperty } from '@nestjs/swagger';
 import { Tags } from '../../entities/Tags';
+import { ReturnedCollectionItemDto } from '../collectionItem/CollectionItemCreateDto';
 
 @Exclude()
 export class CreateCollectionDto {
@@ -32,7 +33,7 @@ export class CreateCollectionDto {
 
   @Expose()
   @ApiProperty()
-  readonly tags: { id: string; name: string }[];
+  readonly tags: string[];
 }
 
 export class ReturnUser {
@@ -91,6 +92,8 @@ export class ReturnedCollectionDto {
   readonly canSubscribe: boolean;
   @ApiProperty()
   readonly shareString: string;
+  @ApiProperty({ type: ReturnedCollectionItemDto, isArray: true })
+  readonly collectionItems: ReturnedCollectionItemDto[];
 
   constructor(collection: Readonly<Collection>, canSubscribe?: boolean) {
     this.id = collection.id;
@@ -112,6 +115,10 @@ export class ReturnedCollectionDto {
     this.shippingTotal = collection.shippingTotal;
     this.canSubscribe = canSubscribe;
     this.shareString = collection.share_string;
+    this.collectionItems =
+      collection.collectionItems?.map(
+        (item) => new ReturnedCollectionItemDto(item),
+      ) || [];
   }
 }
 

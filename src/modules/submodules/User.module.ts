@@ -19,6 +19,8 @@ import { CollectionItem } from '../../entities/CollectionItem';
 import { ElasticsearchService } from '../../services/ElasticSearch.service';
 import { EntityRepository } from '../../repositories/Entity.repository';
 import { EntityModel } from '../../entities/EntityModel';
+import { TagsRepository } from '../../repositories/Tags.repository';
+import { Tags } from '../../entities/Tags';
 
 @Module({
   controllers: [UserController],
@@ -32,6 +34,7 @@ import { EntityModel } from '../../entities/EntityModel';
     CollectionItemRepository,
     ElasticsearchService,
     EntityRepository,
+    TagsRepository,
   ],
   imports: [
     TypeOrmModule.forFeature([
@@ -40,6 +43,7 @@ import { EntityModel } from '../../entities/EntityModel';
       Collection,
       CollectionItem,
       EntityModel,
+      Tags,
     ]),
     ConfigModule.forRoot({
       envFilePath: '.env',

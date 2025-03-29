@@ -11,6 +11,10 @@ import { EventRepository } from '../repositories/Event.repository';
 import { User } from '../entities/User';
 import { CollectionRepository } from '../repositories/Collection.repository';
 import { EntityRepository } from '../repositories/Entity.repository';
+import {
+  ReturnCreateCollection,
+  ReturnedCollectionDto,
+} from '../dto/collections/CreateCollectionDto';
 
 @Injectable()
 export class CollectionItemService {
@@ -110,19 +114,8 @@ export class CollectionItemService {
     if (exists) {
       const data = { ...dto };
       delete data.collection;
-      // const model = this.collectionItemRepository.createModel(data);
-      // @ts-ignore
-      // model.images = `{${dto.images}}`;
-      // console.log({
-      //   id,
-      //   ...exists,
-      //   ...data,
-      //   images: `{${dto.images}}`,
-      //   entities: [...exists.entities, ...dto.entities],
-      // });
       try {
         let result = [];
-
         if (data?.entities) {
           result = await this.getEntities(data?.entities);
         }
@@ -165,5 +158,62 @@ export class CollectionItemService {
       result.push(await this.entityRepository.getEntityByName(item));
     }
     return result;
+  }
+
+  async copyOrMove(
+    id: string,
+    targetCollectionId: string,
+    sourceCollectionId: string,
+  ) {
+    try {
+      if (!sourceCollectionId) {
+        const collection = await this.collectionRepository.getById(
+          targetCollectionId,
+        );
+        const collectionItem = await this.collectionItemRepository.getById(id);
+
+        await this.collectionRepository.updateById(
+          {
+            ...collection,
+            collectionItems: [...collection.collectionItems, collectionItem],
+          },
+          targetCollectionId,
+        );
+        const result = await this.collectionRepository.getById(collection.id);
+        return new ReturnCreateCollection(new ReturnedCollectionDto(result));
+      }
+      const sourceCollection = await this.collectionRepository.getById(
+        sourceCollectionId,
+      );
+      const targetCollection = await this.collectionRepository.getById(
+        targetCollectionId,
+      );
+      const collectionItem = await this.collectionItemRepository.getById(id);
+      await this.collectionRepository.updateById(
+        {
+          ...sourceCollection,
+          collectionItems: sourceCollection.collectionItems.filter(
+            (item) => item.id !== id,
+          ),
+        },
+        sourceCollectionId,
+      );
+      await this.collectionRepository.updateById(
+        {
+          ...targetCollection,
+          collectionItems: [
+            ...targetCollection.collectionItems,
+            collectionItem,
+          ],
+        },
+        targetCollectionId,
+      );
+      const result = await this.collectionRepository.getById(
+        targetCollection.id,
+      );
+      return new ReturnCreateCollection(new ReturnedCollectionDto(result));
+    } catch (err) {
+      throw new HttpInternalServerError(err);
+    }
   }
 }

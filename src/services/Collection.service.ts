@@ -18,6 +18,7 @@ import { UserRepository } from '../repositories/User.repository';
 import { CollectionItemRepository } from '../repositories/CollectionItem.repository';
 import { defineShareString } from '../utils/defineShareString';
 import { getUnixDate } from '../utils/date';
+import { TagsRepository } from '../repositories/Tags.repository';
 
 var randomstring = require('randomstring');
 
@@ -32,6 +33,8 @@ export class CollectionService {
     private userRepository: UserRepository,
     @Inject(CollectionItemRepository)
     private collectionItemRepository: CollectionItemRepository,
+    @Inject(TagsRepository)
+    private tagsRepository: TagsRepository,
   ) {}
 
   /**
@@ -42,7 +45,20 @@ export class CollectionService {
     dto: CreateCollectionDto,
   ): Promise<ReturnCreateCollection> {
     try {
-      const collectionModel = this.collectionRepository.createModel(dto);
+      const resultTags = [];
+      for (const tag of dto.tags) {
+        const exist = await this.tagsRepository.getTagByName(tag);
+        if (!exist) {
+          const saved = await this.tagsRepository.addTag(tag);
+          resultTags.push(saved);
+        } else {
+          resultTags.push(exist);
+        }
+      }
+      const collectionModel = this.collectionRepository.createModel({
+        ...dto,
+        tags: resultTags,
+      });
       collectionModel.created = getUnixDate();
       collectionModel.share_string = randomstring.generate(8);
       const collection = await this.collectionRepository.save(collectionModel);
@@ -106,13 +122,21 @@ export class CollectionService {
       collectionId,
     );
     if (existsCollection) {
+      const resultTags = [];
+      for (const tag of dto.tags) {
+        const exist = await this.tagsRepository.getTagByName(tag);
+        if (!exist) {
+          const saved = await this.tagsRepository.addTag(tag);
+          resultTags.push(saved);
+        } else {
+          resultTags.push(exist);
+        }
+      }
       const collection = await this.collectionRepository.updateById(
-        { ...dto, tags: [...existsCollection.tags, ...dto.tags] },
+        { ...dto, tags: [...existsCollection.tags, ...resultTags] },
         collectionId,
       );
-      const result = await this.collectionRepository.getByIdWithoutCollections(
-        collection.id,
-      );
+      const result = await this.collectionRepository.getById(collection.id);
       return new ReturnCreateCollection(new ReturnedCollectionDto(result));
     }
   }
@@ -176,7 +200,6 @@ export class CollectionService {
       collection.totalPrice = await this.collectionItemRepository.sum(
         collection.id,
       );
-      console.log(collection);
       collection.shippingTotal =
         await this.collectionItemRepository.sumShippingCost(collection.id);
       collection.share_string = defineShareString(

@@ -109,4 +109,35 @@ export class CollectionItemController {
       throw new HttpInternalServerError(err);
     }
   }
+
+  @ApiOperation({
+    summary: 'Копировать или перенести элемент коллекции',
+  })
+  @ApiResponse({
+    status: 200,
+    type: ReturnCreateCollectionItem,
+  })
+  @Get('/secured/collection_item/copy')
+  @UseGuards(AuthGuard)
+  @ApiQuery({ name: 'id', type: String, required: true })
+  @ApiQuery({ name: 'targetCollectionId', type: String, required: true })
+  @ApiQuery({ name: 'sourceCollectionId', type: String })
+  async copyOrMove(
+    @Query()
+    query: {
+      id: string;
+      targetCollectionId: string;
+      sourceCollectionId: string;
+    },
+  ) {
+    try {
+      return await this.collectionItemsService.copyOrMove(
+        query.id,
+        query.targetCollectionId,
+        query.sourceCollectionId,
+      );
+    } catch (err) {
+      throw new HttpInternalServerError(err);
+    }
+  }
 }
