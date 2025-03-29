@@ -121,7 +121,7 @@ export class CollectionItemController {
   @UseGuards(AuthGuard)
   @ApiQuery({ name: 'id', type: String, required: true })
   @ApiQuery({ name: 'targetCollectionId', type: String, required: true })
-  @ApiQuery({ name: 'sourceCollectionId', type: String })
+  @ApiQuery({ name: 'sourceCollectionId', type: String, required: false })
   async copyOrMove(
     @Query()
     query: {
