@@ -5,7 +5,7 @@ import { HttpException, HttpStatus } from '@nestjs/common';
  */
 export class HttpBadRequestError extends HttpException {
   constructor(
-    response: string = 'Что-то пошло не так, попробуйте еще раз, если проблема повторяется, воспользуйтесь формой обратной связи.',
+    response: string = 'Что-то пошло не так, закройте еблище и попробуйте снова.',
   ) {
     super(response, HttpStatus.BAD_REQUEST);
   }
