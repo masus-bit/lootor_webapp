@@ -42,8 +42,8 @@ export class CollectionItemCreateDto {
   @ApiProperty({ name: 'copyNumber' })
   readonly copy_number?: string;
 
-  @Expose({ name: 'collection' })
-  @ApiProperty({ name: 'collection' })
+  @Expose({ name: 'collectionId' })
+  @ApiProperty({ name: 'collectionId' })
   collection?: Collection;
 
   @Expose()
