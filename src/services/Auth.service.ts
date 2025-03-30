@@ -107,11 +107,13 @@ export class AuthService {
     | never
   > {
     try {
-      if (await this.usersRepository.getById(signUpDto.login)) {
+      if (await this.usersRepository.getById(signUpDto.login.toLowerCase())) {
         throw new HttpBadRequestError('Логин должен быть уникальным');
       }
 
-      if (await this.usersRepository.getByEmail(signUpDto.email)) {
+      if (
+        await this.usersRepository.getByEmail(signUpDto.email.toLowerCase())
+      ) {
         throw new HttpBadRequestError('Email должен быть уникальным');
       }
 
