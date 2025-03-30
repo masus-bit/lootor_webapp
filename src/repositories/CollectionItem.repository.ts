@@ -40,9 +40,9 @@ export class CollectionItemRepository {
       .createQueryBuilder('collection_item')
       .where('collection_item.id = :id', { id })
       .andWhere('collection_item.deleted = :deleted', { deleted: false })
-      .innerJoinAndSelect('collection_item.collections', 'collection')
-      .innerJoinAndSelect('collection.user', 'user')
-      .innerJoinAndSelect('collection_item.platform', 'platforms')
+      .leftJoinAndSelect('collection_item.collections', 'collection')
+      .leftJoinAndSelect('collection.user', 'user')
+      .leftJoinAndSelect('collection_item.platform', 'platforms')
       .leftJoinAndSelect('collection_item.entities', 'entity_model')
       .getOne();
   }

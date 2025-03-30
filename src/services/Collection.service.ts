@@ -212,7 +212,6 @@ export class CollectionService {
         login,
         transliteration,
       );
-
       collection.totalPrice = await this.collectionItemRepository.sum(
         collection.id,
       );
@@ -245,7 +244,7 @@ export class CollectionService {
     return new GetOneCollectionDto(
       new CollectionDto(
         collection,
-        authorizedUser ? !subArray.includes(collection.id) : false,
+        authorizedUser ? !subArray.includes(collection?.id) : false,
       ),
     );
   }

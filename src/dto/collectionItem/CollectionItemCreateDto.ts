@@ -12,35 +12,35 @@ export class CollectionItemCreateDto {
 
   @Expose()
   @ApiProperty()
-  readonly description: string;
+  readonly description?: string;
 
   @Expose()
   @ApiProperty()
-  readonly platform: string;
+  readonly platform?: string;
 
   @Expose({ name: 'images' })
   @ApiProperty({ name: 'images' })
-  readonly images: string[];
+  readonly images?: string[];
 
   @Expose({ name: 'purchaseDate' })
   @ApiProperty({ name: 'purchaseDate' })
-  readonly purchase_date: Date;
+  readonly purchase_date?: Date;
 
   @Expose({ name: 'purchasePrice' })
   @ApiProperty({ name: 'purchasePrice' })
-  readonly purchase_price: number;
+  readonly purchase_price?: number;
 
   @Expose()
   @ApiProperty()
-  readonly sealed: boolean;
+  readonly sealed?: boolean;
 
   @Expose({ name: 'shippingCost' })
   @ApiProperty({ name: 'shippingCost' })
-  readonly shipping_cost: number;
+  readonly shipping_cost?: number;
 
   @Expose({ name: 'copyNumber' })
   @ApiProperty({ name: 'copyNumber' })
-  readonly copy_number?: string;
+  readonly copy_number?: string[];
 
   @Expose({ name: 'collectionId' })
   @ApiProperty({ name: 'collectionId' })
@@ -57,13 +57,15 @@ export class ReturnedCollectionItemDto {
   @ApiProperty()
   readonly name: string;
   @ApiProperty()
-  readonly description: string;
-  @ApiProperty()
-  readonly shipping_cost: number;
+  readonly description?: string;
+  @ApiProperty({ name: 'shipping_cost' })
+  readonly shippingCost: number;
   @ApiProperty()
   readonly platform: string;
   @ApiProperty()
   readonly images: string[];
+  @ApiProperty()
+  readonly edition: string;
   @ApiProperty()
   readonly purchaseDate: Date;
   @ApiProperty({ description: 'Цена' })
@@ -71,7 +73,7 @@ export class ReturnedCollectionItemDto {
   @ApiProperty()
   readonly sealed: boolean;
   @ApiProperty()
-  readonly copyNumber?: string;
+  readonly copyNumber?: string[];
   @ApiProperty()
   readonly collection: string;
   @ApiProperty({ type: EntityModel, isArray: true })
@@ -79,18 +81,24 @@ export class ReturnedCollectionItemDto {
 
   constructor(collectionItem: Readonly<CollectionItem>) {
     this.id = collectionItem?.id;
-    this.name = collectionItem.name;
-    this.description = collectionItem.description;
+    this.name = collectionItem?.name;
+    this.description = collectionItem?.description;
     // @ts-ignore
-    this.platform = collectionItem.platform.id;
-    this.images = collectionItem.images;
-    this.purchaseDate = collectionItem.purchase_date;
-    this.purchasePrice = collectionItem.purchase_price;
-    this.sealed = collectionItem.sealed;
+    this.platform = {
+      // @ts-ignore
+      id: collectionItem?.platform?.id,
+      // @ts-ignore
+      name: collectionItem?.platform?.name,
+    };
+    this.images = collectionItem?.images;
+    this.purchaseDate = collectionItem?.purchase_date;
+    this.purchasePrice = collectionItem?.purchase_price;
+    this.sealed = collectionItem?.sealed;
     this.copyNumber = collectionItem?.copy_number;
     this.collection = collectionItem?.collections?.[0].id || '';
-    this.shipping_cost = collectionItem.shipping_cost;
-    this.entities = collectionItem.entities;
+    this.shippingCost = collectionItem?.shipping_cost;
+    this.entities = collectionItem?.entities;
+    this.edition = collectionItem?.edition;
   }
 }
 

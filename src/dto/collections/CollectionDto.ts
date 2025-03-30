@@ -43,7 +43,7 @@ export class CollectionDto {
   readonly shippingTotal: number;
 
   constructor(collection: Readonly<Collection>, canSubscribe?: boolean) {
-    this.id = collection.id;
+    this.id = collection?.id;
     this.isPrivate = collection.is_private;
     this.name = collection.name;
     this.description = collection.description;

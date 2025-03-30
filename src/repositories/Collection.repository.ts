@@ -101,15 +101,9 @@ export class CollectionRepository {
         .leftJoinAndSelect('collection.user', 'user')
         .leftJoinAndSelect('collection.tags', 'tags')
         .leftJoinAndSelect('collection.collectionItems', 'collection_item')
-        // .leftJoinAndMapMany(
-        //   'collection.collectionItems',
-        //   CollectionItem,
-        //   'collection_item',
-        //   'collection_item.collection = collection.id AND collection_item.deleted = :deleted',
-        //   { deleted: false },
-        // )
-        // .where('collection_item.deleted = :deleted', { deleted: false })
-        .getOneOrFail();
+        .leftJoinAndSelect('collection_item.platform', 'platforms')
+        .leftJoinAndSelect('collection_item.entities', 'entity_model')
+        .getOne();
     } catch (err) {
       console.log(err.message);
     }
@@ -120,8 +114,11 @@ export class CollectionRepository {
       .createQueryBuilder('collection')
       .where('collection.user = :id', { id })
       .andWhere('collection.deleted = :deleted', { deleted: false })
-      .innerJoinAndSelect('collection.user', 'user')
+      .leftJoinAndSelect('collection.user', 'user')
       .leftJoinAndSelect('collection.tags', 'tags')
+      .leftJoinAndSelect('collection.collectionItems', 'collection_item')
+      .leftJoinAndSelect('collection_item.platform', 'platforms')
+      .leftJoinAndSelect('collection_item.entities', 'entity_model')
       .orderBy('collection.created', 'DESC')
       .getMany();
   }
@@ -150,13 +147,15 @@ export class CollectionRepository {
   async getByTag(tag: string): Promise<Collection[] | never> {
     return await this.collectionRepository
       .createQueryBuilder('collection')
-      .innerJoinAndSelect('collection.user', 'user')
-      .innerJoinAndSelect('collection.tags', 'tags')
+      .leftJoinAndSelect('collection.user', 'user')
+      .leftJoinAndSelect('collection.tags', 'tags')
+      .leftJoinAndSelect('collection.collectionItems', 'collection_item')
+      .leftJoinAndSelect('collection_item.platform', 'platforms')
+      .leftJoinAndSelect('collection_item.entities', 'entity_model')
       .leftJoin('collection.tags', 'tagsForFilter')
       .where('collection.is_private = :isPrivate', { isPrivate: false })
       .andWhere('tagsForFilter.name = :tag', { tag })
       .orderBy('collection.created', 'ASC')
-
       .getMany();
   }
 

@@ -48,7 +48,10 @@ export class CollectionItemService {
       model.collections = [collection];
       model.owner = user.login;
       // @ts-ignore
-      model.images = `{${dto.images}}`;
+      if (dto?.images) model.images = `{${dto?.images}}`;
+      // @ts-ignore
+      if (dto?.copy_number) model.copy_number = `{${dto?.copy_number}}`;
+
       let resultEntities = [];
       if (data?.entities) {
         resultEntities = await this.getEntities(data?.entities);
@@ -67,14 +70,14 @@ export class CollectionItemService {
           collection.user.login,
           EventActions.create,
           EventTargets.collectionItem,
-          result.name,
+          instance.name,
           null,
           null,
           instance.id,
         );
       }
       return new ReturnCreateCollectionItem(
-        new ReturnedCollectionItemDto(result),
+        new ReturnedCollectionItemDto(instance),
       );
     } catch (err) {
       console.error(err);
@@ -125,6 +128,8 @@ export class CollectionItemService {
           ...data,
           // @ts-ignore
           images: `{${data.images}}`,
+          // @ts-ignore
+          copy_number: `{${data.copy_number}}`,
           entities: [...exists?.entities, ...result],
         });
         const resultCollectionItem =
@@ -139,7 +144,6 @@ export class CollectionItemService {
   }
 
   async getById(id: string) {
-    console.log(id);
     try {
       const exists = await this.collectionItemRepository.getById(id);
       return new ReturnCreateCollectionItem(

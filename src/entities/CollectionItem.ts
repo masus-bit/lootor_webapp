@@ -26,7 +26,7 @@ export class CollectionItem {
   images: string[];
 
   @Index()
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   purchase_date: Date;
 
   @Index()
@@ -34,12 +34,16 @@ export class CollectionItem {
   purchase_price: number;
 
   @Index()
-  @Column()
+  @Column({ nullable: false, default: false })
   sealed: boolean;
 
   @Index()
   @Column({ nullable: true })
-  copy_number: string;
+  edition: string;
+
+  @Index()
+  @Column('simple-array', { array: true, nullable: true })
+  copy_number: string[];
 
   @Index()
   @Column({ default: false, select: false })
@@ -51,18 +55,16 @@ export class CollectionItem {
   collections: Collection[];
 
   @Index()
-  @Column({ nullable: true })
   @ManyToOne(() => User, (user) => user.login, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'owner' })
   owner: string;
 
-  @Index()
-  @Column({ nullable: true })
   @ManyToOne(() => Platforms, (platform) => platform.id, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'platform' })
   platform: string;
 
   @Index()
