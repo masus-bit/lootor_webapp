@@ -50,7 +50,7 @@ export class CollectionItemRepository {
   async getCountByUserLogin(login: string): Promise<number | never> {
     return await this.collectionItemRepository
       .createQueryBuilder('collection_item')
-      .where('collection_item.owner = :login', { login })
+      .where('LOWER(collection_item.owner) = LOWER(:login)', { login })
       .andWhere('collection_item.deleted = :deleted', { deleted: false })
       .getCount();
   }
@@ -78,15 +78,15 @@ export class CollectionItemRepository {
 
   async sum(collectionId: string): Promise<number> {
     const result = await this.collectionItemRepository
-      .createQueryBuilder('item')
-      .select('SUM(item.purchase_price)', 'sum')
+      .createQueryBuilder('collection_item')
+      .select('SUM(collection_item.purchase_price)', 'sum')
       .innerJoin(
-        'item.collections',
+        'collection_item.collections',
         'collection',
         'collection.id = :collectionId',
         { collectionId },
       )
-      .where('item.deleted = :deleted', { deleted: false })
+      .where('collection_item.deleted = :deleted', { deleted: false })
       .getRawOne();
 
     return result?.sum || 0;
@@ -94,24 +94,27 @@ export class CollectionItemRepository {
 
   async sumShippingCost(collectionId: string): Promise<number> {
     const result = await this.collectionItemRepository
-      .createQueryBuilder('item')
-      .select('SUM(item.shipping_cost)', 'sum')
+      .createQueryBuilder('collection_item')
+      .select('SUM(collection_item.shipping_cost)', 'sum')
       .innerJoin(
-        'item.collections',
+        'collection_item.collections',
         'collection',
         'collection.id = :collectionId',
         { collectionId },
       )
-      .where('item.deleted = :deleted', { deleted: false })
+      .where('collection_item.deleted = :deleted', { deleted: false })
       .getRawOne();
 
     return result?.sum || 0;
   }
 
-  sumByUserLogin(userLogin: string) {
-    return this.collectionItemRepository.sum('purchase_price', {
-      owner: userLogin,
-    });
+  async sumByUserLogin(userLogin: string) {
+    const result = await this.collectionItemRepository
+      .createQueryBuilder('collection_item')
+      .select('SUM(collection_item.purchase_price)', 'sum')
+      .where('collection_item.owner = :userLogin', { userLogin })
+      .getRawOne();
+    return result?.sum || 0;
   }
 
   async delete(id: string) {

@@ -79,7 +79,7 @@ export class UserRepository {
   async getById(login: string): Promise<User | never> {
     return await this.usersRepository
       .createQueryBuilder('user')
-      .where('user.login = :login', { login })
+      .where('LOWER(user.login) = LOWER(:login)', { login })
       .getOne();
   }
 

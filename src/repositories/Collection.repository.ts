@@ -79,46 +79,47 @@ export class CollectionRepository {
   async getByIdWithoutCollections(id: string): Promise<Collection | never> {
     return await this.collectionRepository
       .createQueryBuilder('collection')
-      .where('collection.id = :id', { id })
-      .andWhere('collection.deleted = :deleted', { deleted: false })
       .leftJoinAndSelect('collection.user', 'user')
       .leftJoinAndSelect('collection.tags', 'tags')
+      .where('LOWER(user.login) = LOWER(:id)', { id })
+      .andWhere('collection.deleted = :deleted', { deleted: false })
       .getOne();
   }
 
   async getOneByTransliteration(
     login: string,
     transliteration: string,
-  ): Promise<any> {
+  ): Promise<Collection | null> {
     try {
       return await this.collectionRepository
         .createQueryBuilder('collection')
-        .where('collection.user = :login', { login })
-        .andWhere('collection.transliteration = :translit', {
-          translit: transliteration,
-        })
-        .andWhere('collection.deleted = :deleted', { deleted: false })
         .leftJoinAndSelect('collection.user', 'user')
         .leftJoinAndSelect('collection.tags', 'tags')
         .leftJoinAndSelect('collection.collectionItems', 'collection_item')
         .leftJoinAndSelect('collection_item.platform', 'platforms')
         .leftJoinAndSelect('collection_item.entities', 'entity_model')
+        .where('LOWER(user.login) = LOWER(:login)', { login })
+        .andWhere('collection.transliteration = :translit', {
+          translit: transliteration,
+        })
+        .andWhere('collection.deleted = :deleted', { deleted: false })
         .getOne();
     } catch (err) {
-      console.log(err.message);
+      console.error(err);
+      return null;
     }
   }
 
   async getByUserId(id: string): Promise<Collection[]> {
     return await this.collectionRepository
       .createQueryBuilder('collection')
-      .where('collection.user = :id', { id })
-      .andWhere('collection.deleted = :deleted', { deleted: false })
       .leftJoinAndSelect('collection.user', 'user')
       .leftJoinAndSelect('collection.tags', 'tags')
       .leftJoinAndSelect('collection.collectionItems', 'collection_item')
       .leftJoinAndSelect('collection_item.platform', 'platforms')
       .leftJoinAndSelect('collection_item.entities', 'entity_model')
+      .where('LOWER(user.login) = LOWER(:id)', { id })
+      .andWhere('collection.deleted = :deleted', { deleted: false })
       .orderBy('collection.created', 'DESC')
       .getMany();
   }
@@ -126,11 +127,11 @@ export class CollectionRepository {
   async getByUserIdWithoutPrivates(id: string): Promise<Collection[]> {
     return await this.collectionRepository
       .createQueryBuilder('collection')
-      .where('collection.user = :id', { id })
-      .andWhere('collection.deleted = :deleted', { deleted: false })
-      .andWhere('collection.is_private = :isPrivate', { isPrivate: false })
       .innerJoinAndSelect('collection.user', 'user')
       .leftJoinAndSelect('collection.tags', 'tags')
+      .where('LOWER(user.login) = LOWER(:id)', { id })
+      .andWhere('collection.deleted = :deleted', { deleted: false })
+      .andWhere('collection.is_private = :isPrivate', { isPrivate: false })
       .orderBy('collection.created', 'DESC')
       .getMany();
   }
