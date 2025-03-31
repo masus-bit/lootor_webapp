@@ -25,11 +25,14 @@ export class EntityRepository {
         },
       },
     });
-    await this.elasticsearchService.indexDocument('entity_model', {
-      id: entity.id,
-      name: entity.name,
-      collection_item: entity.collection_item,
-    });
+    await this.elasticsearchService.upsertDocument(
+      'entity_model',
+      entity.id.toString(),
+      {
+        name: entity.name,
+        id: entity.id,
+      },
+    );
     return entity;
   }
 

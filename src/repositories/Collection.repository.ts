@@ -23,10 +23,14 @@ export class CollectionRepository {
         },
       },
     });
-    await this.elasticsearchService.indexDocument('collection', {
-      id: collection.id,
-      name: collection.name,
-    });
+    await this.elasticsearchService.upsertDocument(
+      'collection',
+      collection.id.toString(),
+      {
+        name: collection.name,
+        id: collection.id,
+      },
+    );
     return collection;
   }
 
@@ -81,7 +85,7 @@ export class CollectionRepository {
       .createQueryBuilder('collection')
       .leftJoinAndSelect('collection.user', 'user')
       .leftJoinAndSelect('collection.tags', 'tags')
-      .where('LOWER(user.login) = LOWER(:id)', { id })
+      .where('collection.id = :id', { id })
       .andWhere('collection.deleted = :deleted', { deleted: false })
       .getOne();
   }
@@ -193,7 +197,7 @@ export class CollectionRepository {
 
   async delete(id: string) {
     const del = await this.collectionRepository.delete({ id });
-    await this.elasticsearchService.deleteDocument('collection', id.toString());
+    await this.elasticsearchService.deleteDocument('collection', id);
     return del;
     // const collection = await this.collectionRepository
     //   .createQueryBuilder('collection')

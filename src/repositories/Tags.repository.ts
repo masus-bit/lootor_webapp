@@ -25,9 +25,9 @@ export class TagsRepository {
         },
       },
     });
-    await this.elasticsearchService.indexDocument('tags', {
-      id: tags.id,
+    await this.elasticsearchService.upsertDocument('tags', tags.id.toString(), {
       name: tags.name,
+      id: tags.id,
     });
     return tags;
   }

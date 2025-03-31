@@ -14,11 +14,9 @@ export class SearchController {
       'collection',
       'entity_model',
     ];
-    return await this.elasticsearchService.searchInIndices(indices, {
-      multi_match: {
-        query: query.search,
-        fields: ['*'],
-      },
-    });
+    return await this.elasticsearchService.searchInIndices(
+      indices,
+      query.search,
+    );
   }
 }

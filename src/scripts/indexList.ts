@@ -1,22 +1,34 @@
 export const indices = {
   collection: {
     settings: {
-      index: {
-        max_ngram_diff: 10,
-      },
       analysis: {
         analyzer: {
-          common_analyzer: {
+          exact_match: {
+            type: 'custom',
+            tokenizer: 'keyword',
+            filter: ['lowercase'],
+          },
+          prefix_search: {
             type: 'custom',
             tokenizer: 'standard',
-            filter: ['lowercase', 'my_ngram_filter'],
+            filter: ['lowercase', 'edge_ngram_filter'],
+          },
+          full_text: {
+            type: 'standard',
+            filter: ['lowercase'],
           },
         },
         filter: {
-          my_ngram_filter: {
-            type: 'ngram',
-            min_gram: 2,
-            max_gram: 5,
+          edge_ngram_filter: {
+            type: 'edge_ngram',
+            min_gram: 3,
+            max_gram: 15,
+          },
+        },
+        normalizer: {
+          lowercase: {
+            type: 'custom',
+            filter: ['lowercase'],
           },
         },
       },
@@ -25,7 +37,24 @@ export const indices = {
       properties: {
         name: {
           type: 'text',
-          analyzer: 'common_analyzer',
+          fields: {
+            exact: {
+              type: 'text',
+              analyzer: 'exact_match',
+            },
+            prefix: {
+              type: 'text',
+              analyzer: 'prefix_search',
+            },
+            full: {
+              type: 'text',
+              analyzer: 'full_text',
+            },
+            keyword: {
+              type: 'keyword',
+              normalizer: 'lowercase',
+            },
+          },
         },
       },
     },
@@ -33,60 +62,93 @@ export const indices = {
   user: {
     settings: {
       analysis: {
-        index: {
-          max_ngram_diff: 10,
-        },
         analyzer: {
-          common_analyzer: {
+          exact_match: {
+            type: 'custom',
+            tokenizer: 'keyword',
+            filter: ['lowercase'],
+          },
+          prefix_search: {
             type: 'custom',
             tokenizer: 'standard',
-            filter: ['lowercase', 'my_ngram_filter'],
+            filter: ['lowercase', 'edge_ngram_filter'],
+          },
+          full_text: {
+            type: 'standard',
+            filter: ['lowercase'],
           },
         },
         filter: {
-          my_ngram_filter: {
-            type: 'ngram',
-            min_gram: 2,
-            max_gram: 5,
+          edge_ngram_filter: {
+            type: 'edge_ngram',
+            min_gram: 3,
+            max_gram: 15,
+          },
+        },
+        normalizer: {
+          lowercase: {
+            type: 'custom',
+            filter: ['lowercase'],
           },
         },
       },
     },
     mappings: {
       properties: {
-        login: {
+        name: {
           type: 'text',
-          analyzer: 'common_analyzer',
-        },
-        email: {
-          type: 'text',
-          analyzer: 'common_analyzer',
-        },
-        user_name: {
-          type: 'text',
-          analyzer: 'common_analyzer',
+          fields: {
+            exact: {
+              type: 'text',
+              analyzer: 'exact_match',
+            },
+            prefix: {
+              type: 'text',
+              analyzer: 'prefix_search',
+            },
+            full: {
+              type: 'text',
+              analyzer: 'full_text',
+            },
+            keyword: {
+              type: 'keyword',
+              normalizer: 'lowercase',
+            },
+          },
         },
       },
     },
   },
   tags: {
     settings: {
-      index: {
-        max_ngram_diff: 10,
-      },
       analysis: {
         analyzer: {
-          common_analyzer: {
+          exact_match: {
+            type: 'custom',
+            tokenizer: 'keyword',
+            filter: ['lowercase'],
+          },
+          prefix_search: {
             type: 'custom',
             tokenizer: 'standard',
-            filter: ['lowercase', 'my_ngram_filter'],
+            filter: ['lowercase', 'edge_ngram_filter'],
+          },
+          full_text: {
+            type: 'standard',
+            filter: ['lowercase'],
           },
         },
         filter: {
-          my_ngram_filter: {
-            type: 'ngram',
-            min_gram: 2,
-            max_gram: 5,
+          edge_ngram_filter: {
+            type: 'edge_ngram',
+            min_gram: 3,
+            max_gram: 15,
+          },
+        },
+        normalizer: {
+          lowercase: {
+            type: 'custom',
+            filter: ['lowercase'],
           },
         },
       },
@@ -95,29 +157,58 @@ export const indices = {
       properties: {
         name: {
           type: 'text',
-          analyzer: 'common_analyzer',
+          fields: {
+            exact: {
+              type: 'text',
+              analyzer: 'exact_match',
+            },
+            prefix: {
+              type: 'text',
+              analyzer: 'prefix_search',
+            },
+            full: {
+              type: 'text',
+              analyzer: 'full_text',
+            },
+            keyword: {
+              type: 'keyword',
+              normalizer: 'lowercase',
+            },
+          },
         },
       },
     },
   },
   collection_item: {
     settings: {
-      index: {
-        max_ngram_diff: 10,
-      },
       analysis: {
         analyzer: {
-          common_analyzer: {
+          exact_match: {
+            type: 'custom',
+            tokenizer: 'keyword',
+            filter: ['lowercase'],
+          },
+          prefix_search: {
             type: 'custom',
             tokenizer: 'standard',
-            filter: ['lowercase', 'my_ngram_filter'],
+            filter: ['lowercase', 'edge_ngram_filter'],
+          },
+          full_text: {
+            type: 'standard',
+            filter: ['lowercase'],
           },
         },
         filter: {
-          my_ngram_filter: {
-            type: 'ngram',
-            min_gram: 2,
-            max_gram: 5,
+          edge_ngram_filter: {
+            type: 'edge_ngram',
+            min_gram: 3,
+            max_gram: 15,
+          },
+        },
+        normalizer: {
+          lowercase: {
+            type: 'custom',
+            filter: ['lowercase'],
           },
         },
       },
@@ -126,29 +217,58 @@ export const indices = {
       properties: {
         name: {
           type: 'text',
-          analyzer: 'common_analyzer',
+          fields: {
+            exact: {
+              type: 'text',
+              analyzer: 'exact_match',
+            },
+            prefix: {
+              type: 'text',
+              analyzer: 'prefix_search',
+            },
+            full: {
+              type: 'text',
+              analyzer: 'full_text',
+            },
+            keyword: {
+              type: 'keyword',
+              normalizer: 'lowercase',
+            },
+          },
         },
       },
     },
   },
   entity_model: {
     settings: {
-      index: {
-        max_ngram_diff: 10,
-      },
       analysis: {
         analyzer: {
-          common_analyzer: {
+          exact_match: {
+            type: 'custom',
+            tokenizer: 'keyword',
+            filter: ['lowercase'],
+          },
+          prefix_search: {
             type: 'custom',
             tokenizer: 'standard',
-            filter: ['lowercase', 'my_ngram_filter'],
+            filter: ['lowercase', 'edge_ngram_filter'],
+          },
+          full_text: {
+            type: 'standard',
+            filter: ['lowercase'],
           },
         },
         filter: {
-          my_ngram_filter: {
-            type: 'ngram',
-            min_gram: 2,
-            max_gram: 5,
+          edge_ngram_filter: {
+            type: 'edge_ngram',
+            min_gram: 3,
+            max_gram: 15,
+          },
+        },
+        normalizer: {
+          lowercase: {
+            type: 'custom',
+            filter: ['lowercase'],
           },
         },
       },
@@ -157,7 +277,24 @@ export const indices = {
       properties: {
         name: {
           type: 'text',
-          analyzer: 'common_analyzer',
+          fields: {
+            exact: {
+              type: 'text',
+              analyzer: 'exact_match',
+            },
+            prefix: {
+              type: 'text',
+              analyzer: 'prefix_search',
+            },
+            full: {
+              type: 'text',
+              analyzer: 'full_text',
+            },
+            keyword: {
+              type: 'keyword',
+              normalizer: 'lowercase',
+            },
+          },
         },
       },
     },

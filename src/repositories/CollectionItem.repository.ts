@@ -24,10 +24,14 @@ export class CollectionItemRepository {
         },
       },
     });
-    await this.elasticsearchService.indexDocument('collection_item', {
-      id: collectionItem.id,
-      name: collectionItem.name,
-    });
+    await this.elasticsearchService.upsertDocument(
+      'collection_item',
+      collectionItem.id.toString(),
+      {
+        name: collectionItem.name,
+        id: collectionItem.id,
+      },
+    );
     return collectionItem;
   }
 
@@ -119,10 +123,8 @@ export class CollectionItemRepository {
 
   async delete(id: string) {
     const deleted = await this.collectionItemRepository.delete({ id });
-    await this.elasticsearchService.deleteDocument(
-      'collection_item',
-      id.toString(),
-    );
+    await this.elasticsearchService.deleteDocument('collection_item', id);
+
     return deleted;
 
     // const collectionItem = await this.collectionItemRepository

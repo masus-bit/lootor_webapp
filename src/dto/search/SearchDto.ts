@@ -1,21 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
-
+// SearchDto.ts
 export class SearchDto {
-  @ApiProperty()
-  readonly index: string;
-  @ApiProperty()
-  readonly result: { [key: string]: any };
-
-  constructor(searchResult: Readonly<any>) {
-    this.index = searchResult._index;
-    this.result = searchResult._source;
-  }
+  constructor(public index: string, public result: any) {}
 }
 
+// SearchResultDto.ts
 export class SearchResultDto {
-  readonly data: ReadonlyArray<SearchDto>;
-
-  constructor(data: ReadonlyArray<SearchDto>) {
-    this.data = data;
-  }
+  constructor(public data: SearchDto[]) {}
 }
