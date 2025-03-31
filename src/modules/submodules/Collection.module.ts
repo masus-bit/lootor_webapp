@@ -25,6 +25,7 @@ import { EntityModel } from '../../entities/EntityModel';
 @Module({
   controllers: [CollectionController],
   providers: [
+    ElasticsearchService,
     CollectionService,
     CollectionRepository,
     UserRepository,
@@ -34,7 +35,6 @@ import { EntityModel } from '../../entities/EntityModel';
     TagsService,
     CollectionItemRepository,
     CollectionItemService,
-    ElasticsearchService,
     EntityRepository,
   ],
   imports: [

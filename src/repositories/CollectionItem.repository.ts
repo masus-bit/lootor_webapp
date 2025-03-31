@@ -13,6 +13,10 @@ export class CollectionItemRepository {
     private readonly elasticsearchService: ElasticsearchService,
   ) {}
 
+  async find(): Promise<CollectionItem[]> | never {
+    return await this.collectionItemRepository.find();
+  }
+
   async save(data: DeepPartial<CollectionItem>): Promise<CollectionItem> {
     const collectionItem = await this.collectionItemRepository.save(data);
 

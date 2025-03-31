@@ -12,6 +12,10 @@ export class UserRepository {
     private readonly elasticsearchService: ElasticsearchService,
   ) {}
 
+  async find(): Promise<User[]> | never {
+    return await this.usersRepository.find();
+  }
+
   async getPasswordsByEmail(email: string): Promise<User | never> {
     return await this.usersRepository
       .createQueryBuilder('user')

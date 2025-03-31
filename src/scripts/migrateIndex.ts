@@ -1,6 +1,3 @@
-import { ElasticsearchService } from '../services/ElasticSearch.service';
-import { indices } from './indexList';
-
 async function migrateIndex(
   elasticsearchService,
   indexName,
@@ -106,17 +103,17 @@ async function migrateIndex(
   }
 }
 
-async function migrateAllIndices() {
-  const elasticsearchService = new ElasticsearchService();
-
-  try {
-    for (const [indexName, { settings, mappings }] of Object.entries(indices)) {
-      await migrateIndex(elasticsearchService, indexName, settings, mappings);
-    }
-  } catch (error) {
-    console.error('Ошибка при миграции индексов:', error);
-  } finally {
-  }
-}
-
-migrateAllIndices();
+// async function migrateAllIndices() {
+//   const elasticsearchService = new ElasticsearchService();
+//
+//   try {
+//     for (const [indexName, { settings, mappings }] of Object.entries(indices)) {
+//       await migrateIndex(elasticsearchService, indexName, settings, mappings);
+//     }
+//   } catch (error) {
+//     console.error('Ошибка при миграции индексов:', error);
+//   } finally {
+//   }
+// }
+//
+// migrateAllIndices();

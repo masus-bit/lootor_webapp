@@ -149,7 +149,7 @@ export class CollectionService {
     authorizedUser?: string,
   ): Promise<ReturnCollectionsDto> {
     let collections;
-    if (authorizedUser.toLowerCase() === id.toLowerCase()) {
+    if (authorizedUser?.toLowerCase() === id.toLowerCase()) {
       collections = await this.collectionRepository.getByUserId(id);
     } else {
       collections = await this.collectionRepository.getByUserIdWithoutPrivates(

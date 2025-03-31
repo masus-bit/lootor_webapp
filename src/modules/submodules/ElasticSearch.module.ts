@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { UserRepository } from '../../repositories/User.repository';
 import { User } from '../../entities/User';
 import { JwtRegisterModule } from './jwt.module';
 import { HttpModule } from '@nestjs/axios';
@@ -15,6 +14,7 @@ import { TagsRepository } from '../../repositories/Tags.repository';
 import { EntityRepository } from '../../repositories/Entity.repository';
 import { CollectionRepository } from '../../repositories/Collection.repository';
 import { CollectionItemRepository } from '../../repositories/CollectionItem.repository';
+import { UserRepository } from '../../repositories/User.repository';
 
 @Module({
   controllers: [SearchController],

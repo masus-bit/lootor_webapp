@@ -15,6 +15,10 @@ export class TagsRepository {
     private readonly elasticsearchService: ElasticsearchService,
   ) {}
 
+  async find(): Promise<Tags[]> | never {
+    return await this.tagsRepository.find();
+  }
+
   async save(data: DeepPartial<Tags>): Promise<Tags> {
     const tags = await this.tagsRepository.save(data);
     await this.elasticsearchService.createIndexIfNotExists('tags', {

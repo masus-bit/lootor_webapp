@@ -9,6 +9,7 @@ import { TagsModule } from './submodules/Tags.module';
 import { EntityModule } from './submodules/Entity.module';
 import { ElasticSearchModule } from './submodules/ElasticSearch.module';
 import { PlatformsModule } from './submodules/Platforms.module';
+import { ReindexModule } from './submodules/Reindex.module';
 
 @Module({
   controllers: [],
@@ -24,6 +25,7 @@ import { PlatformsModule } from './submodules/Platforms.module';
     EntityModule,
     ElasticSearchModule,
     PlatformsModule,
+    ReindexModule,
   ],
 })
 export class SecuredModule {}

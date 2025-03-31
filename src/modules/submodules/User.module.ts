@@ -11,8 +11,6 @@ import { Algorithm } from 'jsonwebtoken';
 import { EventRepository } from '../../repositories/Event.repository';
 import { Event } from '../../entities/Event';
 import { CollectionRepository } from '../../repositories/Collection.repository';
-import { CollectionService } from '../../services/Collection.service';
-import { CollectionItemService } from '../../services/CollectionItem.service';
 import { CollectionItemRepository } from '../../repositories/CollectionItem.repository';
 import { Collection } from '../../entities/Collection';
 import { CollectionItem } from '../../entities/CollectionItem';
@@ -21,6 +19,8 @@ import { EntityRepository } from '../../repositories/Entity.repository';
 import { EntityModel } from '../../entities/EntityModel';
 import { TagsRepository } from '../../repositories/Tags.repository';
 import { Tags } from '../../entities/Tags';
+import { CollectionService } from '../../services/Collection.service';
+import { CollectionItemService } from '../../services/CollectionItem.service';
 
 @Module({
   controllers: [UserController],
