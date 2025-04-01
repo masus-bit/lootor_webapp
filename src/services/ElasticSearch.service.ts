@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Client } from '@elastic/elasticsearch';
 import { SearchDto, SearchResultDto } from '../dto/search/SearchDto';
+import { indices } from '../scripts/indexList';
 
 @Injectable()
 export class ElasticsearchService {
@@ -43,32 +44,81 @@ export class ElasticsearchService {
       bool: {
         should: [
           {
-            term: {
-              'name.keyword': {
-                value: lowerQuery,
-              },
+            bool: {
+              must: [
+                { term: { _index: 'user' } },
+                {
+                  bool: {
+                    should: [
+                      {
+                        term: {
+                          'login.keyword': {
+                            value: lowerQuery,
+                          },
+                        },
+                      },
+                      {
+                        match: {
+                          'login.prefix': {
+                            query: lowerQuery,
+                          },
+                        },
+                      },
+                      {
+                        match: {
+                          user_name: {
+                            query: lowerQuery,
+                          },
+                        },
+                      },
+                      {
+                        wildcard: {
+                          'login.keyword': {
+                            value: `*${lowerQuery}*`,
+                            case_insensitive: true,
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
             },
           },
           {
-            match: {
-              'name.prefix': {
-                query: lowerQuery,
-              },
-            },
-          },
-          {
-            match: {
-              'name.full': {
-                query: lowerQuery,
-              },
-            },
-          },
-          {
-            wildcard: {
-              'name.keyword': {
-                value: `*${lowerQuery}*`,
-                case_insensitive: true,
-              },
+            bool: {
+              must_not: { term: { _index: 'user' } },
+              should: [
+                {
+                  term: {
+                    'name.keyword': {
+                      value: lowerQuery,
+                    },
+                  },
+                },
+                {
+                  match: {
+                    'name.prefix': {
+                      query: lowerQuery,
+                    },
+                  },
+                },
+                {
+                  match: {
+                    'name.full': {
+                      query: lowerQuery,
+                    },
+                  },
+                },
+                {
+                  wildcard: {
+                    'name.keyword': {
+                      value: `*${lowerQuery}*`,
+                      case_insensitive: true,
+                    },
+                  },
+                },
+              ],
             },
           },
         ],
@@ -100,30 +150,18 @@ export class ElasticsearchService {
    * @param mappings - Маппинг для индекса
    */
 
-  Copy;
+  async createIndexIfNotExists(indexName: string) {
+    if (!indices[indexName]) {
+      throw new Error(`Configuration for index "${indexName}" not found`);
+    }
 
-  async createIndexIfNotExists(indexName: string, indexConfig: any) {
     const indexExists = await this.client.indices.exists({ index: indexName });
-
     if (!indexExists) {
-      const settings = indexConfig.settings || {
-        analysis: {
-          analyzer: {
-            default: {
-              type: 'standard',
-            },
-          },
-        },
-      };
-
       await this.client.indices.create({
         index: indexName,
-        body: {
-          settings,
-          mappings: indexConfig.mappings,
-        },
+        body: indices[indexName], // Используем готовый конфиг
       });
-      console.log(`Индекс ${indexName} успешно создан`);
+      console.log(`Index "${indexName}" created with settings from config`);
     }
   }
 

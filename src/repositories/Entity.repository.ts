@@ -17,14 +17,7 @@ export class EntityRepository {
 
   async save(data: DeepPartial<EntityModel>): Promise<EntityModel> {
     const entity = await this.entityRepository.save(data);
-    await this.elasticsearchService.createIndexIfNotExists('entity_model', {
-      properties: {
-        name: {
-          type: 'text',
-          analyzer: 'common_analyzer',
-        },
-      },
-    });
+    await this.elasticsearchService.createIndexIfNotExists('entity_model');
     await this.elasticsearchService.upsertDocument(
       'entity_model',
       entity.id.toString(),

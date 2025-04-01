@@ -21,14 +21,7 @@ export class TagsRepository {
 
   async save(data: DeepPartial<Tags>): Promise<Tags> {
     const tags = await this.tagsRepository.save(data);
-    await this.elasticsearchService.createIndexIfNotExists('tags', {
-      properties: {
-        name: {
-          type: 'text',
-          analyzer: 'common_analyzer',
-        },
-      },
-    });
+    await this.elasticsearchService.createIndexIfNotExists('tags');
     await this.elasticsearchService.upsertDocument('tags', tags.id.toString(), {
       name: tags.name,
       id: tags.id,

@@ -19,14 +19,7 @@ export class CollectionRepository {
 
   async save(data: DeepPartial<Collection>): Promise<Collection> {
     const collection = await this.collectionRepository.save(data);
-    await this.elasticsearchService.createIndexIfNotExists('collection', {
-      properties: {
-        name: {
-          type: 'text',
-          analyzer: 'common_analyzer',
-        },
-      },
-    });
+    await this.elasticsearchService.createIndexIfNotExists('collection');
     await this.elasticsearchService.upsertDocument(
       'collection',
       collection.id.toString(),
@@ -176,14 +169,7 @@ export class CollectionRepository {
       id,
       ...collection,
     });
-    await this.elasticsearchService.createIndexIfNotExists('collection', {
-      properties: {
-        name: {
-          type: 'text',
-          analyzer: 'common_analyzer',
-        },
-      },
-    });
+    await this.elasticsearchService.createIndexIfNotExists('collection');
 
     await this.elasticsearchService.indexDocument('collection', {
       name: updatedCollection.name,

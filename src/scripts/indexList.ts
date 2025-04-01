@@ -95,7 +95,7 @@ export const indices = {
     },
     mappings: {
       properties: {
-        name: {
+        login: {
           type: 'text',
           fields: {
             exact: {
@@ -106,13 +106,18 @@ export const indices = {
               type: 'text',
               analyzer: 'prefix_search',
             },
-            full: {
-              type: 'text',
-              analyzer: 'full_text',
-            },
             keyword: {
               type: 'keyword',
               normalizer: 'lowercase',
+            },
+          },
+        },
+        user_name: {
+          type: 'text',
+          fields: {
+            full: {
+              type: 'text',
+              analyzer: 'full_text',
             },
           },
         },

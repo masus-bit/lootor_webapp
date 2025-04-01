@@ -52,29 +52,13 @@ export class UserRepository {
 
   async save(data: DeepPartial<User>): Promise<User> {
     const user = await this.usersRepository.save(data);
-    await this.elasticsearchService.createIndexIfNotExists('user', {
-      properties: {
-        login: {
-          type: 'text',
-          analyzer: 'common_analyzer',
-        },
-        user_name: {
-          type: 'text',
-          analyzer: 'common_analyzer',
-        },
-        email: {
-          type: 'text',
-          analyzer: 'common_analyzer',
-        },
-      },
-    });
+    await this.elasticsearchService.createIndexIfNotExists('user');
     await this.elasticsearchService.upsertDocument(
       'user',
       user.login.toString(),
       {
         login: user.login,
         user_name: user.user_name,
-        email: user.email,
       },
     );
     return user;

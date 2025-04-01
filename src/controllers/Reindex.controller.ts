@@ -8,6 +8,7 @@ import { CollectionItem } from '../entities/CollectionItem';
 import { Tags } from '../entities/Tags';
 import { EntityModel } from '../entities/EntityModel';
 import { User } from '../entities/User';
+import { indices } from '../scripts/indexList';
 
 @Controller('recreate-elastic-search-index')
 export class ReindexController {
@@ -30,6 +31,7 @@ export class ReindexController {
     const client = new Client({
       node: `http://${process.env.ELASTIC_URL}:9200`,
     });
+
     const prepareBulkData = (
       index: string,
       items: any[],
@@ -40,7 +42,27 @@ export class ReindexController {
         mapper(item),
       ]);
     };
+
     try {
+      const indicesToRecreate = Object.keys(indices);
+      for (const indexName of indicesToRecreate) {
+        const indexExists = await client.indices.exists({ index: indexName });
+        if (indexExists) {
+          await client.indices.delete({ index: indexName });
+          console.log(`Deleted index: ${indexName}`);
+        }
+      }
+
+      for (const [indexName, indexConfig] of Object.entries(indices)) {
+        // @ts-ignore
+        await client.indices.create({
+          index: indexName,
+          // @ts-ignore
+          body: indexConfig,
+        });
+        console.log(`Created index: ${indexName}`);
+      }
+
       const users = await this.userRepository.find();
       const collections = await this.collectionRepository.find();
       const collectionItems = await this.collectionItemRepository.find();
@@ -50,21 +72,16 @@ export class ReindexController {
       const bulkActions = [
         ...prepareBulkData('user', users, (user) => ({
           login: user.login,
-          email: user.email,
           user_name: user.user_name,
         })),
         ...prepareBulkData('collection', collections, (collection) => ({
           id: collection.id,
           name: collection.name,
         })),
-        ...prepareBulkData(
-          'collection_item',
-          collectionItems,
-          (collectionItem) => ({
-            id: collectionItem.id,
-            name: collectionItem.name,
-          }),
-        ),
+        ...prepareBulkData('collection_item', collectionItems, (item) => ({
+          id: item.id,
+          name: item.name,
+        })),
         ...prepareBulkData('tags', tags, (tag) => ({
           id: tag.id,
           name: tag.name,
@@ -75,16 +92,20 @@ export class ReindexController {
         })),
       ];
 
-      await client.bulk({
+      const bulkResponse = await client.bulk({
         body: bulkActions,
         refresh: true,
       });
 
-      return { success: true, message: 'Reindexing completed' };
+      if (bulkResponse.errors) {
+        console.error('Bulk errors:', bulkResponse.errors);
+        throw new Error('Bulk operation failed');
+      }
+
+      return { success: true, message: 'Reindexing completed successfully!' };
     } catch (error) {
       console.error('Reindexing failed:', error);
-      throw new Error('Reindexing failed');
+      throw new Error('Reindexing failed: ' + error.message);
     }
-    // return await this.elasticsearchService.reindexAllData();
   }
 }
