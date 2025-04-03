@@ -203,8 +203,9 @@ export class AuthService {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
+    console.log(response.data, 'response');
     const userInfo = await this.getUserInfo(response.data.access_token);
-
+    console.log(userInfo, 'userInfo1');
     return await this.findOrCreateUser(userInfo);
   }
 
@@ -220,7 +221,8 @@ export class AuthService {
   }
 
   async findOrCreateUser(userInfo: any) {
-    let user = await this.usersRepository.findByVkId(userInfo.id);
+    console.log(userInfo, 'userInfo');
+    let user = await this.usersRepository.findByVkId(userInfo?.id);
     if (!user) {
       const userModel = this.usersRepository.createModel({
         vk_id: userInfo?.id,
