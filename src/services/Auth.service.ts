@@ -203,6 +203,7 @@ export class AuthService {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
+    console.log(params, 'params');
     console.log(codeVerifier, 'codeVerifier');
     console.log(response.data, 'response');
     const userInfo = await this.getUserInfo(response.data.access_token);
