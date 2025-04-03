@@ -97,6 +97,7 @@ export class AuthController {
     @Body() authData: TelegramSignInDto,
     @Res() res: Response,
   ) {
+    console.log(authData, 'telegram data');
     try {
       const tokens = await this.authService.verifyTelegramData(authData);
       if (!tokens) {
