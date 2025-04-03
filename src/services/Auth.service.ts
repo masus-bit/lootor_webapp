@@ -196,7 +196,6 @@ export class AuthService {
     params.append('redirect_uri', `${process.env.FRONTEND_URL}/sign-in`);
     params.append('device_id', deviceId);
     params.append('state', state);
-    params.append('code_challenge', codeChallenge);
 
     const response = await axios.post('https://id.vk.com/oauth2/auth', params, {
       headers: {
