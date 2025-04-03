@@ -15,6 +15,7 @@ import {
   ReturnCreateCollection,
   ReturnedCollectionDto,
 } from '../dto/collections/CreateCollectionDto';
+import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 
 @Injectable()
 export class CollectionItemService {
@@ -90,6 +91,7 @@ export class CollectionItemService {
    */
   async delete(id: string) {
     const exists = await this.collectionItemRepository.getById(id);
+    console.log(exists);
     const deleted = await this.collectionItemRepository.delete(id);
 
     if (deleted.affected > 0) {
@@ -166,31 +168,47 @@ export class CollectionItemService {
 
   async copyOrMove(
     id: string,
-    targetCollectionId: string,
+    targetCollectionIds: string[],
     sourceCollectionId: string,
   ) {
     try {
       if (!sourceCollectionId) {
-        const collection = await this.collectionRepository.getById(
-          targetCollectionId,
-        );
+        const collections = [];
+        for (const col of targetCollectionIds) {
+          const collection = await this.collectionRepository.getById(col);
+          collections.push(collection);
+        }
+        // const collection = await this.collectionRepository.getById(
+        //   targetCollectionId,
+        // );
         const collectionItem = await this.collectionItemRepository.getById(id);
 
-        await this.collectionRepository.updateById(
-          {
-            ...collection,
-            collectionItems: [...collection.collectionItems, collectionItem],
-          },
-          targetCollectionId,
-        );
-        const result = await this.collectionRepository.getById(collection.id);
-        return new ReturnCreateCollection(new ReturnedCollectionDto(result));
+        for (const col of collections) {
+          try {
+            await this.collectionRepository.updateById(
+              {
+                ...col,
+                collectionItems: [...col.collectionItems, collectionItem],
+              },
+              col.id,
+            );
+          } catch (e) {
+            throw new Error(e);
+          }
+        }
+        // const result = await this.collectionRepository.getById(collection.id);
+        // return new ReturnCreateCollection(new ReturnedCollectionDto(result));
+        return 'Копирование прошло успешно';
       }
+      if (targetCollectionIds?.length > 1)
+        throw new HttpBadRequestError(
+          'Перемещение экземпляра в несколько коллекций не поддерживается',
+        );
       const sourceCollection = await this.collectionRepository.getById(
         sourceCollectionId,
       );
       const targetCollection = await this.collectionRepository.getById(
-        targetCollectionId,
+        targetCollectionIds[0],
       );
       const collectionItem = await this.collectionItemRepository.getById(id);
       await this.collectionRepository.updateById(
@@ -210,7 +228,7 @@ export class CollectionItemService {
             collectionItem,
           ],
         },
-        targetCollectionId,
+        targetCollectionIds[0],
       );
       const result = await this.collectionRepository.getById(
         targetCollection.id,

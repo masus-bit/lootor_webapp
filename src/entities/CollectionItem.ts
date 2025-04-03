@@ -85,6 +85,8 @@ export class CollectionItem {
   })
   transliteration: string;
 
-  @ManyToMany(() => EntityModel, (entity) => entity.collection_item)
+  @ManyToMany(() => EntityModel, (entity) => entity.collection_item, {
+    onDelete: 'CASCADE',
+  })
   entities: EntityModel[];
 }

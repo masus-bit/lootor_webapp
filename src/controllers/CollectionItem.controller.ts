@@ -21,6 +21,7 @@ import {
 import { HttpInternalServerError } from '../errors/HttpInternalServerError';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { Request } from '../types/base';
+import { CopyMoveDto } from '../dto/collectionItem/CopyMoveDto';
 
 @Controller()
 export class CollectionItemController {
@@ -117,24 +118,17 @@ export class CollectionItemController {
     status: 200,
     type: ReturnCreateCollectionItem,
   })
-  @Get('/secured/collection_item/copy')
+  @Post('/secured/collection_item/copy')
   @UseGuards(AuthGuard)
-  @ApiQuery({ name: 'id', type: String, required: true })
-  @ApiQuery({ name: 'targetCollectionId', type: String, required: true })
-  @ApiQuery({ name: 'sourceCollectionId', type: String, required: false })
-  async copyOrMove(
-    @Query()
-    query: {
-      id: string;
-      targetCollectionId: string;
-      sourceCollectionId: string;
-    },
-  ) {
+  @ApiBody({
+    type: CopyMoveDto,
+  })
+  async copyOrMove(@Body() dto: CopyMoveDto, @Req() request: Request) {
     try {
       return await this.collectionItemsService.copyOrMove(
-        query.id,
-        query.targetCollectionId,
-        query.sourceCollectionId,
+        dto.id,
+        dto.targetCollectionIds,
+        dto.sourceCollectionId,
       );
     } catch (err) {
       throw new HttpInternalServerError(err);

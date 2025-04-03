@@ -1,0 +1,17 @@
+import { Exclude, Expose } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
+
+@Exclude()
+export class CopyMoveDto {
+  @Expose()
+  @ApiProperty()
+  readonly id: string;
+
+  @Expose()
+  @ApiProperty()
+  readonly targetCollectionIds?: string[];
+
+  @Expose()
+  @ApiProperty()
+  readonly sourceCollectionId?: string;
+}
