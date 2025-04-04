@@ -32,7 +32,8 @@ export class AuthService {
     email,
     password,
     login,
-  }: SignInDto): Promise<
+    withoutPassword,
+  }: SignInDto & { withoutPassword?: boolean }): Promise<
     | false
     | { accessToken: string | false; refreshToken: string | false }
     | never
@@ -43,7 +44,10 @@ export class AuthService {
       try {
         const user = await this.usersRepository.getPasswordsByEmail(email);
         if (!!user.verification_token) return { data: 'not verified' };
-        if (AuthService.verifyPassword(user, password)) {
+        if (withoutPassword) {
+          const { access, refresh } = this.getToken(user);
+          tokens = { accessToken: access, refreshToken: refresh };
+        } else if (AuthService.verifyPassword(user, password)) {
           const { access, refresh } = this.getToken(user);
           tokens = { accessToken: access, refreshToken: refresh };
         } else {
@@ -57,7 +61,10 @@ export class AuthService {
       try {
         const user = await this.usersRepository.getPasswordsByLogin(login);
         if (!!user.verification_token) return { data: 'not verified' };
-        if (AuthService.verifyPassword(user, password)) {
+        if (withoutPassword) {
+          const { access, refresh } = this.getToken(user);
+          tokens = { accessToken: access, refreshToken: refresh };
+        } else if (AuthService.verifyPassword(user, password)) {
           const { access, refresh } = this.getToken(user);
           tokens = { accessToken: access, refreshToken: refresh };
         } else {
@@ -97,6 +104,7 @@ export class AuthService {
       return await this.signIn({
         email: returnedUser.email,
         password: returnedUser.password,
+        withoutPassword: true,
       });
     } catch (err) {
       throw new HttpUnauthorizedError();
@@ -127,12 +135,11 @@ export class AuthService {
 
       const userModel = this.usersRepository.createModel(signUpDto);
       userModel.created = getUnixDate();
+      const pass = userModel.password;
 
       userModel.verification_token = crypto.randomBytes(32).toString('hex');
 
-      userModel.password_encrypted = AuthService.getHashPassword(
-        userModel.password,
-      );
+      userModel.password = AuthService.getHashPassword(pass);
 
       const user = await this.usersRepository.save(userModel);
 
@@ -162,20 +169,20 @@ export class AuthService {
   /**
    * Проверка пароля пользователя
    */
-  private static verifyPassword(user: User, password?: string | null): boolean {
-    const { password_encrypted } = user;
+  private static verifyPassword(
+    user: User,
+    comingPassword?: string | null,
+  ): boolean {
+    const { password } = user;
 
-    return (
-      (password_encrypted && compareSync(password, password_encrypted)) ||
-      (!password_encrypted && (user.password ?? '') === (password ?? ''))
-    );
+    return password && compareSync(comingPassword, password);
   }
 
   /**
    * Генерация хеша пароля
    */
   private static getHashPassword(password: string): string {
-    return hashSync(password, 15);
+    return hashSync(password, 10);
   }
 
   /**
@@ -242,11 +249,10 @@ export class AuthService {
       });
       userModel.created = getUnixDate();
 
-      userModel.password = `${userInfo?.id.toString()}@${userInfo?.first_name}`;
-
-      userModel.password_encrypted = AuthService.getHashPassword(
-        userModel.password,
+      userModel.password = AuthService.getHashPassword(
+        `${userInfo?.id.toString()}@${userInfo?.first_name}`,
       );
+
       // await this.usersRepository.save(userModel);
       const userFinal = await this.usersRepository.save(userModel);
 
@@ -255,7 +261,7 @@ export class AuthService {
       );
       return await this.signIn({
         email: null,
-        password: returnedUser.password,
+        password: `${userInfo?.id.toString()}@${userInfo?.first_name}`,
         login: returnedUser.login,
       });
     }
@@ -300,8 +306,7 @@ export class AuthService {
           login: userData.username,
         });
         userModel.created = getUnixDate();
-        userModel.password = `${userData?.id}@${userData?.first_name}`;
-        userModel.password_encrypted = AuthService.getHashPassword(
+        userModel.password = AuthService.getHashPassword(
           `${userData?.id}@${userData?.first_name}`,
         );
         // await this.usersRepository.save(userModel);
@@ -314,6 +319,7 @@ export class AuthService {
           email: null,
           password: returnedUser.password,
           login: returnedUser.login,
+          withoutPassword: true,
         });
       }
       const returnedUser = await this.usersRepository.getPasswordsByLogin(
@@ -323,6 +329,7 @@ export class AuthService {
         email: null,
         password: returnedUser.password,
         login: returnedUser.login,
+        withoutPassword: true,
       });
     }
   }

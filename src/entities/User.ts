@@ -42,14 +42,6 @@ export class User {
   @Column({
     nullable: true,
     length: 100,
-    select: false,
-  })
-  password_encrypted: string;
-
-  @Index()
-  @Column({
-    nullable: true,
-    length: 100,
   })
   email: string;
 

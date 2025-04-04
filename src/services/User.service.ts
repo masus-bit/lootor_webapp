@@ -88,8 +88,7 @@ export class UserService {
     try {
       const existsUser = await this.userRepository.getById(login);
       const userModel = await this.userRepository.createModel(existsUser);
-      userModel.password = dto.password;
-      userModel.password_encrypted = UserService.getHashPassword(dto.password);
+      userModel.password = UserService.getHashPassword(dto.password);
       const user = await this.userRepository.save(userModel);
       return new GetUserByIdDto(new UserByIdDto(user));
     } catch (err) {
