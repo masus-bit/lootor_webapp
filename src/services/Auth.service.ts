@@ -285,7 +285,7 @@ export class AuthService {
       if (!user) {
         const userModel = this.usersRepository.createModel({
           telegram_id: userData.id,
-          user_name: `${userData.first_name} ${userData?.last_name}`,
+          user_name: `${userData.first_name}`,
           avatar_url: userData.photo_url,
           login: userData.username,
         });
