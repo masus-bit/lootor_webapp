@@ -93,12 +93,11 @@ export class UserRepository {
     });
   }
 
-  async getFullById(login: string): Promise<User | never> {
-    return await this.usersRepository.findOneOrFail({
-      where: {
-        login: login,
-      },
-    });
+  async getByVerificationToken(token: string): Promise<User | never> {
+    return await this.usersRepository
+      .createQueryBuilder('user')
+      .where('user.verification_token = :token', { token })
+      .getOne();
   }
 
   async updateByLogin(user: DeepPartial<User>, login: string): Promise<User> {

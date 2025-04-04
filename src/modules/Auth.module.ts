@@ -10,10 +10,11 @@ import { UserRepository } from '../repositories/User.repository';
 import { User } from '../entities/User';
 import { ElasticsearchService } from '../services/ElasticSearch.service';
 import { PassportModule } from '@nestjs/passport';
+import { MailService } from '../services/Mail.service';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, UserRepository, ElasticsearchService],
+  providers: [AuthService, UserRepository, ElasticsearchService, MailService],
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',

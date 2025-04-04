@@ -13,13 +13,16 @@ import { Algorithm } from 'jsonwebtoken';
 import { RefreshDto } from '../dto/RefreshDto';
 import { getUnixDate } from '../utils/date';
 import * as CryptoJS from 'crypto-js';
+import * as crypto from 'crypto';
 import axios from 'axios';
+import { MailService } from './Mail.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @Inject(UserRepository) private usersRepository: UserRepository,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   /**
@@ -33,11 +36,13 @@ export class AuthService {
     | false
     | { accessToken: string | false; refreshToken: string | false }
     | never
+    | { data: string }
   > {
     let tokens;
     if (email) {
       try {
         const user = await this.usersRepository.getPasswordsByEmail(email);
+        if (!!user.verification_token) return { data: 'not verified' };
         if (AuthService.verifyPassword(user, password)) {
           const { access, refresh } = this.getToken(user);
           tokens = { accessToken: access, refreshToken: refresh };
@@ -51,6 +56,7 @@ export class AuthService {
     if (login) {
       try {
         const user = await this.usersRepository.getPasswordsByLogin(login);
+        if (!!user.verification_token) return { data: 'not verified' };
         if (AuthService.verifyPassword(user, password)) {
           const { access, refresh } = this.getToken(user);
           tokens = { accessToken: access, refreshToken: refresh };
@@ -71,6 +77,7 @@ export class AuthService {
     | false
     | { accessToken: string | false; refreshToken: string | false }
     | never
+    | { data: string }
   > {
     try {
       const canActivate = await this.jwtService.verify(
@@ -105,6 +112,7 @@ export class AuthService {
     | false
     | { accessToken: string | false; refreshToken: string | false }
     | never
+    | { data: string }
   > {
     try {
       if (await this.usersRepository.getById(signUpDto.login.toLowerCase())) {
@@ -120,6 +128,8 @@ export class AuthService {
       const userModel = this.usersRepository.createModel(signUpDto);
       userModel.created = getUnixDate();
 
+      userModel.verification_token = crypto.randomBytes(32).toString('hex');
+
       userModel.password_encrypted = AuthService.getHashPassword(
         userModel.password,
       );
@@ -129,10 +139,13 @@ export class AuthService {
       const returnedUser = await this.usersRepository.getPasswordsByEmail(
         user.email,
       );
-      return await this.signIn({
-        email: returnedUser.email,
-        password: returnedUser.password,
-      });
+
+      await this.mailService.sendConfirmationEmail(
+        returnedUser.email,
+        returnedUser.verification_token,
+      );
+
+      return { data: 'registration success' };
     } catch (err) {
       console.error(err.message);
       throw err;
@@ -202,9 +215,6 @@ export class AuthService {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
-    console.log(params, 'params');
-    console.log(codeVerifier, 'codeVerifier');
-    console.log(response.data, 'response');
     const userInfo = await this.getUserInfo(response.data.access_token);
     return await this.findOrCreateUser(userInfo);
   }
@@ -221,7 +231,6 @@ export class AuthService {
   }
 
   async findOrCreateUser(userInfo: any) {
-    console.log(userInfo, 'userInfo');
     let user = await this.usersRepository.findByVkId(userInfo?.id);
     if (!user) {
       const userModel = this.usersRepository.createModel({
@@ -266,6 +275,7 @@ export class AuthService {
     | false
     | { accessToken: string | false; refreshToken: string | false }
     | never
+    | { data: string }
   > {
     const { hash, ...userData } = data;
     let dataCheckArr = [];
@@ -315,5 +325,30 @@ export class AuthService {
         login: returnedUser.login,
       });
     }
+  }
+
+  async verification(
+    verificationToken: string,
+  ): Promise<
+    | false
+    | { accessToken: string | false; refreshToken: string | false }
+    | never
+  > {
+    let tokens;
+    try {
+      const user = await this.usersRepository.getByVerificationToken(
+        verificationToken,
+      );
+      if (!!user) {
+        const { access, refresh } = this.getToken(user);
+        tokens = { accessToken: access, refreshToken: refresh };
+      } else {
+        tokens = false;
+      }
+    } catch (err) {
+      throw new HttpUnauthorizedError();
+    }
+    return tokens;
+    // return false;
   }
 }

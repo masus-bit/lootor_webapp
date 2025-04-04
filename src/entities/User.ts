@@ -90,6 +90,13 @@ export class User {
   @Index()
   @Column({
     nullable: true,
+    length: 100,
+  })
+  verification_token: string;
+
+  @Index()
+  @Column({
+    nullable: true,
     default: 0,
   })
   subscribers: number;

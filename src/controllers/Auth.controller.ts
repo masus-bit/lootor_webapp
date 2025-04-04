@@ -13,10 +13,10 @@ import { SignInDto, SignInResponse } from '../dto/SignInDto';
 import { SignUpDto } from '../dto/SignUpDto';
 import { HttpUnauthorizedError } from '../errors/HttpUnauthorizedError';
 import { AuthService } from '../services/Auth.service';
-import { plainToClass } from 'class-transformer';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RefreshDto } from '../dto/RefreshDto';
 import { TelegramSignInDto } from '../dto/auth/TelegramSignInDto';
+import { plainToClass } from 'class-transformer';
 
 @ApiTags('Auth')
 @Controller()
@@ -97,9 +97,25 @@ export class AuthController {
     @Body() authData: TelegramSignInDto,
     @Res() res: Response,
   ) {
-    console.log(authData, 'telegram data');
     try {
       const tokens = await this.authService.verifyTelegramData(authData);
+      if (!tokens) {
+        throw new HttpUnauthorizedError();
+      }
+      res.status(200).send(tokens);
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).send('Authorization failed');
+    }
+  }
+
+  @Get('/public/auth/verification')
+  async verification(
+    @Query('verificationToken') verificationToken: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const tokens = await this.authService.verification(verificationToken);
       if (!tokens) {
         throw new HttpUnauthorizedError();
       }

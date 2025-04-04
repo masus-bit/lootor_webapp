@@ -10,6 +10,7 @@ import { EntityModule } from './submodules/Entity.module';
 import { ElasticSearchModule } from './submodules/ElasticSearch.module';
 import { PlatformsModule } from './submodules/Platforms.module';
 import { ReindexModule } from './submodules/Reindex.module';
+import { MailModule } from './submodules/Mail.module';
 
 @Module({
   controllers: [],
@@ -26,6 +27,7 @@ import { ReindexModule } from './submodules/Reindex.module';
     ElasticSearchModule,
     PlatformsModule,
     ReindexModule,
+    MailModule,
   ],
 })
 export class SecuredModule {}
