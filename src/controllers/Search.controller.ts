@@ -1,5 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ElasticsearchService } from '../services/ElasticSearch.service';
+import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 
 @Controller('search')
 export class SearchController {
@@ -14,9 +15,15 @@ export class SearchController {
       'collection',
       'entity_model',
     ];
-    return await this.elasticsearchService.searchInIndices(
-      indices,
-      query.search,
-    );
+    console.log(query.search);
+    try {
+      return await this.elasticsearchService.searchInIndices(
+        indices,
+        query.search,
+      );
+    } catch (e) {
+      console.log(e);
+      throw new HttpBadRequestError(e);
+    }
   }
 }

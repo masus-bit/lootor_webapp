@@ -131,7 +131,7 @@ export class ElasticsearchService {
       body: { query: searchQuery },
       size: 100,
     });
-
+    console.log(result, 'resultSearch');
     return new SearchResultDto(
       result.hits.hits.map((hit) => new SearchDto(hit._index, hit._source)),
     );
