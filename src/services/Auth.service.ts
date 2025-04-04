@@ -347,7 +347,12 @@ export class AuthService {
         verificationToken,
       );
       if (!!user) {
-        const { access, refresh } = this.getToken(user);
+        const userModel = this.usersRepository.createModel(user);
+
+        userModel.verification_token = null;
+
+        const userResult = await this.usersRepository.save(userModel);
+        const { access, refresh } = this.getToken(userResult);
         tokens = { accessToken: access, refreshToken: refresh };
       } else {
         tokens = false;
