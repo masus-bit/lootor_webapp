@@ -288,12 +288,11 @@ export class AuthService {
           user_name: `${userData.first_name} ${userData?.last_name}`,
           avatar_url: userData.photo_url,
           login: userData.username,
-          password: userData.id,
         });
         userModel.created = getUnixDate();
-
+        userModel.password = `${userData?.id}@${userData?.first_name}`;
         userModel.password_encrypted = AuthService.getHashPassword(
-          userModel.password,
+          `${userData?.id}@${userData?.first_name}`,
         );
         // await this.usersRepository.save(userModel);
         const userFinal = await this.usersRepository.save(userModel);
