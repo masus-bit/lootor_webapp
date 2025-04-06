@@ -60,6 +60,7 @@ export class Collection {
   @ManyToMany(
     () => CollectionItem,
     (collectionItem) => collectionItem.collections,
+    { onDelete: 'CASCADE' },
   )
   @JoinTable()
   collectionItems: CollectionItem[];
@@ -91,7 +92,7 @@ export class Collection {
   })
   share_string: string;
 
-  @ManyToMany(() => Tags, (tag) => tag.collections)
+  @ManyToMany(() => Tags, (tag) => tag.collections, { onDelete: 'CASCADE' })
   tags: Tags[];
 
   @ManyToOne(() => User, (user) => user.login, { onDelete: 'CASCADE' })
