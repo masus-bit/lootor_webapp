@@ -16,6 +16,7 @@ import {
   ReturnedCollectionDto,
 } from '../dto/collections/CreateCollectionDto';
 import { HttpBadRequestError } from '../errors/HttpBadRequestError';
+import { ReturnDataDto } from '../dto/ReturnDataDto';
 
 @Injectable()
 export class CollectionItemService {
@@ -105,7 +106,9 @@ export class CollectionItemService {
           exists.name,
         );
       }
-      return { data: { success: true } };
+      return new ReturnDataDto({
+        success: true,
+      });
     } else {
       throw new Error('Nothing to delete');
     }
@@ -198,7 +201,9 @@ export class CollectionItemService {
         }
         // const result = await this.collectionRepository.getById(collection.id);
         // return new ReturnCreateCollection(new ReturnedCollectionDto(result));
-        return { data: { success: true } };
+        return new ReturnDataDto({
+          success: true,
+        });
       }
       if (targetCollectionIds?.length > 1)
         throw new HttpBadRequestError(

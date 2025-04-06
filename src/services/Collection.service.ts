@@ -19,6 +19,7 @@ import { CollectionItemRepository } from '../repositories/CollectionItem.reposit
 import { defineShareString } from '../utils/defineShareString';
 import { getIsoDate } from '../utils/date';
 import { TagsRepository } from '../repositories/Tags.repository';
+import { ReturnDataDto } from '../dto/ReturnDataDto';
 
 var randomstring = require('randomstring');
 
@@ -251,7 +252,7 @@ export class CollectionService {
     );
   }
 
-  async like(id: string, userId: string) {
+  async like(id: string, userId: string): Promise<ReturnDataDto> {
     const exists = await this.collectionRepository.getByIdWithoutCollections(
       id,
     );
@@ -284,7 +285,9 @@ export class CollectionService {
       model.likes = `{${likes}}`;
       await this.collectionRepository.save(model);
 
-      return { data: { success: true } };
+      return new ReturnDataDto({
+        success: true,
+      });
     }
 
     // @ts-ignore
@@ -299,14 +302,16 @@ export class CollectionService {
       null,
       exists.id,
     );
-    return { data: { success: true } };
+    return new ReturnDataDto({
+      success: true,
+    });
   }
 
   async subscribe(
     subscriptionTargetId: string,
     subscriber: User,
     isSubscribe: string,
-  ): Promise<{ data: { success: boolean } }> {
+  ): Promise<ReturnDataDto> {
     try {
       const subscriberModel = await this.userRepository.createModel(subscriber);
       const targetCollection = await this.collectionRepository.getById(
@@ -336,7 +341,9 @@ export class CollectionService {
         //   subscriptionTargetId,
         //   subscriptionTargetId,
         // );
-        return { data: { success: true } };
+        return new ReturnDataDto({
+          success: true,
+        });
       } else {
         const subscribers = subscriberModel.collection_subscriptions.filter(
           (s) => s !== subscriptionTargetId,
@@ -357,7 +364,9 @@ export class CollectionService {
           },
           subscriptionTargetId,
         );
-        return { data: { success: true } };
+        return new ReturnDataDto({
+          success: true,
+        });
       }
     } catch (err) {
       console.log(err);

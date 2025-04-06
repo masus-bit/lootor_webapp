@@ -11,6 +11,7 @@ import { EventRepository } from '../repositories/Event.repository';
 import { EventActions, EventTargets } from '../types/base';
 import { CollectionItemRepository } from '../repositories/CollectionItem.repository';
 import { CollectionRepository } from '../repositories/Collection.repository';
+import { ReturnDataDto } from '../dto/ReturnDataDto';
 
 @Injectable()
 export class UserService {
@@ -62,7 +63,7 @@ export class UserService {
     );
   }
 
-  async changeRating(dto: RatingDto, login: string): Promise<string> {
+  async changeRating(dto: RatingDto, login: string): Promise<ReturnDataDto> {
     try {
       const existsUser = await this.userRepository.getById(login);
       const userModel = await this.userRepository.createModel(existsUser);
@@ -70,12 +71,16 @@ export class UserService {
         const likes = existsUser.likes + 1;
         userModel.likes = likes || 1;
         await this.userRepository.save(userModel);
-        return 'Рейтинг успешно изменен';
+        return new ReturnDataDto({
+          success: true,
+        });
       }
       const dislikes = existsUser.dislikes + 1;
       userModel.dislikes = dislikes || 1;
       await this.userRepository.save(userModel);
-      return 'Рейтинг успешно изменен';
+      return new ReturnDataDto({
+        success: true,
+      });
     } catch (err) {
       throw new HttpBadRequestError();
     }
@@ -109,7 +114,7 @@ export class UserService {
     subscriptionTargetUserLogin: string,
     subscriber: User,
     isSubscribe: string,
-  ): Promise<{ data: { success: boolean } }> {
+  ): Promise<ReturnDataDto> {
     try {
       const subscriberModel = await this.userRepository.createModel(subscriber);
       const subscribeTargetUser = await this.userRepository.getById(
@@ -137,7 +142,9 @@ export class UserService {
           subscriptionTargetUserLogin,
           subscriptionTargetUserLogin,
         );
-        return { data: { success: true } };
+        return new ReturnDataDto({
+          success: true,
+        });
       } else {
         const subscribers = subscriberModel.subscriptions.filter(
           (s) => s !== subscriptionTargetUserLogin,
@@ -154,7 +161,9 @@ export class UserService {
           EventTargets.user,
           subscriptionTargetUserLogin,
         );
-        return { data: { success: true } };
+        return new ReturnDataDto({
+          success: true,
+        });
       }
     } catch (err) {
       console.log(err);
