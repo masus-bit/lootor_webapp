@@ -19,7 +19,7 @@ export class UserByIdDto {
   readonly email: string;
 
   @ApiProperty()
-  readonly created: number;
+  readonly created: Date;
 
   @ApiProperty()
   readonly avatarUrl: string;

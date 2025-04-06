@@ -30,8 +30,8 @@ export class Collection {
   description: string;
 
   @Index()
-  @Column({ nullable: true, type: 'bigint' })
-  created: number;
+  @Column({ nullable: true })
+  created: Date;
 
   @Index()
   @Column()

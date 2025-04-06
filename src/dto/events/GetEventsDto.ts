@@ -14,7 +14,7 @@ export class EventsDto {
   @ApiProperty()
   readonly eventTarget: string;
   @ApiProperty()
-  readonly date: number;
+  readonly date: Date;
   @ApiProperty()
   readonly targetName: string;
   @ApiProperty({ type: ReturnUser })

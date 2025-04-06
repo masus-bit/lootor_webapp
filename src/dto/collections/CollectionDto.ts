@@ -30,7 +30,7 @@ export class CollectionDto {
   @ApiProperty({ type: Tags, isArray: true })
   readonly tags: Tags[];
   @ApiProperty()
-  readonly created: number;
+  readonly created: Date;
   @ApiProperty({ name: 'subscribers_count' })
   readonly subscribersCount: number;
   @ApiProperty()

@@ -11,7 +11,7 @@ import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { UserRepository } from '../repositories/User.repository';
 import { Algorithm } from 'jsonwebtoken';
 import { RefreshDto } from '../dto/RefreshDto';
-import { getUnixDate } from '../utils/date';
+import { getIsoDate } from '../utils/date';
 import * as CryptoJS from 'crypto-js';
 import * as crypto from 'crypto';
 import axios from 'axios';
@@ -134,7 +134,7 @@ export class AuthService {
       }
 
       const userModel = this.usersRepository.createModel(signUpDto);
-      userModel.created = getUnixDate();
+      userModel.created = getIsoDate();
       const pass = userModel.password;
 
       userModel.verification_token = crypto.randomBytes(32).toString('hex');
@@ -247,7 +247,7 @@ export class AuthService {
         avatar_url: userInfo?.photo_200,
         login: userInfo?.id.toString(),
       });
-      userModel.created = getUnixDate();
+      userModel.created = getIsoDate();
 
       userModel.password = AuthService.getHashPassword(
         `${userInfo?.id.toString()}@${userInfo?.first_name}`,
@@ -305,7 +305,7 @@ export class AuthService {
           avatar_url: userData.photo_url,
           login: userData.username,
         });
-        userModel.created = getUnixDate();
+        userModel.created = getIsoDate();
         userModel.password = AuthService.getHashPassword(
           `${userData?.id}@${userData?.first_name}`,
         );

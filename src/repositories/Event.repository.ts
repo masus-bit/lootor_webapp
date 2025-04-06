@@ -8,7 +8,7 @@ import { Event } from '../entities/Event';
 import { CollectionItem } from '../entities/CollectionItem';
 import { User } from '../entities/User';
 import { Collection } from '../entities/Collection';
-import { getUnixDate } from '../utils/date';
+import { getIsoDate } from '../utils/date';
 
 @Injectable()
 export class EventRepository {
@@ -43,7 +43,7 @@ export class EventRepository {
         targetUser,
         targetCollection,
         targetCollectionItem,
-        date: getUnixDate(),
+        date: getIsoDate(),
       }),
     );
     return await this.save(model);

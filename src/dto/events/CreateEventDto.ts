@@ -9,7 +9,7 @@ export class CreateEventDto {
 
   @Expose()
   @ApiProperty()
-  readonly date: number;
+  readonly date: string;
 
   @Expose({ name: 'targetUser' })
   @ApiProperty({ name: 'targetUser' })

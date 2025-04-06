@@ -49,7 +49,7 @@ export class User {
   @Column({
     nullable: true,
   })
-  created: number;
+  created: Date;
 
   @Index()
   @Column({

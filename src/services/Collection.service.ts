@@ -17,7 +17,7 @@ import { HttpBadRequestError } from '../errors/HttpBadRequestError';
 import { UserRepository } from '../repositories/User.repository';
 import { CollectionItemRepository } from '../repositories/CollectionItem.repository';
 import { defineShareString } from '../utils/defineShareString';
-import { getUnixDate } from '../utils/date';
+import { getIsoDate } from '../utils/date';
 import { TagsRepository } from '../repositories/Tags.repository';
 
 var randomstring = require('randomstring');
@@ -59,7 +59,7 @@ export class CollectionService {
         ...dto,
         tags: resultTags,
       });
-      collectionModel.created = getUnixDate();
+      collectionModel.created = getIsoDate();
       collectionModel.share_string = randomstring.generate(8);
       const collection = await this.collectionRepository.save(collectionModel);
       collection.totalPrice = 0;
@@ -107,12 +107,12 @@ export class CollectionService {
             exists.name,
           );
         }
-        return 'Collection has deleted successfully!';
+        return { data: 'Collection has deleted successfully!' };
       } else {
         throw new Error('Nothing to delete');
       }
     } catch (e) {
-      console.log(e);
+      throw new HttpBadRequestError('Nothing to delete');
     }
   }
 
