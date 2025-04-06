@@ -107,7 +107,7 @@ export class CollectionService {
             exists.name,
           );
         }
-        return { data: 'Collection has deleted successfully!' };
+        return { data: { success: true } };
       } else {
         throw new Error('Nothing to delete');
       }
@@ -176,7 +176,7 @@ export class CollectionService {
         result.push(
           new ReturnedCollectionDto(
             item,
-            authorizedUser ? !subArray.includes(item.id) : false,
+            authorizedUser ? !subArray.includes(item.id) : true,
           ),
         );
       }
@@ -246,7 +246,7 @@ export class CollectionService {
     return new GetOneCollectionDto(
       new CollectionDto(
         collection,
-        authorizedUser ? !subArray.includes(collection?.id) : false,
+        authorizedUser ? !subArray.includes(collection?.id) : true,
       ),
     );
   }
@@ -284,7 +284,7 @@ export class CollectionService {
       model.likes = `{${likes}}`;
       await this.collectionRepository.save(model);
 
-      return 'Liked';
+      return { data: { success: true } };
     }
 
     // @ts-ignore
@@ -299,14 +299,14 @@ export class CollectionService {
       null,
       exists.id,
     );
-    return 'Liked';
+    return { data: { success: true } };
   }
 
   async subscribe(
     subscriptionTargetId: string,
     subscriber: User,
     isSubscribe: string,
-  ): Promise<string> {
+  ): Promise<{ data: { success: boolean } }> {
     try {
       const subscriberModel = await this.userRepository.createModel(subscriber);
       const targetCollection = await this.collectionRepository.getById(
@@ -336,7 +336,7 @@ export class CollectionService {
         //   subscriptionTargetId,
         //   subscriptionTargetId,
         // );
-        return 'Подписка на коллекцию оформлена';
+        return { data: { success: true } };
       } else {
         const subscribers = subscriberModel.collection_subscriptions.filter(
           (s) => s !== subscriptionTargetId,
@@ -357,7 +357,7 @@ export class CollectionService {
           },
           subscriptionTargetId,
         );
-        return 'Отписка оформлена :D';
+        return { data: { success: true } };
       }
     } catch (err) {
       console.log(err);

@@ -109,7 +109,7 @@ export class UserService {
     subscriptionTargetUserLogin: string,
     subscriber: User,
     isSubscribe: string,
-  ): Promise<string> {
+  ): Promise<{ data: { success: boolean } }> {
     try {
       const subscriberModel = await this.userRepository.createModel(subscriber);
       const subscribeTargetUser = await this.userRepository.getById(
@@ -137,7 +137,7 @@ export class UserService {
           subscriptionTargetUserLogin,
           subscriptionTargetUserLogin,
         );
-        return 'Подписка оформлена';
+        return { data: { success: true } };
       } else {
         const subscribers = subscriberModel.subscriptions.filter(
           (s) => s !== subscriptionTargetUserLogin,
@@ -154,7 +154,7 @@ export class UserService {
           EventTargets.user,
           subscriptionTargetUserLogin,
         );
-        return 'Отписка оформлена :D';
+        return { data: { success: true } };
       }
     } catch (err) {
       console.log(err);

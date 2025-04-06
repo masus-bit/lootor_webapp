@@ -105,7 +105,7 @@ export class CollectionItemService {
           exists.name,
         );
       }
-      return 'Collection item has deleted successfully!';
+      return { data: { success: true } };
     } else {
       throw new Error('Nothing to delete');
     }
@@ -198,7 +198,7 @@ export class CollectionItemService {
         }
         // const result = await this.collectionRepository.getById(collection.id);
         // return new ReturnCreateCollection(new ReturnedCollectionDto(result));
-        return 'Копирование прошло успешно';
+        return { data: { success: true } };
       }
       if (targetCollectionIds?.length > 1)
         throw new HttpBadRequestError(
