@@ -125,6 +125,17 @@ export class CollectionRepository {
       .getMany();
   }
 
+  async getByUserIdWithoutItems(id: string): Promise<Collection[]> {
+    return await this.collectionRepository
+      .createQueryBuilder('collection')
+      .leftJoinAndSelect('collection.user', 'user')
+      .leftJoinAndSelect('collection.tags', 'tags')
+      .where('LOWER(user.login) = LOWER(:id)', { id })
+      .andWhere('collection.deleted = :deleted', { deleted: false })
+      .orderBy('collection.created', 'DESC')
+      .getMany();
+  }
+
   async getByUserIdWithoutPrivates(id: string): Promise<Collection[]> {
     return await this.collectionRepository
       .createQueryBuilder('collection')

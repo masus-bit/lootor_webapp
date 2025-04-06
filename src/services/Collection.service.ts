@@ -78,7 +78,9 @@ export class CollectionService {
           collection.id,
         );
       }
-      return new ReturnCreateCollection(new ReturnedCollectionDto(result));
+      return new ReturnCreateCollection(
+        new ReturnedCollectionDto(result, true),
+      );
     } catch (err) {
       console.error(err.message);
       throw err;
@@ -150,7 +152,7 @@ export class CollectionService {
   ): Promise<ReturnCollectionsDto> {
     let collections;
     if (authorizedUser?.toLowerCase() === id.toLowerCase()) {
-      collections = await this.collectionRepository.getByUserId(id);
+      collections = await this.collectionRepository.getByUserIdWithoutItems(id);
     } else {
       collections = await this.collectionRepository.getByUserIdWithoutPrivates(
         id,
