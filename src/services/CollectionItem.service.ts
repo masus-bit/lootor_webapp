@@ -92,15 +92,15 @@ export class CollectionItemService {
    */
   async delete(id: string) {
     const exists = await this.collectionItemRepository.getById(id);
-    console.log(exists);
+    // @ts-ignore
     const deleted = await this.collectionItemRepository.delete(id);
 
     if (deleted.affected > 0) {
       // @ts-ignore
-      if (!exists.collection.is_private) {
+      if (!exists.collections[0].is_private) {
         await this.eventRepository.addEvent(
           // @ts-ignore
-          exists.collection.user.login,
+          exists.collections[0].user.login,
           EventActions.delete,
           EventTargets.collectionItem,
           exists.name,
@@ -130,11 +130,12 @@ export class CollectionItemService {
         const instance = await this.collectionItemRepository.save({
           id,
           ...exists,
-          ...data,
           // @ts-ignore
-          images: `{${data.images}}`,
+          images: data?.images
+            ? `{${exists.images}, ${data?.images}}`
+            : `{${exists.images}}`,
           // @ts-ignore
-          copy_number: `{${data.copy_number}}`,
+          copy_number: `{${data?.copy_number || exists.copy_number}}`,
           entities: [...exists?.entities, ...result],
         });
         const resultCollectionItem =
