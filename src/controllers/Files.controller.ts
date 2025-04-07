@@ -17,7 +17,7 @@ import { AuthGuard } from '../guards/Auth.guard';
 import { ApiQuery } from '@nestjs/swagger';
 import { Response } from 'express';
 
-@Controller('secured/files')
+@Controller('secured/images')
 export class FilesController {
   constructor(private readonly s3Service: S3Service) {}
 
