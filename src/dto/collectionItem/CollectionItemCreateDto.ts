@@ -95,7 +95,9 @@ export class ReturnedCollectionItemDto {
     this.purchasePrice = collectionItem?.purchase_price;
     this.sealed = collectionItem?.sealed;
     this.copyNumber = collectionItem?.copy_number;
-    this.collection = collectionItem?.collections?.[0].id || '';
+    this.collection =
+      // @ts-ignore
+      collectionItem?.collections?.[0].id || collectionItem.collection || '';
     this.shippingCost = collectionItem?.shipping_cost;
     this.entities = collectionItem?.entities;
     this.edition = collectionItem?.edition;

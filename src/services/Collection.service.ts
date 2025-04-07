@@ -246,9 +246,17 @@ export class CollectionService {
       authUser = await this.userRepository.getById(authorizedUser);
       subArray = authUser.collection_subscriptions;
     }
+    const collectionFinalized = {
+      ...collection,
+      collectionItems: collection.collectionItems.map((item) => ({
+        ...item,
+        collection: collection.id,
+      })),
+    };
+
     return new GetOneCollectionDto(
       new CollectionDto(
-        collection,
+        collectionFinalized,
         authorizedUser ? !subArray.includes(collection?.id) : true,
       ),
     );
