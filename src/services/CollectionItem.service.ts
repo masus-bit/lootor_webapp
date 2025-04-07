@@ -127,15 +127,21 @@ export class CollectionItemService {
         if (data?.entities) {
           result = await this.getEntities(data?.entities);
         }
+        const getImages = () => {
+          if (exists?.images) {
+            return data?.images
+              ? `{${exists?.images}, ${data?.images}}`
+              : `{${exists?.images || null}}`;
+          }
+          return `{${data?.images || null}}`;
+        };
         const instance = await this.collectionItemRepository.save({
           id,
           ...exists,
           // @ts-ignore
-          images: data?.images
-            ? `{${exists?.images}, ${data?.images}}`
-            : `{${exists?.images || []}}`,
+          images: getImages(),
           // @ts-ignore
-          copy_number: `{${data?.copy_number || exists?.copy_number || []} }`,
+          copy_number: `{${data?.copy_number || exists?.copy_number || null} }`,
           entities: [...exists?.entities, ...result],
         });
         const resultCollectionItem =

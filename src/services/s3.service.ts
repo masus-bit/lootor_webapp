@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import axios from 'axios';
 import * as aws4 from 'aws4';
 import * as sharp from 'sharp';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class S3Service {
@@ -10,6 +11,42 @@ export class S3Service {
   private readonly secretAccessKey = process.env.YC_SECRET_KEY;
   private readonly bucketName = process.env.YC_BUCKET_NAME;
   private readonly region = process.env.YC_REGION;
+  private readonly cacheTtl = +process.env.REDIS_TTL || 3600;
+  private readonly logger = new Logger(S3Service.name);
+
+  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
+    this.testCacheConnection();
+  }
+
+  private async testCacheConnection() {
+    try {
+      await this.cacheManager.set('connection_test', 'works', 36000);
+      this.logger.log('Redis cache connected successfully');
+    } catch (error) {
+      this.logger.error('Failed to connect to Redis cache', error.stack);
+    }
+  }
+
+  async getFile(key: string): Promise<Buffer> {
+    const cached = await this.cacheManager.get<Buffer>(key);
+    if (cached) return cached;
+    const file = await this.downloadFromS3(key);
+    try {
+      await this.cacheManager.set(key, file, 3600000);
+    } catch (e) {
+      console.log(e);
+    }
+    return file;
+  }
+
+  private async downloadFromS3(key: string): Promise<Buffer> {
+    const signed = await this.signS3Request('GET', `/images/${key}`);
+    const response = await axios.get(signed.url, {
+      headers: signed.headers,
+      responseType: 'arraybuffer',
+    });
+    return Buffer.from(response.data);
+  }
 
   private async signS3Request(
     method: string,
@@ -64,17 +101,10 @@ export class S3Service {
   ) {
     const { width, height, quality } = options;
     let optimizedImage;
-    if (height) {
-      optimizedImage = await sharp(file)
-        .resize(width ?? 1920, height)
-        .webp({ quality })
-        .toBuffer();
-    } else {
-      optimizedImage = await sharp(file)
-        .resize(width || 1920)
-        .webp({ quality })
-        .toBuffer();
-    }
+    optimizedImage = await sharp(file)
+      .resize(width || 1920, height || null)
+      .webp({ quality })
+      .toBuffer();
 
     const key = `images/${Date.now()}-${filename.replace(
       /\.[^/.]+$/,
@@ -83,7 +113,7 @@ export class S3Service {
 
     await this.uploadFile(optimizedImage, key, 'image/webp');
 
-    return `${this.endpoint}/${key}`;
+    return `${key}`;
   }
 
   async deleteFile(key: string): Promise<boolean> {

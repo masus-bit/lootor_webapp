@@ -9,6 +9,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtRegisterModule } from './jwt.module';
 import { HttpModule } from '@nestjs/axios';
 import { ElasticsearchService } from '../../services/ElasticSearch.service';
+import { CacheRedisModule } from './Cache.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ElasticsearchService } from '../../services/ElasticSearch.service';
     }),
     JwtRegisterModule,
     HttpModule,
+    CacheRedisModule,
   ],
   controllers: [FilesController],
   providers: [S3Service, UserRepository, ElasticsearchService],

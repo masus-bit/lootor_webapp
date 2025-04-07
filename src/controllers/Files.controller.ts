@@ -1,9 +1,12 @@
 import {
   Controller,
   Delete,
+  Get,
+  Header,
   Param,
   Post,
   Query,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -12,6 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { S3Service } from '../services/s3.service';
 import { AuthGuard } from '../guards/Auth.guard';
 import { ApiQuery } from '@nestjs/swagger';
+import { Response } from 'express';
 
 @Controller('secured/files')
 export class FilesController {
@@ -36,7 +40,14 @@ export class FilesController {
       },
     );
 
-    return { url };
+    return { key: url };
+  }
+
+  @Get(':key')
+  @Header('Content-Type', 'image/webp')
+  async getFile(@Param('key') key: string, @Res() res: Response) {
+    const file = await this.s3Service.getFile(key);
+    res.end(file);
   }
 
   @Delete(':key')
