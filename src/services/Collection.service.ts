@@ -174,10 +174,12 @@ export class CollectionService {
           (await this.collectionItemRepository.sum(item.id)) || 0;
         item.shippingTotal =
           (await this.collectionItemRepository.sumShippingCost(item.id)) || 0;
+        const count = await this.collectionItemRepository.getCount(item.id);
         result.push(
           new ReturnedCollectionDto(
             item,
             authorizedUser ? !subArray.includes(item.id) : true,
+            count,
           ),
         );
       }

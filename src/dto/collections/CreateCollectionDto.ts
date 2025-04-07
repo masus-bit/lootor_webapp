@@ -95,7 +95,11 @@ export class ReturnedCollectionDto {
   @ApiProperty({ type: ReturnedCollectionItemDto, isArray: true })
   readonly collectionItems: ReturnedCollectionItemDto[];
 
-  constructor(collection: Readonly<Collection>, canSubscribe?: boolean) {
+  constructor(
+    collection: Readonly<Collection>,
+    canSubscribe?: boolean,
+    count?: number,
+  ) {
     this.id = collection.id;
     this.isPrivate = collection.is_private;
     this.name = collection.name;
@@ -107,7 +111,8 @@ export class ReturnedCollectionDto {
     this.user = collection.user ? new ReturnUser(collection?.user) : null;
     // @ts-ignore
     this.canLike = !collection.likes?.includes(collection.user?.login);
-    this.collectionItemsCount = collection.collectionItems?.length || 0;
+    this.collectionItemsCount =
+      count || collection.collectionItems?.length || 0;
     this.tags = collection.tags;
     this.created = collection.created;
     this.subscribersCount = collection.subscribers_count;

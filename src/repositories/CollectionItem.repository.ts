@@ -136,4 +136,19 @@ export class CollectionItemRepository {
     // await this.collectionItemRepository.save(updatedCollectionItem);
     // return 'Deleted successfully';
   }
+
+  async getCount(collectionId) {
+    const result = await this.collectionItemRepository
+      .createQueryBuilder('collection_item')
+      .innerJoin(
+        'collection_item.collections',
+        'collection',
+        'collection.id = :collectionId',
+        { collectionId },
+      )
+      .where('collection_item.deleted = :deleted', { deleted: false })
+      .getCount();
+
+    return result || 0;
+  }
 }

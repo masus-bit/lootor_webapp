@@ -11,6 +11,7 @@ import { ElasticSearchModule } from './submodules/ElasticSearch.module';
 import { PlatformsModule } from './submodules/Platforms.module';
 import { ReindexModule } from './submodules/Reindex.module';
 import { MailModule } from './submodules/Mail.module';
+import { FileModule } from './submodules/File.module';
 
 @Module({
   controllers: [],
@@ -28,6 +29,7 @@ import { MailModule } from './submodules/Mail.module';
     PlatformsModule,
     ReindexModule,
     MailModule,
+    FileModule,
   ],
 })
 export class SecuredModule {}
