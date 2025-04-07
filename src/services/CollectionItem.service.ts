@@ -132,10 +132,10 @@ export class CollectionItemService {
           ...exists,
           // @ts-ignore
           images: data?.images
-            ? `{${exists.images}, ${data?.images}}`
-            : `{${exists.images}}`,
+            ? `{${exists?.images || []}, ${data?.images}}`
+            : `{${exists?.images || []}}`,
           // @ts-ignore
-          copy_number: `{${data?.copy_number || exists.copy_number}}`,
+          copy_number: `{${data?.copy_number || exists?.copy_number || []} }`,
           entities: [...exists?.entities, ...result],
         });
         const resultCollectionItem =
