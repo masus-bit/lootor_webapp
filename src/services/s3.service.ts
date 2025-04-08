@@ -3,6 +3,7 @@ import axios from 'axios';
 import * as aws4 from 'aws4';
 import * as sharp from 'sharp';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class S3Service {
@@ -102,15 +103,11 @@ export class S3Service {
     let keys: string[] = [];
 
     for (const file of files) {
-      const key = await this.uploadOptimizedImage(
-        file.buffer,
-        file.originalname,
-        {
-          width: Number(options?.width),
-          height: Number(options?.height),
-          quality: 100,
-        },
-      );
+      const key = await this.uploadOptimizedImage(file.buffer, uuidv4(), {
+        width: Number(options?.width),
+        height: Number(options?.height),
+        quality: 100,
+      });
       keys.push(key);
     }
 

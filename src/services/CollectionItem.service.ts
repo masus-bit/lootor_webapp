@@ -129,19 +129,23 @@ export class CollectionItemService {
         }
         const getImages = () => {
           if (exists?.images) {
-            return data?.images
-              ? `{${exists?.images}, ${data?.images}}`
-              : `{${exists?.images || null}}`;
+            return data?.images?.length
+              ? `${data?.images}, ${exists?.images}}`
+              : `${exists?.images}}`;
           }
-          return `{${data?.images || null}}`;
+          return data?.images?.length ? `{${data?.images}}` : null;
         };
         const instance = await this.collectionItemRepository.save({
           id,
           ...exists,
+          ...data,
           // @ts-ignore
           images: getImages(),
           // @ts-ignore
-          copy_number: `{${data?.copy_number || exists?.copy_number || null} }`,
+          copy_number:
+            data?.copy_number?.length || exists?.copy_number?.length
+              ? `{${data?.copy_number || exists?.copy_number} }`
+              : null,
           entities: [...exists?.entities, ...result],
         });
         const resultCollectionItem =
