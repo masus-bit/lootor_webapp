@@ -16,6 +16,7 @@ import { Genres } from './entities/Genres';
 import { Banners } from './entities/Banners';
 import { Platforms } from './entities/Platforms';
 import { EntityModel } from './entities/EntityModel';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   controllers: [],
@@ -24,6 +25,7 @@ import { EntityModel } from './entities/EntityModel';
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
+    MulterModule.register({ dest: './uploads' }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.POSTGRES_HOST,

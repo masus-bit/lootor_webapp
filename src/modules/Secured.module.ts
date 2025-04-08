@@ -13,6 +13,7 @@ import { ReindexModule } from './submodules/Reindex.module';
 import { MailModule } from './submodules/Mail.module';
 import { FileModule } from './submodules/File.module';
 import { CacheRedisModule } from './submodules/Cache.module';
+import { FeedbackModule } from './submodules/Feedback.module';
 
 @Module({
   controllers: [],
@@ -32,6 +33,7 @@ import { CacheRedisModule } from './submodules/Cache.module';
     MailModule,
     FileModule,
     CacheRedisModule,
+    FeedbackModule,
   ],
 })
 export class SecuredModule {}
