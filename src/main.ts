@@ -11,8 +11,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
   const app = await NestFactory.create(AppModule, options);
   const config = new DocumentBuilder()
-    .setTitle('auc documentation')
-    .setDescription('Дока для ауса')
+    .setTitle('lootor api docs')
+    .setDescription('Документация к API')
     .setVersion('0.0.1')
     .build();
   const document = SwaggerModule.createDocument(app, config);
@@ -24,6 +24,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
   await (
     await app
   ).listen(PORT, '0.0.0.0', () =>
-    console.log(`server started at хуерт ${PORT}`),
+    console.log(
+      `server started and ready for connections 🚀 \nport: ${PORT} 🚀`,
+    ),
   );
 })();
