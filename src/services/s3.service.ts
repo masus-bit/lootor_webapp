@@ -32,6 +32,7 @@ export class S3Service {
     if (cached) return cached;
     const file = await this.downloadFromS3(key);
     try {
+      console.log(key, 'not cached');
       await this.cacheManager.set(key, file, 3600000);
     } catch (e) {
       console.log(e);
