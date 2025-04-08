@@ -106,7 +106,7 @@ export class S3Service {
       const key = await this.uploadOptimizedImage(file.buffer, uuidv4(), {
         width: Number(options?.width),
         height: Number(options?.height),
-        quality: 100,
+        quality: 70,
       });
       keys.push(key);
     }

@@ -33,7 +33,7 @@ export class FilesController {
     const urls = await this.s3Service.uploadOptimizedImages(files, {
       width: Number(query?.width),
       height: Number(query?.height),
-      quality: 100,
+      quality: 70,
     });
 
     return { keys: urls };
