@@ -7,11 +7,11 @@ import {
   Post,
   Query,
   Res,
-  UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { S3Service } from '../services/s3.service';
 import { AuthGuard } from '../guards/Auth.guard';
 import { ApiQuery } from '@nestjs/swagger';
@@ -23,24 +23,20 @@ export class FilesController {
 
   @Post('upload')
   @UseGuards(AuthGuard)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('files', 10))
   @ApiQuery({ name: 'width', type: String, required: false })
   @ApiQuery({ name: 'height', type: String, required: false })
   async upload(
-    @UploadedFile() file: any,
+    @UploadedFiles() files: any[],
     @Query() query: { width: string; height: string },
   ) {
-    const url = await this.s3Service.uploadOptimizedImage(
-      file.buffer,
-      file.originalname,
-      {
-        width: Number(query?.width),
-        height: Number(query?.height),
-        quality: 100,
-      },
-    );
+    const urls = await this.s3Service.uploadOptimizedImages(files, {
+      width: Number(query?.width),
+      height: Number(query?.height),
+      quality: 100,
+    });
 
-    return { key: url };
+    return { keys: urls };
   }
 
   @Get(':key')

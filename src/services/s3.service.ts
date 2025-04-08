@@ -95,6 +95,28 @@ export class S3Service {
     return response.data;
   }
 
+  async uploadOptimizedImages(
+    files: any,
+    options: { width?: number; height?: number; quality?: number } = {},
+  ) {
+    let keys: string[] = [];
+
+    for (const file of files) {
+      const key = await this.uploadOptimizedImage(
+        file.buffer,
+        file.originalname,
+        {
+          width: Number(options?.width),
+          height: Number(options?.height),
+          quality: 100,
+        },
+      );
+      keys.push(key);
+    }
+
+    return await Promise.all(keys);
+  }
+
   async uploadOptimizedImage(
     file: Buffer,
     filename: string,
