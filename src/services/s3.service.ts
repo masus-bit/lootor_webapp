@@ -1,9 +1,12 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import * as aws4 from 'aws4';
 import * as sharp from 'sharp';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { v4 as uuidv4 } from 'uuid';
+import { DeleteFilesDto } from '../dto/files/DeleteFilesDto';
+import { ReturnDataDto } from '../dto/ReturnDataDto';
+import { findUniqueElement } from '../utils/unique';
 
 @Injectable()
 export class S3Service {
@@ -136,21 +139,25 @@ export class S3Service {
     return `${key}`;
   }
 
-  async deleteFile(key: string): Promise<boolean> {
-    try {
+  async deleteFile(dto: DeleteFilesDto): Promise<ReturnDataDto> {
+    const result = [];
+    for (const key of dto.keys) {
       const path = `/${key}`;
       const signed = await this.signS3Request('DELETE', path);
 
       await axios.delete(signed.url, {
         headers: signed.headers,
       });
-
-      return true;
-    } catch (error) {
-      if (error.response?.status === 404) {
-        throw new NotFoundException('File not found');
-      }
-      throw error;
+      result.push(key);
     }
+    if (result?.length === dto.keys?.length) {
+      return new ReturnDataDto({ success: true });
+    }
+    const notFound = findUniqueElement(dto.keys, result);
+
+    return new ReturnDataDto({
+      success: false,
+      error: `not found keys: ${notFound.join(',')}`,
+    });
   }
 }

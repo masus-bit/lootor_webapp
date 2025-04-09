@@ -1,6 +1,6 @@
 import {
+  Body,
   Controller,
-  Delete,
   Get,
   Header,
   Param,
@@ -14,8 +14,9 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { S3Service } from '../services/s3.service';
 import { AuthGuard } from '../guards/Auth.guard';
-import { ApiQuery } from '@nestjs/swagger';
+import { ApiBody, ApiQuery } from '@nestjs/swagger';
 import { Response } from 'express';
+import { DeleteFilesDto } from '../dto/files/DeleteFilesDto';
 
 @Controller('secured/images')
 export class FilesController {
@@ -46,10 +47,10 @@ export class FilesController {
     res.end(file);
   }
 
-  @Delete(':key')
+  @Post('delete')
   @UseGuards(AuthGuard)
-  async delete(@Param('key') key: string) {
-    await this.s3Service.deleteFile(key);
-    return { success: true };
+  @ApiBody({ type: DeleteFilesDto })
+  async delete(@Body() dto: DeleteFilesDto) {
+    return await this.s3Service.deleteFile(dto);
   }
 }
