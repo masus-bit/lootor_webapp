@@ -1,0 +1,84 @@
+package user
+
+import (
+	"github.com/lib/pq"
+	"gorm.io/gorm"
+	"time"
+)
+
+type User struct {
+	gorm.Model
+	Login                   string `gorm:"primaryKey"`
+	UserName                string
+	Password                string `gorm:"-" json:"password"`
+	PasswordHash            string `gorm:"column:password" json:"-"`
+	VkId                    string
+	TelegramId              string
+	Email                   string
+	Created                 string
+	Likes                   int
+	Dislikes                int
+	AvatarUrl               string
+	BackgroundUrl           string
+	VerificationToken       string
+	Subscribers             string
+	Subscriptions           pq.StringArray `gorm:"type:text[]"`
+	CollectionSubscriptions pq.StringArray `gorm:"type:text[]"`
+}
+
+func (User) TableName() string {
+	return "user"
+}
+
+type SignUpRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8"`
+	Login    string `json:"login" validate:"required"`
+	UserName string `json:"userName" validate:"required"`
+}
+
+type SignInRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
+type UserResponse struct {
+	Login                   string         `json:"login"`
+	UserName                string         `json:"userName"`
+	VkId                    string         `json:"vkId"`
+	TelegramId              string         `json:"telegramId"`
+	Email                   string         `json:"email"`
+	Created                 time.Time      `json:"created"`
+	Likes                   int            `json:"likes"`
+	Dislikes                int            `json:"dislikes"`
+	AvatarUrl               string         `json:"avatarUrl"`
+	BackgroundUrl           string         `json:"backgroundUrl"`
+	Subscribers             string         `json:"subscribers"`
+	Subscriptions           pq.StringArray `json:"subscriptions"`
+	CollectionSubscriptions pq.StringArray `json:"collectionSubscriptions"`
+}
+
+type DataUserResponse struct {
+	Data UserResponse `json:"data"`
+}
+
+type SignInResponse struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+}
+
+type SignUpResponse struct {
+	Data string `json:"data"`
+}
+
+func (u *User) GetLogin() string         { return u.Login }
+func (u *User) GetUserName() string      { return u.UserName }
+func (u *User) GetVkId() string          { return u.VkId }
+func (u *User) GetTelegramId() string    { return u.TelegramId }
+func (u *User) GetEmail() string         { return u.Email }
+func (u *User) GetCreated() string       { return u.Created }
+func (u *User) GetLikes() int            { return u.Likes }
+func (u *User) GetDislikes() int         { return u.Dislikes }
+func (u *User) GetAvatarUrl() string     { return u.AvatarUrl }
+func (u *User) GetBackgroundUrl() string { return u.BackgroundUrl }
+func (u *User) GetSubscribers() string   { return u.Subscribers }
