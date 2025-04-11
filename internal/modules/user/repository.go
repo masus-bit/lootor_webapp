@@ -13,18 +13,18 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) Create(user *models.User) error {
+func (r *Repository) Create(user *models.Users) error {
 	return r.db.Create(user).Error
 }
 
-func (r *Repository) FindAll() ([]models.User, error) {
-	var users []models.User
+func (r *Repository) FindAll() ([]models.Users, error) {
+	var users []models.Users
 	err := r.db.Find(&users).Error
 	return users, err
 }
 
-func (r *Repository) GetByEmailWithPassword(email string) (*models.User, error) {
-	var user models.User
+func (r *Repository) GetByEmailWithPassword(email string) (*models.Users, error) {
+	var user models.Users
 	err := r.db.Select("*").Where("email = ?", email).First(&user).Error
 	if err != nil {
 		return nil, err
@@ -32,8 +32,8 @@ func (r *Repository) GetByEmailWithPassword(email string) (*models.User, error) 
 	return &user, nil
 }
 
-func (r *Repository) GetByLoginWithPassword(login string) (*models.User, error) {
-	var user models.User
+func (r *Repository) GetByLoginWithPassword(login string) (*models.Users, error) {
+	var user models.Users
 
 	err := r.db.Select("*").Where("login = ?", login).First(&user).Error
 
@@ -44,8 +44,8 @@ func (r *Repository) GetByLoginWithPassword(login string) (*models.User, error) 
 	return &user, nil
 }
 
-func (r *Repository) GetByLogin(login string) (*models.User, error) {
-	var user models.User
+func (r *Repository) GetByLogin(login string) (*models.Users, error) {
+	var user models.Users
 
 	err := r.db.Where("login = ?", login).First(&user).Error
 
@@ -56,8 +56,8 @@ func (r *Repository) GetByLogin(login string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *Repository) GetByUsername(username string) (*models.User, error) {
-	var user models.User
+func (r *Repository) GetByUsername(username string) (*models.Users, error) {
+	var user models.Users
 
 	err := r.db.Where("user_name = ?", username).First(&user).Error
 
@@ -68,8 +68,8 @@ func (r *Repository) GetByUsername(username string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *Repository) GetByEmail(email string) (*models.User, error) {
-	var user models.User
+func (r *Repository) GetByEmail(email string) (*models.Users, error) {
+	var user models.Users
 
 	err := r.db.Where("email = ?", email).First(&user).Error
 
@@ -80,8 +80,8 @@ func (r *Repository) GetByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *Repository) GetByVerificationToken(token string) (*models.User, error) {
-	var user models.User
+func (r *Repository) GetByVerificationToken(token string) (*models.Users, error) {
+	var user models.Users
 
 	err := r.db.Where("verification_token = ?", token).First(&user).Error
 
@@ -92,8 +92,8 @@ func (r *Repository) GetByVerificationToken(token string) (*models.User, error) 
 	return &user, nil
 }
 
-func (r *Repository) GetByVkId(vkId string) (*models.User, error) {
-	var user models.User
+func (r *Repository) GetByVkId(vkId string) (*models.Users, error) {
+	var user models.Users
 
 	err := r.db.Where("vk_id = ?", vkId).First(&user).Error
 
@@ -104,8 +104,8 @@ func (r *Repository) GetByVkId(vkId string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *Repository) GetByTgId(tgId string) (*models.User, error) {
-	var user models.User
+func (r *Repository) GetByTgId(tgId string) (*models.Users, error) {
+	var user models.Users
 
 	err := r.db.Where("telegram_id = ?", tgId).First(&user).Error
 
@@ -116,13 +116,13 @@ func (r *Repository) GetByTgId(tgId string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *Repository) UpdateUser(existsUser models.User, updated models.User) (*models.User, error) {
+func (r *Repository) UpdateUser(existsUser models.Users, updated models.Users) (*models.Users, error) {
 	result := r.db.Model(existsUser).Updates(updated)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	var updatedUser models.User
+	var updatedUser models.Users
 	err := r.db.First(&updatedUser, existsUser.Login).Error
 	return &updatedUser, err
 }

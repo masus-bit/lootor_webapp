@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type User struct {
+type Users struct {
 	gorm.Model
 	Login                   string `gorm:"primaryKey"`
 	UserName                string
@@ -24,10 +24,6 @@ type User struct {
 	Subscribers             int
 	Subscriptions           pq.StringArray `gorm:"type:text[]"`
 	CollectionSubscriptions pq.StringArray `gorm:"type:text[]"`
-}
-
-func (User) TableName() string {
-	return "user"
 }
 
 type SignUpRequest struct {
@@ -83,14 +79,14 @@ type SignUpResponse struct {
 	Data string `json:"data"`
 }
 
-func (u *User) GetLogin() string         { return u.Login }
-func (u *User) GetUserName() string      { return u.UserName }
-func (u *User) GetVkId() string          { return u.VkId }
-func (u *User) GetTelegramId() string    { return u.TelegramId }
-func (u *User) GetEmail() string         { return u.Email }
-func (u *User) GetCreated() string       { return u.Created }
-func (u *User) GetLikes() int            { return u.Likes }
-func (u *User) GetDislikes() int         { return u.Dislikes }
-func (u *User) GetAvatarUrl() string     { return u.AvatarUrl }
-func (u *User) GetBackgroundUrl() string { return u.BackgroundUrl }
-func (u *User) GetSubscribers() int      { return u.Subscribers }
+func (u *Users) GetLogin() string         { return u.Login }
+func (u *Users) GetUserName() string      { return u.UserName }
+func (u *Users) GetVkId() string          { return u.VkId }
+func (u *Users) GetTelegramId() string    { return u.TelegramId }
+func (u *Users) GetEmail() string         { return u.Email }
+func (u *Users) GetCreated() string       { return u.Created }
+func (u *Users) GetLikes() int            { return u.Likes }
+func (u *Users) GetDislikes() int         { return u.Dislikes }
+func (u *Users) GetAvatarUrl() string     { return u.AvatarUrl }
+func (u *Users) GetBackgroundUrl() string { return u.BackgroundUrl }
+func (u *Users) GetSubscribers() int      { return u.Subscribers }

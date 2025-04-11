@@ -28,7 +28,7 @@ func (s *Service) GetByLogin(userLogin string, authUser string, isAuthenticated 
 		return nil, err
 	}
 
-	var authorizedUser *models.User
+	var authorizedUser *models.Users
 
 	if authUser != "" && isAuthenticated {
 		authorizedUser, _ = s.repo.GetByLogin(authUser)
@@ -174,7 +174,7 @@ func (s *Service) SignUp(dto *models.SignUpRequest) (*models.SignUpResponse, err
 
 	hexString, _ := utils.GenerateRandomString(32)
 
-	user := models.User{
+	user := models.Users{
 		Login:             dto.Login,
 		Email:             dto.Email,
 		UserName:          dto.UserName,
