@@ -9,7 +9,7 @@ export class User {
 
   @Index()
   @Column({
-    nullable: false,
+    nullable: true,
     length: 100,
   })
   user_name: string;
@@ -94,11 +94,11 @@ export class User {
   subscribers: number;
 
   @Index()
-  @Column('simple-array', { array: true, nullable: false, default: [] })
+  @Column('simple-array', { array: true, nullable: true, default: [] })
   subscriptions: string[];
 
   @Index()
-  @Column('simple-array', { array: true, nullable: false, default: [] })
+  @Column('simple-array', { array: true, nullable: true, default: [] })
   collection_subscriptions: string[];
 
   @OneToMany(() => Lot, (lot) => lot.created_by)

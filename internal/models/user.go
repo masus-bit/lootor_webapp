@@ -1,4 +1,4 @@
-package user
+package models
 
 import (
 	"github.com/lib/pq"
@@ -21,7 +21,7 @@ type User struct {
 	AvatarUrl               string
 	BackgroundUrl           string
 	VerificationToken       string
-	Subscribers             string
+	Subscribers             int
 	Subscriptions           pq.StringArray `gorm:"type:text[]"`
 	CollectionSubscriptions pq.StringArray `gorm:"type:text[]"`
 }
@@ -42,6 +42,14 @@ type SignInRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
+type ChangeRatingRequest struct {
+	IsLike bool `json:"isLike"`
+}
+
+type ChangePasswordRequest struct {
+	Password string `json:"password" validate:"required,min=8"`
+}
+
 type UserResponse struct {
 	Login                   string         `json:"login"`
 	UserName                string         `json:"userName"`
@@ -53,9 +61,13 @@ type UserResponse struct {
 	Dislikes                int            `json:"dislikes"`
 	AvatarUrl               string         `json:"avatarUrl"`
 	BackgroundUrl           string         `json:"backgroundUrl"`
-	Subscribers             string         `json:"subscribers"`
+	Subscribers             int            `json:"subscribers"`
 	Subscriptions           pq.StringArray `json:"subscriptions"`
 	CollectionSubscriptions pq.StringArray `json:"collectionSubscriptions"`
+	CanSubscribe            bool           `json:"canSubscribe"`
+	CollectionItemsCount    int            `json:"collectionItemsCount" default:"0"`
+	CollectionsCount        int            `json:"collectionsCount" default:"0"`
+	TotalSum                int            `json:"totalSum" default:"0"`
 }
 
 type DataUserResponse struct {
@@ -81,4 +93,4 @@ func (u *User) GetLikes() int            { return u.Likes }
 func (u *User) GetDislikes() int         { return u.Dislikes }
 func (u *User) GetAvatarUrl() string     { return u.AvatarUrl }
 func (u *User) GetBackgroundUrl() string { return u.BackgroundUrl }
-func (u *User) GetSubscribers() string   { return u.Subscribers }
+func (u *User) GetSubscribers() int      { return u.Subscribers }

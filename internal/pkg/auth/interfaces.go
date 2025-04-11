@@ -11,5 +11,5 @@ type TokenData interface {
 	GetDislikes() int
 	GetAvatarUrl() string
 	GetBackgroundUrl() string
-	GetSubscribers() string
+	GetSubscribers() int
 }

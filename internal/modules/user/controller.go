@@ -2,6 +2,7 @@ package user
 
 import (
 	"github.com/labstack/echo/v4"
+	"lootor/internal/models"
 	"net/http"
 )
 
@@ -14,7 +15,7 @@ func NewController(userService Service) *Controller {
 }
 
 func (c *Controller) SignUp(ctx echo.Context) error {
-	var request SignUpRequest
+	var request models.SignUpRequest
 
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
@@ -32,7 +33,7 @@ func (c *Controller) SignUp(ctx echo.Context) error {
 }
 
 func (c *Controller) SignIn(ctx echo.Context) error {
-	var request SignInRequest
+	var request models.SignInRequest
 
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
@@ -51,14 +52,79 @@ func (c *Controller) SignIn(ctx echo.Context) error {
 }
 
 func (c *Controller) GetByLogin(ctx echo.Context) error {
-	login := ctx.Param("login")
+	login := ctx.QueryParam("login")
+	authInfo := ctx.Get("auth_info").(struct {
+		IsAuthenticated bool
+		UserLogin       string
+	})
 	if login == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Login parameter is required",
 		})
 	}
 
-	response, err := c.userService.GetByLogin(login)
+	response, err := c.userService.GetByLogin(login, authInfo.UserLogin, authInfo.IsAuthenticated)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+}
+
+func (c *Controller) ChangeRating(ctx echo.Context) error {
+	var request models.ChangeRatingRequest
+	err := ctx.Bind(&request)
+	if err != nil {
+		return err
+	}
+	login := ctx.QueryParam("login")
+	if login == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Login parameter is required",
+		})
+	}
+
+	response, err := c.userService.ChangeRating(request.IsLike, login)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+}
+
+func (c *Controller) ChangePass(ctx echo.Context) error {
+	var request models.ChangePasswordRequest
+	err := ctx.Bind(&request)
+	if err != nil {
+		return err
+	}
+	login := ctx.QueryParam("login")
+	if login == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Login parameter is required",
+		})
+	}
+
+	response, err := c.userService.ChangePassword(request.Password, login, ctx.Get("user_login").(string))
+
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+}
+
+func (c *Controller) Subscribe(ctx echo.Context) error {
+	login := ctx.QueryParam("login")
+	isSubscribe := ctx.QueryParam("isSubscribe")
+
+	response, err := c.userService.Subscribe(login, ctx.Get("user_login").(string), isSubscribe == "true")
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),

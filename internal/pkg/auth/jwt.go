@@ -28,7 +28,7 @@ type Claims struct {
 	Dislikes      int    `json:"dislikes"`
 	AvatarUrl     string `json:"avatarUrl"`
 	BackgroundUrl string `json:"backgroundUrl"`
-	Subscribers   string `json:"subscribers"`
+	Subscribers   int    `json:"subscribers"`
 	jwt.RegisteredClaims
 }
 

@@ -6,19 +6,49 @@ import (
 	"strings"
 )
 
-func (s *JWTService) EchoMiddleware() echo.MiddlewareFunc {
+func (s *JWTService) RequireAuthMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			tokenString := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+			token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
 
-			userLogin, err := s.ParseToken(tokenString)
-			if err != nil {
+			if token == "" {
 				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "Unauthorized",
+					"error": "Authorization token required",
 				})
 			}
 
-			c.Set("userLogin", userLogin)
+			login, err := s.ParseToken(token)
+			if err != nil {
+				return c.JSON(http.StatusUnauthorized, map[string]string{
+					"error": "Invalid token",
+				})
+			}
+
+			c.Set("user_login", login)
+			return next(c)
+		}
+	}
+}
+
+func (s *JWTService) AuthInfoMiddleware() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			authInfo := struct {
+				IsAuthenticated bool
+				UserLogin       string
+			}{
+				IsAuthenticated: false,
+			}
+
+			token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+			if token != "" {
+				if login, err := s.ParseToken(token); err == nil {
+					authInfo.IsAuthenticated = true
+					authInfo.UserLogin = login
+				}
+			}
+
+			c.Set("auth_info", authInfo)
 			return next(c)
 		}
 	}
