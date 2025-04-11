@@ -1,20 +1,23 @@
 package user
 
 import (
-	"github.com/go-chi/chi/v5"
+	"github.com/labstack/echo/v4"
 	"lootor/internal/pkg/auth"
 )
 
-func RegisterRoutes(r chi.Router, jwtService *auth.JWTService, userService Service) {
-	controller := NewUserController(userService)
+func RegisterRoutes(e *echo.Echo, jwtService *auth.JWTService, userService Service) {
+	controller := NewController(userService)
 
-	r.Group(func(r chi.Router) {
-		r.Post("/public/auth/signup", controller.SignUp)
-		r.Post("/public/auth/signin", controller.SignIn)
-	})
+	publicGroup := e.Group("/public")
+	{
+		publicGroup.POST("/auth/signup", controller.SignUp)
+		publicGroup.POST("/auth/signin", controller.SignIn)
+		publicGroup.GET("/user/:login", controller.GetByLogin)
 
-	r.Group(func(r chi.Router) {
-		r.Use(jwtService.RequireAuth)
-		r.Get("/secured/user", controller.GetByLogin)
-	})
+	}
+
+	securedGroup := e.Group("/secured")
+	securedGroup.Use(jwtService.EchoMiddleware())
+	{
+	}
 }

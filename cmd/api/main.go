@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"lootor/internal/app"
 	"lootor/internal/config"
@@ -14,28 +15,28 @@ import (
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("Something went wrong", err)
+		log.Fatalf("Config error: %v", err)
 	}
 
-	application, e := app.NewChiApp(cfg)
-	if e != nil {
-		log.Fatalf("роктер не инициализирован")
-	}
-
-	server := &http.Server{
-		Addr:         cfg.Server.Address,
-		Handler:      application.Router,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 30 * time.Second,
-		IdleTimeout:  60 * time.Second,
+	application, err := app.NewEchoApp(cfg)
+	if err != nil {
+		log.Fatalf("Application init error: %v", err)
 	}
 
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
-	log.Printf("Server is running on %s", cfg.Server.Address)
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("Server error: %v", err)
+	go func() {
+		if err := application.Echo.Start(cfg.Server.Address); err != nil && err != http.ErrServerClosed {
+			application.Echo.Logger.Fatal("Shutting down the server")
+		}
+	}()
+
+	<-quit
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := application.Echo.Shutdown(ctx); err != nil {
+		application.Echo.Logger.Fatal(err)
 	}
-
 }

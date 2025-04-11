@@ -1,22 +1,25 @@
 package auth
 
 import (
-	"context"
+	"github.com/labstack/echo/v4"
 	"net/http"
 	"strings"
 )
 
-func (s *JWTService) RequireAuth(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenString := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+func (s *JWTService) EchoMiddleware() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			tokenString := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
 
-		userLogin, err := s.ParseToken(tokenString)
-		if err != nil {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
+			userLogin, err := s.ParseToken(tokenString)
+			if err != nil {
+				return c.JSON(http.StatusUnauthorized, map[string]string{
+					"error": "Unauthorized",
+				})
+			}
+
+			c.Set("userLogin", userLogin)
+			return next(c)
 		}
-
-		ctx := context.WithValue(r.Context(), "userLogin", userLogin)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+	}
 }

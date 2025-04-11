@@ -1,8 +1,7 @@
 package user
 
 import (
-	"encoding/json"
-	"github.com/go-chi/chi/v5"
+	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
@@ -10,62 +9,61 @@ type Controller struct {
 	userService Service
 }
 
-func NewUserController(userService Service) *Controller {
+func NewController(userService Service) *Controller {
 	return &Controller{userService: userService}
 }
 
-func (c *Controller) RegisterRoutes(r chi.Router) {
-	r.Post("/public/auth/signup", c.SignUp)
-}
-
-func (c *Controller) SignUp(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) SignUp(ctx echo.Context) error {
 	var request SignUpRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
+
+	if err := ctx.Bind(&request); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body",
+		})
 	}
 
 	if _, err := c.userService.SignUp(&request); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	err := json.NewEncoder(w).Encode(request)
-	if err != nil {
-		return
-	}
+	return ctx.JSON(http.StatusCreated, request)
 }
 
-func (c *Controller) SignIn(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) SignIn(ctx echo.Context) error {
 	var request SignInRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
+
+	if err := ctx.Bind(&request); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body",
+		})
 	}
 
 	response, err := c.userService.SignIn(&request)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		return
+		return ctx.JSON(http.StatusUnauthorized, map[string]string{
+			"error": err.Error(),
+		})
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	return ctx.JSON(http.StatusOK, response)
 }
 
-func (c *Controller) GetByLogin(w http.ResponseWriter, r *http.Request) {
-	login := chi.URLParam(r, "login")
+func (c *Controller) GetByLogin(ctx echo.Context) error {
+	login := ctx.Param("login")
 	if login == "" {
-		http.Error(w, "Login parameter is required", http.StatusBadRequest)
-		return
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Login parameter is required",
+		})
 	}
 
 	response, err := c.userService.GetByLogin(login)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
+		return ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": err.Error(),
+		})
 	}
 
-	json.NewEncoder(w).Encode(response)
+	return ctx.JSON(http.StatusOK, response)
 }

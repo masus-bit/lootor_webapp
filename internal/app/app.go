@@ -1,9 +1,9 @@
 package app
 
 import (
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"lootor/internal/config"
 	"lootor/internal/modules/user"
 	"lootor/internal/pkg/auth"
@@ -13,41 +13,40 @@ import (
 )
 
 type App struct {
-	Router *chi.Mux
+	Echo *echo.Echo
 }
 
-func NewChiApp(cfg *config.Config) (*App, error) {
+func NewEchoApp(cfg *config.Config) (*App, error) {
 	_ = godotenv.Load()
 
-	db, err := database.InitDB(&cfg.Database)
+	e := echo.New()
 
+	// Инициализация БД
+	db, err := database.InitDB(&cfg.Database)
 	if err != nil {
 		return nil, err
 	}
 
 	jwtService := auth.NewJWTService(
 		os.Getenv("JWT_SECRET"),
-		15*time.Minute, // Access token expiration
-		7*24*time.Hour, // Refresh token expiration
+		15*time.Minute,
+		7*24*time.Hour,
 	)
 
-	userRepo := user.NewRepository(db) // Предполагается, что репозиторий реализован
-
-	db.AutoMigrate(&user.User{})
-
+	userRepo := user.NewRepository(db)
+	err = db.AutoMigrate(&user.User{})
+	if err != nil {
+		return nil, err
+	}
 	userService := user.NewService(userRepo, jwtService)
 
-	r := chi.NewRouter()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
+		Timeout: 60 * time.Second,
+	}))
 
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(60 * time.Second))
-	r.Use(auth.JSONMiddleware)
+	user.RegisterRoutes(e, jwtService, *userService)
 
-	user.RegisterRoutes(r, jwtService, *userService)
-
-	//user.RegisterRoutes(r, db)
-	//auth.RegisterRoutes(r, db)
-
-	return &App{Router: r}, nil
+	return &App{Echo: e}, nil
 }
