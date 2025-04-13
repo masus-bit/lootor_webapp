@@ -1,20 +1,21 @@
-package user
+package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"lootor/internal/models"
+	"lootor/internal/core/models"
+	"lootor/internal/core/services"
 	"net/http"
 )
 
-type Controller struct {
-	userService Service
+type UserController struct {
+	userService services.UserService
 }
 
-func NewController(userService Service) *Controller {
-	return &Controller{userService: userService}
+func NewUserController(userService services.UserService) *UserController {
+	return &UserController{userService: userService}
 }
 
-func (c *Controller) SignUp(ctx echo.Context) error {
+func (c *UserController) SignUp(ctx echo.Context) error {
 	var request models.SignUpRequest
 
 	if err := ctx.Bind(&request); err != nil {
@@ -32,7 +33,7 @@ func (c *Controller) SignUp(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, request)
 }
 
-func (c *Controller) SignIn(ctx echo.Context) error {
+func (c *UserController) SignIn(ctx echo.Context) error {
 	var request models.SignInRequest
 
 	if err := ctx.Bind(&request); err != nil {
@@ -51,7 +52,7 @@ func (c *Controller) SignIn(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
-func (c *Controller) GetByLogin(ctx echo.Context) error {
+func (c *UserController) GetByLogin(ctx echo.Context) error {
 	login := ctx.QueryParam("login")
 	authInfo := ctx.Get("auth_info").(struct {
 		IsAuthenticated bool
@@ -73,7 +74,7 @@ func (c *Controller) GetByLogin(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
-func (c *Controller) ChangeRating(ctx echo.Context) error {
+func (c *UserController) ChangeRating(ctx echo.Context) error {
 	var request models.ChangeRatingRequest
 	err := ctx.Bind(&request)
 	if err != nil {
@@ -96,7 +97,7 @@ func (c *Controller) ChangeRating(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
-func (c *Controller) ChangePass(ctx echo.Context) error {
+func (c *UserController) ChangePass(ctx echo.Context) error {
 	var request models.ChangePasswordRequest
 	err := ctx.Bind(&request)
 	if err != nil {
@@ -120,7 +121,7 @@ func (c *Controller) ChangePass(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
-func (c *Controller) Subscribe(ctx echo.Context) error {
+func (c *UserController) Subscribe(ctx echo.Context) error {
 	login := ctx.QueryParam("login")
 	isSubscribe := ctx.QueryParam("isSubscribe")
 

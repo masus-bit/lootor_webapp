@@ -1,29 +1,34 @@
-package collectionItem
+package repositories
 
 import (
+	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"lootor/internal/models"
+	"lootor/internal/core/models"
 )
 
-type Repository struct {
+type CiRepository struct {
 	db *gorm.DB
 }
 
-func NewRepository(db *gorm.DB) *Repository {
-	return &Repository{db: db}
+func NewCiRepository(db *gorm.DB) *CiRepository {
+	return &CiRepository{db: db}
 }
 
-func (r *Repository) Create(ci *models.CollectionItems) error {
-	return r.db.Create(ci).Error
+func (r *CiRepository) CreateCI(ci *models.CollectionItems) (*models.CollectionItems, error) {
+	err := r.db.Create(ci)
+	if err.Error != nil {
+		return nil, err.Error
+	}
+	return ci, nil
 }
 
-func (r *Repository) FindAll() ([]models.CollectionItems, error) {
+func (r *CiRepository) FindAllCI() ([]models.CollectionItems, error) {
 	var items []models.CollectionItems
 	err := r.db.Find(&items).Error
 	return items, err
 }
 
-func (r *Repository) GetByID(id string) (*models.CollectionItems, error) {
+func (r *CiRepository) GetCIByID(id string) (*models.CollectionItems, error) {
 	var item models.CollectionItems
 	err := r.db.
 		Preload("Collections").
@@ -36,7 +41,7 @@ func (r *Repository) GetByID(id string) (*models.CollectionItems, error) {
 	return &item, err
 }
 
-func (r *Repository) GetCountByUserLogin(login string) (int64, error) {
+func (r *CiRepository) GetCountByUserLogin(login string) (int64, error) {
 	var count int64
 	err := r.db.
 		Model(&models.CollectionItems{}).
@@ -46,7 +51,7 @@ func (r *Repository) GetCountByUserLogin(login string) (int64, error) {
 	return count, err
 }
 
-func (r *Repository) Update(existsItem models.CollectionItems, updated models.CollectionItems) (*models.CollectionItems, error) {
+func (r *CiRepository) UpdateCI(existsItem models.CollectionItems, updated models.CollectionItems) (*models.CollectionItems, error) {
 	result := r.db.Model(existsItem).Updates(updated)
 	if result.Error != nil {
 		return nil, result.Error
@@ -57,7 +62,7 @@ func (r *Repository) Update(existsItem models.CollectionItems, updated models.Co
 	return &updatedItem, err
 }
 
-func (r *Repository) Sum(collectionID string) (float64, error) {
+func (r *CiRepository) Sum(collectionID uuid.UUID) (float64, error) {
 	var sum float64
 	err := r.db.
 		Model(&models.CollectionItems{}).
@@ -69,7 +74,7 @@ func (r *Repository) Sum(collectionID string) (float64, error) {
 	return sum, err
 }
 
-func (r *Repository) SumShippingCost(collectionID string) (float64, error) {
+func (r *CiRepository) SumShippingCost(collectionID uuid.UUID) (float64, error) {
 	var sum struct {
 		Sum float64 `gorm:"column:sum"`
 	}
@@ -85,7 +90,7 @@ func (r *Repository) SumShippingCost(collectionID string) (float64, error) {
 	return sum.Sum, err
 }
 
-func (r *Repository) SumByUserLogin(userLogin string) (float64, error) {
+func (r *CiRepository) SumByUserLogin(userLogin string) (float64, error) {
 	var result struct {
 		Sum float64 `gorm:"column:sum"`
 	}
@@ -102,7 +107,7 @@ func (r *Repository) SumByUserLogin(userLogin string) (float64, error) {
 	return result.Sum, nil
 }
 
-func (r *Repository) Delete(id string) error {
+func (r *CiRepository) DeleteCI(id string) error {
 	err := r.db.Delete(&models.CollectionItems{}, "id = ?", id).Error
 	if err != nil {
 		return err
@@ -111,7 +116,7 @@ func (r *Repository) Delete(id string) error {
 	return nil
 }
 
-func (r *Repository) GetCount(collectionID string) (int64, error) {
+func (r *CiRepository) GetCountCI(collectionID uuid.UUID) (int64, error) {
 	var count int64
 	err := r.db.
 		Model(&models.CollectionItems{}).

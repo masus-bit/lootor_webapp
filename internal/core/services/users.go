@@ -1,10 +1,10 @@
-package user
+package services
 
 import (
 	"errors"
 	"github.com/mitchellh/mapstructure"
-	"lootor/internal/models"
-	"lootor/internal/modules/collectionItem"
+	"lootor/internal/core/models"
+	"lootor/internal/core/repositories"
 	"lootor/internal/pkg/auth"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/utils"
@@ -12,18 +12,18 @@ import (
 	"time"
 )
 
-type Service struct {
-	repo       *Repository
+type UserService struct {
+	repo       *repositories.UsersRepository
 	jwtService *auth.JWTService
-	ciRepo     *collectionItem.Repository
+	ciRepo     *repositories.CiRepository
 }
 
-func NewService(repo *Repository, jwtService *auth.JWTService, ciRepo *collectionItem.Repository) *Service {
-	return &Service{repo: repo, jwtService: jwtService, ciRepo: ciRepo}
+func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository) *UserService {
+	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo}
 }
 
-func (s *Service) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*models.DataUserResponse, error) {
-	user, err := s.repo.GetByLogin(userLogin)
+func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*models.DataUserResponse, error) {
+	dbUser, err := s.repo.GetUserByLogin(userLogin)
 	if err != nil {
 		return nil, err
 	}
@@ -31,11 +31,10 @@ func (s *Service) GetByLogin(userLogin string, authUser string, isAuthenticated 
 	var authorizedUser *models.Users
 
 	if authUser != "" && isAuthenticated {
-		authorizedUser, _ = s.repo.GetByLogin(authUser)
+		authorizedUser, _ = s.repo.GetUserByLogin(authUser)
 	}
 	var response models.DataUserResponse
 	if userLogin == authUser {
-		//TODO itemsCount и тд
 
 		collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(userLogin)
 		sum, _ := s.ciRepo.SumByUserLogin(userLogin)
@@ -43,7 +42,7 @@ func (s *Service) GetByLogin(userLogin string, authUser string, isAuthenticated 
 		response.Data.TotalSum = int(sum)
 		response.Data.CollectionItemsCount = int(collectionItemsCount)
 
-		e := mapstructure.Decode(user, &response)
+		e := mapstructure.Decode(dbUser, &response)
 		if e != nil {
 			return nil, e
 		}
@@ -57,7 +56,7 @@ func (s *Service) GetByLogin(userLogin string, authUser string, isAuthenticated 
 		response.Data.CanSubscribe = canSubscribe
 	}
 
-	e := mapstructure.Decode(user, &response)
+	e := mapstructure.Decode(dbUser, &response)
 
 	if e != nil {
 		return nil, e
@@ -66,8 +65,8 @@ func (s *Service) GetByLogin(userLogin string, authUser string, isAuthenticated 
 	return &response, nil
 }
 
-func (s *Service) ChangeRating(isLike bool, login string) (*dto.CommonResponse, error) {
-	existsUser, err := s.repo.GetByLogin(login)
+func (s *UserService) ChangeRating(isLike bool, login string) (*dto.CommonResponse, error) {
+	existsUser, err := s.repo.GetUserByLogin(login)
 	if err != nil {
 		return nil, err
 	}
@@ -83,12 +82,12 @@ func (s *Service) ChangeRating(isLike bool, login string) (*dto.CommonResponse, 
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *Service) ChangePassword(password string, login string, authUserLogin string) (*dto.CommonResponse, error) {
+func (s *UserService) ChangePassword(password string, login string, authUserLogin string) (*dto.CommonResponse, error) {
 	if authUserLogin != login {
 		return nil, errors.New("ошибка смены пароля")
 	}
 
-	existsUser, err := s.repo.GetByLogin(login)
+	existsUser, err := s.repo.GetUserByLogin(login)
 	if err != nil {
 		return nil, err
 	}
@@ -103,13 +102,13 @@ func (s *Service) ChangePassword(password string, login string, authUserLogin st
 
 }
 
-func (s *Service) Subscribe(targetUserLogin string, authUserLogin string, isSubscribe bool) (*dto.CommonResponse, error) {
-	subscriber, err := s.repo.GetByLogin(authUserLogin)
+func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, isSubscribe bool) (*dto.CommonResponse, error) {
+	subscriber, err := s.repo.GetUserByLogin(authUserLogin)
 	if err != nil {
 		return nil, err
 	}
 
-	subscriptionTargetUser, err := s.repo.GetByLogin(targetUserLogin)
+	subscriptionTargetUser, err := s.repo.GetUserByLogin(targetUserLogin)
 	if err != nil {
 		return nil, err
 	}
@@ -133,17 +132,17 @@ func (s *Service) Subscribe(targetUserLogin string, authUserLogin string, isSubs
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *Service) SignIn(dto *models.SignInRequest) (*models.SignInResponse, error) {
-	user, err := s.repo.GetByEmailWithPassword(dto.Email)
+func (s *UserService) SignIn(dto *models.SignInRequest) (*models.SignInResponse, error) {
+	dbUser, err := s.repo.GetByEmailWithPassword(dto.Email)
 	if err != nil {
 		return nil, err
 	}
-	ok := auth.CheckPasswordHash(dto.Password, user.PasswordHash)
+	ok := auth.CheckPasswordHash(dto.Password, dbUser.PasswordHash)
 	if !ok {
 		return nil, errors.New("incorrect email or password")
 	}
 
-	tokens, er := s.jwtService.GenerateTokenPair(user)
+	tokens, er := s.jwtService.GenerateTokenPair(dbUser)
 
 	if er != nil {
 		return nil, er
@@ -155,12 +154,12 @@ func (s *Service) SignIn(dto *models.SignInRequest) (*models.SignInResponse, err
 
 }
 
-func (s *Service) SignUp(dto *models.SignUpRequest) (*models.SignUpResponse, error) {
+func (s *UserService) SignUp(dto *models.SignUpRequest) (*models.SignUpResponse, error) {
 	userByMail, _ := s.repo.GetByEmail(dto.Email)
 	if userByMail != nil {
 		return nil, errors.New("Email должен быть уникальным")
 	}
-	userByLogin, _ := s.repo.GetByLogin(dto.Login)
+	userByLogin, _ := s.repo.GetUserByLogin(dto.Login)
 	if userByLogin != nil {
 		return nil, errors.New("Логин должен быть уникальным")
 	}
@@ -174,7 +173,7 @@ func (s *Service) SignUp(dto *models.SignUpRequest) (*models.SignUpResponse, err
 
 	hexString, _ := utils.GenerateRandomString(32)
 
-	user := models.Users{
+	dbUser := models.Users{
 		Login:             dto.Login,
 		Email:             dto.Email,
 		UserName:          dto.UserName,
@@ -183,7 +182,7 @@ func (s *Service) SignUp(dto *models.SignUpRequest) (*models.SignUpResponse, err
 		VerificationToken: hexString,
 	}
 
-	err := s.repo.Create(&user)
+	err := s.repo.CreateUser(&dbUser)
 	if err != nil {
 		return nil, err
 	}

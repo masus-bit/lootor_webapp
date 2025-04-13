@@ -1,52 +1,56 @@
-package collection
+package repositories
 
 import (
 	"errors"
 	"gorm.io/gorm"
-	"lootor/internal/models"
+	"lootor/internal/core/models"
 )
 
-type Repository struct {
+type CollectionsRepository struct {
 	db *gorm.DB
 }
 
-func NewRepository(db *gorm.DB) *Repository {
-	return &Repository{db: db}
+func NewCollectionsRepository(db *gorm.DB) *CollectionsRepository {
+	return &CollectionsRepository{db: db}
 }
 
-func (r *Repository) Create(collection *models.Collections) error {
+func (r *CollectionsRepository) CreateCollection(collection *models.Collections) error {
 	return r.db.Create(collection).Error
 }
 
-func (r *Repository) FindAll() ([]models.Collections, error) {
+func (r *CollectionsRepository) FindAllCollections() ([]models.Collections, error) {
 	var collections []models.Collections
 	err := r.db.Find(&collections).Error
 	return collections, err
 }
 
-func (r *Repository) GetById(id string) (*models.Collections, error) {
+func (r *CollectionsRepository) GetCollectionById(id string) (*models.Collections, error) {
 	var collection models.Collections
 	err := r.db.
 		Preload("Users").
 		Preload("Tags").
 		Preload("CollectionItems").
+		Preload("CollectionItems.Platform").
+		Preload("CollectionItems.Entities").
 		Where("id = ? AND deleted = ?", id, false).
 		First(&collection).Error
 	return &collection, err
 }
 
-func (r *Repository) GetByShareString(shareString string) (*models.Collections, error) {
+func (r *CollectionsRepository) GetByShareString(shareString string) (*models.Collections, error) {
 	var collection models.Collections
 	err := r.db.
 		Preload("Users").
 		Preload("Tags").
 		Preload("CollectionItems").
+		Preload("CollectionItems.Platform").
+		Preload("CollectionItems.Entities").
 		Where("share_string = ? AND deleted = ?", shareString, false).
 		First(&collection).Error
 	return &collection, err
 }
 
-func (r *Repository) GetByIdWithoutCollectionItems(id string) (*models.Collections, error) {
+func (r *CollectionsRepository) GetByIdWithoutCollectionItems(id string) (*models.Collections, error) {
 	var collection models.Collections
 	err := r.db.
 		Preload("Users").
@@ -56,7 +60,7 @@ func (r *Repository) GetByIdWithoutCollectionItems(id string) (*models.Collectio
 	return &collection, err
 }
 
-func (r *Repository) GetOneByTransliteration(login string, transliteration string) (*models.Collections, error) {
+func (r *CollectionsRepository) GetOneByTransliteration(login string, transliteration string) (*models.Collections, error) {
 	var collection models.Collections
 
 	err := r.db.
@@ -81,7 +85,7 @@ func (r *Repository) GetOneByTransliteration(login string, transliteration strin
 	return &collection, nil
 }
 
-func (r *Repository) GetByUserId(login string) ([]models.Collections, error) {
+func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Collections, error) {
 	var collections []models.Collections
 	err := r.db.
 		Joins("User", func(db *gorm.DB) *gorm.DB {
@@ -96,7 +100,7 @@ func (r *Repository) GetByUserId(login string) ([]models.Collections, error) {
 	return collections, err
 }
 
-func (r *Repository) GetByUserIdWithoutCollectionItems(login string) ([]models.Collections, error) {
+func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string) ([]models.Collections, error) {
 	var collections []models.Collections
 	err := r.db.
 		Joins("User", func(db *gorm.DB) *gorm.DB {
@@ -108,23 +112,20 @@ func (r *Repository) GetByUserIdWithoutCollectionItems(login string) ([]models.C
 	return collections, err
 }
 
-func (r *Repository) GetByUserIdWithoutPrivates(login string) ([]models.Collections, error) {
+func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string) ([]models.Collections, error) {
 	var collections []models.Collections
 	err := r.db.
 		Joins("User", func(db *gorm.DB) *gorm.DB {
 			return db.Where("LOWER(users.login) = LOWER(?)", login)
 		}).
 		Preload("Tags").
-		Preload("CollectionItems").
-		Preload("CollectionItems.Platform").
-		Preload("CollectionItems.Entities").
 		Where("collections.is_private = ?", false).
 		Order("collection.created DESC").
 		Find(&collections).Error
 	return collections, err
 }
 
-func (r *Repository) GetByIdWithoutUser(id string) (models.Collections, error) {
+func (r *CollectionsRepository) GetByIdWithoutUser(id string) (models.Collections, error) {
 	var collection models.Collections
 	err := r.db.
 		Preload("Tags").
@@ -134,17 +135,14 @@ func (r *Repository) GetByIdWithoutUser(id string) (models.Collections, error) {
 	return collection, err
 }
 
-func (r *Repository) GetByTag(tag string) ([]models.Collections, error) {
+func (r *CollectionsRepository) GetCollectionByTag(tag string) ([]models.Collections, error) {
 	var collections []models.Collections
 
 	err := r.db.
-		Joins("JOIN tags_collections_collections ON tags_collections_collections.collections_id = collections.id").
-		Joins("JOIN tags ON tags.id = tags_collections_collections.tags_id AND tags.name = ?", tag).
+		Joins("JOIN tags_collections_collections ON tags_collections_collections.collectionsId = collections.id").
+		Joins("JOIN tags ON tags.id = tags_collections_collections.tagsId AND tags.name = ?", tag).
 		Preload("User").
 		Preload("Tags").
-		Preload("CollectionItems").
-		Preload("CollectionItems.Platform").
-		Preload("CollectionItems.Entities").
 		Where("collections.is_private = ?", false).
 		Order("collections.created ASC").
 		Find(&collections).Error
@@ -155,7 +153,7 @@ func (r *Repository) GetByTag(tag string) ([]models.Collections, error) {
 	return collections, nil
 }
 
-func (r *Repository) Update(existsCollection models.Collections, updated models.Collections) (*models.Collections, error) {
+func (r *CollectionsRepository) UpdateCollection(existsCollection models.Collections, updated models.Collections) (*models.Collections, error) {
 	result := r.db.Model(existsCollection).Updates(updated)
 	if result.Error != nil {
 		return nil, result.Error
@@ -166,7 +164,7 @@ func (r *Repository) Update(existsCollection models.Collections, updated models.
 	return &updatedCollection, err
 }
 
-func (r *Repository) GetCountByUserLogin(login string) (int64, error) {
+func (r *CollectionsRepository) GetCollectionCountByUserLogin(login string) (int64, error) {
 	var count int64
 
 	err := r.db.
@@ -183,7 +181,7 @@ func (r *Repository) GetCountByUserLogin(login string) (int64, error) {
 	return count, nil
 }
 
-func (r *Repository) Delete(id string) error {
+func (r *CollectionsRepository) DeleteCollection(id string) error {
 	err := r.db.Delete(&models.Collections{}, "id = ?", id).Error
 	if err != nil {
 		return err

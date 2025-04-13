@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -23,12 +24,12 @@ type Collections struct {
 	Created          string
 	IsPrivate        bool
 	BannerUrl        string
-	Likes            int
+	Likes            pq.StringArray `gorm:"type:text[]"`
 	Deleted          bool
 	Transliteration  string
-	SubscribersCount int
-	TotalPrice       int
-	ShippingTotal    int
+	SubscribersCount int64
+	TotalPrice       int64
+	ShippingTotal    int64
 	ShareString      string
 	CollectionItems  []CollectionItems `gorm:"many2many:collections_collection_items_collection_items;constraint:OnDelete:CASCADE;"`
 	User             Users             `gorm:"constraint:OnDelete:CASCADE;"`
@@ -50,18 +51,26 @@ type CollectionsResponse struct {
 	Created              string                    `json:"created"`
 	IsPrivate            bool                      `json:"isPrivate"`
 	BannerUrl            string                    `json:"bannerUrl"`
-	Likes                int                       `json:"likes"`
+	Likes                pq.StringArray            `json:"likes"`
 	Deleted              bool                      `json:"deleted"`
 	Transliteration      string                    `json:"transliteration"`
-	SubscribersCount     int                       `json:"subscribersCount"`
-	TotalPrice           int                       `json:"totalPrice"`
-	ShippingTotal        int                       `json:"shippingTotal"`
+	SubscribersCount     int64                     `json:"subscribersCount"`
+	TotalPrice           float64                   `json:"totalPrice"`
+	ShippingTotal        float64                   `json:"shippingTotal"`
 	ShareString          string                    `json:"shareString"`
 	CollectionItems      []CollectionItemsResponse `json:"collectionItems"`
 	User                 UserResponse              `json:"user"`
 	Tags                 []Tags                    `json:"tags"`
-	CollectionItemsCount int                       `json:"collectionItemsCount"`
+	CollectionItemsCount int64                     `json:"collectionItemsCount"`
 	CanSubscribe         bool                      `json:"canSubscribe"`
+}
+
+type CollectionDataResponse struct {
+	Data CollectionsResponse `json:"data"`
+}
+
+type AllCollectionsDataResponse struct {
+	Data []CollectionsResponse `json:"data"`
 }
 
 type CollectionCreateRequest struct {
@@ -70,6 +79,6 @@ type CollectionCreateRequest struct {
 	IsPrivate       bool     `json:"isPrivate"`
 	BannerUrl       string   `json:"bannerUrl"`
 	Transliteration string   `json:"transliteration"`
-	User            string   `json:"user"`
+	UserLogin       string   `json:"userLogin"`
 	Tags            []string `json:"tags"`
 }

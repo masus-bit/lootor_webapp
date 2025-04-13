@@ -5,7 +5,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"lootor/internal/config"
-	"lootor/internal/modules/user"
+	"lootor/internal/core/models"
+	"lootor/internal/core/repositories"
+	"lootor/internal/core/routes"
+	"lootor/internal/core/services"
 	"lootor/internal/pkg/auth"
 	"lootor/internal/pkg/database"
 	"os"
@@ -33,12 +36,13 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		7*24*time.Hour,
 	)
 
-	userRepo := user.NewRepository(db)
-	err = db.AutoMigrate(&user.User{})
+	userRepo := repositories.NewUsersRepository(db)
+	ciRepo := repositories.NewCiRepository(db)
+	err = db.AutoMigrate(&models.Users{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Platforms{}, &models.Entities{}, models.Events{})
 	if err != nil {
 		return nil, err
 	}
-	userService := user.NewService(userRepo, jwtService)
+	userService := services.NewUserService(userRepo, jwtService, ciRepo)
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -46,7 +50,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		Timeout: 60 * time.Second,
 	}))
 
-	user.RegisterRoutes(e, jwtService, *userService)
+	routes.RegisterRoutes(e, jwtService, *userService)
 
 	return &App{Echo: e}, nil
 }

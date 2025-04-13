@@ -1,12 +1,14 @@
-package user
+package routes
 
 import (
 	"github.com/labstack/echo/v4"
+	"lootor/internal/core/controllers"
+	"lootor/internal/core/services"
 	"lootor/internal/pkg/auth"
 )
 
-func RegisterRoutes(e *echo.Echo, jwtService *auth.JWTService, userService Service) {
-	controller := NewController(userService)
+func RegisterRoutes(e *echo.Echo, jwtService *auth.JWTService, userService services.UserService) {
+	controller := controllers.NewUserController(userService)
 
 	publicGroup := e.Group("/public")
 	publicGroup.Use(jwtService.AuthInfoMiddleware())

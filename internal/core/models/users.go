@@ -66,6 +66,14 @@ type UserResponse struct {
 	TotalSum                int            `json:"totalSum" default:"0"`
 }
 
+type UserResponseForCollection struct {
+	Login         string         `json:"login"`
+	UserName      string         `json:"userName"`
+	Email         string         `json:"email"`
+	AvatarUrl     string         `json:"avatarUrl"`
+	Subscriptions pq.StringArray `json:"subscriptions"`
+}
+
 type DataUserResponse struct {
 	Data UserResponse `json:"data"`
 }
