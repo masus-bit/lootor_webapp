@@ -2,18 +2,23 @@ package models
 
 import (
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type Events struct {
-	gorm.Model
-	Id                   uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()"`
-	Action               string
-	Date                 string
-	EventTarget          string
-	TargetName           string
-	User                 Users           `gorm:"constraint:OnDelete:CASCADE;"`
-	TargetUser           Users           `gorm:"constraint:OnDelete:CASCADE;"`
-	TargetCollection     Collections     `gorm:"constraint:OnDelete:CASCADE;"`
-	TargetCollectionItem CollectionItems `gorm:"constraint:OnDelete:CASCADE;"`
+	ID              uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()"`
+	Date            string
+	Action          string `gorm:"type:varchar(100);not null"`
+	EventTargetType string `gorm:"type:varchar(50);not null"` // "collection", "user" или "item"
+	TargetName      string `gorm:"type:varchar(255)"`
+
+	InitiatorLogin string `gorm:"type:varchar(255);not null"`
+	Initiator      Users  `gorm:"foreignKey:InitiatorLogin;references:Login"`
+
+	TargetUserLogin    *string    `gorm:"type:varchar(255)"`
+	TargetCollectionID *uuid.UUID `gorm:"type:uuid"`
+	TargetItemID       *uuid.UUID `gorm:"type:uuid"`
+
+	TargetUser       *Users           `gorm:"-"`
+	TargetCollection *Collections     `gorm:"-"`
+	TargetItem       *CollectionItems `gorm:"-"`
 }

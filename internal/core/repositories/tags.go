@@ -14,7 +14,7 @@ func NewTagsRepository(db *gorm.DB) *TagsRepository {
 }
 
 func (r *TagsRepository) AddTag(tag *models.Tags) (*models.Tags, error) {
-	err := r.db.Create(tag)
+	err := r.db.Create(&tag)
 	if err != nil {
 		return nil, err.Error
 	}
@@ -35,5 +35,8 @@ func (r *TagsRepository) SearchTagsByName(searchTerm string) ([]*models.Tags, er
 func (r *TagsRepository) GetTagByName(name string) (*models.Tags, error) {
 	var tag models.Tags
 	err := r.db.Where("name = ?", name).First(&tag).Error
-	return &tag, err
+	if err != nil {
+		return nil, err
+	}
+	return &tag, nil
 }

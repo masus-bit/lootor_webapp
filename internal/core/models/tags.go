@@ -7,7 +7,7 @@ import (
 
 type Tags struct {
 	gorm.Model
-	ID          uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()"`
+	Id          uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()"`
 	Name        string
 	Collections []Collections `gorm:"many2many:collection_tags_collection;constraint:OnDelete:CASCADE;"`
 }

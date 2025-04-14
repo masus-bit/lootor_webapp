@@ -11,3 +11,11 @@ type Entities struct {
 	Name           string
 	CollectionItem []CollectionItems `gorm:"many2many:entities_collection_item_collection_items;constraint:OnDelete:CASCADE;"`
 }
+
+type EntitiesCreateRequest struct {
+	Names []string `json:"names"`
+}
+
+type EntitiesDataResponse struct {
+	Data []Entities `json:"data"`
+}

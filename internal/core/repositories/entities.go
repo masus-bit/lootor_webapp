@@ -15,7 +15,7 @@ func NewEntitiesRepository(db *gorm.DB) *EntitiesRepository {
 
 func (r *EntitiesRepository) CreateEntity(entity *models.Entities) (*models.Entities, error) {
 	err := r.db.Create(entity)
-	if err != nil {
+	if err.Error != nil {
 		return nil, err.Error
 	}
 	return entity, nil
@@ -33,8 +33,8 @@ func (r *EntitiesRepository) GetAllEntities() ([]models.Entities, error) {
 	return entities, err
 }
 
-func (r *EntitiesRepository) SearchByEntityName(searchTerm string) ([]*models.Entities, error) {
-	var entities []*models.Entities
+func (r *EntitiesRepository) SearchByEntityName(searchTerm string) ([]models.Entities, error) {
+	var entities []models.Entities
 
 	err := r.db.Where("name ILIKE ?", searchTerm).Find(&entities).Error
 	if err != nil {

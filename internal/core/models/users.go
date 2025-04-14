@@ -2,12 +2,9 @@ package models
 
 import (
 	"github.com/lib/pq"
-	"gorm.io/gorm"
-	"time"
 )
 
 type Users struct {
-	gorm.Model
 	Login                   string `gorm:"primaryKey"`
 	UserName                string
 	Password                string `gorm:"-" json:"password"`
@@ -52,7 +49,7 @@ type UserResponse struct {
 	VkId                    string         `json:"vkId"`
 	TelegramId              string         `json:"telegramId"`
 	Email                   string         `json:"email"`
-	Created                 time.Time      `json:"created"`
+	Created                 string         `json:"created"`
 	Likes                   int            `json:"likes"`
 	Dislikes                int            `json:"dislikes"`
 	AvatarUrl               string         `json:"avatarUrl"`

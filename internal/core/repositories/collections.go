@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 	"lootor/internal/core/models"
 )
@@ -14,8 +15,12 @@ func NewCollectionsRepository(db *gorm.DB) *CollectionsRepository {
 	return &CollectionsRepository{db: db}
 }
 
-func (r *CollectionsRepository) CreateCollection(collection *models.Collections) error {
-	return r.db.Create(collection).Error
+func (r *CollectionsRepository) CreateCollection(collection *models.Collections) (*models.Collections, error) {
+	err := r.db.Create(&collection)
+	if err.Error != nil {
+		return nil, err.Error
+	}
+	return collection, nil
 }
 
 func (r *CollectionsRepository) FindAllCollections() ([]models.Collections, error) {
@@ -25,9 +30,10 @@ func (r *CollectionsRepository) FindAllCollections() ([]models.Collections, erro
 }
 
 func (r *CollectionsRepository) GetCollectionById(id string) (*models.Collections, error) {
+	fmt.Println(id)
 	var collection models.Collections
 	err := r.db.
-		Preload("Users").
+		Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems").
 		Preload("CollectionItems.Platform").
@@ -40,7 +46,7 @@ func (r *CollectionsRepository) GetCollectionById(id string) (*models.Collection
 func (r *CollectionsRepository) GetByShareString(shareString string) (*models.Collections, error) {
 	var collection models.Collections
 	err := r.db.
-		Preload("Users").
+		Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems").
 		Preload("CollectionItems.Platform").
@@ -53,7 +59,7 @@ func (r *CollectionsRepository) GetByShareString(shareString string) (*models.Co
 func (r *CollectionsRepository) GetByIdWithoutCollectionItems(id string) (*models.Collections, error) {
 	var collection models.Collections
 	err := r.db.
-		Preload("Users").
+		Preload("User").
 		Preload("Tags").
 		Where("id = ? AND deleted = ?", id, false).
 		First(&collection).Error
@@ -95,7 +101,7 @@ func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Co
 		Preload("CollectionItems").
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
-		Order("collection.created DESC").
+		Order("collections.created DESC").
 		Find(&collections).Error
 	return collections, err
 }
@@ -107,7 +113,7 @@ func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string) 
 			return db.Where("LOWER(users.login) = LOWER(?)", login)
 		}).
 		Preload("Tags").
-		Order("collection.created DESC").
+		Order("collections.created DESC").
 		Find(&collections).Error
 	return collections, err
 }
@@ -120,7 +126,7 @@ func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string) ([]mode
 		}).
 		Preload("Tags").
 		Where("collections.is_private = ?", false).
-		Order("collection.created DESC").
+		Order("collections.created DESC").
 		Find(&collections).Error
 	return collections, err
 }
@@ -130,7 +136,7 @@ func (r *CollectionsRepository) GetByIdWithoutUser(id string) (models.Collection
 	err := r.db.
 		Preload("Tags").
 		Where("id = ? AND deleted = ?", id, false).
-		Order("collection.created DESC").
+		Order("collections.created DESC").
 		First(&collection).Error
 	return collection, err
 }
@@ -153,15 +159,21 @@ func (r *CollectionsRepository) GetCollectionByTag(tag string) ([]models.Collect
 	return collections, nil
 }
 
-func (r *CollectionsRepository) UpdateCollection(existsCollection models.Collections, updated models.Collections) (*models.Collections, error) {
-	result := r.db.Model(existsCollection).Updates(updated)
-	if result.Error != nil {
-		return nil, result.Error
+func (r *CollectionsRepository) UpdateCollection(existsCollection *models.Collections, updated *models.Collections) (*models.Collections, error) {
+	if updated.Tags != nil {
+		err := r.db.Model(existsCollection).Association("Tags").Replace(updated.Tags)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	var updatedCollection models.Collections
-	err := r.db.First(&updatedCollection, existsCollection.Id).Error
-	return &updatedCollection, err
+	if err := r.db.Model(existsCollection).Updates(updated).Error; err != nil {
+		return nil, err
+	}
+
+	var result models.Collections
+	err := r.db.Preload("Tags").First(&result, existsCollection.Id).Error
+	return &result, err
 }
 
 func (r *CollectionsRepository) GetCollectionCountByUserLogin(login string) (int64, error) {

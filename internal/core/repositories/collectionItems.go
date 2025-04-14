@@ -33,7 +33,7 @@ func (r *CiRepository) GetCIByID(id string) (*models.CollectionItems, error) {
 	err := r.db.
 		Preload("Collections").
 		Preload("Collections.User").
-		Preload("Platforms").
+		Preload("Platform").
 		Preload("Entities").
 		Where("id = ? AND deleted = ?", id, false).
 		First(&item).Error
@@ -51,15 +51,36 @@ func (r *CiRepository) GetCountByUserLogin(login string) (int64, error) {
 	return count, err
 }
 
-func (r *CiRepository) UpdateCI(existsItem models.CollectionItems, updated models.CollectionItems) (*models.CollectionItems, error) {
-	result := r.db.Model(existsItem).Updates(updated)
-	if result.Error != nil {
-		return nil, result.Error
+func (r *CiRepository) UpdateCI(existsItem *models.CollectionItems, updated *models.CollectionItems) (*models.CollectionItems, error) {
+	if updated.Platform != nil {
+		err := r.db.Model(existsItem).Association("Platform").Replace(updated.Platform)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	var updatedItem models.CollectionItems
-	err := r.db.First(&updatedItem, existsItem.Id).Error
-	return &updatedItem, err
+	if updated.Collections != nil {
+		err := r.db.Model(existsItem).Association("Collections").Replace(updated.Collections)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if updated.Entities != nil {
+		err := r.db.Model(existsItem).Association("Entities").Replace(updated.Entities)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err := r.db.Model(existsItem).Updates(updated).Error; err != nil {
+		return nil, err
+	}
+
+	var result models.CollectionItems
+	err := r.db.Preload("Platform").Preload("Collections").Preload("Entities").First(&result, existsItem.Id).Error
+	return &result, err
+
 }
 
 func (r *CiRepository) Sum(collectionID uuid.UUID) (float64, error) {
@@ -67,8 +88,8 @@ func (r *CiRepository) Sum(collectionID uuid.UUID) (float64, error) {
 	err := r.db.
 		Model(&models.CollectionItems{}).
 		Select("SUM(purchase_price)").
-		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collectionItemsId = collection_items.id").
-		Where("collections_collection_items_collection_items.collectionsId = ? AND deleted = ?", collectionID, false).
+		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
+		Where("collections_collection_items_collection_items.collections_id = ? AND deleted = ?", collectionID, false).
 		Scan(&sum).Error
 
 	return sum, err
@@ -82,8 +103,8 @@ func (r *CiRepository) SumShippingCost(collectionID uuid.UUID) (float64, error) 
 	err := r.db.
 		Model(&models.CollectionItems{}).
 		Select("SUM(collection_item.shipping_cost) as sum").
-		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collectionItemsId = collection_items.id").
-		Where("collections_collection_items_collection_items.collectionsId = ? AND collection_items.deleted = ?",
+		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
+		Where("collections_collection_items_collection_items.collections_id = ? AND collection_items.deleted = ?",
 			collectionID, false).
 		Scan(&sum).Error
 
@@ -120,8 +141,8 @@ func (r *CiRepository) GetCountCI(collectionID uuid.UUID) (int64, error) {
 	var count int64
 	err := r.db.
 		Model(&models.CollectionItems{}).
-		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collectionItemsId = collection_items.id").
-		Where("collections_collection_items_collection_items.collectionsId = ? AND collection_items.deleted = ?", collectionID, false).
+		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
+		Where("collections_collection_items_collection_items.collections_id = ? AND collection_items.deleted = ?", collectionID, false).
 		Count(&count).Error
 
 	return count, err

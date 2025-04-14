@@ -109,8 +109,11 @@ func (c *UserController) ChangePass(ctx echo.Context) error {
 			"error": "Login parameter is required",
 		})
 	}
-
-	response, err := c.userService.ChangePassword(request.Password, login, ctx.Get("user_login").(string))
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+	response, err := c.userService.ChangePassword(request.Password, login, authUser)
 
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
@@ -124,8 +127,11 @@ func (c *UserController) ChangePass(ctx echo.Context) error {
 func (c *UserController) Subscribe(ctx echo.Context) error {
 	login := ctx.QueryParam("login")
 	isSubscribe := ctx.QueryParam("isSubscribe")
-
-	response, err := c.userService.Subscribe(login, ctx.Get("user_login").(string), isSubscribe == "true")
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+	response, err := c.userService.Subscribe(login, authUser, isSubscribe == "true")
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),

@@ -26,9 +26,11 @@ type CollectionItems struct {
 	ShippingCost    float64
 	Transliteration string
 	Collections     []Collections `gorm:"many2many:collections_collection_items_collection_items;constraint:OnDelete:CASCADE;"`
-	Owner           Users         `gorm:"constraint:OnDelete:CASCADE;"`
-	Platform        Platforms     `gorm:"constraint:OnDelete:CASCADE;"`
+	Owner           Users         `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
+	Platform        *Platforms    `gorm:"foreignKey:PlatformID;references:Id;constraint:OnDelete:SET NULL;"`
 	Entities        []Entities    `gorm:"many2many:entities_collection_item_collection_items;constraint:OnDelete:CASCADE;"`
+	UserLogin       string        `gorm:"type:varchar(255);index"`
+	PlatformID      *uuid.UUID    `gorm:"type:uuid;index"`
 }
 
 func (EntitiesCollectionItemCollectionItem) TableName() string {
@@ -49,6 +51,7 @@ type CollectionItemsResponse struct {
 	Entities      []Entities `json:"entities"`
 	Platform      Platforms  `json:"platform"`
 	Collection    uuid.UUID  `json:"collection"`
+	Owner         Users      `json:"owner"`
 }
 
 type CollectionItemsRequestCreate struct {
@@ -68,4 +71,10 @@ type CollectionItemsRequestCreate struct {
 
 type CollectionItemsDataResponse struct {
 	Data CollectionItemsResponse `json:"data"`
+}
+
+type CollectionItemsCopyOrMoveRequest struct {
+	Id                  string   `json:"id"`
+	TargetCollectionIds []string `json:"targetCollectionIds"`
+	SourceCollectionId  string   `json:"sourceCollectionId"`
 }

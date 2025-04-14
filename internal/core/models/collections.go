@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
+	"time"
 )
 
 type CollectionsCollectionItemsCollectionItems struct {
@@ -32,8 +33,10 @@ type Collections struct {
 	ShippingTotal    int64
 	ShareString      string
 	CollectionItems  []CollectionItems `gorm:"many2many:collections_collection_items_collection_items;constraint:OnDelete:CASCADE;"`
-	User             Users             `gorm:"constraint:OnDelete:CASCADE;"`
+	User             *Users            `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
 	Tags             []Tags            `gorm:"many2many:tags_collections_collections;constraint:OnDelete:CASCADE;"`
+	UserLogin        string            `gorm:"type:varchar(255);index"`
+	DeletedAt        gorm.DeletedAt    `gorm:"index"`
 }
 
 func (CollectionsCollectionItemsCollectionItems) TableName() string {
@@ -51,7 +54,6 @@ type CollectionsResponse struct {
 	Created              string                    `json:"created"`
 	IsPrivate            bool                      `json:"isPrivate"`
 	BannerUrl            string                    `json:"bannerUrl"`
-	Likes                pq.StringArray            `json:"likes"`
 	Deleted              bool                      `json:"deleted"`
 	Transliteration      string                    `json:"transliteration"`
 	SubscribersCount     int64                     `json:"subscribersCount"`
@@ -63,6 +65,8 @@ type CollectionsResponse struct {
 	Tags                 []Tags                    `json:"tags"`
 	CollectionItemsCount int64                     `json:"collectionItemsCount"`
 	CanSubscribe         bool                      `json:"canSubscribe"`
+	LikesCount           int64                     `json:"likesCount"`
+	CreatedAt            time.Time                 `json:"createdAt"`
 }
 
 type CollectionDataResponse struct {

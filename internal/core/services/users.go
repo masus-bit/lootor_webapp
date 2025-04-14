@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"github.com/mitchellh/mapstructure"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
@@ -29,40 +30,43 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	}
 
 	var authorizedUser *models.Users
-
+	fmt.Println(authUser, 2)
 	if authUser != "" && isAuthenticated {
 		authorizedUser, _ = s.repo.GetUserByLogin(authUser)
 	}
-	var response models.DataUserResponse
+	var response models.UserResponse
+
 	if userLogin == authUser {
 
 		collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(userLogin)
 		sum, _ := s.ciRepo.SumByUserLogin(userLogin)
 
-		response.Data.TotalSum = int(sum)
-		response.Data.CollectionItemsCount = int(collectionItemsCount)
+		response.TotalSum = int(sum)
+		response.CollectionItemsCount = int(collectionItemsCount)
 
 		e := mapstructure.Decode(dbUser, &response)
+		fmt.Print(dbUser, response)
 		if e != nil {
 			return nil, e
 		}
-		return &response, nil
+		return &models.DataUserResponse{Data: response}, nil
 	}
+
 	var subArray []string
 
 	if authorizedUser != nil {
 		subArray = authorizedUser.Subscriptions
 		canSubscribe := !slices.Contains(subArray, userLogin)
-		response.Data.CanSubscribe = canSubscribe
+		response.CanSubscribe = canSubscribe
 	}
 
 	e := mapstructure.Decode(dbUser, &response)
-
+	fmt.Println(dbUser, response)
 	if e != nil {
 		return nil, e
 	}
 
-	return &response, nil
+	return &models.DataUserResponse{Data: response}, nil
 }
 
 func (s *UserService) ChangeRating(isLike bool, login string) (*dto.CommonResponse, error) {

@@ -38,8 +38,7 @@ func (s *CollectionService) processTags(tags []string) []models.Tags {
 
 func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models.CollectionDataResponse, error) {
 	processTags := s.processTags(dto.Tags)
-	dtoUser, _ := s.userRepo.GetUserByUsername(dto.UserLogin)
-
+	dtoUser, _ := s.userRepo.GetUserByLogin(dto.UserLogin)
 	dbCollection := &models.Collections{
 		Name:            dto.Name,
 		Description:     dto.Description,
@@ -47,28 +46,29 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 		IsPrivate:       dto.IsPrivate,
 		Transliteration: dto.Transliteration,
 		Tags:            processTags,
-		User:            *dtoUser,
+		User:            dtoUser,
 		Created:         time.Now().Format(time.RFC3339),
 		ShippingTotal:   0,
 		TotalPrice:      0,
 		ShareString:     utils.GenerateRandomStringNoHex(8),
+		UserLogin:       dto.UserLogin,
 	}
-	err := s.repo.CreateCollection(dbCollection)
+	res, err := s.repo.CreateCollection(dbCollection)
 	if err != nil {
 		return nil, err
 	}
-
 	if !dto.IsPrivate {
-		go func() {
-			eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, nil, &dbCollection.Id, nil)
-			if eventError != nil {
-				log.Default().Print(eventError)
-			}
-		}()
+		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, nil, &dbCollection.Id, nil)
+		if eventError != nil {
+			log.Default().Print(eventError)
+		}
+
 	}
 
 	var response models.CollectionsResponse
-	e := mapstructure.Decode(dbCollection, &response)
+
+	e := mapstructure.Decode(res, &response)
+	response.Id = res.Id
 
 	if e != nil {
 		return nil, e
@@ -79,37 +79,33 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	if er != nil {
 		return nil, er
 	}
-
 	return &models.CollectionDataResponse{Data: response}, nil
 }
 
-func (s *CollectionService) Update(id string, dto models.CollectionCreateRequest) (*models.CollectionDataResponse, error) {
+func (s *CollectionService) Update(id string, dto *models.CollectionCreateRequest) (*models.CollectionDataResponse, error) {
 	exists, err := s.repo.GetCollectionById(id)
 	if err != nil {
 		return nil, err
 	}
 	processTags := s.processTags(dto.Tags)
 
-	var dbCollection *models.Collections
+	var dbCollection models.Collections
 	err = mapstructure.Decode(dto, &dbCollection)
 	dbCollection.Tags = processTags
-
-	_, err = s.repo.UpdateCollection(*exists, *dbCollection)
+	resultCollection, err := s.repo.UpdateCollection(exists, &dbCollection)
+	resultCollection.Tags = processTags
 	if err != nil {
 		return nil, err
 	}
 
 	if !dto.IsPrivate {
-		go func() {
-			eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, nil, &dbCollection.Id, nil)
-			if eventError != nil {
-				log.Default().Print(eventError)
-			}
-		}()
+		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, nil, &dbCollection.Id, nil)
+		if eventError != nil {
+			log.Default().Print(eventError)
+		}
 	}
-
 	var finalCollection models.CollectionsResponse
-	err = mapstructure.Decode(dbCollection, &finalCollection)
+	err = mapstructure.Decode(resultCollection, &finalCollection)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +113,7 @@ func (s *CollectionService) Update(id string, dto models.CollectionCreateRequest
 	return &models.CollectionDataResponse{Data: finalCollection}, nil
 }
 
-func (s *CollectionService) Delete(id string) error {
+func (s *CollectionService) Delete(id string) (*dto.CommonResponse, error) {
 	exists, _ := s.repo.GetCollectionById(id)
 	if !exists.IsPrivate {
 		go func() {
@@ -127,7 +123,7 @@ func (s *CollectionService) Delete(id string) error {
 			}
 		}()
 	}
-	return s.repo.DeleteCollection(id)
+	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, s.repo.DeleteCollection(id)
 }
 
 func (s *CollectionService) GetByUserLogin(login string, authorizedUser string) (*models.AllCollectionsDataResponse, error) {
@@ -143,9 +139,7 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string) 
 		authUser, _ = s.userRepo.GetUserByLogin(authorizedUser)
 		subArray = authUser.CollectionSubscriptions
 	}
-
 	result := make([]models.CollectionsResponse, 0)
-
 	for _, dbCollection := range collections {
 		var temp models.CollectionsResponse
 		err := mapstructure.Decode(dbCollection, &temp)
@@ -154,6 +148,7 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string) 
 		temp.TotalPrice, _ = s.collectionItemRepo.Sum(dbCollection.Id)
 		temp.ShippingTotal, _ = s.collectionItemRepo.SumShippingCost(dbCollection.Id)
 		temp.CanSubscribe = !slices.Contains(subArray, dbCollection.Id.String())
+		temp.LikesCount = int64(len(dbCollection.Likes))
 		if err != nil {
 			return nil, err
 		}
@@ -209,6 +204,7 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	finalCollection.TotalPrice, _ = s.collectionItemRepo.Sum(dbCollection.Id)
 	finalCollection.ShippingTotal, _ = s.collectionItemRepo.SumShippingCost(dbCollection.Id)
 	finalCollection.CanSubscribe = !slices.Contains(subArray, dbCollection.Id.String())
+	finalCollection.LikesCount = int64(len(dbCollection.Likes))
 	return &models.CollectionDataResponse{Data: finalCollection}, nil
 
 }
@@ -222,12 +218,10 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 	if !isUserLikes {
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.IsPrivate {
-			go func() {
-				eventError := s.eventRepo.AddEvent(exists.User.Login, utils.EventActionCreate, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil)
-				if eventError != nil {
-					log.Default().Print(eventError)
-				}
-			}()
+			eventError := s.eventRepo.AddEvent(exists.User.Login, utils.EventActionCreate, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil)
+			if eventError != nil {
+				log.Default().Print(eventError)
+			}
 		}
 	} else {
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
@@ -241,7 +235,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		}
 	}
 
-	_, err = s.repo.UpdateCollection(*exists, *exists)
+	_, err = s.repo.UpdateCollection(exists, exists)
 	if err != nil {
 		return nil, err
 	}
@@ -269,7 +263,7 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 	if err != nil {
 		return nil, err
 	}
-	_, err = s.repo.UpdateCollection(*dbCollection, *dbCollection)
+	_, err = s.repo.UpdateCollection(dbCollection, dbCollection)
 	if err != nil {
 		return nil, err
 	}

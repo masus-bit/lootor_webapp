@@ -1,9 +1,10 @@
 package repositories
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	models2 "lootor/internal/core/models"
+	"lootor/internal/core/models"
 	"time"
 )
 
@@ -16,46 +17,81 @@ func NewEventsRepository(db *gorm.DB) *EventsRepository {
 }
 
 func (r *EventsRepository) AddEvent(
-	user string,
+	initiatorLogin string,
 	action string,
-	eventTarget string,
+	targetType string,
 	targetName string,
-	targetUser *string,
-	targetCollection *uuid.UUID,
-	targetCollectionItem *uuid.UUID,
+	targetUserLogin *string,
+	targetCollectionID *uuid.UUID,
+	targetItemID *uuid.UUID,
 ) error {
-	event := &models2.Events{
-		Action:               action,
-		EventTarget:          eventTarget,
-		TargetName:           targetName,
-		Date:                 time.Now().Format(time.RFC3339),
-		User:                 models2.Users{Login: user},
-		TargetUser:           models2.Users{Login: *targetUser},
-		TargetCollection:     models2.Collections{Id: *targetCollection},
-		TargetCollectionItem: models2.CollectionItems{Id: *targetCollectionItem},
+	event := &models.Events{
+		Action:          action,
+		EventTargetType: targetType,
+		TargetName:      targetName,
+		InitiatorLogin:  initiatorLogin,
+		Date:            time.Now().String(),
 	}
 
-	if err := r.db.Create(event).Error; err != nil {
-		return err
+	switch targetType {
+	case "user":
+		event.TargetUserLogin = targetUserLogin
+	case "collection":
+		event.TargetCollectionID = targetCollectionID
+	case "item":
+		event.TargetItemID = targetItemID
+	default:
+		return fmt.Errorf("unknown target type: %s", targetType)
 	}
 
-	return nil
+	return r.db.Create(event).Error
 }
 
-func (r *EventsRepository) GetEvents(subscriptions []string) ([]models2.Events, error) {
-	var events []models2.Events
+func (r *EventsRepository) GetEvents(subscriptions []string) ([]models.Events, error) {
+	var events []models.Events
 
 	err := r.db.
-		Preload("User").
-		Preload("TargetUser").
-		Preload("TargetCollection").
-		Preload("TargetCollectionItem").
-		Where("user_login IN ?", subscriptions).
-		Order("date DESC").
+		Preload("Initiator").
+		Where("initiator_login IN ?", subscriptions).
+		Order("created_at DESC").
 		Find(&events).Error
 
 	if err != nil {
 		return nil, err
+	}
+
+	for i := range events {
+		switch events[i].EventTargetType {
+		case "user":
+			if events[i].TargetUserLogin != nil {
+				var user models.Users
+				if err := r.db.Where("login = ?", *events[i].TargetUserLogin).First(&user).Error; err == nil {
+					events[i].TargetUser = &user
+				}
+				events[i].TargetCollection = nil
+				events[i].TargetItem = nil
+			}
+
+		case "collection":
+			if events[i].TargetCollectionID != nil {
+				var collection models.Collections
+				if err := r.db.Preload("User").First(&collection, *events[i].TargetCollectionID).Error; err == nil {
+					events[i].TargetCollection = &collection
+				}
+				events[i].TargetUser = nil
+				events[i].TargetItem = nil
+			}
+
+		case "item":
+			if events[i].TargetItemID != nil {
+				var item models.CollectionItems
+				if err := r.db.Preload("Owner").First(&item, *events[i].TargetItemID).Error; err == nil {
+					events[i].TargetItem = &item
+				}
+				events[i].TargetUser = nil
+				events[i].TargetCollection = nil
+			}
+		}
 	}
 
 	return events, nil

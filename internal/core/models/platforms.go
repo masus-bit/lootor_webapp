@@ -10,3 +10,7 @@ type Platforms struct {
 	Id   uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()"`
 	Name string
 }
+
+type PlatformsDataResponse struct {
+	Data []Platforms `json:"data"`
+}

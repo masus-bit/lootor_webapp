@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
 	"log"
 	"lootor/internal/core/models"
@@ -31,25 +33,30 @@ func (s *CiService) getEntities(entities []string) []models.Entities {
 	return resultEntities
 }
 
-func (s *CiService) Create(dto models.CollectionItemsRequestCreate, authUserLogin string) (*models.CollectionItemsDataResponse, error) {
+func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLogin string) (*models.CollectionItemsDataResponse, error) {
+	var platform *models.Platforms
+	var platformID *uuid.UUID
 
-	platform, platformErr := s.platformsRepo.GetPlatformById(dto.Platform)
-	if platformErr != nil {
-		return nil, platformErr
+	if dto.Platform != "" {
+		foundPlatform, err := s.platformsRepo.GetPlatformById(dto.Platform)
+		if err != nil {
+			return nil, fmt.Errorf("error getting platform: %v", err)
+		}
+		platform = foundPlatform
+		platformID = &foundPlatform.Id
+	} else {
+		platform = nil
+		platformID = nil
 	}
-
 	entities := s.getEntities(dto.Entities)
-
 	owner, ownerErr := s.userRepo.GetUserByLogin(authUserLogin)
 	if ownerErr != nil {
 		return nil, ownerErr
 	}
 
 	collection, _ := s.collectionRepo.GetByIdWithoutCollectionItems(dto.CollectionId)
-
 	collectionsSlice := make([]models.Collections, 0)
 	collectionsSlice = append(collectionsSlice, *collection)
-
 	dbCollectionItem := &models.CollectionItems{
 		Name:          dto.Name,
 		Description:   dto.Description,
@@ -61,9 +68,11 @@ func (s *CiService) Create(dto models.CollectionItemsRequestCreate, authUserLogi
 		CopyNumber:    dto.CopyNumber,
 		ShippingCost:  dto.ShippingCost,
 		Entities:      entities,
-		Platform:      *platform,
+		Platform:      platform,
 		Owner:         *owner,
 		Collections:   collectionsSlice,
+		PlatformID:    platformID,
+		UserLogin:     owner.Login,
 	}
 	collectionItem, err := s.repo.CreateCI(dbCollectionItem)
 	if err != nil {
@@ -109,7 +118,7 @@ func (s *CiService) Delete(id string) (*dto.CommonResponse, error) {
 	return result, nil
 }
 
-func (s *CiService) Update(id string, dto models.CollectionItemsRequestCreate) (*models.CollectionItemsDataResponse, error) {
+func (s *CiService) Update(id string, dto *models.CollectionItemsRequestCreate) (*models.CollectionItemsDataResponse, error) {
 	exists, err := s.repo.GetCIByID(id)
 	if err != nil {
 		return nil, err
@@ -121,14 +130,32 @@ func (s *CiService) Update(id string, dto models.CollectionItemsRequestCreate) (
 	err = mapstructure.Decode(dto, &dbCollectionItem)
 	dbCollectionItem.Entities = resultEntities
 
-	result, err := s.repo.UpdateCI(*exists, dbCollectionItem)
+	var platform *models.Platforms
+	var platformID *uuid.UUID
+	if dto.Platform != "" {
+		foundPlatform, err := s.platformsRepo.GetPlatformById(dto.Platform)
+		if err != nil {
+			return nil, fmt.Errorf("error getting platform: %v", err)
+		}
+		platform = foundPlatform
+		platformID = &foundPlatform.Id
+	} else {
+		platform = nil
+		platformID = nil
+	}
+	dbCollectionItem.Platform = platform
+	dbCollectionItem.PlatformID = platformID
+	result, err := s.repo.UpdateCI(exists, &dbCollectionItem)
 	if err != nil {
 		return nil, err
 	}
-
 	var collectionItemResponse models.CollectionItemsResponse
 	err = mapstructure.Decode(result, &collectionItemResponse)
 
+	colId, _ := uuid.Parse(dto.CollectionId)
+
+	collectionItemResponse.Collection = colId
+	collectionItemResponse.Owner = exists.Owner
 	return &models.CollectionItemsDataResponse{Data: collectionItemResponse}, nil
 }
 
@@ -140,6 +167,8 @@ func (s *CiService) GetById(id string) (*models.CollectionItemsDataResponse, err
 
 	var collectionItemResponse models.CollectionItemsResponse
 	err = mapstructure.Decode(exists, &collectionItemResponse)
+	collectionItemResponse.Collection = exists.Collections[0].Id
+	collectionItemResponse.Owner = exists.Owner
 
 	return &models.CollectionItemsDataResponse{Data: collectionItemResponse}, nil
 }
@@ -158,16 +187,21 @@ func (s *CiService) CopyOrMove(id string, targetCollectionIds []string, sourceCo
 		}
 
 		for _, collection := range collections {
-			existsCollection := collection
-			existsCollectionItems := collection.CollectionItems
-			existsCollectionItems = append(existsCollectionItems, *collectionItem)
-			collection.CollectionItems = existsCollectionItems
-			_, errCol := s.collectionRepo.UpdateCollection(existsCollection, collection)
-			if errCol != nil {
-				return nil, err
+			collectionItem.Collections = append(collectionItem.Collections, collection)
+			//existsCollection := collection
+			//existsCollectionItems := collection.CollectionItems
+			//existsCollectionItems = append(existsCollectionItems, *collectionItem)
+			//collection.CollectionItems = existsCollectionItems
+			//_, errCol := s.collectionRepo.UpdateCollection(&existsCollection, &collection)
+			//if errCol != nil {
+			//	return nil, err
+			//}
+			_, erroring := s.repo.UpdateCI(collectionItem, collectionItem)
+			if erroring != nil {
+				return nil, erroring
 			}
 		}
-		result = &dto.CommonResponse{Data: dto.Resp{Success: true}}
+		return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 	}
 
 	sourceCollection, err := s.collectionRepo.GetCollectionById(sourceCollectionId)
@@ -188,11 +222,11 @@ func (s *CiService) CopyOrMove(id string, targetCollectionIds []string, sourceCo
 	targetCollectionItems := append(targetCollection.CollectionItems, *collectionItem)
 	existsSourceCollection.CollectionItems = sourceCollectionItems
 	existsTargetCollection.CollectionItems = targetCollectionItems
-	_, errCol := s.collectionRepo.UpdateCollection(*existsSourceCollection, *sourceCollection)
+	_, errCol := s.collectionRepo.UpdateCollection(existsSourceCollection, sourceCollection)
 	if errCol != nil {
 		return nil, err
 	}
-	_, errCol = s.collectionRepo.UpdateCollection(*existsTargetCollection, *targetCollection)
+	_, errCol = s.collectionRepo.UpdateCollection(existsTargetCollection, targetCollection)
 	if errCol != nil {
 		return nil, err
 	}

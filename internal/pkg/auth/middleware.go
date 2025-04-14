@@ -16,14 +16,12 @@ func (s *JWTService) RequireAuthMiddleware() echo.MiddlewareFunc {
 					"error": "Authorization token required",
 				})
 			}
-
 			login, err := s.ParseToken(token)
 			if err != nil {
 				return c.JSON(http.StatusUnauthorized, map[string]string{
 					"error": "Invalid token",
 				})
 			}
-
 			c.Set("user_login", login)
 			return next(c)
 		}
