@@ -94,25 +94,26 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Collections, error) {
 	var collections []models.Collections
 	err := r.db.
-		Where("user_login = LOWER(?)", strings.ToLower(login)).
-		Preload("User").
+		Where("LOWER(user_login) = LOWER(?)", login).Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems").
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
-		Order("collections.created DESC").
+		Order("created DESC").
 		Find(&collections).Error
 	return collections, err
 }
 
 func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string) ([]models.Collections, error) {
 	var collections []models.Collections
+
 	err := r.db.
-		Where("user_login = LOWER(?)", strings.ToLower(login)).
+		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
 		Preload("Tags").
-		Order("collections.created DESC").
+		Order("created DESC").
 		Find(&collections).Error
+
 	return collections, err
 }
 
