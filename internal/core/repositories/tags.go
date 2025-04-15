@@ -40,3 +40,9 @@ func (r *TagsRepository) GetTagByName(name string) (*models.Tags, error) {
 	}
 	return &tag, nil
 }
+
+func (r *TagsRepository) FindAllTags() ([]*models.Tags, error) {
+	var tags []*models.Tags
+	err := r.db.Find(&tags).Error
+	return tags, err
+}

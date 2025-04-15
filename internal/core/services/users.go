@@ -8,19 +8,21 @@ import (
 	"lootor/internal/core/repositories"
 	"lootor/internal/pkg/auth"
 	"lootor/internal/pkg/dto"
+	"lootor/internal/pkg/mail"
 	"lootor/internal/pkg/utils"
 	"slices"
 	"time"
 )
 
 type UserService struct {
-	repo       *repositories.UsersRepository
-	jwtService *auth.JWTService
-	ciRepo     *repositories.CiRepository
+	repo        *repositories.UsersRepository
+	jwtService  *auth.JWTService
+	ciRepo      *repositories.CiRepository
+	mailService *mail.MailService
 }
 
-func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository) *UserService {
-	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo}
+func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService) *UserService {
+	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService}
 }
 
 func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*models.DataUserResponse, error) {
@@ -190,6 +192,18 @@ func (s *UserService) SignUp(dto *models.SignUpRequest) (*models.SignUpResponse,
 	if err != nil {
 		return nil, err
 	}
+
+	go func() {
+		if s.mailService == nil {
+			fmt.Println("mailService is not initialized")
+			return
+		}
+		err := s.mailService.SendConfirmationEmail(dto.Email, hexString)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}()
+
 	return &models.SignUpResponse{
 		Data: "success",
 	}, nil
