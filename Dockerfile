@@ -1,25 +1,26 @@
-FROM node:20-alpine
+FROM golang:1.24-alpine
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-COPY package*.json ./
+COPY go.mod go.sum ./
+RUN go mod download
 
 COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/main .
 
-#COPY entrypoint.sh /
-#
-#RUN chmod +x /entrypoint.sh
+FROM alpine:3.18
 
-ENV PORT 5111
+WORKDIR /app
+
+COPY --from=builder /app/main /app/main
+COPY --from=builder /app/configs ./configs
+COPY --from=builder /app/migrations ./migrations
+
+RUN apk add --no-cache ca-certificates tzdata
+
+ENV PORT=5111
+ENV GIN_MODE=release
 
 EXPOSE 5111
 
-RUN cat .env
-
-RUN npm install -g npm@8.3.0
-
-RUN npm install
-
-RUN npm run build
-
-CMD ["npm", "run", "start:prod"]
+CMD ["/app/main"]

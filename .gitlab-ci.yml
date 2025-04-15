@@ -58,5 +58,5 @@ deploy:
       EOF
 
   only:
-    - develop
+    - dev
 
