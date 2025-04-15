@@ -23,7 +23,7 @@ func RegisterCollectionsRoutes(e *echo.Echo, jwtService *auth.JWTService, colSer
 	{
 		securedGroup.POST("/collections", controller.CreateCollection)
 		securedGroup.DELETE("/collections", controller.DeleteCollection)
-		securedGroup.POST("/collections", controller.UpdateCollection)
+		securedGroup.POST("/collections/update", controller.UpdateCollection)
 		securedGroup.GET("/collections/like", controller.Like)
 		securedGroup.GET("/collections/tag", controller.GetByTag)
 		securedGroup.GET("/collections/subscribe", controller.Subscribe)

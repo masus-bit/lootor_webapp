@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"errors"
-	"fmt"
 	"gorm.io/gorm"
 	"lootor/internal/core/models"
 	"strings"
@@ -31,7 +30,6 @@ func (r *CollectionsRepository) FindAllCollections() ([]models.Collections, erro
 }
 
 func (r *CollectionsRepository) GetCollectionById(id string) (*models.Collections, error) {
-	fmt.Println(id)
 	var collection models.Collections
 	err := r.db.
 		Preload("User").

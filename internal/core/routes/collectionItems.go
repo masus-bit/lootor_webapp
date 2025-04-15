@@ -20,7 +20,7 @@ func RegisterCollectionItemsRoutes(e *echo.Echo, jwtService *auth.JWTService, ci
 	securedGroup.Use(jwtService.RequireAuthMiddleware())
 	{
 		securedGroup.POST("/collection_item", controller.CreateCollectionItem)
-		securedGroup.POST("/collection_item", controller.UpdateCollectionItem)
+		securedGroup.POST("/collection_item/update", controller.UpdateCollectionItem)
 		securedGroup.DELETE("/collection_item", controller.DeleteCollectionItem)
 		securedGroup.POST("/collection_item/copy", controller.CopyOrMoveCollectionItem)
 

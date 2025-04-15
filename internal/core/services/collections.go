@@ -65,7 +65,9 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 		ShareString:     utils.GenerateRandomStringNoHex(8),
 		UserLogin:       dto.UserLogin,
 	}
+
 	res, err := s.repo.CreateCollection(dbCollection)
+
 	if err != nil {
 		return nil, err
 	}
@@ -161,6 +163,11 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string) 
 		temp.ShippingTotal, _ = s.collectionItemRepo.SumShippingCost(dbCollection.Id)
 		temp.CanSubscribe = !slices.Contains(subArray, dbCollection.Id.String())
 		temp.LikesCount = int64(len(dbCollection.Likes))
+		temp.CanLike = true
+		if authorizedUser != "" {
+			temp.CanLike = !slices.Contains(dbCollection.Likes, authorizedUser)
+		}
+
 		if err != nil {
 			return nil, err
 		}
@@ -192,7 +199,6 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 		authUser, _ = s.userRepo.GetUserByLogin(authorizerUser)
 		subArray = authUser.CollectionSubscriptions
 	}
-
 	var finalCollection models.CollectionsResponse
 	err := mapstructure.Decode(dbCollection, &finalCollection)
 	if err != nil {
@@ -210,6 +216,8 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 		temp.Collection = finalCollection.Id
 		collectionItems = append(collectionItems, temp)
 	}
+	fmt.Println(4)
+
 	finalCollection.CollectionItems = collectionItems
 	finalCollection.ShareString = utils.DefineShareString(authorizerUser, userLogin, dbCollection)
 	finalCollection.CollectionItemsCount, _ = s.collectionItemRepo.GetCountCI(dbCollection.Id)
@@ -217,6 +225,11 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	finalCollection.ShippingTotal, _ = s.collectionItemRepo.SumShippingCost(dbCollection.Id)
 	finalCollection.CanSubscribe = !slices.Contains(subArray, dbCollection.Id.String())
 	finalCollection.LikesCount = int64(len(dbCollection.Likes))
+	finalCollection.CanLike = true
+	if authUser != nil {
+
+		finalCollection.CanLike = !slices.Contains(dbCollection.Likes, authUser.Login)
+	}
 	return &models.CollectionDataResponse{Data: finalCollection}, nil
 
 }

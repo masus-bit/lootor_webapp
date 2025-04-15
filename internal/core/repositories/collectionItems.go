@@ -33,6 +33,7 @@ func (r *CiRepository) GetCIByID(id string) (*models.CollectionItems, error) {
 	err := r.db.
 		Preload("Collections").
 		Preload("Collections.User").
+		Preload("Owner").
 		Preload("Platform").
 		Preload("Entities").
 		Where("id = ? AND deleted = ?", id, false).
@@ -84,48 +85,56 @@ func (r *CiRepository) UpdateCI(existsItem *models.CollectionItems, updated *mod
 }
 
 func (r *CiRepository) Sum(collectionID uuid.UUID) (float64, error) {
-	var sum float64
-	err := r.db.
-		Model(&models.CollectionItems{}).
-		Select("SUM(purchase_price)").
-		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
-		Where("collections_collection_items_collection_items.collections_id = ? AND deleted = ?", collectionID, false).
-		Scan(&sum).Error
-
-	return sum, err
-}
-
-func (r *CiRepository) SumShippingCost(collectionID uuid.UUID) (float64, error) {
-	var sum struct {
-		Sum float64 `gorm:"column:sum"`
+	var result struct {
+		Sum *float64 `gorm:"column:sum"` // Используем указатель для обработки NULL
 	}
 
 	err := r.db.
 		Model(&models.CollectionItems{}).
-		Select("SUM(collection_items.shipping_cost) as sum").
+		Select("COALESCE(SUM(purchase_price), 0) as sum"). // Заменяем NULL на 0
+		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
+		Where("collections_collection_items_collection_items.collections_id = ? AND deleted = ?", collectionID, false).
+		Scan(&result).Error
+
+	if result.Sum == nil {
+		return 0, err // На случай, если все же получим nil
+	}
+	return *result.Sum, err
+}
+func (r *CiRepository) SumShippingCost(collectionID uuid.UUID) (float64, error) {
+	var result struct {
+		Sum *float64 `gorm:"column:sum"` // Используем указатель для обработки NULL
+	}
+
+	err := r.db.
+		Model(&models.CollectionItems{}).
+		Select("COALESCE(SUM(shipping_cost), 0) as sum"). // Заменяем NULL на 0
 		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
 		Where("collections_collection_items_collection_items.collections_id = ? AND collection_items.deleted = ?",
 			collectionID, false).
-		Scan(&sum).Error
+		Scan(&result).Error
 
-	return sum.Sum, err
+	if result.Sum == nil {
+		return 0, err // На случай, если все же получим nil
+	}
+	return *result.Sum, err
 }
 
 func (r *CiRepository) SumByUserLogin(userLogin string) (float64, error) {
 	var result struct {
-		Sum float64 `gorm:"column:sum"`
+		Sum *float64 `gorm:"column:sum"` // Используем указатель для обработки NULL
 	}
 
 	err := r.db.
 		Model(&models.CollectionItems{}).
-		Select("SUM(purchase_price) as sum").
-		Where("owner = ?", userLogin).
+		Select("COALESCE(SUM(purchase_price), 0) as sum"). // Заменяем NULL на 0
+		Where("user_login = ?", userLogin).                // Используем user_login вместо owner (согласно вашей модели)
 		Scan(&result).Error
 
-	if err != nil {
+	if result.Sum == nil {
 		return 0, err
 	}
-	return result.Sum, nil
+	return *result.Sum, err
 }
 
 func (r *CiRepository) DeleteCI(id string) error {

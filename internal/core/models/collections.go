@@ -67,6 +67,7 @@ type CollectionsResponse struct {
 	CanSubscribe         bool                      `json:"canSubscribe"`
 	LikesCount           int64                     `json:"likesCount"`
 	CreatedAt            time.Time                 `json:"createdAt"`
+	CanLike              bool                      `json:"canLike"`
 }
 
 type CollectionDataResponse struct {
