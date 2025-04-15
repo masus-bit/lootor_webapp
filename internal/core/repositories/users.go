@@ -116,13 +116,13 @@ func (r *UsersRepository) GetByTgId(tgId string) (*models.Users, error) {
 	return &user, nil
 }
 
-func (r *UsersRepository) UpdateUser(existsUser models.Users, updated models.Users) (*models.Users, error) {
-	result := r.db.Model(existsUser).Updates(updated)
+func (r *UsersRepository) UpdateUser(existsUser *models.Users, updated models.Users) (*models.Users, error) {
+	result := r.db.Model(existsUser).Select("*").Updates(updated)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
 	var updatedUser models.Users
-	err := r.db.First(&updatedUser, existsUser.Login).Error
+	err := r.db.Where("login = ?", existsUser.Login).First(&updatedUser).Error
 	return &updatedUser, err
 }

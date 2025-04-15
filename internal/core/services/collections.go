@@ -259,7 +259,7 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 		dbCollection.SubscribersCount = dbCollection.SubscribersCount - 1
 	}
 
-	_, err = s.userRepo.UpdateUser(*subscriber, *subscriber)
+	_, err = s.userRepo.UpdateUser(subscriber, *subscriber)
 	if err != nil {
 		return nil, err
 	}

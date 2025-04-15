@@ -81,7 +81,7 @@ func (s *UserService) ChangeRating(isLike bool, login string) (*dto.CommonRespon
 	} else {
 		existsUser.Dislikes = existsUser.Dislikes + 1
 	}
-	_, err = s.repo.UpdateUser(*existsUser, *existsUser)
+	_, err = s.repo.UpdateUser(existsUser, *existsUser)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (s *UserService) ChangePassword(password string, login string, authUserLogi
 	}
 
 	existsUser.PasswordHash, _ = auth.HashPassword(password)
-	_, err = s.repo.UpdateUser(*existsUser, *existsUser)
+	_, err = s.repo.UpdateUser(existsUser, *existsUser)
 	if err != nil {
 		return nil, err
 	}
@@ -126,11 +126,11 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		subscriber.Subscriptions = utils.RemoveByValue(subscriber.Subscriptions, targetUserLogin)
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers - 1
 	}
-	_, err = s.repo.UpdateUser(*subscriber, *subscriber)
+	_, err = s.repo.UpdateUser(subscriber, *subscriber)
 	if err != nil {
 		return nil, err
 	}
-	_, err = s.repo.UpdateUser(*subscriptionTargetUser, *subscriptionTargetUser)
+	_, err = s.repo.UpdateUser(subscriptionTargetUser, *subscriptionTargetUser)
 	if err != nil {
 		return nil, err
 	}
@@ -216,8 +216,14 @@ func (s *UserService) Verification(token string) (*models.SignInResponse, error)
 	if err != nil {
 		return nil, err
 	}
-	dbUser.VerificationToken = ""
-	_, err = s.repo.UpdateUser(*dbUser, *dbUser)
+	var newUser *models.Users
+	err = mapstructure.Decode(dbUser, &newUser)
+	if err != nil {
+		return nil, err
+	}
+
+	newUser.VerificationToken = ""
+	_, err = s.repo.UpdateUser(dbUser, *newUser)
 	if err != nil {
 		return nil, err
 	}
