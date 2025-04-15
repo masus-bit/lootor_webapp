@@ -72,7 +72,7 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 	err := r.db.
 		Where("collections.transliteration = ?", transliteration).
 		Where("collections.deleted = ?", false).
-		Joins("User", func(db *gorm.DB) *gorm.DB {
+		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Where("LOWER(users.login) = LOWER(?)", login)
 		}).
 		Preload("Tags").
@@ -94,7 +94,7 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Collections, error) {
 	var collections []models.Collections
 	err := r.db.
-		Joins("User", func(db *gorm.DB) *gorm.DB {
+		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Where("LOWER(users.login) = LOWER(?)", login)
 		}).
 		Preload("Tags").
@@ -109,7 +109,7 @@ func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Co
 func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string) ([]models.Collections, error) {
 	var collections []models.Collections
 	err := r.db.
-		Joins("User", func(db *gorm.DB) *gorm.DB {
+		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Where("LOWER(users.login) = LOWER(?)", login)
 		}).
 		Preload("Tags").
@@ -121,7 +121,7 @@ func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string) 
 func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string) ([]models.Collections, error) {
 	var collections []models.Collections
 	err := r.db.
-		Joins("User", func(db *gorm.DB) *gorm.DB {
+		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Where("LOWER(users.login) = LOWER(?)", login)
 		}).
 		Preload("Tags").
@@ -181,7 +181,7 @@ func (r *CollectionsRepository) GetCollectionCountByUserLogin(login string) (int
 
 	err := r.db.
 		Model(&models.Collections{}).
-		Joins("User", func(db *gorm.DB) *gorm.DB {
+		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Where("LOWER(users.login) = LOWER(?)", login)
 		}).
 		Where("collections.deleted = ?", false).
