@@ -65,14 +65,17 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 		PurchasePrice: dto.PurchasePrice,
 		Sealed:        dto.Sealed,
 		Edition:       dto.Edition,
-		CopyNumber:    dto.CopyNumber,
-		ShippingCost:  dto.ShippingCost,
-		Entities:      entities,
-		Platform:      platform,
-		Owner:         *owner,
-		Collections:   collectionsSlice,
-		PlatformID:    platformID,
-		UserLogin:     owner.Login,
+		//CopyNumber:    int64(dto.CopyNumber[0]),
+		ShippingCost: dto.ShippingCost,
+		Entities:     entities,
+		Platform:     platform,
+		Owner:        *owner,
+		Collections:  collectionsSlice,
+		PlatformID:   platformID,
+		UserLogin:    owner.Login,
+	}
+	if dto.CopyNumber != nil {
+		dbCollectionItem.CopyNumber = dto.CopyNumber
 	}
 	collectionItem, err := s.repo.CreateCI(dbCollectionItem)
 	if err != nil {
