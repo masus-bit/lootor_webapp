@@ -34,6 +34,32 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 
 	e := echo.New()
 
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{
+			"https://dev.lootor.me", // Ваш основной домен
+			"https://www.lootor.me", // С www
+			"http://localhost:3000", // Локальная разработка
+			"http://localhost:4173", // Vite dev server
+			"*",
+		},
+		AllowMethods: []string{
+			echo.GET,
+			echo.POST,
+			echo.PUT,
+			echo.DELETE,
+			echo.OPTIONS,
+		},
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+			"X-Requested-With",
+		},
+		AllowCredentials: true,
+		MaxAge:           86400,
+	}))
+
 	// Инициализация БД
 	db, err := database.InitDB(&cfg.Database)
 	if err != nil {

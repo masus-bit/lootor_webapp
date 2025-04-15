@@ -140,3 +140,32 @@ func (c *UserController) Subscribe(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, response)
 }
+
+func (c *UserController) Verification(ctx echo.Context) error {
+	token := ctx.QueryParam("verificationToken")
+
+	response, err := c.userService.Verification(token)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+}
+
+func (c *UserController) RenewTokens(ctx echo.Context) error {
+	var request models.RenewTokensRequest
+	err := ctx.Bind(&request)
+	if err != nil {
+		return err
+	}
+	response, err := c.userService.RefreshTokens(request.RefreshToken)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+}

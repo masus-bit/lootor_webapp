@@ -209,3 +209,30 @@ func (s *UserService) SignUp(dto *models.SignUpRequest) (*models.SignUpResponse,
 	}, nil
 
 }
+
+func (s *UserService) Verification(token string) (*models.SignInResponse, error) {
+	var tokens *auth.TokenPair
+	dbUser, err := s.repo.GetByVerificationToken(token)
+	if err != nil {
+		return nil, err
+	}
+	dbUser.VerificationToken = ""
+	_, err = s.repo.UpdateUser(*dbUser, *dbUser)
+	if err != nil {
+		return nil, err
+	}
+	tokens, err = s.jwtService.GenerateTokenPair(dbUser)
+	if err != nil {
+		return nil, err
+	}
+	return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
+}
+
+func (s *UserService) RefreshTokens(refreshToken string) (*models.SignInResponse, error) {
+
+	tokens, err := s.jwtService.RenewTokenPair(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+	return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
+}

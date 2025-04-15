@@ -80,6 +80,10 @@ type SignInResponse struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
+type RenewTokensRequest struct {
+	RefreshToken string `json:"refreshToken" validate:"required"`
+}
+
 type SignUpResponse struct {
 	Data string `json:"data"`
 }
