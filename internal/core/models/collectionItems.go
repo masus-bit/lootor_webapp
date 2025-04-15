@@ -13,7 +13,7 @@ type EntitiesCollectionItemCollectionItem struct {
 
 type CollectionItems struct {
 	gorm.Model
-	Id              uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()"`
+	Id              uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	Name            string
 	Description     string
 	Images          pq.StringArray `gorm:"type:text[]"`

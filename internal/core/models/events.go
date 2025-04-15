@@ -5,7 +5,7 @@ import (
 )
 
 type Events struct {
-	ID              uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()"`
+	ID              uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	Date            string
 	Action          string `gorm:"type:varchar(100);not null"`
 	EventTargetType string `gorm:"type:varchar(50);not null"` // "collection", "user" или "item"
