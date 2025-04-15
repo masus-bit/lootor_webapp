@@ -47,7 +47,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	)
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     os.Getenv("REDIS_HOST"),
 		Password: "",
 		DB:       0,
 	})

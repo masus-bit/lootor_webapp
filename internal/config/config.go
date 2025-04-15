@@ -27,7 +27,7 @@ func Load() (*Config, error) {
 
 	return &Config{
 		Server: ServerConfig{
-			Address: "localhost:5111"},
+			Address: "0.0.0.0:5111"},
 		Database: DatabaseConfig{
 			Host:     os.Getenv("POSTGRES_HOST"),
 			Port:     os.Getenv("POSTGRES_PORT"),
