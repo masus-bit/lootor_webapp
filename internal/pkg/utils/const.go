@@ -7,7 +7,8 @@ const (
 )
 
 const (
-	EventActionCreate = "create"
-	EventActionUpdate = "update"
-	EventActionDelete = "delete"
+	EventActionCreate    = "create"
+	EventActionUpdate    = "update"
+	EventActionDelete    = "delete"
+	EventActionSubscribe = "subscribe"
 )

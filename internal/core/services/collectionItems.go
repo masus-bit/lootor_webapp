@@ -79,12 +79,10 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 		return nil, err
 	}
 	if !collection.IsPrivate {
-		go func() {
-			eventError := s.eventRepo.AddEvent(authUserLogin, utils.EventActionCreate, utils.EventTargetCollectionItem, dto.Name, nil, nil, &collectionItem.Id)
-			if eventError != nil {
-				log.Default().Print(eventError)
-			}
-		}()
+		eventError := s.eventRepo.AddEvent(authUserLogin, utils.EventActionCreate, utils.EventTargetCollectionItem, dto.Name, nil, nil, &collectionItem.Id)
+		if eventError != nil {
+			log.Default().Print(eventError)
+		}
 	}
 
 	var collectionItemResponse models.CollectionItemsResponse
@@ -102,12 +100,10 @@ func (s *CiService) Delete(id string) (*dto.CommonResponse, error) {
 	var result *dto.CommonResponse
 	if exists != nil {
 		if !exists.Collections[0].IsPrivate {
-			go func() {
-				eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionDelete, utils.EventTargetCollectionItem, exists.Name, nil, nil, &exists.Id)
-				if eventError != nil {
-					log.Default().Print(eventError)
-				}
-			}()
+			eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionDelete, utils.EventTargetCollectionItem, exists.Name, nil, nil, &exists.Id)
+			if eventError != nil {
+				log.Default().Print(eventError)
+			}
 		}
 		err := s.repo.DeleteCI(id)
 		if err != nil {

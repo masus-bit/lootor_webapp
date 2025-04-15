@@ -38,7 +38,7 @@ func (r *EventsRepository) AddEvent(
 		event.TargetUserLogin = targetUserLogin
 	case "collection":
 		event.TargetCollectionID = targetCollectionID
-	case "item":
+	case "collectionItem":
 		event.TargetItemID = targetItemID
 	default:
 		return fmt.Errorf("unknown target type: %s", targetType)
@@ -53,7 +53,7 @@ func (r *EventsRepository) GetEvents(subscriptions []string) ([]models.Events, e
 	err := r.db.
 		Preload("Initiator").
 		Where("initiator_login IN ?", subscriptions).
-		Order("created_at DESC").
+		Order("date DESC").
 		Find(&events).Error
 
 	if err != nil {
@@ -92,6 +92,35 @@ func (r *EventsRepository) GetEvents(subscriptions []string) ([]models.Events, e
 				events[i].TargetCollection = nil
 			}
 		}
+	}
+
+	return events, nil
+}
+
+func (r *EventsRepository) GetFilteredEvents(
+	userLogin string,
+	collectionId string,
+	collectionItemId string,
+) ([]models.Events, error) {
+	var events []models.Events
+
+	query := r.db.Model(&models.Events{}).
+		Where("initiator_login = ?", userLogin).
+		Or("target_collection_id = ?", collectionId).
+		Or("target_item_id = ?", collectionItemId).
+		Order("date DESC")
+
+	// Добавляем joins с предварительной загрузкой связанных данных
+	query = query.
+		Joins("LEFT JOIN users ON users.login = events.target_user_login").
+		Joins("LEFT JOIN collections ON collections.id = events.target_collection_id").
+		Joins("LEFT JOIN collection_items ON collection_items.id = events.target_collection_item_id").
+		Preload("TargetUserLogin").
+		Preload("TargetCollectionId").
+		Preload("TargetCollectionItemId")
+
+	if err := query.Find(&events).Error; err != nil {
+		return nil, fmt.Errorf("failed to get events: %w", err)
 	}
 
 	return events, nil

@@ -19,22 +19,22 @@ type TagsCollectionsCollections struct {
 
 type Collections struct {
 	gorm.Model
-	Id               uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	Name             string
-	Description      string
-	Created          string
-	IsPrivate        bool
-	BannerUrl        string
-	Likes            pq.StringArray `gorm:"type:text[]"`
+	Id               uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	Name             string         `json:"name"`
+	Description      string         `json:"description"`
+	Created          string         `json:"created"`
+	IsPrivate        bool           `json:"isPrivate"`
+	BannerUrl        string         `json:"bannerUrl"`
+	Likes            pq.StringArray `gorm:"type:text[]" json:"likes"`
 	Deleted          bool
-	Transliteration  string
-	SubscribersCount int64
-	TotalPrice       int64
-	ShippingTotal    int64
-	ShareString      string
-	CollectionItems  []CollectionItems `gorm:"many2many:collections_collection_items_collection_items;constraint:OnDelete:CASCADE;"`
-	User             *Users            `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
-	Tags             []Tags            `gorm:"many2many:tags_collections_collections;constraint:OnDelete:CASCADE;"`
+	Transliteration  string            `json:"transliteration"`
+	SubscribersCount int64             `json:"subscribersCount"`
+	TotalPrice       int64             `json:"totalPrice"`
+	ShippingTotal    int64             `json:"shippingTotal"`
+	ShareString      string            `json:"shareString"`
+	CollectionItems  []CollectionItems `gorm:"many2many:collections_collection_items_collection_items;constraint:OnDelete:CASCADE;" json:"collectionItems"`
+	User             *Users            `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;" json:"user"`
+	Tags             []Tags            `gorm:"many2many:tags_collections_collections;constraint:OnDelete:CASCADE;" json:"tags"`
 	UserLogin        string            `gorm:"type:varchar(255);index"`
 	DeletedAt        gorm.DeletedAt    `gorm:"index"`
 }

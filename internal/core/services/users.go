@@ -19,10 +19,11 @@ type UserService struct {
 	jwtService  *auth.JWTService
 	ciRepo      *repositories.CiRepository
 	mailService *mail.MailService
+	evRepo      *repositories.EventsRepository
 }
 
-func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService) *UserService {
-	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService}
+func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService, evRepo *repositories.EventsRepository) *UserService {
+	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, evRepo: evRepo}
 }
 
 func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*models.DataUserResponse, error) {
@@ -133,6 +134,11 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 	_, err = s.repo.UpdateUser(subscriptionTargetUser, *subscriptionTargetUser)
 	if err != nil {
 		return nil, err
+	}
+
+	err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, nil, nil, nil)
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil

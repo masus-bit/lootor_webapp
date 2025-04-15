@@ -5,22 +5,22 @@ import (
 )
 
 type Users struct {
-	Login                   string `gorm:"primaryKey"`
-	UserName                string
-	Password                string `gorm:"-" json:"password"`
-	PasswordHash            string `gorm:"column:password" json:"-"`
-	VkId                    string
-	TelegramId              string
-	Email                   string
-	Created                 string
-	Likes                   int
-	Dislikes                int
-	AvatarUrl               string
-	BackgroundUrl           string
-	VerificationToken       string
-	Subscribers             int
-	Subscriptions           pq.StringArray `gorm:"type:text[]"`
-	CollectionSubscriptions pq.StringArray `gorm:"type:text[]"`
+	Login                   string         `gorm:"primaryKey" json:"login"`
+	UserName                string         `json:"userName"`
+	Password                string         `gorm:"-" json:"-"`
+	PasswordHash            string         `gorm:"column:password" json:"-"`
+	VkId                    string         `json:"vkId"`
+	TelegramId              string         `json:"telegramId"`
+	Email                   string         `json:"email"`
+	Created                 string         `json:"created"`
+	Likes                   int            `json:"likes"`
+	Dislikes                int            `json:"dislikes"`
+	AvatarUrl               string         `json:"avatarUrl"`
+	BackgroundUrl           string         `json:"backgroundUrl"`
+	VerificationToken       string         `json:"verificationToken"`
+	Subscribers             int            `json:"subscribers"`
+	Subscriptions           pq.StringArray `gorm:"type:text[]" json:"subscriptions"`
+	CollectionSubscriptions pq.StringArray `gorm:"type:text[]" json:"collectionSubscriptions"`
 }
 
 type SignUpRequest struct {

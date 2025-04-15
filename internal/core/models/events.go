@@ -18,7 +18,11 @@ type Events struct {
 	TargetCollectionID *uuid.UUID `gorm:"type:uuid" json:"targetCollectionID"`
 	TargetItemID       *uuid.UUID `gorm:"type:uuid" json:"targetItemID"`
 
-	TargetUser       *Users           `gorm:"-"`
-	TargetCollection *Collections     `gorm:"-"`
-	TargetItem       *CollectionItems `gorm:"-"`
+	TargetUser       *Users           `gorm:"-" json:"targetUser"`
+	TargetCollection *Collections     `gorm:"-" json:"targetCollection"`
+	TargetItem       *CollectionItems `gorm:"-" json:"targetItem"`
+}
+
+type EventsDataResponse struct {
+	Data []Events `json:"data"`
 }
