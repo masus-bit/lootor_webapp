@@ -5,18 +5,18 @@ import (
 )
 
 type Events struct {
-	ID              uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	Date            string
-	Action          string `gorm:"type:varchar(100);not null"`
-	EventTargetType string `gorm:"type:varchar(50);not null"` // "collection", "user" или "item"
-	TargetName      string `gorm:"type:varchar(255)"`
+	Id              uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"Id"`
+	Date            string    `json:"date"`
+	Action          string    `gorm:"type:varchar(100);not null" json:"action"`
+	EventTargetType string    `gorm:"type:varchar(50);not null" json:"eventTargetType"` // "collection", "user" или "item"
+	TargetName      string    `gorm:"type:varchar(255)" json:"targetName"`
 
-	InitiatorLogin string `gorm:"type:varchar(255);not null"`
-	Initiator      Users  `gorm:"foreignKey:InitiatorLogin;references:Login"`
+	InitiatorLogin string `gorm:"type:varchar(255);not null" json:"initiatorLogin"`
+	Initiator      Users  `gorm:"foreignKey:InitiatorLogin;references:Login" json:"initiator"`
 
-	TargetUserLogin    *string    `gorm:"type:varchar(255)"`
-	TargetCollectionID *uuid.UUID `gorm:"type:uuid"`
-	TargetItemID       *uuid.UUID `gorm:"type:uuid"`
+	TargetUserLogin    *string    `gorm:"type:varchar(255)" json:"targetUserLogin"`
+	TargetCollectionID *uuid.UUID `gorm:"type:uuid" json:"targetCollectionID"`
+	TargetItemID       *uuid.UUID `gorm:"type:uuid" json:"targetItemID"`
 
 	TargetUser       *Users           `gorm:"-"`
 	TargetCollection *Collections     `gorm:"-"`

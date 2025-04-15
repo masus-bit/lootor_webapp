@@ -7,8 +7,8 @@ import (
 
 type Platforms struct {
 	gorm.Model
-	Id   uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	Name string
+	Id   uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	Name string    `json:"name"`
 }
 
 type PlatformsDataResponse struct {

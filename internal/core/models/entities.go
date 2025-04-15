@@ -7,9 +7,9 @@ import (
 
 type Entities struct {
 	gorm.Model
-	Id             uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	Name           string
-	CollectionItem []CollectionItems `gorm:"many2many:entities_collection_item_collection_items;constraint:OnDelete:CASCADE;"`
+	Id             uuid.UUID         `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	Name           string            `json:"name"`
+	CollectionItem []CollectionItems `gorm:"many2many:entities_collection_item_collection_items;constraint:OnDelete:CASCADE;" json:"collectionItem"`
 }
 
 type EntitiesCreateRequest struct {

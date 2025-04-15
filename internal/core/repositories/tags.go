@@ -14,11 +14,17 @@ func NewTagsRepository(db *gorm.DB) *TagsRepository {
 }
 
 func (r *TagsRepository) AddTag(tag *models.Tags) (*models.Tags, error) {
-	err := r.db.Create(&tag)
-	if err != nil {
-		return nil, err.Error
+	result := r.db.Create(tag)
+	if result.Error != nil {
+		return nil, result.Error
 	}
-	return tag, nil
+
+	var createdTag models.Tags
+	if err := r.db.First(&createdTag, tag.Id).Error; err != nil {
+		return nil, err
+	}
+
+	return &createdTag, nil
 }
 
 func (r *TagsRepository) SearchTagsByName(searchTerm string) ([]*models.Tags, error) {

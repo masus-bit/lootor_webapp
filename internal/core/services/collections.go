@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"github.com/mitchellh/mapstructure"
 	"log"
 	"lootor/internal/core/models"
@@ -24,20 +25,31 @@ func NewCollectionService(repo *repositories.CollectionsRepository, tagsRepo *re
 	return &CollectionService{repo: repo, tagsRepo: tagsRepo, userRepo: userRepo, eventRepo: eventRepo, collectionItemRepo: collectionItemRepo}
 }
 
-func (s *CollectionService) processTags(tags []string) []models.Tags {
+func (s *CollectionService) processTags(tags []string) ([]models.Tags, error) {
 	var resultTags []models.Tags
 	for _, tag := range tags {
-		tagByName, _ := s.tagsRepo.GetTagByName(tag)
-		if tagByName == nil {
-			tagByName, _ = s.tagsRepo.AddTag(&models.Tags{Name: tag})
+		tagByName, err := s.tagsRepo.GetTagByName(tag)
+		if err != nil {
+			fmt.Errorf("failed to get tag: %w", err)
 		}
+
+		if tagByName == nil {
+			newTag := &models.Tags{Name: tag}
+			tagByName, err = s.tagsRepo.AddTag(newTag)
+			if err != nil {
+				fmt.Errorf("failed to add tag: %w", err)
+			}
+			if tagByName == nil {
+				fmt.Errorf("unexpected nil tag after adding")
+			}
+		}
+
 		resultTags = append(resultTags, *tagByName)
 	}
-	return resultTags
+	return resultTags, nil
 }
-
 func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models.CollectionDataResponse, error) {
-	processTags := s.processTags(dto.Tags)
+	processTags, _ := s.processTags(dto.Tags)
 	dtoUser, _ := s.userRepo.GetUserByLogin(dto.UserLogin)
 	dbCollection := &models.Collections{
 		Name:            dto.Name,
@@ -87,7 +99,7 @@ func (s *CollectionService) Update(id string, dto *models.CollectionCreateReques
 	if err != nil {
 		return nil, err
 	}
-	processTags := s.processTags(dto.Tags)
+	processTags, _ := s.processTags(dto.Tags)
 
 	var dbCollection models.Collections
 	err = mapstructure.Decode(dto, &dbCollection)
