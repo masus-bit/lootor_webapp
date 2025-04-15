@@ -17,7 +17,7 @@ func RegisterRoutes(e *echo.Echo, jwtService *auth.JWTService, userService servi
 		publicGroup.POST("/auth/signin", controller.SignIn)
 		publicGroup.GET("/user", controller.GetByLogin)
 		publicGroup.GET("/auth/verification", controller.Verification)
-		publicGroup.GET("/auth/refresh", controller.RenewTokens)
+		publicGroup.POST("/auth/refresh", controller.RenewTokens)
 	}
 
 	securedGroup := e.Group("/secured")

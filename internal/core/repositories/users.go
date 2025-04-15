@@ -47,7 +47,7 @@ func (r *UsersRepository) GetByLoginWithPassword(login string) (*models.Users, e
 func (r *UsersRepository) GetUserByLogin(login string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("login = ?", login).First(&user).Error
+	err := r.db.Where("LOWER(login) = LOWER(?)", login).First(&user).Error
 
 	if err != nil {
 		return nil, err
