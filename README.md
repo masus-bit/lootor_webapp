@@ -1,3 +1,3 @@
 go mod tidy
 
-go build lootor/cmd/api
+go run cmd/api/main.go
