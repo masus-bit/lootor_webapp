@@ -102,7 +102,7 @@ func (r *CiRepository) SumShippingCost(collectionID uuid.UUID) (float64, error) 
 
 	err := r.db.
 		Model(&models.CollectionItems{}).
-		Select("SUM(collection_item.shipping_cost) as sum").
+		Select("SUM(collection_items.shipping_cost) as sum").
 		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
 		Where("collections_collection_items_collection_items.collections_id = ? AND collection_items.deleted = ?",
 			collectionID, false).
