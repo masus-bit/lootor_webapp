@@ -8,7 +8,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/mitchellh/mapstructure"
 	"io"
-	"log"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/pkg/auth"
@@ -360,36 +359,36 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		RefreshToken: tokens.RefreshToken,
 	}, nil
 }
-func (s *UserService) getUserInfo(accessToken string) (models.VkAuthGetUserInfo, error) {
-	v := "5.131"
-	fields := "email,photo_200"
+func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo, error) {
 	baseUrl := "https://api.vk.com/method/users.get"
 
 	params := url.Values{}
 	params.Add("access_token", accessToken)
-	params.Add("v", v)
-	params.Add("fields", fields)
+	params.Add("v", "5.131")
+	params.Add("fields", "email,photo_200")
 
-	fullUrl := fmt.Sprintf("%s?%s", baseUrl, params.Encode())
-
-	resp, err := http.Get(fullUrl)
+	resp, err := http.Get(baseUrl + "?" + params.Encode())
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("vk api request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("vk api error: %s", string(body))
 	}
 
-	var respStruct models.VkAuthGetUserInfoData
-
-	err = json.Unmarshal(body, &respStruct)
-	if err != nil {
-		return models.VkAuthGetUserInfo{}, err
+	var response struct {
+		Response []models.VkAuthGetUserInfo `json:"response"`
 	}
 
-	fmt.Println(string(body))
-	return respStruct.Data.Response[0], nil
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("failed to parse user info: %w", err)
+	}
+
+	if len(response.Response) == 0 {
+		return nil, errors.New("empty user info response")
+	}
+
+	return &response.Response[0], nil
 }
