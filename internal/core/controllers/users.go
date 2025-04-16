@@ -185,9 +185,27 @@ func (c *UserController) VkOauth(ctx echo.Context) error {
 		State:         state,
 		CodeChallenge: codeChallenge,
 	}
-	err := ctx.Bind(&request)
-	if err != nil {
-		return err
+	switch "" {
+	case code:
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Code parameter is required",
+		})
+	case codeVerifier:
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "CodeVerifier parameter is required",
+		})
+	case deviceId:
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "DeviceId parameter is required",
+		})
+	case state:
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "State parameter is required",
+		})
+	case codeChallenge:
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "CodeChallenge parameter is required",
+		})
 	}
 	response, err := c.userService.VkOauth(&request)
 	if err != nil {
