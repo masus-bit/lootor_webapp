@@ -1,16 +1,24 @@
 package services
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"github.com/mitchellh/mapstructure"
+	"io"
+	"log"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/pkg/auth"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/mail"
 	"lootor/internal/pkg/utils"
+	"net/http"
+	"net/url"
+	"os"
 	"slices"
 	"time"
 )
@@ -24,6 +32,7 @@ type UserService struct {
 }
 
 func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService, evRepo *repositories.EventsRepository) *UserService {
+	_ = godotenv.Load()
 	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, evRepo: evRepo}
 }
 
@@ -248,4 +257,117 @@ func (s *UserService) RefreshTokens(refreshToken string) (*models.SignInResponse
 		return nil, err
 	}
 	return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
+}
+
+func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInResponse, error) {
+
+	req := models.VkAuthRequest{
+		GrantType:    "authorization_code",
+		ClientID:     os.Getenv("VK_CLIENT_ID"),
+		Code:         dto.Code,
+		CodeVerifier: dto.CodeVerifier,
+		DeviceId:     dto.DeviceId,
+		State:        dto.State,
+		RedirectUri:  os.Getenv("FRONTEND_URL"),
+	}
+
+	reqBody, err := json.Marshal(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	resp, err := http.Post("https://id.vk.com/oauth2/auth", "application/x-www-form-urlencoded", bytes.NewReader(reqBody))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	var respStruct models.VkAuthGetToken
+
+	err = json.Unmarshal(body, &respStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	userInfo, err := s.getUserInfo(respStruct.Data.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+
+	passwordHash, _ := auth.HashPassword("vk" + userInfo.Login)
+
+	existsUser, err := s.repo.GetByVkId(userInfo.VkId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if existsUser != nil {
+		tokens, err := s.jwtService.GenerateTokenPair(existsUser)
+		if err != nil {
+			return nil, err
+		}
+		return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
+	}
+
+	err = s.repo.CreateUser(&models.Users{
+		VkId:         userInfo.VkId,
+		Login:        userInfo.VkId,
+		Email:        userInfo.Email,
+		UserName:     userInfo.UserName,
+		AvatarUrl:    userInfo.AvatarUrl,
+		Created:      time.Now().Format(time.RFC3339),
+		PasswordHash: passwordHash,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.repo.GetByVkId(userInfo.VkId)
+	if err != nil {
+		return nil, err
+	}
+	if user != nil {
+		tokens, err := s.jwtService.GenerateTokenPair(user)
+		if err != nil {
+			return nil, err
+		}
+		return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
+	}
+	return nil, errors.New("user not found")
+}
+
+func (s *UserService) getUserInfo(accessToken string) (models.VkAuthGetUserInfo, error) {
+	v := "5.131"
+	fields := "email,photo_200"
+	baseUrl := "https://api.vk.com/method/users.get"
+
+	params := url.Values{}
+	params.Add("access_token", accessToken)
+	params.Add("v", v)
+	params.Add("fields", fields)
+
+	fullUrl := fmt.Sprintf("%s?%s", baseUrl, params.Encode())
+
+	resp, err := http.Get(fullUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var respStruct models.VkAuthGetUserInfoData
+
+	err = json.Unmarshal(body, &respStruct)
+	if err != nil {
+		return models.VkAuthGetUserInfo{}, err
+	}
+
+	fmt.Println(string(body))
+	return respStruct.Data.Response[0], nil
 }

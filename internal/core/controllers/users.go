@@ -171,3 +171,30 @@ func (c *UserController) RenewTokens(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, response)
 }
+
+func (c *UserController) VkOauth(ctx echo.Context) error {
+	code := ctx.QueryParam("code")
+	codeVerifier := ctx.QueryParam("codeVerifier")
+	deviceId := ctx.QueryParam("deviceId")
+	state := ctx.QueryParam("state")
+	codeChallenge := ctx.QueryParam("codeChallenge")
+	request := models.VkOauthRequest{
+		Code:          code,
+		CodeVerifier:  codeVerifier,
+		DeviceId:      deviceId,
+		State:         state,
+		CodeChallenge: codeChallenge,
+	}
+	err := ctx.Bind(&request)
+	if err != nil {
+		return err
+	}
+	response, err := c.userService.VkOauth(&request)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+}

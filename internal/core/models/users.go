@@ -88,6 +88,47 @@ type SignUpResponse struct {
 	Data string `json:"data"`
 }
 
+type VkOauthRequest struct {
+	Code          string `json:"code" validate:"required"`
+	CodeVerifier  string `json:"codeVerifier" validate:"required"`
+	DeviceId      string `json:"deviceId" validate:"required"`
+	State         string `json:"state" validate:"required"`
+	CodeChallenge string `json:"codeChallenge" validate:"required"`
+}
+
+type VkAuthRequest struct {
+	GrantType    string `json:"grant_type"`
+	ClientID     string `json:"client_id"`
+	Code         string `json:"code"`
+	CodeVerifier string `json:"code_verifier"`
+	RedirectUri  string `json:"redirect_uri"`
+	DeviceId     string `json:"device_id"`
+	State        string `json:"state"`
+}
+
+type VkAuthGetTokenData struct {
+	AccessToken string `json:"access_token"`
+}
+type VkAuthGetToken struct {
+	Data VkAuthGetTokenData `json:"data"`
+}
+
+type VkAuthGetUserInfo struct {
+	VkId      string `json:"vk_id"`
+	Email     string `json:"email"`
+	UserName  string `json:"first_name"`
+	AvatarUrl string `json:"photo_200"`
+	Login     string `json:"id"`
+}
+
+type VkAuthGetUserInfoResponse struct {
+	Response []VkAuthGetUserInfo `json:"response"`
+}
+
+type VkAuthGetUserInfoData struct {
+	Data VkAuthGetUserInfoResponse `json:"data"`
+}
+
 func (u *Users) GetLogin() string         { return u.Login }
 func (u *Users) GetUserName() string      { return u.UserName }
 func (u *Users) GetVkId() string          { return u.VkId }
