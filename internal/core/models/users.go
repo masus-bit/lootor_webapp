@@ -109,24 +109,16 @@ type VkAuthRequest struct {
 type VkAuthGetTokenData struct {
 	AccessToken string `json:"access_token"`
 }
-type VkAuthGetToken struct {
-	Data VkAuthGetTokenData `json:"data"`
-}
 
 type VkAuthGetUserInfo struct {
-	VkId      string `json:"vk_id"`
+	Id        int64  `json:"id"`
 	Email     string `json:"email"`
-	UserName  string `json:"first_name"`
+	FirstName string `json:"first_name"`
 	AvatarUrl string `json:"photo_200"`
-	Login     string `json:"id"`
 }
 
 type VkAuthGetUserInfoResponse struct {
 	Response []VkAuthGetUserInfo `json:"response"`
-}
-
-type VkAuthGetUserInfoData struct {
-	Data VkAuthGetUserInfoResponse `json:"data"`
 }
 
 func (u *Users) GetLogin() string         { return u.Login }

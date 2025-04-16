@@ -258,8 +258,14 @@ func (s *UserService) RefreshTokens(refreshToken string) (*models.SignInResponse
 	return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
 }
 
+type VkAuthResponse struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int    `json:"expires_in"`
+	UserID      int    `json:"user_id"`
+	Email       string `json:"email,omitempty"`
+}
+
 func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInResponse, error) {
-	// Формируем параметры как form-data
 	params := url.Values{}
 	params.Add("grant_type", "authorization_code")
 	params.Add("client_id", os.Getenv("VK_CLIENT_ID"))
@@ -269,7 +275,6 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 	params.Add("device_id", dto.DeviceId)
 	params.Add("state", dto.State)
 
-	// Создаем запрос с правильным Content-Type
 	req, err := http.NewRequest(
 		"POST",
 		"https://id.vk.com/oauth2/auth",
@@ -281,37 +286,39 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	// Отправляем запрос
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("auth request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// Проверяем статус код
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("vk auth error: %s", string(body))
+
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	// Парсим ответ
-	var tokenResp models.VkAuthGetToken
-	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
-		return nil, fmt.Errorf("failed to parse token response: %w", err)
-	}
+	var tokenResp models.VkAuthGetTokenData
+	//fmt.Printf("VK API RAW RESPONSE: %s\n", string(body))
 
-	// Получаем информацию о пользователе
-	userInfo, err := s.getUserInfo(tokenResp.Data.AccessToken)
+	if err := json.Unmarshal(body, &tokenResp); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w, body: %s", err, string(body))
+	}
+	userInfo, err := s.getUserInfo(tokenResp.AccessToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user info: %w", err)
 	}
 
-	// Логика создания/поиска пользователя
-	existsUser, err := s.repo.GetByVkId(userInfo.VkId)
-	if err != nil {
-		return nil, fmt.Errorf("db error: %w", err)
-	}
+	newId := fmt.Sprintf("%d", userInfo.Id)
+
+	existsUser, _ := s.repo.GetByVkId(userInfo.FirstName + "@" + newId)
 
 	if existsUser != nil {
 		tokens, err := s.jwtService.GenerateTokenPair(existsUser)
@@ -324,27 +331,26 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		}, nil
 	}
 
-	// Создаем нового пользователя
-	passwordHash, err := auth.HashPassword("vk" + userInfo.Login)
+	passwordHash, err := auth.HashPassword("vk" + newId)
 	if err != nil {
 		return nil, fmt.Errorf("password hash error: %w", err)
 	}
 
-	newUser := &models.Users{
-		VkId:         userInfo.VkId,
-		Login:        userInfo.VkId,
+	newUser := models.Users{
+		VkId:         newId,
+		Login:        userInfo.FirstName + "@" + newId,
 		Email:        userInfo.Email,
-		UserName:     userInfo.UserName,
+		UserName:     userInfo.FirstName,
 		AvatarUrl:    userInfo.AvatarUrl,
 		Created:      time.Now().Format(time.RFC3339),
 		PasswordHash: passwordHash,
 	}
 
-	if err := s.repo.CreateUser(newUser); err != nil {
+	if err := s.repo.CreateUser(&newUser); err != nil {
 		return nil, fmt.Errorf("user creation error: %w", err)
 	}
 
-	user, err := s.repo.GetByVkId(userInfo.VkId)
+	user, err := s.repo.GetByVkId(newUser.VkId)
 	if err != nil {
 		return nil, fmt.Errorf("db error: %w", err)
 	}
@@ -382,7 +388,16 @@ func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo
 		Response []models.VkAuthGetUserInfo `json:"response"`
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	body, err := io.ReadAll(resp.Body)
+	//fmt.Printf("VK API RAW RESPONSE: %s\n", string(body))
+
+	err = json.Unmarshal(body, &response)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to read user info: %w", err)
+	}
+
+	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, fmt.Errorf("failed to parse user info: %w", err)
 	}
 
