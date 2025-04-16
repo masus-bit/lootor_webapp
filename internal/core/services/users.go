@@ -1,7 +1,6 @@
 package services
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -20,6 +19,7 @@ import (
 	"net/url"
 	"os"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -260,58 +260,78 @@ func (s *UserService) RefreshTokens(refreshToken string) (*models.SignInResponse
 }
 
 func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInResponse, error) {
+	// Формируем параметры как form-data
+	params := url.Values{}
+	params.Add("grant_type", "authorization_code")
+	params.Add("client_id", os.Getenv("VK_CLIENT_ID"))
+	params.Add("code", dto.Code)
+	params.Add("code_verifier", dto.CodeVerifier)
+	params.Add("redirect_uri", os.Getenv("FRONTEND_URL"))
+	params.Add("device_id", dto.DeviceId)
+	params.Add("state", dto.State)
 
-	req := models.VkAuthRequest{
-		GrantType:    "authorization_code",
-		ClientID:     os.Getenv("VK_CLIENT_ID"),
-		Code:         dto.Code,
-		CodeVerifier: dto.CodeVerifier,
-		DeviceId:     dto.DeviceId,
-		State:        dto.State,
-		RedirectUri:  os.Getenv("FRONTEND_URL"),
+	// Создаем запрос с правильным Content-Type
+	req, err := http.NewRequest(
+		"POST",
+		"https://id.vk.com/oauth2/auth",
+		strings.NewReader(params.Encode()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	reqBody, err := json.Marshal(req)
-	if err != nil {
-		log.Fatal(err)
-	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := http.Post("https://id.vk.com/oauth2/auth", "application/x-www-form-urlencoded", bytes.NewReader(reqBody))
+	// Отправляем запрос
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("auth request failed: %w", err)
 	}
 	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
 
-	var respStruct models.VkAuthGetToken
-
-	err = json.Unmarshal(body, &respStruct)
-	if err != nil {
-		return nil, err
+	// Проверяем статус код
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("vk auth error: %s", string(body))
 	}
 
-	userInfo, err := s.getUserInfo(respStruct.Data.AccessToken)
-	if err != nil {
-		return nil, err
+	// Парсим ответ
+	var tokenResp models.VkAuthGetToken
+	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
+		return nil, fmt.Errorf("failed to parse token response: %w", err)
 	}
 
-	passwordHash, _ := auth.HashPassword("vk" + userInfo.Login)
+	// Получаем информацию о пользователе
+	userInfo, err := s.getUserInfo(tokenResp.Data.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user info: %w", err)
+	}
 
+	// Логика создания/поиска пользователя
 	existsUser, err := s.repo.GetByVkId(userInfo.VkId)
-
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("db error: %w", err)
 	}
 
 	if existsUser != nil {
 		tokens, err := s.jwtService.GenerateTokenPair(existsUser)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("token generation error: %w", err)
 		}
-		return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
+		return &models.SignInResponse{
+			AccessToken:  tokens.AccessToken,
+			RefreshToken: tokens.RefreshToken,
+		}, nil
 	}
 
-	err = s.repo.CreateUser(&models.Users{
+	// Создаем нового пользователя
+	passwordHash, err := auth.HashPassword("vk" + userInfo.Login)
+	if err != nil {
+		return nil, fmt.Errorf("password hash error: %w", err)
+	}
+
+	newUser := &models.Users{
 		VkId:         userInfo.VkId,
 		Login:        userInfo.VkId,
 		Email:        userInfo.Email,
@@ -319,25 +339,27 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		AvatarUrl:    userInfo.AvatarUrl,
 		Created:      time.Now().Format(time.RFC3339),
 		PasswordHash: passwordHash,
-	})
-	if err != nil {
-		return nil, err
+	}
+
+	if err := s.repo.CreateUser(newUser); err != nil {
+		return nil, fmt.Errorf("user creation error: %w", err)
 	}
 
 	user, err := s.repo.GetByVkId(userInfo.VkId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("db error: %w", err)
 	}
-	if user != nil {
-		tokens, err := s.jwtService.GenerateTokenPair(user)
-		if err != nil {
-			return nil, err
-		}
-		return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
-	}
-	return nil, errors.New("user not found")
-}
 
+	tokens, err := s.jwtService.GenerateTokenPair(user)
+	if err != nil {
+		return nil, fmt.Errorf("token generation error: %w", err)
+	}
+
+	return &models.SignInResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	}, nil
+}
 func (s *UserService) getUserInfo(accessToken string) (models.VkAuthGetUserInfo, error) {
 	v := "5.131"
 	fields := "email,photo_200"

@@ -177,13 +177,11 @@ func (c *UserController) VkOauth(ctx echo.Context) error {
 	codeVerifier := ctx.QueryParam("code_verifier")
 	deviceId := ctx.QueryParam("device_id")
 	state := ctx.QueryParam("state")
-	codeChallenge := ctx.QueryParam("code_challenge")
 	request := models.VkOauthRequest{
-		Code:          code,
-		CodeVerifier:  codeVerifier,
-		DeviceId:      deviceId,
-		State:         state,
-		CodeChallenge: codeChallenge,
+		Code:         code,
+		CodeVerifier: codeVerifier,
+		DeviceId:     deviceId,
+		State:        state,
 	}
 	switch "" {
 	case code:
