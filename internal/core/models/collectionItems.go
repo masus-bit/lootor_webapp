@@ -21,7 +21,7 @@ type CollectionItems struct {
 	PurchasePrice   float64
 	Sealed          bool
 	Edition         string
-	CopyNumber      pq.Int64Array `gorm:"type:bigint[]"`
+	CopyNumber      pq.Int64Array `gorm:"type:integer[]"`
 	Deleted         bool
 	ShippingCost    float64
 	Transliteration string
