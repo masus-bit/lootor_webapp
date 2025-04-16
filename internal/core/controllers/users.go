@@ -202,10 +202,6 @@ func (c *UserController) VkOauth(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "State parameter is required",
 		})
-	case codeChallenge:
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "CodeChallenge parameter is required",
-		})
 	}
 	response, err := c.userService.VkOauth(&request)
 	if err != nil {
