@@ -18,13 +18,15 @@ func NewUserController(userService services.UserService) *UserController {
 func (c *UserController) SignUp(ctx echo.Context) error {
 	var request models.SignUpRequest
 
+	reqCtx := ctx.Request().Context()
+
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",
 		})
 	}
 
-	if _, err := c.userService.SignUp(&request); err != nil {
+	if _, err := c.userService.SignUp(&request, reqCtx); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})

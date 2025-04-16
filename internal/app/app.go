@@ -77,13 +77,17 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		Password: "",
 		DB:       0,
 	})
+	searchService, err := elasticsearch.NewElasticService(getConfigPath())
+	if err != nil {
+		return nil, err
+	}
 
-	userRepo := repositories.NewUsersRepository(db)
-	ciRepo := repositories.NewCiRepository(db)
-	colRepo := repositories.NewCollectionsRepository(db)
-	tagRepo := repositories.NewTagsRepository(db)
+	userRepo := repositories.NewUsersRepository(db, searchService)
+	ciRepo := repositories.NewCiRepository(db, searchService)
+	colRepo := repositories.NewCollectionsRepository(db, searchService)
+	tagRepo := repositories.NewTagsRepository(db, searchService)
 	platformRepo := repositories.NewPlatformsRepository(db)
-	entityRepo := repositories.NewEntitiesRepository(db)
+	entityRepo := repositories.NewEntitiesRepository(db, searchService)
 	eventsRepo := repositories.NewEventsRepository(db)
 	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, models.Events{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{})
 	if err != nil {
@@ -97,10 +101,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	platformsService := services.NewPlatformsService(platformRepo)
 	tagsService := services.NewTagsService(tagRepo)
 	s3Service := s3.NewS3Service(redisClient)
-	searchService, err := elasticsearch.NewElasticService(getConfigPath())
-	if err != nil {
-		return nil, err
-	}
+
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
 	e.Use(middleware.Logger())

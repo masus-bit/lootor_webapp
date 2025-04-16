@@ -1,20 +1,40 @@
 package repositories
 
 import (
+	"context"
 	"gorm.io/gorm"
+	"log"
 	"lootor/internal/core/models"
+	"lootor/internal/pkg/elasticsearch"
 )
 
 type UsersRepository struct {
+	es *elasticsearch.ElasticService
 	db *gorm.DB
 }
 
-func NewUsersRepository(db *gorm.DB) *UsersRepository {
-	return &UsersRepository{db: db}
+func NewUsersRepository(db *gorm.DB, es *elasticsearch.ElasticService) *UsersRepository {
+	return &UsersRepository{db: db, es: es}
 }
 
 func (r *UsersRepository) CreateUser(user *models.Users) error {
-	return r.db.Create(user).Error
+
+	if err := r.db.Create(user).Error; err != nil {
+		return err
+	}
+
+	doc := map[string]interface{}{
+		"id":        user.Login,
+		"login":     user.Login,
+		"user_name": user.UserName,
+		"email":     user.Email,
+	}
+
+	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {
+		log.Printf("Failed to index user: %v", err)
+	}
+
+	return nil
 }
 
 func (r *UsersRepository) FindAllUsers() ([]models.Users, error) {
@@ -124,5 +144,17 @@ func (r *UsersRepository) UpdateUser(existsUser *models.Users, updated models.Us
 
 	var updatedUser models.Users
 	err := r.db.Where("login = ?", existsUser.Login).First(&updatedUser).Error
+
+	doc := map[string]interface{}{
+		"id":        updatedUser.Login,
+		"login":     updatedUser.Login,
+		"user_name": updatedUser.UserName,
+		"email":     updatedUser.Email,
+	}
+
+	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {
+		log.Printf("Failed to index user: %v", err)
+	}
+
 	return &updatedUser, err
 }

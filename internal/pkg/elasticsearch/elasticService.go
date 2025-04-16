@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -40,15 +40,14 @@ type ElasticService struct {
 }
 
 func LoadConfig(path string) (ElasticConfig, error) {
-	var config ElasticConfig
-
-	file, err := ioutil.ReadFile(path)
+	file, err := os.ReadFile(path)
 	if err != nil {
-		return config, fmt.Errorf("failed to read config file: %w", err)
+		return ElasticConfig{}, fmt.Errorf("failed to read config file: %w", err)
 	}
 
+	var config ElasticConfig
 	if err := json.Unmarshal(file, &config); err != nil {
-		return config, fmt.Errorf("failed to parse config: %w", err)
+		return ElasticConfig{}, fmt.Errorf("failed to parse config: %w", err)
 	}
 
 	return config, nil
@@ -59,10 +58,6 @@ func NewElasticService(configPath string) (*ElasticService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
-
-	// Логируем загруженные настройки
-	log.Printf("Elasticsearch config loaded: Address=%s, Indices=%v",
-		config.Address, getIndexNames(config.Indices))
 
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: []string{config.Address},
@@ -91,42 +86,34 @@ func NewElasticService(configPath string) (*ElasticService, error) {
 	}, nil
 }
 
-func getIndexNames(indices map[string]IndexConfig) []string {
-	names := make([]string, 0, len(indices))
-	for name := range indices {
-		names = append(names, name)
-	}
-	return names
-}
-
-func (es *ElasticService) Search(ctx context.Context, index string, query map[string]interface{}) (*SearchResult, error) {
-	var buf strings.Builder
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return nil, fmt.Errorf("error encoding query: %w", err)
-	}
-	queryJSON, err := json.Marshal(query)
-	if err != nil {
-		return nil, fmt.Errorf("error encoding query: %w", err)
-	}
-	res, err := es.client.Search(
-		es.client.Search.WithContext(ctx),
-		es.client.Search.WithIndex(index),
-		es.client.Search.WithBody(strings.NewReader(string(queryJSON))))
-	if err != nil {
-		return nil, fmt.Errorf("search error: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return nil, parseErrorResponse(res)
+func (es *ElasticService) ReindexAll(ctx context.Context, dataProviders map[string]func() ([]map[string]interface{}, error)) error {
+	// 1. Удаляем старые индексы
+	for indexName := range dataProviders {
+		if err := es.deleteIndexIfExists(indexName); err != nil {
+			return fmt.Errorf("failed to delete index %s: %w", indexName, err)
+		}
 	}
 
-	var result SearchResult
-	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("error parsing response: %w", err)
+	// 2. Создаем новые индексы
+	for indexName := range dataProviders {
+		if err := es.createIndex(indexName); err != nil {
+			return fmt.Errorf("failed to create index %s: %w", indexName, err)
+		}
 	}
 
-	return &result, nil
+	// 3. Индексируем данные
+	for indexName, provider := range dataProviders {
+		data, err := provider()
+		if err != nil {
+			return fmt.Errorf("failed to get data for %s: %w", indexName, err)
+		}
+
+		if err := es.bulkIndexDocuments(ctx, indexName, data); err != nil {
+			return fmt.Errorf("failed to index data for %s: %w", indexName, err)
+		}
+	}
+
+	return nil
 }
 
 func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string, query string) (*SearchResult, error) {
@@ -134,10 +121,120 @@ func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string,
 		return &SearchResult{}, nil
 	}
 
+	searchQuery := es.buildSearchQuery(query)
+	return es.search(ctx, indices, searchQuery)
+}
+
+func (es *ElasticService) deleteIndexIfExists(indexName string) error {
+	res, err := es.client.Indices.Exists([]string{indexName})
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == 404 {
+		return nil // Индекс не существует - ничего делать не нужно
+	}
+
+	res, err = es.client.Indices.Delete([]string{indexName})
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return parseErrorResponse(res)
+	}
+
+	es.logger.Printf("Index %s deleted", indexName)
+	return nil
+}
+
+func (es *ElasticService) createIndex(indexName string) error {
+	cfg, exists := es.config.Indices[indexName]
+	if !exists {
+		return fmt.Errorf("no config found for index %s", indexName)
+	}
+
+	var buf strings.Builder
+	if err := json.NewEncoder(&buf).Encode(cfg); err != nil {
+		return err
+	}
+
+	res, err := es.client.Indices.Create(
+		indexName,
+		es.client.Indices.Create.WithBody(strings.NewReader(buf.String())),
+	)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return parseErrorResponse(res)
+	}
+
+	es.logger.Printf("Index %s created", indexName)
+	return nil
+}
+
+func (es *ElasticService) bulkIndexDocuments(ctx context.Context, indexName string, docs []map[string]interface{}) error {
+	var buf strings.Builder
+
+	for _, doc := range docs {
+		id, ok := doc["id"].(string)
+		if !ok {
+			return fmt.Errorf("document missing id field")
+		}
+
+		meta := map[string]interface{}{
+			"index": map[string]interface{}{
+				"_index": indexName,
+				"_id":    id,
+			},
+		}
+
+		metaJSON, _ := json.Marshal(meta)
+		docJSON, _ := json.Marshal(doc)
+
+		buf.Write(metaJSON)
+		buf.WriteString("\n")
+		buf.Write(docJSON)
+		buf.WriteString("\n")
+	}
+
+	res, err := es.client.Bulk(
+		strings.NewReader(buf.String()),
+		es.client.Bulk.WithContext(ctx),
+		es.client.Bulk.WithRefresh("true"),
+	)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return parseErrorResponse(res)
+	}
+
+	// Проверяем ошибки в bulk операции
+	var result map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return fmt.Errorf("error parsing bulk response: %w", err)
+	}
+
+	if errors, ok := result["errors"].(bool); ok && errors {
+		return fmt.Errorf("bulk operation contains errors")
+	}
+
+	es.logger.Printf("Indexed %d documents to %s", len(docs), indexName)
+	return nil
+}
+
+func (es *ElasticService) buildSearchQuery(query string) map[string]interface{} {
 	lowerQuery := strings.ToLower(query)
 
-	// Полный поисковый запрос как в NestJS
-	searchQuery := map[string]interface{}{
+	return map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
 				"should": []map[string]interface{}{
@@ -148,35 +245,10 @@ func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string,
 								{
 									"bool": map[string]interface{}{
 										"should": []map[string]interface{}{
-											{
-												"term": map[string]interface{}{
-													"login.keyword": map[string]interface{}{
-														"value": lowerQuery,
-													},
-												},
-											},
-											{
-												"match": map[string]interface{}{
-													"login.prefix": map[string]interface{}{
-														"query": lowerQuery,
-													},
-												},
-											},
-											{
-												"match": map[string]interface{}{
-													"user_name": map[string]interface{}{
-														"query": lowerQuery,
-													},
-												},
-											},
-											{
-												"wildcard": map[string]interface{}{
-													"login.keyword": map[string]interface{}{
-														"value":            "*" + lowerQuery + "*",
-														"case_insensitive": true,
-													},
-												},
-											},
+											{"term": map[string]interface{}{"login.keyword": lowerQuery}},
+											{"match": map[string]interface{}{"login.prefix": lowerQuery}},
+											{"match": map[string]interface{}{"user_name": lowerQuery}},
+											{"wildcard": map[string]interface{}{"login.keyword": "*" + lowerQuery + "*"}},
 										},
 									},
 								},
@@ -187,35 +259,10 @@ func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string,
 						"bool": map[string]interface{}{
 							"must_not": map[string]interface{}{"term": map[string]interface{}{"_index": "users"}},
 							"should": []map[string]interface{}{
-								{
-									"term": map[string]interface{}{
-										"name.keyword": map[string]interface{}{
-											"value": lowerQuery,
-										},
-									},
-								},
-								{
-									"match": map[string]interface{}{
-										"name.prefix": map[string]interface{}{
-											"query": lowerQuery,
-										},
-									},
-								},
-								{
-									"match": map[string]interface{}{
-										"name.full": map[string]interface{}{
-											"query": lowerQuery,
-										},
-									},
-								},
-								{
-									"wildcard": map[string]interface{}{
-										"name.keyword": map[string]interface{}{
-											"value":            "*" + lowerQuery + "*",
-											"case_insensitive": true,
-										},
-									},
-								},
+								{"term": map[string]interface{}{"name.keyword": lowerQuery}},
+								{"match": map[string]interface{}{"name.prefix": lowerQuery}},
+								{"match": map[string]interface{}{"name.full": lowerQuery}},
+								{"wildcard": map[string]interface{}{"name.keyword": "*" + lowerQuery + "*"}},
 							},
 						},
 					},
@@ -225,20 +272,66 @@ func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string,
 		},
 		"size": 100,
 	}
-
-	return es.Search(ctx, strings.Join(indices, ","), searchQuery)
 }
 
-func (es *ElasticService) IndexDocument(ctx context.Context, index string, body map[string]interface{}) error {
+func (es *ElasticService) search(ctx context.Context, indices []string, query map[string]interface{}) (*SearchResult, error) {
 	var buf strings.Builder
-	if err := json.NewEncoder(&buf).Encode(body); err != nil {
+	if err := json.NewEncoder(&buf).Encode(query); err != nil {
+		return nil, err
+	}
+
+	res, err := es.client.Search(
+		es.client.Search.WithContext(ctx),
+		es.client.Search.WithIndex(indices...),
+		es.client.Search.WithBody(strings.NewReader(buf.String())),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return nil, parseErrorResponse(res)
+	}
+
+	var result SearchResult
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func parseErrorResponse(res *esapi.Response) error {
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("error reading error response: %w", err)
+	}
+
+	var e map[string]interface{}
+	if err := json.Unmarshal(body, &e); err != nil {
+		return fmt.Errorf("error parsing error response: %w", err)
+	}
+
+	return fmt.Errorf("elasticsearch error [%d]: %v", res.StatusCode, e["error"])
+}
+
+func (es *ElasticService) IndexDocument(ctx context.Context, index string, doc map[string]interface{}) error {
+	id, ok := doc["id"].(string)
+	if !ok {
+		return fmt.Errorf("document missing id field")
+	}
+
+	var buf strings.Builder
+	if err := json.NewEncoder(&buf).Encode(doc); err != nil {
 		return fmt.Errorf("error encoding document: %w", err)
 	}
 
 	req := esapi.IndexRequest{
-		Index:   index,
-		Body:    strings.NewReader(buf.String()),
-		Refresh: "wait_for",
+		Index:      index,
+		DocumentID: id,
+		Body:       strings.NewReader(buf.String()),
+		Refresh:    "true", // Ждем обновления индекса
 	}
 
 	res, err := req.Do(ctx, es.client)
@@ -254,171 +347,11 @@ func (es *ElasticService) IndexDocument(ctx context.Context, index string, body 
 	return nil
 }
 
-func (es *ElasticService) CreateIndexIfNotExists(ctx context.Context, indexName string) error {
-	cfg, exists := es.config.Indices[indexName]
-	if !exists {
-		return fmt.Errorf("configuration for index %q not found", indexName)
-	}
-
-	// Проверяем существование индекса
-	res, err := es.client.Indices.Exists([]string{indexName})
-	if err != nil {
-		return fmt.Errorf("error checking index existence: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode == 200 {
-		return nil // Индекс уже существует
-	}
-
-	// Создаем индекс
-	var buf strings.Builder
-	if err := json.NewEncoder(&buf).Encode(cfg); err != nil {
-		return fmt.Errorf("error encoding index config: %w", err)
-	}
-
-	createRes, err := es.client.Indices.Create(
-		indexName,
-		es.client.Indices.Create.WithBody(strings.NewReader(buf.String())),
-		es.client.Indices.Create.WithContext(ctx),
-	)
-	if err != nil {
-		return fmt.Errorf("error creating index: %w", err)
-	}
-	defer createRes.Body.Close()
-
-	if createRes.IsError() {
-		return parseErrorResponse(createRes)
-	}
-
-	es.logger.Printf("Index %q created successfully", indexName)
-	return nil
-}
-
-func (es *ElasticService) UpsertDocument(ctx context.Context, index, id string, body map[string]interface{}) error {
-	var buf strings.Builder
-	updateBody := map[string]interface{}{
-		"doc":           body,
-		"doc_as_upsert": true,
-	}
-
-	if err := json.NewEncoder(&buf).Encode(updateBody); err != nil {
-		return fmt.Errorf("error encoding update body: %w", err)
-	}
-
-	req := esapi.UpdateRequest{
-		Index:      index,
-		DocumentID: id,
-		Body:       strings.NewReader(buf.String()),
-		Refresh:    "wait_for",
-	}
-
-	res, err := req.Do(ctx, es.client)
-	if err != nil {
-		return fmt.Errorf("update request error: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return parseErrorResponse(res)
-	}
-
-	return nil
-}
-
-func (es *ElasticService) SafeIndexDocument(ctx context.Context, index, id string, body map[string]interface{}) error {
-	exists, err := es.DocumentExists(ctx, index, id)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return fmt.Errorf("document with id %q already exists", id)
-	}
-
-	return es.IndexDocument(ctx, index, body)
-}
-
-func (es *ElasticService) DocumentExists(ctx context.Context, index, id string) (bool, error) {
-	req := esapi.ExistsRequest{
-		Index:      index,
-		DocumentID: id,
-	}
-
-	res, err := req.Do(ctx, es.client)
-	if err != nil {
-		return false, fmt.Errorf("exists request error: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode == 200 {
-		return true, nil
-	} else if res.StatusCode == 404 {
-		return false, nil
-	}
-
-	return false, parseErrorResponse(res)
-}
-
-func (es *ElasticService) DeleteByQuery(ctx context.Context, index string, query map[string]interface{}) error {
-	var buf strings.Builder
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return fmt.Errorf("error encoding query: %w", err)
-	}
-	refresh := true
-	req := esapi.DeleteByQueryRequest{
-		Index:   []string{index},
-		Body:    strings.NewReader(buf.String()),
-		Refresh: &refresh, // Используем указатель на bool,
-	}
-
-	res, err := req.Do(ctx, es.client)
-	if err != nil {
-		return fmt.Errorf("delete by query error: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return parseErrorResponse(res)
-	}
-
-	return nil
-}
-
-func (es *ElasticService) UpdateDocument(ctx context.Context, index, id string, body map[string]interface{}) error {
-	var buf strings.Builder
-	updateBody := map[string]interface{}{
-		"doc": body,
-	}
-
-	if err := json.NewEncoder(&buf).Encode(updateBody); err != nil {
-		return fmt.Errorf("error encoding update body: %w", err)
-	}
-
-	req := esapi.UpdateRequest{
-		Index:      index,
-		DocumentID: id,
-		Body:       strings.NewReader(buf.String()),
-		Refresh:    "wait_for",
-	}
-
-	res, err := req.Do(ctx, es.client)
-	if err != nil {
-		return fmt.Errorf("update request error: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return parseErrorResponse(res)
-	}
-
-	return nil
-}
-
 func (es *ElasticService) DeleteDocument(ctx context.Context, index, id string) error {
 	req := esapi.DeleteRequest{
 		Index:      index,
 		DocumentID: id,
-		Refresh:    "wait_for",
+		Refresh:    "true",
 	}
 
 	res, err := req.Do(ctx, es.client)
@@ -428,85 +361,10 @@ func (es *ElasticService) DeleteDocument(ctx context.Context, index, id string) 
 	defer res.Body.Close()
 
 	if res.StatusCode == 404 {
-		return nil // Документ не найден - считаем успехом
+		return nil // Документ не найден - не считаем ошибкой
 	} else if res.IsError() {
 		return parseErrorResponse(res)
 	}
 
 	return nil
-}
-
-func (es *ElasticService) ReindexAll(ctx context.Context, dataProviders map[string]func() ([]map[string]interface{}, error)) error {
-	// Удаляем все индексы
-	for indexName := range es.config.Indices {
-		res, err := es.client.Indices.Delete([]string{indexName})
-		if err != nil {
-			return fmt.Errorf("error deleting index %q: %w", indexName, err)
-		}
-		res.Body.Close()
-		es.logger.Printf("Deleted index: %s", indexName)
-	}
-
-	// Создаем индексы заново
-	for indexName := range es.config.Indices {
-		if err := es.CreateIndexIfNotExists(ctx, indexName); err != nil {
-			return fmt.Errorf("error recreating index %q: %w", indexName, err)
-		}
-	}
-
-	// Индексируем данные
-	for indexName, provider := range dataProviders {
-		data, err := provider()
-		if err != nil {
-			return fmt.Errorf("error getting data for %q: %w", indexName, err)
-		}
-
-		var bulkBody strings.Builder
-		for _, item := range data {
-			id, ok := item["id"].(string)
-			if !ok {
-				return fmt.Errorf("missing or invalid id in document for index %q", indexName)
-			}
-
-			meta := map[string]interface{}{
-				"index": map[string]interface{}{
-					"_index": indexName,
-					"_id":    id,
-				},
-			}
-
-			metaJSON, _ := json.Marshal(meta)
-			docJSON, _ := json.Marshal(item)
-
-			bulkBody.WriteString(string(metaJSON) + "\n")
-			bulkBody.WriteString(string(docJSON) + "\n")
-		}
-
-		res, err := es.client.Bulk(
-			strings.NewReader(bulkBody.String()),
-			es.client.Bulk.WithContext(ctx),
-			es.client.Bulk.WithRefresh("true"),
-		)
-		if err != nil {
-			return fmt.Errorf("bulk index error for %q: %w", indexName, err)
-		}
-		defer res.Body.Close()
-
-		if res.IsError() {
-			return parseErrorResponse(res)
-		}
-
-		es.logger.Printf("Successfully indexed %d documents in %q", len(data), indexName)
-	}
-
-	return nil
-}
-
-func parseErrorResponse(res *esapi.Response) error {
-	var e map[string]interface{}
-	if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-		return fmt.Errorf("error parsing error response: %w", err)
-	}
-
-	return fmt.Errorf("elasticsearch error [%d]: %v", res.StatusCode, e["error"])
 }

@@ -1,17 +1,21 @@
 package repositories
 
 import (
+	"context"
 	"errors"
 	"gorm.io/gorm"
+	"log"
 	"lootor/internal/core/models"
+	"lootor/internal/pkg/elasticsearch"
 )
 
 type CollectionsRepository struct {
 	db *gorm.DB
+	es *elasticsearch.ElasticService
 }
 
-func NewCollectionsRepository(db *gorm.DB) *CollectionsRepository {
-	return &CollectionsRepository{db: db}
+func NewCollectionsRepository(db *gorm.DB, es *elasticsearch.ElasticService) *CollectionsRepository {
+	return &CollectionsRepository{db: db, es: es}
 }
 
 func (r *CollectionsRepository) CreateCollection(collection *models.Collections) (*models.Collections, error) {
@@ -19,6 +23,16 @@ func (r *CollectionsRepository) CreateCollection(collection *models.Collections)
 	if err.Error != nil {
 		return nil, err.Error
 	}
+
+	doc := map[string]interface{}{
+		"id":   collection.Id.String(),
+		"name": collection.Name,
+	}
+
+	if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
+		log.Printf("Failed to index collection: %v", err)
+	}
+
 	return collection, nil
 }
 
@@ -170,6 +184,16 @@ func (r *CollectionsRepository) UpdateCollection(existsCollection *models.Collec
 
 	var result models.Collections
 	err := r.db.Preload("Tags").First(&result, existsCollection.Id).Error
+
+	doc := map[string]interface{}{
+		"id":   result.Id.String(),
+		"name": result.Name,
+	}
+
+	if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
+		log.Printf("Failed to index collection: %v", err)
+	}
+
 	return &result, err
 }
 
@@ -194,6 +218,8 @@ func (r *CollectionsRepository) DeleteCollection(id string) error {
 	if err != nil {
 		return err
 	}
-
+	if err := r.es.DeleteDocument(context.Background(), "collections", id); err != nil {
+		log.Printf("Failed to delete collection from index: %v", err)
+	}
 	return nil
 }

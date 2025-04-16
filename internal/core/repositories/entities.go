@@ -1,16 +1,20 @@
 package repositories
 
 import (
+	"context"
 	"gorm.io/gorm"
+	"log"
 	"lootor/internal/core/models"
+	"lootor/internal/pkg/elasticsearch"
 )
 
 type EntitiesRepository struct {
 	db *gorm.DB
+	es *elasticsearch.ElasticService
 }
 
-func NewEntitiesRepository(db *gorm.DB) *EntitiesRepository {
-	return &EntitiesRepository{db: db}
+func NewEntitiesRepository(db *gorm.DB, es *elasticsearch.ElasticService) *EntitiesRepository {
+	return &EntitiesRepository{db: db, es: es}
 }
 
 func (r *EntitiesRepository) CreateEntity(entity *models.Entities) (*models.Entities, error) {
@@ -18,6 +22,17 @@ func (r *EntitiesRepository) CreateEntity(entity *models.Entities) (*models.Enti
 	if err.Error != nil {
 		return nil, err.Error
 	}
+
+	doc := map[string]interface{}{
+		"id":   entity.Id.String(),
+		"name": entity.Name,
+		// другие поля
+	}
+
+	if err := r.es.IndexDocument(context.Background(), "entities", doc); err != nil {
+		log.Printf("Failed to index entity: %v", err)
+	}
+
 	return entity, nil
 }
 

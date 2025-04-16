@@ -61,8 +61,12 @@ func (c *ReindexController) getUserData() ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, len(users))
 	for i, user := range users {
 		result[i] = map[string]interface{}{
+			"id":        user.Login,
 			"login":     user.Login,
 			"user_name": user.UserName,
+			"email":     user.Email,
+			"vk_id":     user.VkId,
+			// Добавьте другие нужные поля
 		}
 	}
 	return result, nil
@@ -77,8 +81,11 @@ func (c *ReindexController) getCollectionData() ([]map[string]interface{}, error
 	result := make([]map[string]interface{}, len(collections))
 	for i, collection := range collections {
 		result[i] = map[string]interface{}{
-			"id":   collection.ID,
-			"name": collection.Name,
+			"id":          collection.Id.String(),
+			"name":        collection.Name,
+			"description": collection.Description,
+			"is_private":  collection.IsPrivate,
+			// Добавьте другие нужные поля
 		}
 	}
 	return result, nil
@@ -93,8 +100,10 @@ func (c *ReindexController) getCollectionItemData() ([]map[string]interface{}, e
 	result := make([]map[string]interface{}, len(items))
 	for i, item := range items {
 		result[i] = map[string]interface{}{
-			"id":   item.ID,
-			"name": item.Name,
+			"id":          item.Id.String(),
+			"name":        item.Name,
+			"description": item.Description,
+			// Добавьте другие нужные поля
 		}
 	}
 	return result, nil
@@ -109,7 +118,7 @@ func (c *ReindexController) getTagData() ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, len(tags))
 	for i, tag := range tags {
 		result[i] = map[string]interface{}{
-			"id":   tag.ID,
+			"id":   tag.Id.String(),
 			"name": tag.Name,
 		}
 	}
@@ -125,7 +134,7 @@ func (c *ReindexController) getEntityData() ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, len(entities))
 	for i, entity := range entities {
 		result[i] = map[string]interface{}{
-			"id":   entity.ID,
+			"id":   entity.Id.String(),
 			"name": entity.Name,
 		}
 	}

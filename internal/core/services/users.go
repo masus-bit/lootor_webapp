@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/mitchellh/mapstructure"
@@ -166,7 +167,7 @@ func (s *UserService) SignIn(dto *models.SignInRequest) (*models.SignInResponse,
 
 }
 
-func (s *UserService) SignUp(dto *models.SignUpRequest) (*models.SignUpResponse, error) {
+func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*models.SignUpResponse, error) {
 	userByMail, _ := s.repo.GetByEmail(dto.Email)
 	if userByMail != nil {
 		return nil, errors.New("Email должен быть уникальным")

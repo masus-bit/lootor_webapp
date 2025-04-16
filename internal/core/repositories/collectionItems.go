@@ -1,23 +1,37 @@
 package repositories
 
 import (
+	"context"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"log"
 	"lootor/internal/core/models"
+	"lootor/internal/pkg/elasticsearch"
 )
 
 type CiRepository struct {
 	db *gorm.DB
+	es *elasticsearch.ElasticService
 }
 
-func NewCiRepository(db *gorm.DB) *CiRepository {
-	return &CiRepository{db: db}
+func NewCiRepository(db *gorm.DB, es *elasticsearch.ElasticService) *CiRepository {
+	return &CiRepository{db: db, es: es}
 }
 
 func (r *CiRepository) CreateCI(ci *models.CollectionItems) (*models.CollectionItems, error) {
 	err := r.db.Create(ci)
 	if err.Error != nil {
 		return nil, err.Error
+	}
+
+	doc := map[string]interface{}{
+		"id":   ci.Id.String(),
+		"name": ci.Name,
+	}
+
+	if err := r.es.IndexDocument(context.Background(), "collection_items", doc); err != nil {
+		log.Printf("Failed to index collection item: %v", err)
+		// Не возвращаем ошибку, чтобы не ломать основной flow
 	}
 	return ci, nil
 }
@@ -76,6 +90,16 @@ func (r *CiRepository) UpdateCI(existsItem *models.CollectionItems, updated *mod
 
 	if err := r.db.Model(existsItem).Updates(updated).Error; err != nil {
 		return nil, err
+	}
+
+	doc := map[string]interface{}{
+		"id":   updated.Id.String(),
+		"name": updated.Name,
+	}
+
+	if err := r.es.IndexDocument(context.Background(), "collection_items", doc); err != nil {
+		log.Printf("Failed to index collection item: %v", err)
+		// Не возвращаем ошибку, чтобы не ломать основной flow
 	}
 
 	var result models.CollectionItems
@@ -142,7 +166,9 @@ func (r *CiRepository) DeleteCI(id string) error {
 	if err != nil {
 		return err
 	}
-
+	if err := r.es.DeleteDocument(context.Background(), "collection_items", id); err != nil {
+		log.Printf("Failed to delete collection item from index: %v", err)
+	}
 	return nil
 }
 
