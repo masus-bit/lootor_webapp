@@ -4,7 +4,6 @@ import (
 	"errors"
 	"gorm.io/gorm"
 	"lootor/internal/core/models"
-	"strings"
 )
 
 type CollectionsRepository struct {
@@ -71,7 +70,7 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 	err := r.db.
 		Where("collections.transliteration = ?", transliteration).
 		Where("collections.deleted = ?", false).
-		Where("user_login = LOWER(?)", strings.ToLower(login)).
+		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems").
@@ -118,7 +117,7 @@ func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string) 
 func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string) ([]models.Collections, error) {
 	var collections []models.Collections
 	err := r.db.
-		Where("user_login = LOWER(?)", strings.ToLower(login)).
+		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
 		Preload("Tags").
 		Where("collections.is_private = ?", false).
@@ -177,7 +176,7 @@ func (r *CollectionsRepository) GetCollectionCountByUserLogin(login string) (int
 
 	err := r.db.
 		Model(&models.Collections{}).
-		Where("user_login = LOWER(?)", strings.ToLower(login)).
+		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
 		Where("collections.deleted = ?", false).
 		Count(&count).Error
