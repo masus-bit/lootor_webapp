@@ -76,6 +76,7 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 		Preload("CollectionItems").
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
+		Preload("CollectionItems.Owner").
 		First(&collection).Error
 
 	if err != nil {
@@ -96,6 +97,7 @@ func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Co
 		Preload("CollectionItems").
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
+		Preload("CollectionItems.Owner").
 		Order("created DESC").
 		Find(&collections).Error
 	return collections, err
