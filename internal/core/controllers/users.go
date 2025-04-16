@@ -174,10 +174,10 @@ func (c *UserController) RenewTokens(ctx echo.Context) error {
 
 func (c *UserController) VkOauth(ctx echo.Context) error {
 	code := ctx.QueryParam("code")
-	codeVerifier := ctx.QueryParam("codeVerifier")
-	deviceId := ctx.QueryParam("deviceId")
+	codeVerifier := ctx.QueryParam("code_verifier")
+	deviceId := ctx.QueryParam("device_id")
 	state := ctx.QueryParam("state")
-	codeChallenge := ctx.QueryParam("codeChallenge")
+	codeChallenge := ctx.QueryParam("code_challenge")
 	request := models.VkOauthRequest{
 		Code:          code,
 		CodeVerifier:  codeVerifier,
