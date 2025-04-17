@@ -51,7 +51,7 @@ type CollectionItemsResponse struct {
 	Rating        float64        `json:"rating"`
 	ShippingCost  float64        `json:"shippingCost"`
 	Entities      []Entities     `json:"entities"`
-	Platform      Platforms      `json:"platform"`
+	Platform      *Platforms     `json:"platform"`
 	Collection    uuid.UUID      `json:"collection"`
 	Owner         Users          `json:"owner"`
 }

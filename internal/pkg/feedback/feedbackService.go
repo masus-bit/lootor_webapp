@@ -18,7 +18,7 @@ func NewFeedbackService() *FeedbackService {
 
 func (s *FeedbackService) AddIssue(title string, description string, file []byte, authUserLogin string) (*dto.CommonResponse, error) {
 
-	description = description + "\n\bЛогин пользователя: " + authUserLogin
+	description = description + "\n\n\n__________\n\nЛогин пользователя: " + authUserLogin
 
 	reqParams := map[string]string{
 		"idList": os.Getenv("TRELLO_LIST_ID"),
