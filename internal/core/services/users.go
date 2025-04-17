@@ -375,37 +375,54 @@ func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo
 	params.Add("v", "5.131")
 	params.Add("fields", "email,photo_200")
 
-	resp, err := http.Get(baseUrl + "?" + params.Encode())
-	if err != nil {
-		return nil, fmt.Errorf("vk api request failed: %w", err)
+	parameters := map[string]string{
+		"access_token": accessToken,
+		"v":            "5.131",
+		"fields":       "email,photo_200",
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("vk api error: %s", string(body))
-	}
-
-	var response struct {
+	//var response struct {
+	//	Response []models.VkAuthGetUserInfo `json:"response"`
+	//}
+	response, err := utils.SendRequest[struct {
 		Response []models.VkAuthGetUserInfo `json:"response"`
-	}
+	}](struct {
+		Method      string
+		URL         string
+		Headers     map[string]string
+		QueryParams map[string]string
+		Body        interface{}
+	}{Method: "GET", URL: baseUrl, Headers: nil, Body: nil, QueryParams: parameters})
 
-	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	//resp, err := http.Get(baseUrl + "?" + params.Encode())
+	//if err != nil {
+	//	return nil, fmt.Errorf("vk api request failed: %w", err)
+	//}
+	//defer resp.Body.Close()
+	//
+	//if resp.StatusCode != http.StatusOK {
+	//	body, _ := io.ReadAll(resp.Body)
+	//	return nil, fmt.Errorf("vk api error: %s", string(body))
+	//}
+
+	//body, err := io.ReadAll(resp.Body)
 	//fmt.Printf("VK API RAW RESPONSE: %s\n", string(body))
 
-	err = json.Unmarshal(body, &response)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to read user info: %w", err)
-	}
-
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, fmt.Errorf("failed to parse user info: %w", err)
-	}
-
-	if len(response.Response) == 0 {
-		return nil, errors.New("empty user info response")
-	}
+	//err = json.Unmarshal(body, &response)
+	//
+	//if err != nil {
+	//	return nil, fmt.Errorf("failed to read user info: %w", err)
+	//}
+	//
+	//if err := json.Unmarshal(body, &response); err != nil {
+	//	return nil, fmt.Errorf("failed to parse user info: %w", err)
+	//}
+	//
+	//if len(response.Response) == 0 {
+	//	return nil, errors.New("empty user info response")
+	//}
 
 	return &response.Response[0], nil
 }
