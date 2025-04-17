@@ -264,14 +264,6 @@ type VkAuthResponse struct {
 }
 
 func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInResponse, error) {
-	//params := url.Values{}
-	//params.Add("grant_type", "authorization_code")
-	//params.Add("client_id", os.Getenv("VK_CLIENT_ID"))
-	//params.Add("code", dto.Code)
-	//params.Add("code_verifier", dto.CodeVerifier)
-	//params.Add("redirect_uri", os.Getenv("FRONTEND_URL"))
-	//params.Add("device_id", dto.DeviceId)
-	//params.Add("state", dto.State)
 
 	bodyRequest := map[string]string{
 		"grant_type":    "authorization_code",
@@ -293,44 +285,13 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		Headers     map[string]string
 		QueryParams map[string]string
 		Body        map[string]string
-	}{Method: "POST", URL: "https://id.vk.com/oauth2/auth", Headers: headers, QueryParams: nil, Body: bodyRequest})
+		File        []byte
+	}{Method: "POST", URL: "https://id.vk.com/oauth2/auth", Headers: headers, QueryParams: map[string]string{}, Body: bodyRequest, File: []byte{}})
 
-	//req, err := http.NewRequest(
-	//	"POST",
-	//	"https://id.vk.com/oauth2/auth",
-	//	strings.NewReader(params.Encode()),
-	//)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	//req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	//client := &http.Client{
-	//	Timeout: 30 * time.Second,
-	//}
-	//resp, err := client.Do(req)
-	//if err != nil {
-	//	return nil, fmt.Errorf("auth request failed: %w", err)
-	//}
-	//defer resp.Body.Close()
-	//
-	//if resp.StatusCode != http.StatusOK {
-	//	body, _ := io.ReadAll(resp.Body)
-	//	return nil, fmt.Errorf("vk auth error: %s", string(body))
-	//
-	//}
-	//body, err := io.ReadAll(resp.Body)
-	//if err != nil {
-	//	return nil, fmt.Errorf("failed to read response body: %w", err)
-	//}
-	//
-	//var tokenResp models.VkAuthGetTokenData
-	////fmt.Printf("VK OAUTH API RAW RESPONSE: %s\n", string(body))
-	//
-	//if err := json.Unmarshal(body, &tokenResp); err != nil {
-	//	return nil, fmt.Errorf("failed to parse response: %w, body: %s", err, string(body))
-	//}
 	userInfo, err := s.getUserInfo(response.AccessToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user info: %w", err)
@@ -401,7 +362,8 @@ func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo
 		Headers     map[string]string
 		QueryParams map[string]string
 		Body        map[string]string
-	}{Method: "GET", URL: baseUrl, Headers: nil, Body: nil, QueryParams: parameters})
+		File        []byte
+	}{Method: "GET", URL: baseUrl, Headers: map[string]string{}, Body: map[string]string{}, QueryParams: parameters, File: []byte{}})
 
 	if err != nil {
 		return nil, err

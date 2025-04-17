@@ -1,9 +1,12 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -16,22 +19,21 @@ type RequestOptions struct {
 	Headers     map[string]string
 	QueryParams map[string]string
 	Body        map[string]string
+	File        []byte
 }
 
 func SendRequest[T any](options RequestOptions) (T, error) {
 	var result T
 
-	//var bodyReader io.Reader
-	//if options.Body != nil {
-	//	bodyBytes, err := json.Marshal(options.Body)
-	//	if err != nil {
-	//		return result, fmt.Errorf("failed to marshal body: %w", err)
-	//	}
-	//	bodyReader = bytes.NewBuffer(bodyBytes)
-	//}
-
 	queryParams := url.Values{}
 	requestBody := url.Values{}
+
+	var fileBody bytes.Buffer
+	writer := multipart.NewWriter(&fileBody)
+	part, err := writer.CreateFormFile("file", uuid.New().String())
+	if err != nil {
+		return result, err
+	}
 
 	modifiedUrl := options.URL
 
@@ -48,9 +50,21 @@ func SendRequest[T any](options RequestOptions) (T, error) {
 		}
 	}
 
-	req, err := http.NewRequest(options.Method, modifiedUrl, strings.NewReader(requestBody.Encode()))
-	if err != nil {
-		return result, fmt.Errorf("failed to create request: %w", err)
+	var req *http.Request
+
+	if len(options.File) > 0 {
+		_, err = io.Copy(part, bytes.NewReader(options.File))
+		writer.Close()
+		req, err = http.NewRequest(options.Method, modifiedUrl, &fileBody)
+		if err != nil {
+			return result, fmt.Errorf("failed to create request: %w", err)
+		}
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+	} else {
+		req, err = http.NewRequest(options.Method, modifiedUrl, strings.NewReader(requestBody.Encode()))
+		if err != nil {
+			return result, fmt.Errorf("failed to create request: %w", err)
+		}
 	}
 
 	for key, value := range options.Headers {
