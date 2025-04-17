@@ -5,20 +5,16 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/mitchellh/mapstructure"
-	"io"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/pkg/auth"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/mail"
 	"lootor/internal/pkg/utils"
-	"net/http"
-	"net/url"
 	"os"
 	"slices"
 	"sort"
@@ -268,52 +264,74 @@ type VkAuthResponse struct {
 }
 
 func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInResponse, error) {
-	params := url.Values{}
-	params.Add("grant_type", "authorization_code")
-	params.Add("client_id", os.Getenv("VK_CLIENT_ID"))
-	params.Add("code", dto.Code)
-	params.Add("code_verifier", dto.CodeVerifier)
-	params.Add("redirect_uri", os.Getenv("FRONTEND_URL"))
-	params.Add("device_id", dto.DeviceId)
-	params.Add("state", dto.State)
+	//params := url.Values{}
+	//params.Add("grant_type", "authorization_code")
+	//params.Add("client_id", os.Getenv("VK_CLIENT_ID"))
+	//params.Add("code", dto.Code)
+	//params.Add("code_verifier", dto.CodeVerifier)
+	//params.Add("redirect_uri", os.Getenv("FRONTEND_URL"))
+	//params.Add("device_id", dto.DeviceId)
+	//params.Add("state", dto.State)
 
-	req, err := http.NewRequest(
-		"POST",
-		"https://id.vk.com/oauth2/auth",
-		strings.NewReader(params.Encode()),
-	)
+	bodyRequest := map[string]string{
+		"grant_type":    "authorization_code",
+		"client_id":     os.Getenv("VK_CLIENT_ID"),
+		"code":          dto.Code,
+		"code_verifier": dto.CodeVerifier,
+		"redirect_uri":  os.Getenv("FRONTEND_URL"),
+		"device_id":     dto.DeviceId,
+		"state":         dto.State,
+	}
+
+	headers := map[string]string{
+		"Content-Type": "application/x-www-form-urlencoded",
+	}
+
+	response, err := utils.SendRequest[models.VkAuthGetTokenData](struct {
+		Method      string
+		URL         string
+		Headers     map[string]string
+		QueryParams map[string]string
+		Body        interface{}
+	}{Method: "POST", URL: "https://id.vk.com/oauth2/auth", Headers: headers, QueryParams: nil, Body: bodyRequest})
+
+	//req, err := http.NewRequest(
+	//	"POST",
+	//	"https://id.vk.com/oauth2/auth",
+	//	strings.NewReader(params.Encode()),
+	//)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	//req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	client := &http.Client{
-		Timeout: 30 * time.Second,
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("auth request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("vk auth error: %s", string(body))
-
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	var tokenResp models.VkAuthGetTokenData
-	//fmt.Printf("VK OAUTH API RAW RESPONSE: %s\n", string(body))
-
-	if err := json.Unmarshal(body, &tokenResp); err != nil {
-		return nil, fmt.Errorf("failed to parse response: %w, body: %s", err, string(body))
-	}
-	userInfo, err := s.getUserInfo(tokenResp.AccessToken)
+	//client := &http.Client{
+	//	Timeout: 30 * time.Second,
+	//}
+	//resp, err := client.Do(req)
+	//if err != nil {
+	//	return nil, fmt.Errorf("auth request failed: %w", err)
+	//}
+	//defer resp.Body.Close()
+	//
+	//if resp.StatusCode != http.StatusOK {
+	//	body, _ := io.ReadAll(resp.Body)
+	//	return nil, fmt.Errorf("vk auth error: %s", string(body))
+	//
+	//}
+	//body, err := io.ReadAll(resp.Body)
+	//if err != nil {
+	//	return nil, fmt.Errorf("failed to read response body: %w", err)
+	//}
+	//
+	//var tokenResp models.VkAuthGetTokenData
+	////fmt.Printf("VK OAUTH API RAW RESPONSE: %s\n", string(body))
+	//
+	//if err := json.Unmarshal(body, &tokenResp); err != nil {
+	//	return nil, fmt.Errorf("failed to parse response: %w, body: %s", err, string(body))
+	//}
+	userInfo, err := s.getUserInfo(response.AccessToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user info: %w", err)
 	}
@@ -370,19 +388,11 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo, error) {
 	baseUrl := "https://api.vk.com/method/users.get"
 
-	params := url.Values{}
-	params.Add("access_token", accessToken)
-	params.Add("v", "5.131")
-	params.Add("fields", "email,photo_200")
-
 	parameters := map[string]string{
 		"access_token": accessToken,
 		"v":            "5.131",
 		"fields":       "email,photo_200",
 	}
-	//var response struct {
-	//	Response []models.VkAuthGetUserInfo `json:"response"`
-	//}
 	response, err := utils.SendRequest[struct {
 		Response []models.VkAuthGetUserInfo `json:"response"`
 	}](struct {
@@ -396,33 +406,6 @@ func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo
 	if err != nil {
 		return nil, err
 	}
-	//resp, err := http.Get(baseUrl + "?" + params.Encode())
-	//if err != nil {
-	//	return nil, fmt.Errorf("vk api request failed: %w", err)
-	//}
-	//defer resp.Body.Close()
-	//
-	//if resp.StatusCode != http.StatusOK {
-	//	body, _ := io.ReadAll(resp.Body)
-	//	return nil, fmt.Errorf("vk api error: %s", string(body))
-	//}
-
-	//body, err := io.ReadAll(resp.Body)
-	//fmt.Printf("VK API RAW RESPONSE: %s\n", string(body))
-
-	//err = json.Unmarshal(body, &response)
-	//
-	//if err != nil {
-	//	return nil, fmt.Errorf("failed to read user info: %w", err)
-	//}
-	//
-	//if err := json.Unmarshal(body, &response); err != nil {
-	//	return nil, fmt.Errorf("failed to parse user info: %w", err)
-	//}
-	//
-	//if len(response.Response) == 0 {
-	//	return nil, errors.New("empty user info response")
-	//}
 
 	return &response.Response[0], nil
 }
