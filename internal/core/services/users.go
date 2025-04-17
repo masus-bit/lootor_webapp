@@ -306,7 +306,7 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 	}
 
 	var tokenResp models.VkAuthGetTokenData
-	//fmt.Printf("VK API RAW RESPONSE: %s\n", string(body))
+	fmt.Printf("VK OAUTH API RAW RESPONSE: %s\n", string(body))
 
 	if err := json.Unmarshal(body, &tokenResp); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w, body: %s", err, string(body))
@@ -389,7 +389,7 @@ func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo
 	}
 
 	body, err := io.ReadAll(resp.Body)
-	//fmt.Printf("VK API RAW RESPONSE: %s\n", string(body))
+	fmt.Printf("VK API RAW RESPONSE: %s\n", string(body))
 
 	err = json.Unmarshal(body, &response)
 
