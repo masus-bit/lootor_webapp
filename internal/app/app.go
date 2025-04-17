@@ -13,6 +13,7 @@ import (
 	"lootor/internal/pkg/auth"
 	"lootor/internal/pkg/database"
 	"lootor/internal/pkg/elasticsearch"
+	"lootor/internal/pkg/feedback"
 	"lootor/internal/pkg/mail"
 	"lootor/internal/pkg/s3"
 	"os"
@@ -101,6 +102,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	platformsService := services.NewPlatformsService(platformRepo)
 	tagsService := services.NewTagsService(tagRepo)
 	s3Service := s3.NewS3Service(redisClient)
+	fbService := feedback.NewFeedbackService()
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
@@ -120,6 +122,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.SearchRouter(e, jwtService, *searchService)
 	routes.ReindexRouter(e, jwtService, *searchService, *userRepo, *ciRepo, *colRepo, *tagRepo, *entityRepo)
 	routes.EventsRouter(e, jwtService, *eventsService)
+	routes.FeedbackRouter(e, jwtService, *fbService)
 
 	return &App{Echo: e}, nil
 }
