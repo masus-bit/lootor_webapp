@@ -273,15 +273,15 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 	//params.Add("device_id", dto.DeviceId)
 	//params.Add("state", dto.State)
 
-	bodyRequest := map[string]string{
-		"grant_type":    "authorization_code",
-		"client_id":     os.Getenv("VK_CLIENT_ID"),
-		"code":          dto.Code,
-		"code_verifier": dto.CodeVerifier,
-		"redirect_uri":  os.Getenv("FRONTEND_URL"),
-		"device_id":     dto.DeviceId,
-		"state":         dto.State,
-	}
+	//bodyRequest := struct{
+	//	"grant_type":    "authorization_code",
+	//	"client_id":     os.Getenv("VK_CLIENT_ID"),
+	//	"code":          dto.Code,
+	//	"code_verifier": dto.CodeVerifier,
+	//	"redirect_uri":  os.Getenv("FRONTEND_URL"),
+	//	"device_id":     dto.DeviceId,
+	//	"state":         dto.State,
+	//}
 
 	headers := map[string]string{
 		"Content-Type": "application/x-www-form-urlencoded",
@@ -293,7 +293,15 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		Headers     map[string]string
 		QueryParams map[string]string
 		Body        interface{}
-	}{Method: "POST", URL: "https://id.vk.com/oauth2/auth", Headers: headers, QueryParams: nil, Body: bodyRequest})
+	}{Method: "POST", URL: "https://id.vk.com/oauth2/auth", Headers: headers, QueryParams: nil, Body: models.VkAuthRequest{
+		GrantType:    "authorization_code",
+		ClientID:     os.Getenv("VK_CLIENT_ID"),
+		Code:         dto.Code,
+		CodeVerifier: dto.CodeVerifier,
+		RedirectUri:  os.Getenv("FRONTEND_URL"),
+		DeviceId:     dto.DeviceId,
+		State:        dto.State,
+	}})
 
 	//req, err := http.NewRequest(
 	//	"POST",
