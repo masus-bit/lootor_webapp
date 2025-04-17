@@ -435,12 +435,14 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 	hashBytes := h.Sum(nil)
 
 	computedHash := hex.EncodeToString(hashBytes)
-
+	fmt.Println(hash, computedHash, "HASHI")
 	if hash != computedHash {
 		return nil, fmt.Errorf("Проблемы с хэшем")
 	}
 
-	existUser, err := s.repo.GetByTgId(dto.Id)
+	newId := fmt.Sprintf("%d", dto.Id)
+
+	existUser, err := s.repo.GetByTgId(newId)
 
 	if err != nil {
 		return nil, fmt.Errorf("db error: %w", err)
@@ -458,13 +460,13 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 		}, nil
 	}
 
-	passwordHash, err := auth.HashPassword("tg" + dto.Id + dto.Username)
+	passwordHash, err := auth.HashPassword("tg" + newId + dto.Username)
 	if err != nil {
 		return nil, fmt.Errorf("password hash error: %w", err)
 	}
 
 	newUser := models.Users{
-		TelegramId:   dto.Id,
+		TelegramId:   newId,
 		Login:        dto.Username,
 		UserName:     dto.FirstName + " " + dto.LastName,
 		AvatarUrl:    dto.PhotoUrl,
@@ -477,7 +479,7 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 		return nil, fmt.Errorf("user creation error: %w", err)
 	}
 
-	user, err := s.repo.GetByTgId(dto.Id)
+	user, err := s.repo.GetByTgId(newId)
 	if err != nil {
 		return nil, fmt.Errorf("db error: %w", err)
 	}
