@@ -1,12 +1,12 @@
 package utils
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // RequestOptions - параметры запроса
@@ -15,22 +15,23 @@ type RequestOptions struct {
 	URL         string
 	Headers     map[string]string
 	QueryParams map[string]string
-	Body        interface{}
+	Body        map[string]string
 }
 
 func SendRequest[T any](options RequestOptions) (T, error) {
 	var result T
 
-	var bodyReader io.Reader
-	if options.Body != nil {
-		bodyBytes, err := json.Marshal(options.Body)
-		if err != nil {
-			return result, fmt.Errorf("failed to marshal body: %w", err)
-		}
-		bodyReader = bytes.NewBuffer(bodyBytes)
-	}
+	//var bodyReader io.Reader
+	//if options.Body != nil {
+	//	bodyBytes, err := json.Marshal(options.Body)
+	//	if err != nil {
+	//		return result, fmt.Errorf("failed to marshal body: %w", err)
+	//	}
+	//	bodyReader = bytes.NewBuffer(bodyBytes)
+	//}
 
 	queryParams := url.Values{}
+	requestBody := url.Values{}
 
 	modifiedUrl := options.URL
 
@@ -41,7 +42,13 @@ func SendRequest[T any](options RequestOptions) (T, error) {
 		modifiedUrl = options.URL + "?" + queryParams.Encode()
 	}
 
-	req, err := http.NewRequest(options.Method, modifiedUrl, bodyReader)
+	if len(options.Body) > 0 {
+		for key, value := range options.Body {
+			requestBody.Add(key, value)
+		}
+	}
+
+	req, err := http.NewRequest(options.Method, modifiedUrl, strings.NewReader(requestBody.Encode()))
 	if err != nil {
 		return result, fmt.Errorf("failed to create request: %w", err)
 	}
