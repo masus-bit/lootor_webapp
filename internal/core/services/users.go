@@ -275,6 +275,8 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 	params.Add("device_id", dto.DeviceId)
 	params.Add("state", dto.State)
 
+	fmt.Println(os.Getenv("FRONTEND_URL"), "EBAL OHCKO")
+
 	req, err := http.NewRequest(
 		"POST",
 		"https://id.vk.com/oauth2/auth",
