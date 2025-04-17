@@ -210,3 +210,25 @@ func (c *UserController) VkOauth(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, response)
 }
+
+func (c *UserController) TelegramOauth(ctx echo.Context) error {
+	var request models.TelegramOauthRequest
+
+	err := ctx.Bind(&request)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error бля": err.Error(),
+		})
+	}
+
+	response, err := c.userService.TelegramOauth(&request)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error бля": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+
+}

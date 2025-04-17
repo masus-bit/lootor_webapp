@@ -11,7 +11,6 @@ type MailService struct {
 }
 
 func NewMailService(host string, port int, username, password, from string) *MailService {
-	fmt.Println(host, port, username, password, from)
 	return &MailService{
 		dialer: gomail.NewDialer(host, port, username, password),
 		from:   from,
@@ -19,7 +18,6 @@ func NewMailService(host string, port int, username, password, from string) *Mai
 }
 
 func (s *MailService) SendConfirmationEmail(email, token string) error {
-	fmt.Println(email, token)
 
 	subject := "Подтверждение регистрации на Lootor"
 	body := fmt.Sprintf("Подтвердите ваш аккаунт, перейдя по ссылке: https://dev.lootor.me/auth?confirmationToken=%s", token)

@@ -2,6 +2,9 @@ package services
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,6 +21,7 @@ import (
 	"net/url"
 	"os"
 	"slices"
+	"sort"
 	"strings"
 	"time"
 )
@@ -42,7 +46,6 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	}
 
 	var authorizedUser *models.Users
-	fmt.Println(authUser, 2)
 	if authUser != "" && isAuthenticated {
 		authorizedUser, _ = s.repo.GetUserByLogin(authUser)
 	}
@@ -73,7 +76,6 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	}
 
 	e := mapstructure.Decode(dbUser, &response)
-	fmt.Println(dbUser, response)
 	if e != nil {
 		return nil, e
 	}
@@ -275,8 +277,6 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 	params.Add("device_id", dto.DeviceId)
 	params.Add("state", dto.State)
 
-	fmt.Println(os.Getenv("FRONTEND_URL"), "EBAL OHCKO")
-
 	req, err := http.NewRequest(
 		"POST",
 		"https://id.vk.com/oauth2/auth",
@@ -308,7 +308,7 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 	}
 
 	var tokenResp models.VkAuthGetTokenData
-	fmt.Printf("VK OAUTH API RAW RESPONSE: %s\n", string(body))
+	//fmt.Printf("VK OAUTH API RAW RESPONSE: %s\n", string(body))
 
 	if err := json.Unmarshal(body, &tokenResp); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w, body: %s", err, string(body))
@@ -391,7 +391,7 @@ func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo
 	}
 
 	body, err := io.ReadAll(resp.Body)
-	fmt.Printf("VK API RAW RESPONSE: %s\n", string(body))
+	//fmt.Printf("VK API RAW RESPONSE: %s\n", string(body))
 
 	err = json.Unmarshal(body, &response)
 
@@ -408,4 +408,87 @@ func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo
 	}
 
 	return &response.Response[0], nil
+}
+
+func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.SignInResponse, error) {
+
+	data := []string{
+		fmt.Sprintf("id=%s", dto.Id),
+		fmt.Sprintf("first_name=%s", dto.FirstName),
+		fmt.Sprintf("last_name=%s", dto.LastName),
+		fmt.Sprintf("username=%s", dto.Username),
+		fmt.Sprintf("photo_url=%s", dto.PhotoUrl),
+		fmt.Sprintf("auth_date=%s", dto.AuthDate),
+	}
+	hash := dto.Hash
+
+	sort.Strings(data)
+	dataCheckString := strings.Join(data, "\n")
+
+	hSecretKey := sha256.New()
+	hSecretKey.Write([]byte(os.Getenv("TELEGRAM_BOT_TOKEN")))
+
+	h := hmac.New(sha256.New, hSecretKey.Sum(nil))
+
+	h.Write([]byte(dataCheckString))
+
+	hashBytes := h.Sum(nil)
+
+	computedHash := hex.EncodeToString(hashBytes)
+
+	if hash != computedHash {
+		return nil, fmt.Errorf("Проблемы с хэшем")
+	}
+
+	existUser, err := s.repo.GetByTgId(dto.Id)
+
+	if err != nil {
+		return nil, fmt.Errorf("db error: %w", err)
+	}
+
+	if existUser != nil {
+
+		tokens, err := s.jwtService.GenerateTokenPair(existUser)
+		if err != nil {
+			return nil, fmt.Errorf("token generation error: %w", err)
+		}
+		return &models.SignInResponse{
+			AccessToken:  tokens.AccessToken,
+			RefreshToken: tokens.RefreshToken,
+		}, nil
+	}
+
+	passwordHash, err := auth.HashPassword("tg" + dto.Id + dto.Username)
+	if err != nil {
+		return nil, fmt.Errorf("password hash error: %w", err)
+	}
+
+	newUser := models.Users{
+		TelegramId:   dto.Id,
+		Login:        dto.Username,
+		UserName:     dto.FirstName + " " + dto.LastName,
+		AvatarUrl:    dto.PhotoUrl,
+		Created:      time.Now().Format(time.RFC3339),
+		PasswordHash: passwordHash,
+	}
+
+	err = s.repo.CreateUser(&newUser)
+	if err != nil {
+		return nil, fmt.Errorf("user creation error: %w", err)
+	}
+
+	user, err := s.repo.GetByTgId(dto.Id)
+	if err != nil {
+		return nil, fmt.Errorf("db error: %w", err)
+	}
+
+	tokens, err := s.jwtService.GenerateTokenPair(user)
+	if err != nil {
+		return nil, fmt.Errorf("token generation error: %w", err)
+	}
+
+	return &models.SignInResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	}, nil
 }

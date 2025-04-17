@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/labstack/echo/v4"
 	"lootor/internal/core/models"
 	"lootor/internal/core/services"
@@ -24,7 +23,6 @@ func (c *EntitiesController) CreateEntities(ctx echo.Context) error {
 		})
 	}
 	response, err := c.entitiesService.CreateEntities(&request)
-	fmt.Println(response)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

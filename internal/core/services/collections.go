@@ -216,7 +216,6 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 		temp.Collection = finalCollection.Id
 		collectionItems = append(collectionItems, temp)
 	}
-	fmt.Println(4)
 
 	finalCollection.CollectionItems = collectionItems
 	finalCollection.ShareString = utils.DefineShareString(authorizerUser, userLogin, dbCollection)

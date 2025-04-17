@@ -121,6 +121,16 @@ type VkAuthGetUserInfoResponse struct {
 	Response []VkAuthGetUserInfo `json:"response"`
 }
 
+type TelegramOauthRequest struct {
+	Id        string `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Username  string `json:"username"`
+	PhotoUrl  string `json:"photo_url"`
+	AuthDate  string `json:"auth_date"`
+	Hash      string `json:"hash"`
+}
+
 func (u *Users) GetLogin() string         { return u.Login }
 func (u *Users) GetUserName() string      { return u.UserName }
 func (u *Users) GetVkId() string          { return u.VkId }
