@@ -46,10 +46,6 @@ func (s *FeedbackService) AddIssue(title string, description string, file []byte
 		File        []byte
 	}{Method: "POST", URL: os.Getenv("TRELLO_API_URL"), Headers: headers, QueryParams: reqParams, Body: reqBody, File: []byte{}})
 
-	//attachReqHeaders := map[string]string{
-	//	"Content-Type": writer.FormDataContentType(),
-	//}
-
 	attachReqUrl := fmt.Sprintf("%s/%s/attachments",
 		os.Getenv("TRELLO_API_URL"),
 		response.Id,
@@ -69,46 +65,9 @@ func (s *FeedbackService) AddIssue(title string, description string, file []byte
 		File        []byte
 	}{Method: "POST", URL: attachReqUrl, Headers: map[string]string{}, QueryParams: attachReqParams, Body: map[string]string{}, File: file})
 
-	//var requestBody bytes.Buffer
-	//writer := multipart.NewWriter(&requestBody)
-	//
-	//part, err := writer.CreateFormFile("file", uuid.New().String())
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//_, err = io.Copy(part, bytes.NewReader(file))
-	//
-	//writer.Close()
-	//if err != nil {
-	//	return nil, fmt.Errorf("error: %s", string(body))
-	//}
-	//
-	//resUrl := fmt.Sprintf("%s/%s/attachments?key=%s&token=%s",
-	//	os.Getenv("TRELLO_API_URL"),
-	//	response.Id,
-	//	os.Getenv("TRELLO_API_KEY"),
-	//	os.Getenv("TRELLO_TOKEN"),
-	//)
-	//
-	//request, err := http.NewRequest("POST", resUrl, &requestBody)
 	if attachErr != nil {
 		return nil, fmt.Errorf("failed to request attach: %w", err)
 	}
-
-	//request.Header.Set("Content-Type", writer.FormDataContentType())
-
-	//client = &http.Client{}
-	//resp, err = client.Do(request)
-	//if err != nil {
-	//	return nil, fmt.Errorf("failed to send request: %w", err)
-	//}
-	//defer resp.Body.Close()
-
-	//if resp.StatusCode != http.StatusOK {
-	//	body, _ := io.ReadAll(resp.Body)
-	//	return nil, fmt.Errorf("trello api error: %s, response: %s", resp.Status, string(body))
-	//}
 
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
