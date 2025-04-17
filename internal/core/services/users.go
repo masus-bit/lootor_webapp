@@ -411,20 +411,28 @@ func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo
 }
 
 func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.SignInResponse, error) {
+	if dto.LastName == "" {
 
+	}
 	data := []string{
-		fmt.Sprintf("id=%s", dto.Id),
-		fmt.Sprintf("first_name=%s", dto.FirstName),
-		fmt.Sprintf("last_name=%s", dto.LastName),
+		fmt.Sprintf("id=%d", dto.Id),
 		fmt.Sprintf("username=%s", dto.Username),
-		fmt.Sprintf("photo_url=%s", dto.PhotoUrl),
-		fmt.Sprintf("auth_date=%s", dto.AuthDate),
+		fmt.Sprintf("auth_date=%d", dto.AuthDate),
+	}
+
+	if dto.LastName != "" {
+		data = append(data, fmt.Sprintf("last_name=%s", dto.LastName))
+	}
+	if dto.FirstName != "" {
+		data = append(data, fmt.Sprintf("first_name=%s", dto.FirstName))
+	}
+	if dto.PhotoUrl != "" {
+		data = append(data, fmt.Sprintf("photo_url=%s", dto.PhotoUrl))
 	}
 	hash := dto.Hash
 
 	sort.Strings(data)
 	dataCheckString := strings.Join(data, "\n")
-
 	hSecretKey := sha256.New()
 	hSecretKey.Write([]byte(os.Getenv("TELEGRAM_BOT_TOKEN")))
 
@@ -435,18 +443,13 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 	hashBytes := h.Sum(nil)
 
 	computedHash := hex.EncodeToString(hashBytes)
-	fmt.Println(hash, computedHash, "HASHI")
 	if hash != computedHash {
 		return nil, fmt.Errorf("Проблемы с хэшем")
 	}
 
 	newId := fmt.Sprintf("%d", dto.Id)
 
-	existUser, err := s.repo.GetByTgId(newId)
-
-	if err != nil {
-		return nil, fmt.Errorf("db error: %w", err)
-	}
+	existUser, _ := s.repo.GetByTgId(newId)
 
 	if existUser != nil {
 

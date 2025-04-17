@@ -2,7 +2,6 @@ package models
 
 import (
 	"github.com/lib/pq"
-	"time"
 )
 
 type Users struct {
@@ -123,13 +122,13 @@ type VkAuthGetUserInfoResponse struct {
 }
 
 type TelegramOauthRequest struct {
-	Id        int64     `json:"id"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Username  string    `json:"username"`
-	PhotoUrl  string    `json:"photo_url"`
-	AuthDate  time.Time `json:"auth_date"`
-	Hash      string    `json:"hash"`
+	Id        int64  `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Username  string `json:"username"`
+	PhotoUrl  string `json:"photo_url"`
+	AuthDate  int64  `json:"auth_date"`
+	Hash      string `json:"hash"`
 }
 
 func (u *Users) GetLogin() string         { return u.Login }

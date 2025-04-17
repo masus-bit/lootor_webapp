@@ -22,6 +22,7 @@ type CollectionItems struct {
 	Sealed          bool
 	Edition         string
 	CopyNumber      pq.Int64Array `gorm:"type:integer[]"`
+	Rating          float64
 	Deleted         bool
 	ShippingCost    float64
 	Transliteration string
@@ -47,6 +48,7 @@ type CollectionItemsResponse struct {
 	Sealed        bool           `json:"sealed"`
 	Edition       string         `json:"edition"`
 	CopyNumber    pq.Int64Array  `json:"copyNumber"`
+	Rating        float64        `json:"rating"`
 	ShippingCost  float64        `json:"shippingCost"`
 	Entities      []Entities     `json:"entities"`
 	Platform      Platforms      `json:"platform"`
@@ -62,6 +64,7 @@ type CollectionItemsRequestCreate struct {
 	PurchasePrice float64  `json:"purchasePrice"`
 	Sealed        bool     `json:"sealed"`
 	Edition       string   `json:"edition"`
+	Rating        float64  `json:"rating"`
 	CopyNumber    []int64  `json:"copyNumber"`
 	ShippingCost  float64  `json:"shippingCost"`
 	Entities      []string `json:"entities"`
