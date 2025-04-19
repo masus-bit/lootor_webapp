@@ -15,6 +15,14 @@ func NewSearchController(es *elasticsearch.ElasticService) *SearchController {
 	return &SearchController{es: es}
 }
 
+// Search
+// @Summary Поиск по коллекциям, ентити, КИ, тегам, юзерам
+// @Tags search
+// @Accept  json
+// @Produce  json
+// @Param search query string true "поисковая строка"
+// @Success 201 {object} elasticsearch.SearchResult
+// @Router /public/search [get]
 func (c *SearchController) Search(ctx echo.Context) error {
 	query := ctx.QueryParam("search")
 	if query == "" {

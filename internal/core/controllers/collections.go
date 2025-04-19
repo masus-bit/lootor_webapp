@@ -15,6 +15,14 @@ func NewCollectionsController(colService services.CollectionService) *Collection
 	return &CollectionsController{colService: colService}
 }
 
+// CreateCollection
+// @Summary Создание коллекции
+// @Tags collections
+// @Accept  json
+// @Produce  json
+// @Param createRequest body models.CollectionCreateRequest true "поля создания"
+// @Success 201 {object} dto.CollectionDataResponseSwagger
+// @Router /secured/collections [post]
 func (c *CollectionsController) CreateCollection(ctx echo.Context) error {
 	var request models.CollectionCreateRequest
 
@@ -52,6 +60,14 @@ func (c *CollectionsController) DeleteCollection(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, value)
 }
 
+// UpdateCollection
+// @Summary обновление коллекции
+// @Tags collections
+// @Accept  json
+// @Produce  json
+// @Param createRequest body models.CollectionCreateRequest true "поля создания"
+// @Success 201 {object} dto.CollectionDataResponseSwagger
+// @Router /secured/collections/update [post]
 func (c *CollectionsController) UpdateCollection(ctx echo.Context) error {
 	var request models.CollectionCreateRequest
 	id := ctx.QueryParam("id")
@@ -71,6 +87,14 @@ func (c *CollectionsController) UpdateCollection(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, value)
 }
 
+// GetByUserLogin
+// @Summary получение коллекций по логину
+// @Tags collections
+// @Accept  json
+// @Produce  json
+// @Param userLogin query string true "логин"
+// @Success 201 {object} dto.AllCollectionsDataResponseSwagger
+// @Router /public/collections/all [get]
 func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 	login := ctx.QueryParam("userLogin")
 	if login == "" {
@@ -92,6 +116,16 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// GetOneByFewParams
+// @Summary получение коллекций по id или по логину + транслит
+// @Tags collections
+// @Accept  json
+// @Produce  json
+// @Param userLogin query string false "логин"
+// @Param id query string false "id"
+// @Param transliteration query string false "translit"
+// @Success 201 {object} dto.CollectionDataResponseSwagger
+// @Router /public/collections [get]
 func (c *CollectionsController) GetOneByFewParams(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	transliteration := ctx.QueryParam("transliteration")
@@ -113,6 +147,14 @@ func (c *CollectionsController) GetOneByFewParams(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// Like
+// @Summary like/dislike
+// @Tags collections
+// @Accept  json
+// @Produce  json
+// @Param id query string true "id"
+// @Success 201 {object} dto.CommonResponse
+// @Router /secured/collections/like [get]
 func (c *CollectionsController) Like(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	if id == "" {
@@ -134,6 +176,15 @@ func (c *CollectionsController) Like(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// Subscribe
+// @Summary подписка на кололекцию
+// @Tags collections
+// @Accept  json
+// @Produce  json
+// @Param id query string true "id"
+// @Param isSubscribe query boolean true "flag"
+// @Success 201 {object} dto.CommonResponse
+// @Router /public/collections/subscribe [get]
 func (c *CollectionsController) Subscribe(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	isSubscribe := ctx.QueryParam("isSubscribe")
@@ -156,6 +207,14 @@ func (c *CollectionsController) Subscribe(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// GetByTag
+// @Summary получить коллекции по тегу
+// @Tags collections
+// @Accept  json
+// @Produce  json
+// @Param tag query string true "tag"
+// @Success 201 {object} dto.AllCollectionsDataResponseSwagger
+// @Router /public/collections/tag [get]
 func (c *CollectionsController) GetByTag(ctx echo.Context) error {
 	tag := ctx.QueryParam("tag")
 	if tag == "" {

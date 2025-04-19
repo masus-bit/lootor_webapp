@@ -14,6 +14,17 @@ func NewFeedbackController(feedService *feedback.FeedbackService) *FeedbackContr
 	return &FeedbackController{feedService: feedService}
 }
 
+// AddIssue
+// @Summary Создать обращение
+// @Description Загрузка файла через multipart/form-data
+// @Tags feedback
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Файл для загрузки"
+// @Param title query string true "Заголовок тикета"
+// @Param description query string true "Описание тикета"
+// @Success 200 {object} dto.CommonResponse
+// @Router /secured/feedback [post]
 func (c *FeedbackController) AddIssue(ctx echo.Context) error {
 	form, err := ctx.MultipartForm()
 	if err != nil {

@@ -14,6 +14,13 @@ func NewPlatformsController(platformsService services.PlatformsService) *Platfor
 	return &PlatformsController{platformsService: platformsService}
 }
 
+// GetPlatforms
+// @Summary получить список платформ
+// @Tags platforms
+// @Accept  json
+// @Produce  json
+// @Success 201 {object} models.PlatformsDataResponse
+// @Router /secured/platforms [get]
 func (c *PlatformsController) GetPlatforms(ctx echo.Context) error {
 	response, err := c.platformsService.GetAllPlatforms()
 	if err != nil {

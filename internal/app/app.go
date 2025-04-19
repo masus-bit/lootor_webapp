@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/redis/go-redis/v9"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"lootor/internal/config"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
@@ -34,6 +35,8 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	_ = godotenv.Load()
 
 	e := echo.New()
+
+	e.GET("/public/swagger/*", echoSwagger.WrapHandler)
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{

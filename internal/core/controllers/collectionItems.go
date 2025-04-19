@@ -15,6 +15,14 @@ func NewCIController(ciService services.CiService) *CIController {
 	return &CIController{ciService: ciService}
 }
 
+// CreateCollectionItem
+// @Summary Создание КИ
+// @Tags collection items
+// @Accept  json
+// @Produce  json
+// @Param createRequest body models.CollectionItemsRequestCreate true "поля создания"
+// @Success 201 {object} dto.CollectionItemsDataResponseSwagger
+// @Router /secured/collection_item [post]
 func (c *CIController) CreateCollectionItem(ctx echo.Context) error {
 	var request models.CollectionItemsRequestCreate
 
@@ -38,6 +46,14 @@ func (c *CIController) CreateCollectionItem(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, value)
 }
 
+// DeleteCollectionItem
+// @Summary удаление КИ
+// @Tags collection items
+// @Accept  json
+// @Produce  json
+// @Param id query string true "id"
+// @Success 201 {object} dto.CommonResponse
+// @Router /secured/collection_item [delete]
 func (c *CIController) DeleteCollectionItem(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	if id == "" {
@@ -56,6 +72,14 @@ func (c *CIController) DeleteCollectionItem(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, value)
 }
 
+// UpdateCollectionItem
+// @Summary обновление КИ
+// @Tags collection items
+// @Accept  json
+// @Produce  json
+// @Param createRequest body models.CollectionItemsRequestCreate true "поля создания"
+// @Success 201 {object} dto.CollectionItemsDataResponseSwagger
+// @Router /secured/collection_item/update [post]
 func (c *CIController) UpdateCollectionItem(ctx echo.Context) error {
 	var request models.CollectionItemsRequestCreate
 	id := ctx.QueryParam("id")
@@ -75,6 +99,14 @@ func (c *CIController) UpdateCollectionItem(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, value)
 }
 
+// GetCollectionItem
+// @Summary получение одного КИ
+// @Tags collection шеуьы
+// @Accept  json
+// @Produce  json
+// @Param id query string false "id"
+// @Success 201 {object} dto.CollectionItemsDataResponseSwagger
+// @Router /public/collection_item [get]
 func (c *CIController) GetCollectionItem(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	if id == "" {
@@ -93,6 +125,14 @@ func (c *CIController) GetCollectionItem(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// CopyOrMoveCollectionItem
+// @Summary копирование/перемещение КИ
+// @Tags collection items
+// @Accept  json
+// @Produce  json
+// @Param createRequest body models.CollectionItemsCopyOrMoveRequest true "polya"
+// @Success 201 {object} dto.CommonResponse
+// @Router /secured/collection_item/copy [post]
 func (c *CIController) CopyOrMoveCollectionItem(ctx echo.Context) error {
 	var request models.CollectionItemsCopyOrMoveRequest
 

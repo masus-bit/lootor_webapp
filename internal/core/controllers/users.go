@@ -15,6 +15,14 @@ func NewUserController(userService services.UserService) *UserController {
 	return &UserController{userService: userService}
 }
 
+// SignUp  создает нового пользователя
+// @Summary создание пользователя
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param user body models.SignUpRequest true "User data"
+// @Success 201 {object} models.SignUpResponse
+// @Router /public/auth/signup [post]
 func (c *UserController) SignUp(ctx echo.Context) error {
 	var request models.SignUpRequest
 
@@ -35,6 +43,14 @@ func (c *UserController) SignUp(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, request)
 }
 
+// SignIn Авторизация
+// @Summary Авторизация
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param user body models.SignInRequest true "User data"
+// @Success 201 {object} models.SignInResponse
+// @Router /public/auth/signin [post]
 func (c *UserController) SignIn(ctx echo.Context) error {
 	var request models.SignInRequest
 
@@ -54,6 +70,14 @@ func (c *UserController) SignIn(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// GetByLogin
+// @Summary получение юзера по логину
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param login query string true "логин"
+// @Success 201 {object} dto.DataUserResponseSwagger
+// @Router /public/user [get]
 func (c *UserController) GetByLogin(ctx echo.Context) error {
 	login := ctx.QueryParam("login")
 	authInfo := ctx.Get("auth_info").(struct {
@@ -76,6 +100,14 @@ func (c *UserController) GetByLogin(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// ChangeRating
+// @Summary Лайк/дизлайк
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param user body dto.LikeUserSwagger true "User data"
+// @Success 201 {object} dto.CommonResponse
+// @Router /public/user/rating [post]
 func (c *UserController) ChangeRating(ctx echo.Context) error {
 	var request models.ChangeRatingRequest
 	err := ctx.Bind(&request)
@@ -99,6 +131,15 @@ func (c *UserController) ChangeRating(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// ChangePass
+// @Summary Смена пароля
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param isLike body boolean true "isLike"
+// @Param login query string true "User data"
+// @Success 201 {object} dto.CommonResponse
+// @Router /public/user/password [post]
 func (c *UserController) ChangePass(ctx echo.Context) error {
 	var request models.ChangePasswordRequest
 	err := ctx.Bind(&request)
@@ -126,6 +167,15 @@ func (c *UserController) ChangePass(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// Subscribe
+// @Summary Подписка одного юзера на другого
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param isSubscribe query boolean true "признак подписки"
+// @Param login query string true "User data"
+// @Success 201 {object} dto.CommonResponse
+// @Router /public/user/subscriptions [post]
 func (c *UserController) Subscribe(ctx echo.Context) error {
 	login := ctx.QueryParam("login")
 	isSubscribe := ctx.QueryParam("isSubscribe")

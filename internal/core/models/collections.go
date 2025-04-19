@@ -18,7 +18,10 @@ type TagsCollectionsCollections struct {
 }
 
 type Collections struct {
-	gorm.Model
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+
 	Id               uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	Name             string         `json:"name"`
 	Description      string         `json:"description"`
@@ -36,7 +39,6 @@ type Collections struct {
 	User             *Users            `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;" json:"user"`
 	Tags             []Tags            `gorm:"many2many:tags_collections_collections;constraint:OnDelete:CASCADE;" json:"tags"`
 	UserLogin        string            `gorm:"type:varchar(255);index"`
-	DeletedAt        gorm.DeletedAt    `gorm:"index"`
 }
 
 func (CollectionsCollectionItemsCollectionItems) TableName() string {

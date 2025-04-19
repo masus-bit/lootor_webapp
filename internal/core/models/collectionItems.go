@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
+	"time"
 )
 
 type EntitiesCollectionItemCollectionItem struct {
@@ -12,7 +13,10 @@ type EntitiesCollectionItemCollectionItem struct {
 }
 
 type CollectionItems struct {
-	gorm.Model
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+
 	Id              uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	Name            string
 	Description     string
@@ -39,21 +43,21 @@ func (EntitiesCollectionItemCollectionItem) TableName() string {
 }
 
 type CollectionItemsResponse struct {
-	Id            uuid.UUID      `json:"id"`
-	Name          string         `json:"name"`
-	Description   string         `json:"description"`
-	Images        pq.StringArray `json:"images"`
-	PurchaseDate  string         `json:"purchaseDate"`
-	PurchasePrice float64        `json:"purchasePrice"`
-	Sealed        bool           `json:"sealed"`
-	Edition       string         `json:"edition"`
-	CopyNumber    pq.Int64Array  `json:"copyNumber"`
-	Rating        float64        `json:"rating"`
-	ShippingCost  float64        `json:"shippingCost"`
-	Entities      []Entities     `json:"entities"`
-	Platform      *Platforms     `json:"platform"`
-	Collection    uuid.UUID      `json:"collection"`
-	Owner         Users          `json:"owner"`
+	Id            uuid.UUID  `json:"id"`
+	Name          string     `json:"name"`
+	Description   string     `json:"description"`
+	Images        []string   `json:"images"`
+	PurchaseDate  string     `json:"purchaseDate"`
+	PurchasePrice float64    `json:"purchasePrice"`
+	Sealed        bool       `json:"sealed"`
+	Edition       string     `json:"edition"`
+	CopyNumber    []string   `json:"copyNumber"`
+	Rating        float64    `json:"rating"`
+	ShippingCost  float64    `json:"shippingCost"`
+	Entities      []Entities `json:"entities"`
+	Platform      *Platforms `json:"platform"`
+	Collection    uuid.UUID  `json:"collection"`
+	Owner         Users      `json:"owner"`
 }
 
 type CollectionItemsRequestCreate struct {

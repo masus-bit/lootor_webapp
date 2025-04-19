@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	_ "lootor/docs"
 	"lootor/internal/app"
 	"lootor/internal/config"
 	"net/http"
@@ -12,6 +13,17 @@ import (
 	"time"
 )
 
+// @title Lootor
+// @version 1.0
+// @description Документация к API Lootor.me
+// @termsOfService http://swagger.io/terms/
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host dev.lootor.me
+// @BasePath /
+// @schemes https
 func main() {
 	cfg, err := config.Load()
 	if err != nil {

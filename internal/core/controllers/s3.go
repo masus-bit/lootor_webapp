@@ -16,6 +16,16 @@ func NewFilesController(s3 *s3.S3Service) *FilesController {
 	return &FilesController{s3: s3}
 }
 
+// Upload
+// @Summary Загрузить изображения в хранилище
+// @Tags images
+// @Accept multipart/form-data
+// @Produce json
+// @Param files formData []file true "файлы для загрузки"
+// @Param width query string false "ширина картинки"
+// @Param height query string false "высота"
+// @Success 200 {object} dto.ImagesResponse
+// @Router /secured/images/upload [post]
 func (c *FilesController) Upload(ctx echo.Context) error {
 	form, err := ctx.MultipartForm()
 	if err != nil {
@@ -57,6 +67,15 @@ func (c *FilesController) Upload(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, echo.Map{"keys": keys})
 }
 
+// GetFile
+// @Summary получить изображение
+// @Tags images
+// @Produce image/png
+// @Produce image/jpeg
+// @Produce image/webp
+// @Param key path string true "id"
+// @Success 200 {file} byte "image"
+// @Router /public/images/{key} [get]
 func (c *FilesController) GetFile(ctx echo.Context) error {
 	key := ctx.Param("key")
 	if key == "" {
@@ -71,6 +90,14 @@ func (c *FilesController) GetFile(ctx echo.Context) error {
 	return ctx.Blob(http.StatusOK, "image/webp", file)
 }
 
+// Delete
+// @Summary удалить изображения из хранилища
+// @Tags images
+// @Accept json
+// @Produce json
+// @Param createRequest body s3.DeleteFilesRequest true "поля"
+// @Success 200 {object} s3.DeleteFilesResponse
+// @Router /secured/images/delete [post]
 func (c *FilesController) Delete(ctx echo.Context) error {
 	var req s3.DeleteFilesRequest
 	if err := ctx.Bind(&req); err != nil {
