@@ -62,7 +62,7 @@ func (c *CIController) DeleteCollectionItem(ctx echo.Context) error {
 		})
 	}
 
-	value, err := c.ciService.Delete(id)
+	value, err := c.ciService.Delete(id, ctx.Request().Context())
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

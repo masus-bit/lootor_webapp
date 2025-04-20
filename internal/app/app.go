@@ -97,14 +97,14 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	s3Service := s3.NewS3Service(redisClient)
 	mailService := mail.NewMailService("smtp.yandex.ru", 465, "noreply@lootor.me", "cytuhekbl13", `"Lootor" <noreply@lootor.me>`)
 	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsRepo)
-	ciService := services.NewCiService(ciRepo, eventsRepo, colRepo, userRepo, platformRepo, entityRepo)
-	colService := services.NewCollectionService(colRepo, tagRepo, userRepo, eventsRepo, ciRepo)
+	ciService := services.NewCiService(ciRepo, eventsRepo, colRepo, userRepo, platformRepo, entityRepo, s3Service)
+	colService := services.NewCollectionService(colRepo, tagRepo, userRepo, eventsRepo, ciRepo, s3Service)
 	entitiesService := services.NewEntitiesService(entityRepo)
 	platformsService := services.NewPlatformsService(platformRepo)
 	tagsService := services.NewTagsService(tagRepo)
-	s3Service := s3.NewS3Service(redisClient)
 	fbService := feedback.NewFeedbackService()
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)

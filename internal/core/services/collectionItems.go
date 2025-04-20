@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
@@ -8,6 +9,7 @@ import (
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/pkg/dto"
+	"lootor/internal/pkg/s3"
 	"lootor/internal/pkg/utils"
 )
 
@@ -18,10 +20,11 @@ type CiService struct {
 	userRepo       *repositories.UsersRepository
 	platformsRepo  *repositories.PlatformsRepository
 	entityRepo     *repositories.EntitiesRepository
+	s3Service      *s3.S3Service
 }
 
-func NewCiService(repo *repositories.CiRepository, eventRepo *repositories.EventsRepository, collectionRepo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, platformsRepo *repositories.PlatformsRepository, entityRepo *repositories.EntitiesRepository) *CiService {
-	return &CiService{repo: repo, eventRepo: eventRepo, collectionRepo: collectionRepo, userRepo: userRepo, platformsRepo: platformsRepo, entityRepo: entityRepo}
+func NewCiService(repo *repositories.CiRepository, eventRepo *repositories.EventsRepository, collectionRepo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, platformsRepo *repositories.PlatformsRepository, entityRepo *repositories.EntitiesRepository, s3Service *s3.S3Service) *CiService {
+	return &CiService{repo: repo, eventRepo: eventRepo, collectionRepo: collectionRepo, userRepo: userRepo, platformsRepo: platformsRepo, entityRepo: entityRepo, s3Service: s3Service}
 }
 
 func (s *CiService) getEntities(entities []string) []models.Entities {
@@ -98,7 +101,7 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 	return &models.CollectionItemsDataResponse{Data: collectionItemResponse}, nil
 }
 
-func (s *CiService) Delete(id string) (*dto.CommonResponse, error) {
+func (s *CiService) Delete(id string, ctx context.Context) (*dto.CommonResponse, error) {
 	exists, _ := s.repo.GetCIByID(id)
 	var result *dto.CommonResponse
 	if exists != nil {
@@ -111,6 +114,12 @@ func (s *CiService) Delete(id string) (*dto.CommonResponse, error) {
 		err := s.repo.DeleteCI(id)
 		if err != nil {
 			return nil, err
+		}
+		if len(exists.Images) > 0 {
+			_, err := s.s3Service.DeleteFiles(ctx, s3.DeleteFilesRequest{Keys: exists.Images})
+			if err != nil {
+				return nil, err
+			}
 		}
 		result = &dto.CommonResponse{Data: dto.Resp{Success: true}}
 	}

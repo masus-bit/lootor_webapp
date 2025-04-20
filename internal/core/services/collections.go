@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/mitchellh/mapstructure"
@@ -8,6 +9,7 @@ import (
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/pkg/dto"
+	"lootor/internal/pkg/s3"
 	"lootor/internal/pkg/utils"
 	"slices"
 	"time"
@@ -19,10 +21,11 @@ type CollectionService struct {
 	userRepo           *repositories.UsersRepository
 	eventRepo          *repositories.EventsRepository
 	collectionItemRepo *repositories.CiRepository
+	s3Service          *s3.S3Service
 }
 
-func NewCollectionService(repo *repositories.CollectionsRepository, tagsRepo *repositories.TagsRepository, userRepo *repositories.UsersRepository, eventRepo *repositories.EventsRepository, collectionItemRepo *repositories.CiRepository) *CollectionService {
-	return &CollectionService{repo: repo, tagsRepo: tagsRepo, userRepo: userRepo, eventRepo: eventRepo, collectionItemRepo: collectionItemRepo}
+func NewCollectionService(repo *repositories.CollectionsRepository, tagsRepo *repositories.TagsRepository, userRepo *repositories.UsersRepository, eventRepo *repositories.EventsRepository, collectionItemRepo *repositories.CiRepository, seService *s3.S3Service) *CollectionService {
+	return &CollectionService{repo: repo, tagsRepo: tagsRepo, userRepo: userRepo, eventRepo: eventRepo, collectionItemRepo: collectionItemRepo, s3Service: seService}
 }
 
 func (s *CollectionService) processTags(tags []string) ([]models.Tags, error) {
@@ -127,7 +130,7 @@ func (s *CollectionService) Update(id string, dto *models.CollectionCreateReques
 	return &models.CollectionDataResponse{Data: finalCollection}, nil
 }
 
-func (s *CollectionService) Delete(id string) (*dto.CommonResponse, error) {
+func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonResponse, error) {
 	exists, _ := s.repo.GetCollectionById(id)
 	if !exists.IsPrivate {
 		go func() {
@@ -136,6 +139,12 @@ func (s *CollectionService) Delete(id string) (*dto.CommonResponse, error) {
 				log.Default().Print(eventError)
 			}
 		}()
+		if exists.BannerUrl != "" {
+			_, err := s.s3Service.DeleteFiles(ctx, s3.DeleteFilesRequest{Keys: []string{exists.BannerUrl}})
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, s.repo.DeleteCollection(id)
 }

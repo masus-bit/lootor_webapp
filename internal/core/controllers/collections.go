@@ -50,7 +50,7 @@ func (c *CollectionsController) DeleteCollection(ctx echo.Context) error {
 		})
 	}
 
-	value, err := c.colService.Delete(id)
+	value, err := c.colService.Delete(id, ctx.Request().Context())
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
