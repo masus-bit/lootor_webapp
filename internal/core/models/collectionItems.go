@@ -51,7 +51,7 @@ type CollectionItemsResponse struct {
 	PurchasePrice float64    `json:"purchasePrice"`
 	Sealed        bool       `json:"sealed"`
 	Edition       string     `json:"edition"`
-	CopyNumber    []string   `json:"copyNumber"`
+	CopyNumber    []int64    `json:"copyNumber"`
 	Rating        float64    `json:"rating"`
 	ShippingCost  float64    `json:"shippingCost"`
 	Entities      []Entities `json:"entities"`
