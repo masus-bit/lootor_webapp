@@ -93,6 +93,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	platformRepo := repositories.NewPlatformsRepository(db)
 	entityRepo := repositories.NewEntitiesRepository(db, searchService)
 	eventsRepo := repositories.NewEventsRepository(db)
+	itemTypesRepo := repositories.NewItemTypesRepository(db)
 	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, models.Events{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{})
 	if err != nil {
 		return nil, err
@@ -100,10 +101,11 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	s3Service := s3.NewS3Service(redisClient)
 	mailService := mail.NewMailService("smtp.yandex.ru", 465, "noreply@lootor.me", "cytuhekbl13", `"Lootor" <noreply@lootor.me>`)
 	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsRepo)
-	ciService := services.NewCiService(ciRepo, eventsRepo, colRepo, userRepo, platformRepo, entityRepo, s3Service)
+	ciService := services.NewCiService(ciRepo, eventsRepo, colRepo, userRepo, platformRepo, entityRepo, s3Service, itemTypesRepo)
 	colService := services.NewCollectionService(colRepo, tagRepo, userRepo, eventsRepo, ciRepo, s3Service)
 	entitiesService := services.NewEntitiesService(entityRepo)
 	platformsService := services.NewPlatformsService(platformRepo)
+	itemTypesService := services.NewItemTypesService(itemTypesRepo)
 	tagsService := services.NewTagsService(tagRepo)
 	fbService := feedback.NewFeedbackService()
 
@@ -126,6 +128,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.ReindexRouter(e, jwtService, *searchService, *userRepo, *ciRepo, *colRepo, *tagRepo, *entityRepo)
 	routes.EventsRouter(e, jwtService, *eventsService)
 	routes.FeedbackRouter(e, jwtService, *fbService)
+	routes.ItemTypesRouter(e, jwtService, *itemTypesService)
 
 	return &App{Echo: e}, nil
 }

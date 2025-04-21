@@ -21,10 +21,11 @@ type CiService struct {
 	platformsRepo  *repositories.PlatformsRepository
 	entityRepo     *repositories.EntitiesRepository
 	s3Service      *s3.S3Service
+	itemTypeRepo   *repositories.ItemTypesRepository
 }
 
-func NewCiService(repo *repositories.CiRepository, eventRepo *repositories.EventsRepository, collectionRepo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, platformsRepo *repositories.PlatformsRepository, entityRepo *repositories.EntitiesRepository, s3Service *s3.S3Service) *CiService {
-	return &CiService{repo: repo, eventRepo: eventRepo, collectionRepo: collectionRepo, userRepo: userRepo, platformsRepo: platformsRepo, entityRepo: entityRepo, s3Service: s3Service}
+func NewCiService(repo *repositories.CiRepository, eventRepo *repositories.EventsRepository, collectionRepo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, platformsRepo *repositories.PlatformsRepository, entityRepo *repositories.EntitiesRepository, s3Service *s3.S3Service, itemTypeRepo *repositories.ItemTypesRepository) *CiService {
+	return &CiService{repo: repo, eventRepo: eventRepo, collectionRepo: collectionRepo, userRepo: userRepo, platformsRepo: platformsRepo, entityRepo: entityRepo, s3Service: s3Service, itemTypeRepo: itemTypeRepo}
 }
 
 func (s *CiService) getEntities(entities []string) []models.Entities {
@@ -39,6 +40,8 @@ func (s *CiService) getEntities(entities []string) []models.Entities {
 func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLogin string) (*models.CollectionItemsDataResponse, error) {
 	var platform *models.Platforms
 	var platformID *uuid.UUID
+	var itemType *models.ItemTypes
+	var itemTypeID *uuid.UUID
 
 	if dto.Platform != "" {
 		foundPlatform, err := s.platformsRepo.GetPlatformById(dto.Platform)
@@ -51,6 +54,19 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 		platform = nil
 		platformID = nil
 	}
+
+	if dto.ItemType != "" {
+		foundItemType, err := s.itemTypeRepo.GetTypeById(dto.ItemType)
+		if err != nil {
+			return nil, fmt.Errorf("error getting item type: %v", err)
+		}
+		itemType = foundItemType
+		itemTypeID = &foundItemType.Id
+	} else {
+		itemType = nil
+		itemTypeID = nil
+	}
+
 	entities := s.getEntities(dto.Entities)
 	owner, ownerErr := s.userRepo.GetUserByLogin(authUserLogin)
 	if ownerErr != nil {
@@ -72,10 +88,12 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 		ShippingCost: dto.ShippingCost,
 		Entities:     entities,
 		Platform:     platform,
+		ItemType:     itemType,
 		Owner:        *owner,
 		Collections:  collectionsSlice,
 		PlatformID:   platformID,
 		UserLogin:    owner.Login,
+		ItemTypeID:   itemTypeID,
 	}
 	if dto.CopyNumber != nil {
 		dbCollectionItem.CopyNumber = dto.CopyNumber
@@ -140,6 +158,9 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestCreate) 
 
 	var platform *models.Platforms
 	var platformID *uuid.UUID
+	var itemType *models.ItemTypes
+	var itemTypeID *uuid.UUID
+
 	if dto.Platform != "" {
 		foundPlatform, err := s.platformsRepo.GetPlatformById(dto.Platform)
 		if err != nil {
@@ -151,8 +172,23 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestCreate) 
 		platform = nil
 		platformID = nil
 	}
+
+	if dto.ItemType != "" {
+		foundItemType, err := s.itemTypeRepo.GetTypeById(dto.ItemType)
+		if err != nil {
+			return nil, fmt.Errorf("error getting item type: %v", err)
+		}
+		itemType = foundItemType
+		itemTypeID = &foundItemType.Id
+	} else {
+		itemType = nil
+		itemTypeID = nil
+	}
+
 	dbCollectionItem.Platform = platform
 	dbCollectionItem.PlatformID = platformID
+	dbCollectionItem.ItemTypeID = itemTypeID
+	dbCollectionItem.ItemType = itemType
 	result, err := s.repo.UpdateCI(exists, &dbCollectionItem)
 	if err != nil {
 		return nil, err

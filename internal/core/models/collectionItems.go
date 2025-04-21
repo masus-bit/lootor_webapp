@@ -33,9 +33,11 @@ type CollectionItems struct {
 	Collections     []Collections `gorm:"many2many:collections_collection_items_collection_items;constraint:OnDelete:CASCADE;"`
 	Owner           Users         `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
 	Platform        *Platforms    `gorm:"foreignKey:PlatformID;references:Id;constraint:OnDelete:SET NULL;"`
+	ItemType        *ItemTypes    `gorm:"foreignKey:ItemTypeID;references:Id;constraint:OnDelete:SET NULL;"`
 	Entities        []Entities    `gorm:"many2many:entities_collection_item_collection_items;constraint:OnDelete:CASCADE;"`
 	UserLogin       string        `gorm:"type:varchar(255);index"`
 	PlatformID      *uuid.UUID    `gorm:"type:uuid;index"`
+	ItemTypeID      *uuid.UUID    `gorm:"type:uuid;index"`
 }
 
 func (EntitiesCollectionItemCollectionItem) TableName() string {
@@ -58,6 +60,7 @@ type CollectionItemsResponse struct {
 	Platform      *Platforms `json:"platform"`
 	Collection    uuid.UUID  `json:"collection"`
 	Owner         Users      `json:"owner"`
+	ItemType      *ItemTypes `json:"itemType"`
 }
 
 type CollectionItemsRequestCreate struct {
@@ -74,6 +77,7 @@ type CollectionItemsRequestCreate struct {
 	Entities      []string `json:"entities"`
 	Platform      string   `json:"platform"`
 	CollectionId  string   `json:"collectionId"`
+	ItemType      string   `json:"itemType"`
 }
 
 type CollectionItemsDataResponse struct {

@@ -133,6 +133,7 @@ type CollectionItemsResponseSwagger struct {
 	ShippingCost  float64           `json:"shippingCost"`
 	Entities      []EntitiesSwagger `json:"entities"`
 	Platform      *models.Platforms `json:"platform"`
+	ItemType      *models.ItemTypes `json:"itemType"`
 	Collection    uuid.UUID         `json:"collection"`
 	Owner         UsersSwagger      `json:"owner"`
 }
@@ -197,9 +198,11 @@ type CollectionItemsSwagger struct {
 	Collections     []CollectionsSwagger `gorm:"many2many:collections_collection_items_collection_items;constraint:OnDelete:CASCADE;"`
 	Owner           UsersSwagger         `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
 	Platform        *models.Platforms    `gorm:"foreignKey:PlatformID;references:Id;constraint:OnDelete:SET NULL;"`
+	ItemType        *models.ItemTypes    `gorm:"foreignKey:ItemTypeID;references:Id;constraint:OnDelete:SET NULL;"`
 	Entities        []EntitiesSwagger    `gorm:"many2many:entities_collection_item_collection_items;constraint:OnDelete:CASCADE;"`
 	UserLogin       string               `gorm:"type:varchar(255);index"`
 	PlatformID      *uuid.UUID           `gorm:"type:uuid;index"`
+	ItemTypeID      *uuid.UUID           `gorm:"type:uuid;index"`
 }
 
 type TagsSwagger struct {
