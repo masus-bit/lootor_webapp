@@ -39,6 +39,8 @@ definitions:
         items:
           type: string
         type: array
+      itemType:
+        $ref: '#/definitions/models.ItemTypes'
       name:
         type: string
       owner:
@@ -84,6 +86,10 @@ definitions:
         items:
           type: string
         type: array
+      itemType:
+        $ref: '#/definitions/models.ItemTypes'
+      itemTypeID:
+        type: string
       name:
         type: string
       owner:
@@ -449,6 +455,8 @@ definitions:
         items:
           type: string
         type: array
+      itemType:
+        type: string
       name:
         type: string
       platform:
@@ -469,6 +477,26 @@ definitions:
       names:
         items:
           type: string
+        type: array
+    type: object
+  models.ItemTypes:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      ruName:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.ItemTypesDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.ItemTypes'
         type: array
     type: object
   models.Platforms:
@@ -1170,6 +1198,20 @@ paths:
       summary: Загрузить изображения в хранилище
       tags:
       - images
+  /secured/item_types:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ItemTypesDataResponse'
+      summary: получить список типов КИ
+      tags:
+      - itemTypes
   /secured/platforms:
     get:
       consumes:

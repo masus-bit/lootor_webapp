@@ -969,6 +969,28 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/item_types": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itemTypes"
+                ],
+                "summary": "получить список типов КИ",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.ItemTypesDataResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/platforms": {
             "get": {
                 "consumes": [
@@ -1053,6 +1075,9 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "itemType": {
+                    "$ref": "#/definitions/models.ItemTypes"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -1120,6 +1145,12 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "itemType": {
+                    "$ref": "#/definitions/models.ItemTypes"
+                },
+                "itemTypeID": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -1676,6 +1707,9 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "itemType": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -1706,6 +1740,37 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "string"
+                    }
+                }
+            }
+        },
+        "models.ItemTypes": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "ruName": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ItemTypesDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ItemTypes"
                     }
                 }
             }
