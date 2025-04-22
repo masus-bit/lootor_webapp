@@ -196,6 +196,14 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestCreate) 
 	if err != nil {
 		return nil, err
 	}
+
+	if !exists.Collections[0].IsPrivate {
+		eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionUpdate, utils.EventTargetCollectionItem, exists.Name, nil, nil, &exists.Id)
+		if eventError != nil {
+			log.Default().Print(eventError)
+		}
+	}
+
 	var collectionItemResponse models.CollectionItemsResponse
 	err = mapstructure.Decode(result, &collectionItemResponse)
 

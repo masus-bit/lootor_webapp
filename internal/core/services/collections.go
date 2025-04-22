@@ -75,7 +75,7 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 		return nil, err
 	}
 	if !dto.IsPrivate {
-		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, nil, &dbCollection.Id, nil)
+		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, nil, &res.Id, nil)
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
@@ -118,7 +118,7 @@ func (s *CollectionService) Update(id string, dto *models.CollectionCreateReques
 	}
 
 	if !dto.IsPrivate {
-		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, nil, &dbCollection.Id, nil)
+		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionUpdate, utils.EventTargetCollection, dto.Name, nil, &resultCollection.Id, nil)
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
