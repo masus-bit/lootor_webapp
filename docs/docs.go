@@ -95,7 +95,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "collection шеуьы"
+                    "collection items"
                 ],
                 "summary": "получение одного КИ",
                 "parameters": [
@@ -596,7 +596,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "collection_item"
+                    "collection items"
                 ],
                 "summary": "like/dislike",
                 "parameters": [

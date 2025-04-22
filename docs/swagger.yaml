@@ -645,7 +645,7 @@ paths:
             $ref: '#/definitions/dto.CollectionItemsDataResponseSwagger'
       summary: получение одного КИ
       tags:
-      - collection шеуьы
+      - collection items
   /public/collections:
     get:
       consumes:
@@ -970,7 +970,7 @@ paths:
             $ref: '#/definitions/dto.CommonResponse'
       summary: like/dislike
       tags:
-      - collection_item
+      - collection items
   /secured/collection_item/update:
     post:
       consumes:

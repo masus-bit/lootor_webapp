@@ -101,7 +101,7 @@ func (c *CIController) UpdateCollectionItem(ctx echo.Context) error {
 
 // GetCollectionItem
 // @Summary получение одного КИ
-// @Tags collection шеуьы
+// @Tags collection items
 // @Accept  json
 // @Produce  json
 // @Param id query string false "id"
@@ -157,7 +157,7 @@ func (c *CIController) CopyOrMoveCollectionItem(ctx echo.Context) error {
 
 // Like
 // @Summary like/dislike
-// @Tags collection_item
+// @Tags collection items
 // @Accept  json
 // @Produce  json
 // @Param id query string true "id"
