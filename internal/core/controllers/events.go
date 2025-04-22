@@ -45,7 +45,7 @@ func (c *EventsController) GetEvents(ctx echo.Context) error {
 // @Param collectionId query string false "collection id"
 // @Param collectionItemId query string false "collection item id"
 // @Success 201 {object} dto.EventsDataResponseSwagger
-// @Router /secured/events/filter [get]
+// @Router /public/events/filter [get]
 func (c *EventsController) GetFilteredEvents(ctx echo.Context) error {
 	userLogin := ctx.QueryParam("userLogin")
 	collectionId := ctx.QueryParam("collectionId")

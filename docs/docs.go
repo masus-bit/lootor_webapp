@@ -258,6 +258,48 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/events/filter": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "получить эвенты filtered",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "login",
+                        "name": "userLogin",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "collection id",
+                        "name": "collectionId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "collection item id",
+                        "name": "collectionItemId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.EventsDataResponseSwagger"
+                        }
+                    }
+                }
+            }
+        },
         "/public/images/{key}": {
             "get": {
                 "produces": [
@@ -822,48 +864,6 @@ const docTemplate = `{
                     "events"
                 ],
                 "summary": "получить эвенты по юзеру из токена",
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.EventsDataResponseSwagger"
-                        }
-                    }
-                }
-            }
-        },
-        "/secured/events/filter": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "events"
-                ],
-                "summary": "получить эвенты filtered",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "login",
-                        "name": "userLogin",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "collection id",
-                        "name": "collectionId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "collection item id",
-                        "name": "collectionItemId",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "201": {
                         "description": "Created",

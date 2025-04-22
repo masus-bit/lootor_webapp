@@ -738,6 +738,33 @@ paths:
       summary: получить коллекции по тегу
       tags:
       - collections
+  /public/events/filter:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: login
+        in: query
+        name: userLogin
+        type: string
+      - description: collection id
+        in: query
+        name: collectionId
+        type: string
+      - description: collection item id
+        in: query
+        name: collectionItemId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.EventsDataResponseSwagger'
+      summary: получить эвенты filtered
+      tags:
+      - events
   /public/images/{key}:
     get:
       parameters:
@@ -1106,33 +1133,6 @@ paths:
           schema:
             $ref: '#/definitions/dto.EventsDataResponseSwagger'
       summary: получить эвенты по юзеру из токена
-      tags:
-      - events
-  /secured/events/filter:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: login
-        in: query
-        name: userLogin
-        type: string
-      - description: collection id
-        in: query
-        name: collectionId
-        type: string
-      - description: collection item id
-        in: query
-        name: collectionItemId
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.EventsDataResponseSwagger'
-      summary: получить эвенты filtered
       tags:
       - events
   /secured/feedback:
