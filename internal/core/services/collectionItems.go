@@ -303,7 +303,7 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 	if !isUserLikes {
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.Collections[0].IsPrivate {
-			eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionCreate, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil)
+			eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionLike, utils.EventTargetCollectionItem, exists.Name, nil, nil, &exists.Id)
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -312,7 +312,7 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
 		if !exists.Collections[0].IsPrivate {
 			go func() {
-				eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionDelete, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil)
+				eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionLike, utils.EventTargetCollectionItem, exists.Name, nil, nil, &exists.Id)
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}

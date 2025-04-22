@@ -11,4 +11,5 @@ const (
 	EventActionUpdate    = "update"
 	EventActionDelete    = "delete"
 	EventActionSubscribe = "subscribe"
+	EventActionLike      = "like"
 )
