@@ -114,8 +114,12 @@ func (c *CIController) GetCollectionItem(ctx echo.Context) error {
 			"error": "Id parameter is required",
 		})
 	}
+	authInfo := ctx.Get("auth_info").(struct {
+		IsAuthenticated bool
+		UserLogin       string
+	})
 
-	response, err := c.ciService.GetById(id)
+	response, err := c.ciService.GetById(id, authInfo.UserLogin)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),
@@ -149,4 +153,33 @@ func (c *CIController) CopyOrMoveCollectionItem(ctx echo.Context) error {
 		})
 	}
 	return ctx.JSON(http.StatusOK, value)
+}
+
+// Like
+// @Summary like/dislike
+// @Tags collection_item
+// @Accept  json
+// @Produce  json
+// @Param id query string true "id"
+// @Success 201 {object} dto.CommonResponse
+// @Router /secured/collection_item/like [get]
+func (c *CIController) Like(ctx echo.Context) error {
+	id := ctx.QueryParam("id")
+	if id == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Id parameter is required",
+		})
+	}
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+	response, err := c.ciService.Like(id, authUser)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, response)
 }

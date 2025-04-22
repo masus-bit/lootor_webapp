@@ -13,12 +13,12 @@ func EventsRouter(e *echo.Echo, jwtService *auth.JWTService, eventsService servi
 	publicGroup := e.Group("/public")
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
+		publicGroup.GET("/events/filter", controller.GetFilteredEvents)
 	}
 
 	securedGroup := e.Group("/secured")
 	securedGroup.Use(jwtService.RequireAuthMiddleware())
 	{
 		securedGroup.GET("/events", controller.GetEvents)
-		securedGroup.GET("/events/filter", controller.GetFilteredEvents)
 	}
 }

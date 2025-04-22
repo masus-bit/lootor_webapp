@@ -11,6 +11,7 @@ import (
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/s3"
 	"lootor/internal/pkg/utils"
+	"slices"
 )
 
 type CiService struct {
@@ -115,6 +116,8 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 	if err != nil {
 		return nil, err
 	}
+	collectionItemResponse.LikesCount = int64(len(collectionItem.Likes))
+	collectionItemResponse.CanLike = true
 
 	return &models.CollectionItemsDataResponse{Data: collectionItemResponse}, nil
 }
@@ -200,10 +203,12 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestCreate) 
 
 	collectionItemResponse.Collection = colId
 	collectionItemResponse.Owner = exists.Owner
+	collectionItemResponse.CanLike = true
+	collectionItemResponse.LikesCount = int64(len(exists.Likes))
 	return &models.CollectionItemsDataResponse{Data: collectionItemResponse}, nil
 }
 
-func (s *CiService) GetById(id string) (*models.CollectionItemsDataResponse, error) {
+func (s *CiService) GetById(id string, authUser string) (*models.CollectionItemsDataResponse, error) {
 	exists, err := s.repo.GetCIByID(id)
 	if err != nil {
 		return nil, err
@@ -213,6 +218,16 @@ func (s *CiService) GetById(id string) (*models.CollectionItemsDataResponse, err
 	err = mapstructure.Decode(exists, &collectionItemResponse)
 	collectionItemResponse.Collection = exists.Collections[0].Id
 	collectionItemResponse.Owner = exists.Owner
+	collectionItemResponse.LikesCount = int64(len(exists.Likes))
+	collectionItemResponse.CanLike = true
+	if authUser != "" {
+		if authUser == exists.Owner.Login {
+			collectionItemResponse.CanLike = true
+		} else {
+			collectionItemResponse.CanLike = !slices.Contains(exists.Likes, authUser)
+		}
+
+	}
 
 	return &models.CollectionItemsDataResponse{Data: collectionItemResponse}, nil
 }
@@ -277,4 +292,37 @@ func (s *CiService) CopyOrMove(id string, targetCollectionIds []string, sourceCo
 	result = &dto.CommonResponse{Data: dto.Resp{Success: true}}
 
 	return result, nil
+}
+
+func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, error) {
+	exists, err := s.repo.GetCIByID(id)
+	if err != nil {
+		return nil, err
+	}
+	isUserLikes := slices.Contains(exists.Likes, userLogin)
+	if !isUserLikes {
+		exists.Likes = append(exists.Likes, userLogin)
+		if !exists.Collections[0].IsPrivate {
+			eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionCreate, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil)
+			if eventError != nil {
+				log.Default().Print(eventError)
+			}
+		}
+	} else {
+		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
+		if !exists.Collections[0].IsPrivate {
+			go func() {
+				eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionDelete, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil)
+				if eventError != nil {
+					log.Default().Print(eventError)
+				}
+			}()
+		}
+	}
+
+	_, err = s.repo.UpdateCI(exists, exists)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }

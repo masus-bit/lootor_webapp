@@ -951,6 +951,26 @@ paths:
       summary: копирование/перемещение КИ
       tags:
       - collection items
+  /secured/collection_item/like:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: like/dislike
+      tags:
+      - collection_item
   /secured/collection_item/update:
     post:
       consumes:

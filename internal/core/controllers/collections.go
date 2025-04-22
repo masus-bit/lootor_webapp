@@ -132,12 +132,12 @@ func (c *CollectionsController) GetOneByFewParams(ctx echo.Context) error {
 	shareString := ctx.QueryParam("shareString")
 	userLogin := ctx.QueryParam("userLogin")
 
-	authUser, ok := ctx.Get("user_login").(string)
-	if !ok {
-		authUser = ""
-	}
+	authInfo := ctx.Get("auth_info").(struct {
+		IsAuthenticated bool
+		UserLogin       string
+	})
 
-	response, err := c.colService.GetOne(authUser, id, transliteration, userLogin, shareString)
+	response, err := c.colService.GetOne(authInfo.UserLogin, id, transliteration, userLogin, shareString)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),

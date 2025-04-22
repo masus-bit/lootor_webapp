@@ -96,6 +96,8 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	if er != nil {
 		return nil, er
 	}
+	response.CanLike = true
+	response.CanSubscribe = true
 	return &models.CollectionDataResponse{Data: response}, nil
 }
 
@@ -126,6 +128,8 @@ func (s *CollectionService) Update(id string, dto *models.CollectionCreateReques
 	if err != nil {
 		return nil, err
 	}
+	finalCollection.CanLike = true
+	finalCollection.CanSubscribe = true
 
 	return &models.CollectionDataResponse{Data: finalCollection}, nil
 }
@@ -223,6 +227,15 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 			return nil, itemErr
 		}
 		temp.Collection = finalCollection.Id
+		temp.LikesCount = int64(len(item.Likes))
+		temp.CanLike = true
+		if authorizerUser != "" {
+			if authorizerUser == item.Owner.Login {
+				temp.CanLike = true
+			} else {
+				temp.CanLike = !slices.Contains(item.Likes, authorizerUser)
+			}
+		}
 		collectionItems = append(collectionItems, temp)
 	}
 

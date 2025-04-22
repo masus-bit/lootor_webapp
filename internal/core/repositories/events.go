@@ -110,7 +110,6 @@ func (r *EventsRepository) GetFilteredEvents(
 		Or("target_item_id = ?", collectionItemId).
 		Order("date DESC")
 
-	// Добавляем joins с предварительной загрузкой связанных данных
 	query = query.
 		Joins("LEFT JOIN users ON users.login = events.target_user_login").
 		Joins("LEFT JOIN collections ON collections.id = events.target_collection_id").

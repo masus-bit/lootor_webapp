@@ -27,6 +27,7 @@ type CollectionItems struct {
 	Edition         string
 	CopyNumber      pq.Int64Array `gorm:"type:integer[]"`
 	Rating          float64
+	Likes           pq.StringArray `gorm:"type:text[]" json:"likes"`
 	Deleted         bool
 	ShippingCost    float64
 	Transliteration string
@@ -61,6 +62,8 @@ type CollectionItemsResponse struct {
 	Collection    uuid.UUID  `json:"collection"`
 	Owner         Users      `json:"owner"`
 	ItemType      *ItemTypes `json:"itemType"`
+	CanLike       bool       `json:"canLike"`
+	LikesCount    int64      `json:"likesCount"`
 }
 
 type CollectionItemsRequestCreate struct {

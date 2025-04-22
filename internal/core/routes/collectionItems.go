@@ -23,6 +23,6 @@ func RegisterCollectionItemsRoutes(e *echo.Echo, jwtService *auth.JWTService, ci
 		securedGroup.POST("/collection_item/update", controller.UpdateCollectionItem)
 		securedGroup.DELETE("/collection_item", controller.DeleteCollectionItem)
 		securedGroup.POST("/collection_item/copy", controller.CopyOrMoveCollectionItem)
-
+		securedGroup.GET("/collection_item/like", controller.Like)
 	}
 }
