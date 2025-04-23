@@ -4,6 +4,7 @@ const (
 	EventTargetCollection     = "collection"
 	EventTargetUser           = "user"
 	EventTargetCollectionItem = "collectionItem"
+	EventTargetWL             = "wishListItem"
 )
 
 const (

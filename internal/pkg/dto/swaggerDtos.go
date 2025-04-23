@@ -241,3 +241,24 @@ type EventsDataResponseSwagger struct {
 type ImagesResponse struct {
 	Keys []string `json:"keys"`
 }
+
+type WishListItemsSwagger struct {
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+
+	Id        uuid.UUID    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	UserLogin string       `gorm:"type:varchar(255);index"`
+	User      UsersSwagger `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
+
+	CollectionItemID *uuid.UUID              `gorm:"type:uuid;index"`
+	CollectionItem   *CollectionItemsSwagger `gorm:"foreignKey:CollectionItemID;references:Id;constraint:OnDelete:SET NULL;"`
+
+	PurchaseLinks []string `gorm:"type:text[]"`
+	Priority      int64
+	Notes         string
+}
+
+type WishlistDataResponseSwagger struct {
+	Data []WishlistDataResponseSwagger `json:"data"`
+}

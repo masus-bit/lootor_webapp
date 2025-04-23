@@ -94,7 +94,8 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	entityRepo := repositories.NewEntitiesRepository(db, searchService)
 	eventsRepo := repositories.NewEventsRepository(db)
 	itemTypesRepo := repositories.NewItemTypesRepository(db)
-	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, models.Events{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{})
+	wlRepo := repositories.NewWLRepository(db)
+	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Events{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{}, &models.ItemTypes{}, &models.WishListItems{})
 	if err != nil {
 		return nil, err
 	}
@@ -108,6 +109,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	itemTypesService := services.NewItemTypesService(itemTypesRepo)
 	tagsService := services.NewTagsService(tagRepo)
 	fbService := feedback.NewFeedbackService()
+	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsRepo)
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
@@ -129,6 +131,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.EventsRouter(e, jwtService, *eventsService)
 	routes.FeedbackRouter(e, jwtService, *fbService)
 	routes.ItemTypesRouter(e, jwtService, *itemTypesService)
+	routes.WLRouter(e, jwtService, *wlService)
 
 	return &App{Echo: e}, nil
 }

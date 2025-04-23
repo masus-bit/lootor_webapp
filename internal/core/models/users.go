@@ -5,22 +5,23 @@ import (
 )
 
 type Users struct {
-	Login                   string         `gorm:"primaryKey" json:"login"`
-	UserName                string         `json:"userName"`
-	Password                string         `gorm:"-" json:"-"`
-	PasswordHash            string         `gorm:"column:password" json:"-"`
-	VkId                    string         `json:"vkId"`
-	TelegramId              string         `json:"telegramId"`
-	Email                   string         `json:"email"`
-	Created                 string         `json:"created"`
-	Likes                   int            `json:"likes"`
-	Dislikes                int            `json:"dislikes"`
-	AvatarUrl               string         `json:"avatarUrl"`
-	BackgroundUrl           string         `json:"backgroundUrl"`
-	VerificationToken       string         `json:"verificationToken"`
-	Subscribers             int            `json:"subscribers"`
-	Subscriptions           pq.StringArray `gorm:"type:text[]" json:"subscriptions"`
-	CollectionSubscriptions pq.StringArray `gorm:"type:text[]" json:"collectionSubscriptions"`
+	Login                   string          `gorm:"primaryKey" json:"login"`
+	UserName                string          `json:"userName"`
+	Password                string          `gorm:"-" json:"-"`
+	PasswordHash            string          `gorm:"column:password" json:"-"`
+	VkId                    string          `json:"vkId"`
+	TelegramId              string          `json:"telegramId"`
+	Email                   string          `json:"email"`
+	Created                 string          `json:"created"`
+	Likes                   int             `json:"likes"`
+	Dislikes                int             `json:"dislikes"`
+	AvatarUrl               string          `json:"avatarUrl"`
+	BackgroundUrl           string          `json:"backgroundUrl"`
+	VerificationToken       string          `json:"verificationToken"`
+	Subscribers             int             `json:"subscribers"`
+	Subscriptions           pq.StringArray  `gorm:"type:text[]" json:"subscriptions"`
+	CollectionSubscriptions pq.StringArray  `gorm:"type:text[]" json:"collectionSubscriptions"`
+	WishListItems           []WishListItems `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
 }
 
 type SignUpRequest struct {
@@ -44,23 +45,24 @@ type ChangePasswordRequest struct {
 }
 
 type UserResponse struct {
-	Login                   string         `json:"login"`
-	UserName                string         `json:"userName"`
-	VkId                    string         `json:"vkId"`
-	TelegramId              string         `json:"telegramId"`
-	Email                   string         `json:"email"`
-	Created                 string         `json:"created"`
-	Likes                   int            `json:"likes"`
-	Dislikes                int            `json:"dislikes"`
-	AvatarUrl               string         `json:"avatarUrl"`
-	BackgroundUrl           string         `json:"backgroundUrl"`
-	Subscribers             int            `json:"subscribers"`
-	Subscriptions           pq.StringArray `json:"subscriptions"`
-	CollectionSubscriptions pq.StringArray `json:"collectionSubscriptions"`
-	CanSubscribe            bool           `json:"canSubscribe"`
-	CollectionItemsCount    int            `json:"collectionItemsCount" default:"0"`
-	CollectionsCount        int            `json:"collectionsCount" default:"0"`
-	TotalSum                int            `json:"totalSum" default:"0"`
+	Login                   string          `json:"login"`
+	UserName                string          `json:"userName"`
+	VkId                    string          `json:"vkId"`
+	TelegramId              string          `json:"telegramId"`
+	Email                   string          `json:"email"`
+	Created                 string          `json:"created"`
+	Likes                   int             `json:"likes"`
+	Dislikes                int             `json:"dislikes"`
+	AvatarUrl               string          `json:"avatarUrl"`
+	BackgroundUrl           string          `json:"backgroundUrl"`
+	Subscribers             int             `json:"subscribers"`
+	Subscriptions           pq.StringArray  `json:"subscriptions"`
+	CollectionSubscriptions pq.StringArray  `json:"collectionSubscriptions"`
+	CanSubscribe            bool            `json:"canSubscribe"`
+	CollectionItemsCount    int             `json:"collectionItemsCount" default:"0"`
+	CollectionsCount        int             `json:"collectionsCount" default:"0"`
+	TotalSum                int             `json:"totalSum" default:"0"`
+	WishListItems           []WishListItems `json:"wishListItems"`
 }
 
 type UserResponseForCollection struct {

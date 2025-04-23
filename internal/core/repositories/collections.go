@@ -50,6 +50,7 @@ func (r *CollectionsRepository) GetCollectionById(id string) (*models.Collection
 		Preload("CollectionItems").
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
+		Preload("CollectionItems.ItemType").
 		Where("id = ? AND deleted = ?", id, false).
 		First(&collection).Error
 	return &collection, err
@@ -63,6 +64,7 @@ func (r *CollectionsRepository) GetByShareString(shareString string) (*models.Co
 		Preload("CollectionItems").
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
+		Preload("CollectionItems.ItemType").
 		Where("share_string = ? AND deleted = ?", shareString, false).
 		First(&collection).Error
 	return &collection, err
@@ -91,6 +93,7 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.Owner").
+		Preload("CollectionItems.ItemType").
 		First(&collection).Error
 
 	if err != nil {
@@ -112,6 +115,7 @@ func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Co
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.Owner").
+		Preload("CollectionItems.ItemType").
 		Order("created DESC").
 		Find(&collections).Error
 	return collections, err

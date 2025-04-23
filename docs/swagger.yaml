@@ -389,6 +389,13 @@ definitions:
       vkId:
         type: string
     type: object
+  dto.WishlistDataResponseSwagger:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.WishlistDataResponseSwagger'
+        type: array
+    type: object
   elasticsearch.SearchResult:
     properties:
       hits:
@@ -555,6 +562,19 @@ definitions:
     properties:
       data:
         type: string
+    type: object
+  models.WishListCreateRequest:
+    properties:
+      collectionItemId:
+        type: string
+      notes:
+        type: string
+      priority:
+        type: integer
+      purchaseLinks:
+        items:
+          type: string
+        type: array
     type: object
   s3.DeleteFilesRequest:
     properties:
@@ -754,6 +774,10 @@ paths:
       - description: collection item id
         in: query
         name: collectionItemId
+        type: string
+      - description: wish list item id
+        in: query
+        name: wishListItemId
         type: string
       produces:
       - application/json
@@ -1246,6 +1270,46 @@ paths:
       summary: получить список платформ
       tags:
       - platforms
+  /secured/wishlist:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: login
+        in: query
+        name: userLogin
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.WishlistDataResponseSwagger'
+      summary: получить вишлист по юзер логину
+      tags:
+      - wishlist
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля создания
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.WishListCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: Создание экземпляра вишлиста
+      tags:
+      - wishlist
 schemes:
 - https
 swagger: "2.0"

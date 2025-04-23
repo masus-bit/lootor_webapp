@@ -24,6 +24,7 @@ func (r *EventsRepository) AddEvent(
 	targetUserLogin *string,
 	targetCollectionID *uuid.UUID,
 	targetItemID *uuid.UUID,
+	targetWLID *uuid.UUID,
 ) error {
 	event := &models.Events{
 		Action:          action,
@@ -32,7 +33,7 @@ func (r *EventsRepository) AddEvent(
 		InitiatorLogin:  initiatorLogin,
 		Date:            time.Now().String(),
 	}
-
+	fmt.Println(targetWLID)
 	switch targetType {
 	case "user":
 		event.TargetUserLogin = targetUserLogin
@@ -40,6 +41,9 @@ func (r *EventsRepository) AddEvent(
 		event.TargetCollectionID = targetCollectionID
 	case "collectionItem":
 		event.TargetItemID = targetItemID
+	case "wishListItem":
+		event.TargetWishListItemID = targetWLID
+
 	default:
 		return fmt.Errorf("unknown target type: %s", targetType)
 	}
@@ -70,6 +74,7 @@ func (r *EventsRepository) GetEvents(subscriptions []string) ([]models.Events, e
 				}
 				events[i].TargetCollection = nil
 				events[i].TargetItem = nil
+				events[i].TargetWishListItem = nil
 			}
 
 		case "collection":
@@ -80,9 +85,10 @@ func (r *EventsRepository) GetEvents(subscriptions []string) ([]models.Events, e
 				}
 				events[i].TargetUser = nil
 				events[i].TargetItem = nil
+				events[i].TargetWishListItem = nil
 			}
 
-		case "item":
+		case "collectionItem":
 			if events[i].TargetItemID != nil {
 				var item models.CollectionItems
 				if err := r.db.Preload("Owner").First(&item, *events[i].TargetItemID).Error; err == nil {
@@ -90,7 +96,20 @@ func (r *EventsRepository) GetEvents(subscriptions []string) ([]models.Events, e
 				}
 				events[i].TargetUser = nil
 				events[i].TargetCollection = nil
+				events[i].TargetWishListItem = nil
 			}
+
+		case "wishListItem":
+			if events[i].TargetWishListItemID != nil {
+				var wlItem models.WishListItems
+				if err := r.db.Preload("User").First(&wlItem, *events[i].TargetWishListItemID).Error; err == nil {
+					events[i].TargetWishListItem = &wlItem
+				}
+				events[i].TargetUser = nil
+				events[i].TargetCollection = nil
+				events[i].TargetItem = nil
+			}
+
 		}
 	}
 
@@ -101,6 +120,7 @@ func (r *EventsRepository) GetFilteredEvents(
 	userLogin string,
 	collectionId string,
 	collectionItemId string,
+	wlItemId string,
 ) ([]models.Events, error) {
 	var events []models.Events
 
@@ -108,15 +128,18 @@ func (r *EventsRepository) GetFilteredEvents(
 		Where("initiator_login = ?", userLogin).
 		Or("target_collection_id = ?", collectionId).
 		Or("target_item_id = ?", collectionItemId).
+		Or("target_wish_list_item_id = ?", wlItemId).
 		Order("date DESC")
 
 	query = query.
 		Joins("LEFT JOIN users ON users.login = events.target_user_login").
 		Joins("LEFT JOIN collections ON collections.id = events.target_collection_id").
 		Joins("LEFT JOIN collection_items ON collection_items.id = events.target_collection_item_id").
+		Joins("LEFT JOIN wish_list_items ON wish_list_items.id = events.target_wish_list_item_id").
 		Preload("TargetUserLogin").
 		Preload("TargetCollectionId").
-		Preload("TargetCollectionItemId")
+		Preload("TargetCollectionItemId").
+		Preload("TargetWishListItemId")
 
 	if err := query.Find(&events).Error; err != nil {
 		return nil, fmt.Errorf("failed to get events: %w", err)

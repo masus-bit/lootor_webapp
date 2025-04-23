@@ -50,6 +50,7 @@ func (r *CiRepository) GetCIByID(id string) (*models.CollectionItems, error) {
 		Preload("Owner").
 		Preload("Platform").
 		Preload("Entities").
+		Preload("ItemType").
 		Where("id = ? AND deleted = ?", id, false).
 		First(&item).Error
 
@@ -88,6 +89,13 @@ func (r *CiRepository) UpdateCI(existsItem *models.CollectionItems, updated *mod
 		}
 	}
 
+	if updated.ItemType != nil {
+		err := r.db.Model(existsItem).Association("ItemType").Replace(updated.ItemType)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if err := r.db.Model(existsItem).Updates(updated).Error; err != nil {
 		return nil, err
 	}
@@ -103,7 +111,7 @@ func (r *CiRepository) UpdateCI(existsItem *models.CollectionItems, updated *mod
 	}
 
 	var result models.CollectionItems
-	err := r.db.Preload("Platform").Preload("Collections").Preload("Entities").First(&result, existsItem.Id).Error
+	err := r.db.Preload("Platform").Preload("Collections").Preload("Entities").Preload("ItemType").First(&result, existsItem.Id).Error
 	return &result, err
 
 }

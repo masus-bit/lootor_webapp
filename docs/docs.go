@@ -288,6 +288,12 @@ const docTemplate = `{
                         "description": "collection item id",
                         "name": "collectionItemId",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "wish list item id",
+                        "name": "wishListItemId",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1043,6 +1049,68 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/secured/wishlist": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wishlist"
+                ],
+                "summary": "получить вишлист по юзер логину",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "login",
+                        "name": "userLogin",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WishlistDataResponseSwagger"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wishlist"
+                ],
+                "summary": "Создание экземпляра вишлиста",
+                "parameters": [
+                    {
+                        "description": "поля создания",
+                        "name": "createRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.WishListCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1637,6 +1705,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.WishlistDataResponseSwagger": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WishlistDataResponseSwagger"
+                    }
+                }
+            }
+        },
         "elasticsearch.SearchResult": {
             "type": "object",
             "properties": {
@@ -1889,6 +1968,26 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "type": "string"
+                }
+            }
+        },
+        "models.WishListCreateRequest": {
+            "type": "object",
+            "properties": {
+                "collectionItemId": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "purchaseLinks": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

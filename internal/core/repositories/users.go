@@ -67,7 +67,7 @@ func (r *UsersRepository) GetByLoginWithPassword(login string) (*models.Users, e
 func (r *UsersRepository) GetUserByLogin(login string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("LOWER(login) = LOWER(?)", login).First(&user).Error
+	err := r.db.Where("LOWER(login) = LOWER(?)", login).Preload("WishListItems").First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (r *UsersRepository) GetUserByLogin(login string) (*models.Users, error) {
 func (r *UsersRepository) GetUserByUsername(username string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("user_name = ?", username).First(&user).Error
+	err := r.db.Where("user_name = ?", username).Preload("WishListItems").First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func (r *UsersRepository) GetUserByUsername(username string) (*models.Users, err
 func (r *UsersRepository) GetByEmail(email string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("email = ?", email).First(&user).Error
+	err := r.db.Where("email = ?", email).Preload("WishListItems").First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (r *UsersRepository) GetByVerificationToken(token string) (*models.Users, e
 func (r *UsersRepository) GetByVkId(vkId string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("vk_id = ?", vkId).First(&user).Error
+	err := r.db.Where("vk_id = ?", vkId).Preload("WishListItems").First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func (r *UsersRepository) GetByVkId(vkId string) (*models.Users, error) {
 func (r *UsersRepository) GetByTgId(tgId string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("telegram_id = ?", tgId).First(&user).Error
+	err := r.db.Where("telegram_id = ?", tgId).Preload("WishListItems").First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -143,7 +143,7 @@ func (r *UsersRepository) UpdateUser(existsUser *models.Users, updated models.Us
 	}
 
 	var updatedUser models.Users
-	err := r.db.Where("login = ?", existsUser.Login).First(&updatedUser).Error
+	err := r.db.Where("login = ?", existsUser.Login).Preload("WishListItems").First(&updatedUser).Error
 
 	doc := map[string]interface{}{
 		"id":        updatedUser.Login,

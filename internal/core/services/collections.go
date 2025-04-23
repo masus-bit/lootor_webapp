@@ -75,7 +75,7 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 		return nil, err
 	}
 	if !dto.IsPrivate {
-		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, nil, &res.Id, nil)
+		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, nil, &res.Id, nil, nil)
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
@@ -118,7 +118,7 @@ func (s *CollectionService) Update(id string, dto *models.CollectionCreateReques
 	}
 
 	if !dto.IsPrivate {
-		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionUpdate, utils.EventTargetCollection, dto.Name, nil, &resultCollection.Id, nil)
+		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionUpdate, utils.EventTargetCollection, dto.Name, nil, &resultCollection.Id, nil, nil)
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
@@ -138,7 +138,7 @@ func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonR
 	exists, _ := s.repo.GetCollectionById(id)
 	if !exists.IsPrivate {
 		go func() {
-			eventError := s.eventRepo.AddEvent(exists.User.Login, utils.EventActionDelete, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil)
+			eventError := s.eventRepo.AddEvent(exists.User.Login, utils.EventActionDelete, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil, nil)
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -264,7 +264,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 	if !isUserLikes {
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.IsPrivate {
-			eventError := s.eventRepo.AddEvent(exists.User.Login, utils.EventActionLike, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil)
+			eventError := s.eventRepo.AddEvent(exists.User.Login, utils.EventActionLike, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil, nil)
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -273,7 +273,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
 		if !exists.IsPrivate {
 			go func() {
-				eventError := s.eventRepo.AddEvent(exists.User.Login, utils.EventActionLike, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil)
+				eventError := s.eventRepo.AddEvent(exists.User.Login, utils.EventActionLike, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil, nil)
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -300,7 +300,7 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 	if isSubscribe {
 		subscriber.CollectionSubscriptions = append(subscriber.CollectionSubscriptions, targetId)
 		dbCollection.SubscribersCount = dbCollection.SubscribersCount + 1
-		eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionSubscribe, utils.EventTargetCollection, dbCollection.Name, nil, &dbCollection.Id, nil)
+		eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionSubscribe, utils.EventTargetCollection, dbCollection.Name, nil, &dbCollection.Id, nil, nil)
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}

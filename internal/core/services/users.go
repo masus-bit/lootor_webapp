@@ -143,7 +143,7 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		return nil, err
 	}
 
-	err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, nil, nil, nil)
+	err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, nil, nil, nil, nil)
 	if err != nil {
 		fmt.Println(err)
 	}

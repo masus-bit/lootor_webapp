@@ -44,14 +44,16 @@ func (c *EventsController) GetEvents(ctx echo.Context) error {
 // @Param userLogin query string false "login"
 // @Param collectionId query string false "collection id"
 // @Param collectionItemId query string false "collection item id"
+// @Param wishListItemId query string false "wish list item id"
 // @Success 201 {object} dto.EventsDataResponseSwagger
 // @Router /public/events/filter [get]
 func (c *EventsController) GetFilteredEvents(ctx echo.Context) error {
 	userLogin := ctx.QueryParam("userLogin")
 	collectionId := ctx.QueryParam("collectionId")
 	collectionItemId := ctx.QueryParam("collectionItemId")
+	wishListItemId := ctx.QueryParam("wishListItemId")
 
-	response, err := c.eventsService.GetFilteredEvents(userLogin, collectionId, collectionItemId)
+	response, err := c.eventsService.GetFilteredEvents(userLogin, collectionId, collectionItemId, wishListItemId)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
