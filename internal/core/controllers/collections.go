@@ -222,11 +222,13 @@ func (c *CollectionsController) GetByTag(ctx echo.Context) error {
 			"error": "Tag parameter is required",
 		})
 	}
-	authUser, ok := ctx.Get("user_login").(string)
-	if !ok {
-		authUser = ""
-	}
-	response, err := c.colService.GetByTag(tag, authUser)
+
+	authInfo := ctx.Get("auth_info").(struct {
+		IsAuthenticated bool
+		UserLogin       string
+	})
+
+	response, err := c.colService.GetByTag(tag, authInfo.UserLogin)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),

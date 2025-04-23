@@ -15,7 +15,7 @@ func RegisterCollectionsRoutes(e *echo.Echo, jwtService *auth.JWTService, colSer
 	{
 		publicGroup.GET("/collections/all", controller.GetByUserLogin)
 		publicGroup.GET("/collections", controller.GetOneByFewParams)
-
+		publicGroup.GET("/collections/tag", controller.GetByTag)
 	}
 
 	securedGroup := e.Group("/secured")
@@ -25,7 +25,6 @@ func RegisterCollectionsRoutes(e *echo.Echo, jwtService *auth.JWTService, colSer
 		securedGroup.DELETE("/collections", controller.DeleteCollection)
 		securedGroup.POST("/collections/update", controller.UpdateCollection)
 		securedGroup.GET("/collections/like", controller.Like)
-		securedGroup.GET("/collections/tag", controller.GetByTag)
 		securedGroup.GET("/collections/subscribe", controller.Subscribe)
 
 	}
