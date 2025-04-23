@@ -160,10 +160,12 @@ func (r *CollectionsRepository) GetCollectionByTag(tag string) ([]models.Collect
 	var collections []models.Collections
 
 	err := r.db.
-		Joins("JOIN tags_collections_collections ON tags_collections_collections.collectionsId = collections.id").
-		Joins("JOIN tags ON tags.id = tags_collections_collections.tagsId AND tags.name = ?", tag).
+		Joins("JOIN tags_collections_collections ON tags_collections_collections.collections_id = collections.id").
+		Joins("JOIN tags ON tags.id = tags_collections_collections.tags_id").
+		Where("LOWER(tags.name) = LOWER(?)", tag).
 		Preload("User").
 		Preload("Tags").
+		Preload("CollectionItems").
 		Where("collections.is_private = ?", false).
 		Order("collections.created ASC").
 		Find(&collections).Error
