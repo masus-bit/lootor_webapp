@@ -1790,7 +1790,7 @@ const docTemplate = `{
         "models.CollectionItemsRequestCreate": {
             "type": "object",
             "properties": {
-                "collectionId": {
+                "collection": {
                     "type": "string"
                 },
                 "copyNumber": {

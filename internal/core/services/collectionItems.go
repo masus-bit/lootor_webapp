@@ -74,7 +74,7 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 		return nil, ownerErr
 	}
 
-	collection, _ := s.collectionRepo.GetByIdWithoutCollectionItems(dto.CollectionId)
+	collection, _ := s.collectionRepo.GetByIdWithoutCollectionItems(dto.Collection)
 	collectionsSlice := make([]models.Collections, 0)
 	collectionsSlice = append(collectionsSlice, *collection)
 	dbCollectionItem := &models.CollectionItems{
@@ -207,7 +207,7 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestCreate) 
 	var collectionItemResponse models.CollectionItemsResponse
 	err = mapstructure.Decode(result, &collectionItemResponse)
 
-	colId, _ := uuid.Parse(dto.CollectionId)
+	colId, _ := uuid.Parse(dto.Collection)
 
 	collectionItemResponse.Collection = colId
 	collectionItemResponse.Owner = exists.Owner

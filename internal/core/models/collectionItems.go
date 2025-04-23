@@ -79,7 +79,7 @@ type CollectionItemsRequestCreate struct {
 	ShippingCost  float64  `json:"shippingCost"`
 	Entities      []string `json:"entities"`
 	Platform      string   `json:"platform"`
-	CollectionId  string   `json:"collectionId"`
+	Collection    string   `json:"collection"`
 	ItemType      string   `json:"itemType"`
 }
 

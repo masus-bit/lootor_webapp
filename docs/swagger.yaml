@@ -444,7 +444,7 @@ definitions:
     type: object
   models.CollectionItemsRequestCreate:
     properties:
-      collectionId:
+      collection:
         type: string
       copyNumber:
         items:
