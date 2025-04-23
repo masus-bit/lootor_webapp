@@ -869,54 +869,7 @@ paths:
       summary: получение юзера по логину
       tags:
       - users
-  /public/user/password:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: isLike
-        in: body
-        name: isLike
-        required: true
-        schema:
-          type: boolean
-      - description: User data
-        in: query
-        name: login
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.CommonResponse'
-      summary: Смена пароля
-      tags:
-      - users
-  /public/user/rating:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: User data
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/dto.LikeUserSwagger'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.CommonResponse'
-      summary: Лайк/дизлайк
-      tags:
-      - users
-  /public/user/subscriptions:
+  /securec/user/subscriptions:
     post:
       consumes:
       - application/json
@@ -1270,6 +1223,53 @@ paths:
       summary: получить список платформ
       tags:
       - platforms
+  /secured/user/password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: isLike
+        in: body
+        name: isLike
+        required: true
+        schema:
+          type: boolean
+      - description: User data
+        in: query
+        name: login
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: Смена пароля
+      tags:
+      - users
+  /secured/user/rating:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LikeUserSwagger'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: Лайк/дизлайк
+      tags:
+      - users
   /secured/wishlist:
     get:
       consumes:

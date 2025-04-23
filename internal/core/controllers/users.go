@@ -107,7 +107,7 @@ func (c *UserController) GetByLogin(ctx echo.Context) error {
 // @Produce  json
 // @Param user body dto.LikeUserSwagger true "User data"
 // @Success 201 {object} dto.CommonResponse
-// @Router /public/user/rating [post]
+// @Router /secured/user/rating [post]
 func (c *UserController) ChangeRating(ctx echo.Context) error {
 	var request models.ChangeRatingRequest
 	err := ctx.Bind(&request)
@@ -139,7 +139,7 @@ func (c *UserController) ChangeRating(ctx echo.Context) error {
 // @Param isLike body boolean true "isLike"
 // @Param login query string true "User data"
 // @Success 201 {object} dto.CommonResponse
-// @Router /public/user/password [post]
+// @Router /secured/user/password [post]
 func (c *UserController) ChangePass(ctx echo.Context) error {
 	var request models.ChangePasswordRequest
 	err := ctx.Bind(&request)
@@ -175,7 +175,7 @@ func (c *UserController) ChangePass(ctx echo.Context) error {
 // @Param isSubscribe query boolean true "признак подписки"
 // @Param login query string true "User data"
 // @Success 201 {object} dto.CommonResponse
-// @Router /public/user/subscriptions [post]
+// @Router /securec/user/subscriptions [post]
 func (c *UserController) Subscribe(ctx echo.Context) error {
 	login := ctx.QueryParam("login")
 	isSubscribe := ctx.QueryParam("isSubscribe")
