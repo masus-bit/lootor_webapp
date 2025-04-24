@@ -43,12 +43,18 @@ func (r *CollectionsRepository) FindAllCollections() ([]models.Collections, erro
 	return collections, err
 }
 
-func (r *CollectionsRepository) GetCollectionById(id string) (*models.Collections, error) {
+func (r *CollectionsRepository) GetCollectionById(id string, limit string, offset string) (*models.Collections, error) {
 	var collection models.Collections
+
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
+
 	err := r.db.
 		Preload("User").
 		Preload("Tags").
-		Preload("CollectionItems").
+		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
+			return tx.Offset(intOffset).Limit(intLimit).Order("created DESC")
+		}).
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.ItemType").
@@ -57,12 +63,18 @@ func (r *CollectionsRepository) GetCollectionById(id string) (*models.Collection
 	return &collection, err
 }
 
-func (r *CollectionsRepository) GetByShareString(shareString string) (*models.Collections, error) {
+func (r *CollectionsRepository) GetByShareString(shareString string, limit string, offset string) (*models.Collections, error) {
 	var collection models.Collections
+
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
+
 	err := r.db.
 		Preload("User").
 		Preload("Tags").
-		Preload("CollectionItems").
+		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
+			return tx.Offset(intOffset).Limit(intLimit).Order("created DESC")
+		}).
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.ItemType").
@@ -94,7 +106,7 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 		Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
-			return tx.Offset(intOffset).Limit(intLimit)
+			return tx.Offset(intOffset).Limit(intLimit).Order("created DESC")
 		}).
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
@@ -117,7 +129,9 @@ func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Co
 	err := r.db.
 		Where("LOWER(user_login) = LOWER(?)", login).Preload("User").
 		Preload("Tags").
-		Preload("CollectionItems").
+		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
+			return tx.Order("created DESC")
+		}).
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.Owner").

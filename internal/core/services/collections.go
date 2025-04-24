@@ -203,11 +203,11 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	var dbCollection *models.Collections
 
 	if id != "" {
-		dbCollection, _ = s.repo.GetCollectionById(id)
+		dbCollection, _ = s.repo.GetCollectionById(id, ciLimit, ciOffset)
 	} else if userLogin != "" {
 		dbCollection, _ = s.repo.GetOneByTransliteration(userLogin, transliteration, ciLimit, ciOffset)
 	} else if shareString != "" {
-		dbCollection, _ = s.repo.GetByShareString(shareString)
+		dbCollection, _ = s.repo.GetByShareString(shareString, ciLimit, ciOffset)
 	}
 
 	if dbCollection == nil {
