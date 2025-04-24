@@ -156,36 +156,26 @@ func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Co
 	return collections, err
 }
 
-func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string, limit string, offset string) ([]models.Collections, error) {
+func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string) ([]models.Collections, error) {
 	var collections []models.Collections
-
-	intLimit, _ := strconv.Atoi(limit)
-	intOffset, _ := strconv.Atoi(offset)
 
 	err := r.db.
 		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
 		Preload("Tags").
-		Limit(intLimit).
-		Offset(intOffset).
 		Order("created DESC").
 		Find(&collections).Error
 
 	return collections, err
 }
 
-func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string, limit string, offset string) ([]models.Collections, error) {
+func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string) ([]models.Collections, error) {
 	var collections []models.Collections
-	intLimit, _ := strconv.Atoi(limit)
-	intOffset, _ := strconv.Atoi(offset)
-
 	err := r.db.
 		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
 		Preload("Tags").
 		Where("collections.is_private = ?", false).
-		Limit(intLimit).
-		Offset(intOffset).
 		Order("collections.created DESC").
 		Find(&collections).Error
 	return collections, err

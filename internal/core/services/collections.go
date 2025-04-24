@@ -162,12 +162,12 @@ func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonR
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, s.repo.DeleteCollection(id)
 }
 
-func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, limit string, offset string) (*models.AllCollectionsDataResponse, error) {
+func (s *CollectionService) GetByUserLogin(login string, authorizedUser string) (*models.AllCollectionsDataResponse, error) {
 	var collections []models.Collections
 	if authorizedUser == login {
-		collections, _ = s.repo.GetByUserIdWithoutCollectionItems(login, limit, offset)
+		collections, _ = s.repo.GetByUserIdWithoutCollectionItems(login)
 	} else {
-		collections, _ = s.repo.GetByUserIdWithoutPrivates(login, limit, offset)
+		collections, _ = s.repo.GetByUserIdWithoutPrivates(login)
 	}
 	var authUser *models.Users
 	var subArray []string

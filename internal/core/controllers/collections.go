@@ -93,15 +93,10 @@ func (c *CollectionsController) UpdateCollection(ctx echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param userLogin query string true "логин"
-// @Param limit query string true "limit"
-// @Param offset query string true "offset"
 // @Success 201 {object} dto.AllCollectionsDataResponseSwagger
 // @Router /public/collections/all [get]
 func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 	login := ctx.QueryParam("userLogin")
-	limit := ctx.QueryParam("limit")
-	offset := ctx.QueryParam("offset")
-
 	if login == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Login parameter is required",
@@ -111,7 +106,7 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 		IsAuthenticated bool
 		UserLogin       string
 	})
-	response, err := c.colService.GetByUserLogin(login, authInfo.UserLogin, limit, offset)
+	response, err := c.colService.GetByUserLogin(login, authInfo.UserLogin)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),
