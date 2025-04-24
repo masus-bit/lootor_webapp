@@ -111,7 +111,7 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 }
 
 func (s *CollectionService) Update(id string, dto *models.CollectionCreateRequest) (*models.CollectionDataResponse, error) {
-	exists, err := s.repo.GetCollectionById(id)
+	exists, err := s.repo.GetCollectionByIdWithoutLimits(id)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (s *CollectionService) Update(id string, dto *models.CollectionCreateReques
 }
 
 func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonResponse, error) {
-	exists, _ := s.repo.GetCollectionById(id)
+	exists, _ := s.repo.GetCollectionByIdWithoutLimits(id)
 	if !exists.IsPrivate {
 		go func() {
 			eventError := s.eventRepo.AddEvent(exists.User.Login, utils.EventActionDelete, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil, nil)
@@ -302,7 +302,7 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 	if err != nil {
 		return nil, err
 	}
-	dbCollection, err := s.repo.GetCollectionById(targetId)
+	dbCollection, err := s.repo.GetCollectionByIdWithoutLimits(targetId)
 	if err != nil {
 		return nil, err
 	}

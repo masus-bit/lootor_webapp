@@ -245,7 +245,7 @@ func (s *CiService) CopyOrMove(id string, targetCollectionIds []string, sourceCo
 	if sourceCollectionId == "" {
 		collections := make([]models.Collections, 0)
 		for _, collectionId := range targetCollectionIds {
-			collection, _ := s.collectionRepo.GetCollectionById(collectionId)
+			collection, _ := s.collectionRepo.GetCollectionByIdWithoutLimits(collectionId)
 			collections = append(collections, *collection)
 		}
 		collectionItem, err := s.repo.GetCIByID(id)
@@ -271,11 +271,11 @@ func (s *CiService) CopyOrMove(id string, targetCollectionIds []string, sourceCo
 		return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 	}
 
-	sourceCollection, err := s.collectionRepo.GetCollectionById(sourceCollectionId)
+	sourceCollection, err := s.collectionRepo.GetCollectionByIdWithoutLimits(sourceCollectionId)
 	if err != nil {
 		return nil, err
 	}
-	targetCollection, err := s.collectionRepo.GetCollectionById(targetCollectionIds[0])
+	targetCollection, err := s.collectionRepo.GetCollectionByIdWithoutLimits(targetCollectionIds[0])
 	if err != nil {
 		return nil, err
 	}

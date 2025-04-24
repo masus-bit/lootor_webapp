@@ -63,6 +63,21 @@ func (r *CollectionsRepository) GetCollectionById(id string, limit string, offse
 	return &collection, err
 }
 
+func (r *CollectionsRepository) GetCollectionByIdWithoutLimits(id string) (*models.Collections, error) {
+	var collection models.Collections
+
+	err := r.db.
+		Preload("User").
+		Preload("Tags").
+		Preload("CollectionItems").
+		Preload("CollectionItems.Platform").
+		Preload("CollectionItems.Entities").
+		Preload("CollectionItems.ItemType").
+		Where("id = ? AND deleted = ?", id, false).
+		First(&collection).Error
+	return &collection, err
+}
+
 func (r *CollectionsRepository) GetByShareString(shareString string, limit string, offset string) (*models.Collections, error) {
 	var collection models.Collections
 
