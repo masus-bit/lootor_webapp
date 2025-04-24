@@ -53,7 +53,7 @@ func (r *CollectionsRepository) GetCollectionById(id string, limit string, offse
 		Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
-			return tx.Offset(intOffset).Limit(intLimit).Order("created DESC")
+			return tx.Offset(intOffset).Limit(intLimit).Order("created_at DESC")
 		}).
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
@@ -88,7 +88,7 @@ func (r *CollectionsRepository) GetByShareString(shareString string, limit strin
 		Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
-			return tx.Offset(intOffset).Limit(intLimit).Order("created DESC")
+			return tx.Offset(intOffset).Limit(intLimit).Order("created_at DESC")
 		}).
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
@@ -121,7 +121,7 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 		Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
-			return tx.Offset(intOffset).Limit(intLimit).Order("created DESC")
+			return tx.Offset(intOffset).Limit(intLimit).Order("created_at DESC")
 		}).
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
