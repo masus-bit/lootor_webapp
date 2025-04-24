@@ -21,7 +21,7 @@ func NewTagsController(tagsService services.TagsService) *TagsController {
 // @Produce  json
 // @Param name query string true "name"
 // @Success 201 {object} dto.TagsSwagger
-// @Router /public/tags [get]
+// @Router /secured/tags [get]
 func (c *TagsController) SearchTags(ctx echo.Context) error {
 	name := ctx.QueryParam("name")
 	response, err := c.tagsService.SearchTags(name)

@@ -124,6 +124,8 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 // @Param userLogin query string false "логин"
 // @Param id query string false "id"
 // @Param transliteration query string false "translit"
+// @Param ciLimit query string true "limit"
+// @Param ciOffset query string true "offset"
 // @Success 201 {object} dto.CollectionDataResponseSwagger
 // @Router /public/collections [get]
 func (c *CollectionsController) GetOneByFewParams(ctx echo.Context) error {
@@ -131,13 +133,15 @@ func (c *CollectionsController) GetOneByFewParams(ctx echo.Context) error {
 	transliteration := ctx.QueryParam("transliteration")
 	shareString := ctx.QueryParam("shareString")
 	userLogin := ctx.QueryParam("userLogin")
+	limit := ctx.QueryParam("ciLimit")
+	offset := ctx.QueryParam("ciOffset")
 
 	authInfo := ctx.Get("auth_info").(struct {
 		IsAuthenticated bool
 		UserLogin       string
 	})
 
-	response, err := c.colService.GetOne(authInfo.UserLogin, id, transliteration, userLogin, shareString)
+	response, err := c.colService.GetOne(authInfo.UserLogin, id, transliteration, userLogin, shareString, limit, offset)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),
@@ -213,10 +217,14 @@ func (c *CollectionsController) Subscribe(ctx echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param tag query string true "tag"
+// @Param limit query string true "limit"
+// @Param offset query string true "offset"
 // @Success 201 {object} dto.AllCollectionsDataResponseSwagger
-// @Router /public/collections/tag [get]
+// @Router /secured/collections/tag [get]
 func (c *CollectionsController) GetByTag(ctx echo.Context) error {
 	tag := ctx.QueryParam("tag")
+	limit := ctx.QueryParam("limit")
+	offset := ctx.QueryParam("offset")
 	if tag == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Tag parameter is required",
@@ -228,7 +236,7 @@ func (c *CollectionsController) GetByTag(ctx echo.Context) error {
 		UserLogin       string
 	})
 
-	response, err := c.colService.GetByTag(tag, authInfo.UserLogin)
+	response, err := c.colService.GetByTag(tag, authInfo.UserLogin, limit, offset)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),

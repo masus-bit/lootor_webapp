@@ -7,6 +7,7 @@ import (
 	"log"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
+	"strconv"
 )
 
 type CollectionsRepository struct {
@@ -80,8 +81,11 @@ func (r *CollectionsRepository) GetByIdWithoutCollectionItems(id string) (*model
 	return &collection, err
 }
 
-func (r *CollectionsRepository) GetOneByTransliteration(login string, transliteration string) (*models.Collections, error) {
+func (r *CollectionsRepository) GetOneByTransliteration(login string, transliteration string, limit string, offset string) (*models.Collections, error) {
 	var collection models.Collections
+
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
 
 	err := r.db.
 		Where("collections.transliteration = ?", transliteration).
@@ -89,7 +93,9 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
 		Preload("Tags").
-		Preload("CollectionItems").
+		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
+			return tx.Offset(intOffset).Limit(intLimit)
+		}).
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.Owner").
@@ -156,8 +162,11 @@ func (r *CollectionsRepository) GetByIdWithoutUser(id string) (models.Collection
 	return collection, err
 }
 
-func (r *CollectionsRepository) GetCollectionByTag(tag string) ([]models.Collections, error) {
+func (r *CollectionsRepository) GetCollectionByTag(tag string, limit string, offset string) ([]models.Collections, error) {
 	var collections []models.Collections
+
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
 
 	err := r.db.
 		Joins("JOIN tags_collections_collections ON tags_collections_collections.collections_id = collections.id").
@@ -168,6 +177,8 @@ func (r *CollectionsRepository) GetCollectionByTag(tag string) ([]models.Collect
 		Preload("CollectionItems").
 		Where("collections.is_private = ?", false).
 		Order("collections.created ASC").
+		Limit(intLimit).
+		Offset(intOffset).
 		Find(&collections).Error
 
 	if err != nil {

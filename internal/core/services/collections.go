@@ -190,13 +190,13 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string) 
 	return &models.AllCollectionsDataResponse{Data: result}, nil
 }
 
-func (s *CollectionService) GetOne(authorizerUser string, id string, transliteration string, userLogin string, shareString string) (*models.CollectionDataResponse, error) {
+func (s *CollectionService) GetOne(authorizerUser string, id string, transliteration string, userLogin string, shareString string, ciLimit string, ciOffset string) (*models.CollectionDataResponse, error) {
 	var dbCollection *models.Collections
 
 	if id != "" {
 		dbCollection, _ = s.repo.GetCollectionById(id)
 	} else if userLogin != "" {
-		dbCollection, _ = s.repo.GetOneByTransliteration(userLogin, transliteration)
+		dbCollection, _ = s.repo.GetOneByTransliteration(userLogin, transliteration, ciLimit, ciOffset)
 	} else if shareString != "" {
 		dbCollection, _ = s.repo.GetByShareString(shareString)
 	}
@@ -321,8 +321,8 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 
 }
 
-func (s *CollectionService) GetByTag(tag string, authUserLogin string) (*models.AllCollectionsDataResponse, error) {
-	collections, err := s.repo.GetCollectionByTag(tag)
+func (s *CollectionService) GetByTag(tag string, authUserLogin string, limit string, offset string) (*models.AllCollectionsDataResponse, error) {
+	collections, err := s.repo.GetCollectionByTag(tag, limit, offset)
 	if err != nil {
 		return nil, err
 	}
