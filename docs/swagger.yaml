@@ -683,6 +683,16 @@ paths:
         in: query
         name: transliteration
         type: string
+      - description: limit
+        in: query
+        name: ciLimit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: ciOffset
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -736,26 +746,6 @@ paths:
           schema:
             $ref: '#/definitions/dto.CommonResponse'
       summary: подписка на кололекцию
-      tags:
-      - collections
-  /public/collections/tag:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: tag
-        in: query
-        name: tag
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.AllCollectionsDataResponseSwagger'
-      summary: получить коллекции по тегу
       tags:
       - collections
   /public/events/filter:
@@ -829,26 +819,6 @@ paths:
       summary: Поиск по коллекциям, ентити, КИ, тегам, юзерам
       tags:
       - search
-  /public/tags:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: name
-        in: query
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.TagsSwagger'
-      summary: Поиск по тегам
-      tags:
-      - tags
   /public/user:
     get:
       consumes:
@@ -1037,6 +1007,36 @@ paths:
       summary: like/dislike
       tags:
       - collections
+  /secured/collections/tag:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: tag
+        in: query
+        name: tag
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AllCollectionsDataResponseSwagger'
+      summary: получить коллекции по тегу
+      tags:
+      - collections
   /secured/collections/update:
     post:
       consumes:
@@ -1223,6 +1223,26 @@ paths:
       summary: получить список платформ
       tags:
       - platforms
+  /secured/tags:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: name
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.TagsSwagger'
+      summary: Поиск по тегам
+      tags:
+      - tags
   /secured/user/password:
     post:
       consumes:

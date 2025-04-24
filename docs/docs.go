@@ -146,6 +146,20 @@ const docTemplate = `{
                         "description": "translit",
                         "name": "transliteration",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "ciLimit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "offset",
+                        "name": "ciOffset",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -222,37 +236,6 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/dto.CommonResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/public/collections/tag": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "collections"
-                ],
-                "summary": "получить коллекции по тегу",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "tag",
-                        "name": "tag",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.AllCollectionsDataResponseSwagger"
                         }
                     }
                 }
@@ -362,37 +345,6 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/elasticsearch.SearchResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/public/tags": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "tags"
-                ],
-                "summary": "Поиск по тегам",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "name",
-                        "name": "name",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.TagsSwagger"
                         }
                     }
                 }
@@ -690,6 +642,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/collections/tag": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "collections"
+                ],
+                "summary": "получить коллекции по тегу",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "tag",
+                        "name": "tag",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AllCollectionsDataResponseSwagger"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/collections/update": {
             "post": {
                 "consumes": [
@@ -972,6 +969,37 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/models.PlatformsDataResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/tags": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "Поиск по тегам",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TagsSwagger"
                         }
                     }
                 }
