@@ -93,10 +93,14 @@ func (c *CollectionsController) UpdateCollection(ctx echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param userLogin query string true "логин"
+// @Param orderBy query string false "поле сортировки% может быть totalPrice, name, created, collectionItemsCount"
+// @Param order query string false "порядок сортировки asc или desc"
 // @Success 201 {object} dto.AllCollectionsDataResponseSwagger
 // @Router /public/collections/all [get]
 func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 	login := ctx.QueryParam("userLogin")
+	orderBy := ctx.QueryParam("orderBy")
+	order := ctx.QueryParam("order")
 	if login == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Login parameter is required",
@@ -106,7 +110,7 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 		IsAuthenticated bool
 		UserLogin       string
 	})
-	response, err := c.colService.GetByUserLogin(login, authInfo.UserLogin)
+	response, err := c.colService.GetByUserLogin(login, authInfo.UserLogin, orderBy, order)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),
@@ -126,6 +130,8 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 // @Param transliteration query string false "translit"
 // @Param ciLimit query string true "limit"
 // @Param ciOffset query string true "offset"
+// @Param orderBy query string true "поле сортировки% может быть  name, purchaseDate, purchasePrice, platform, type, rating"
+// @Param order query string true "порядок сортировки asc или desc"
 // @Success 201 {object} dto.CollectionDataResponseSwagger
 // @Router /public/collections [get]
 func (c *CollectionsController) GetOneByFewParams(ctx echo.Context) error {
@@ -135,13 +141,15 @@ func (c *CollectionsController) GetOneByFewParams(ctx echo.Context) error {
 	userLogin := ctx.QueryParam("userLogin")
 	limit := ctx.QueryParam("ciLimit")
 	offset := ctx.QueryParam("ciOffset")
+	orderBy := ctx.QueryParam("orderBy")
+	order := ctx.QueryParam("order")
 
 	authInfo := ctx.Get("auth_info").(struct {
 		IsAuthenticated bool
 		UserLogin       string
 	})
 
-	response, err := c.colService.GetOne(authInfo.UserLogin, id, transliteration, userLogin, shareString, limit, offset)
+	response, err := c.colService.GetOne(authInfo.UserLogin, id, transliteration, userLogin, shareString, limit, offset, orderBy, order)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),

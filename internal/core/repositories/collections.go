@@ -43,7 +43,7 @@ func (r *CollectionsRepository) FindAllCollections() ([]models.Collections, erro
 	return collections, err
 }
 
-func (r *CollectionsRepository) GetCollectionById(id string, limit string, offset string) (*models.Collections, error) {
+func (r *CollectionsRepository) GetCollectionById(id string, limit string, offset string, orderByInput string, order string) (*models.Collections, error) {
 	var collection models.Collections
 
 	intLimit, _ := strconv.Atoi(limit)
@@ -53,7 +53,60 @@ func (r *CollectionsRepository) GetCollectionById(id string, limit string, offse
 		Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
-			return tx.Offset(intOffset).Limit(intLimit).Order("created_at DESC")
+			switch orderByInput {
+			case "platform":
+				if order == "desc" {
+					return tx.
+						Offset(intOffset).
+						Limit(intLimit).
+						Joins("LEFT JOIN platforms ON platforms.id = collection_items.platform_id").
+						Order("platforms.name DESC")
+				}
+				return tx.
+					Offset(intOffset).
+					Limit(intLimit).
+					Joins("LEFT JOIN platforms ON platforms.id = collection_items.platform_id").
+					Order("platforms.name ASC")
+			case "type":
+				if order == "desc" {
+					return tx.
+						Offset(intOffset).
+						Limit(intLimit).
+						Joins("LEFT JOIN item_types ON item_types.id = collection_items.item_type_id").
+						Order("item_types.ru_name DESC")
+				}
+				return tx.
+					Offset(intOffset).
+					Limit(intLimit).
+					Joins("LEFT JOIN item_types ON item_types.id = collection_items.item_type_id").
+					Order("item_types.ru_name ASC")
+			case "name":
+				if order == "desc" {
+					return tx.Offset(intOffset).Limit(intLimit).Order("name DESC")
+				}
+				return tx.Offset(intOffset).Limit(intLimit).Order("name ASC")
+
+			case "rating":
+				if order == "desc" {
+					return tx.Offset(intOffset).Limit(intLimit).Order("rating DESC")
+				}
+				return tx.Offset(intOffset).Limit(intLimit).Order("rating ASC")
+
+			case "purchaseDate":
+				if order == "desc" {
+					return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date DESC")
+				}
+				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date ASC")
+
+			case "purchasePrice":
+				if order == "desc" {
+					return tx.Offset(intOffset).Limit(intLimit).Order("purchase_price DESC")
+				}
+				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_price ASC")
+
+			default:
+				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date DESC")
+			}
 		}).
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
@@ -78,7 +131,7 @@ func (r *CollectionsRepository) GetCollectionByIdWithoutLimits(id string) (*mode
 	return &collection, err
 }
 
-func (r *CollectionsRepository) GetByShareString(shareString string, limit string, offset string) (*models.Collections, error) {
+func (r *CollectionsRepository) GetByShareString(shareString string, limit string, offset string, orderByInput string, order string) (*models.Collections, error) {
 	var collection models.Collections
 
 	intLimit, _ := strconv.Atoi(limit)
@@ -88,7 +141,60 @@ func (r *CollectionsRepository) GetByShareString(shareString string, limit strin
 		Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
-			return tx.Offset(intOffset).Limit(intLimit).Order("created_at DESC")
+			switch orderByInput {
+			case "platform":
+				if order == "desc" {
+					return tx.
+						Offset(intOffset).
+						Limit(intLimit).
+						Joins("LEFT JOIN platforms ON platforms.id = collection_items.platform_id").
+						Order("platforms.name DESC")
+				}
+				return tx.
+					Offset(intOffset).
+					Limit(intLimit).
+					Joins("LEFT JOIN platforms ON platforms.id = collection_items.platform_id").
+					Order("platforms.name ASC")
+			case "type":
+				if order == "desc" {
+					return tx.
+						Offset(intOffset).
+						Limit(intLimit).
+						Joins("LEFT JOIN item_types ON item_types.id = collection_items.item_type_id").
+						Order("item_types.ru_name DESC")
+				}
+				return tx.
+					Offset(intOffset).
+					Limit(intLimit).
+					Joins("LEFT JOIN item_types ON item_types.id = collection_items.item_type_id").
+					Order("item_types.ru_name ASC")
+			case "name":
+				if order == "desc" {
+					return tx.Offset(intOffset).Limit(intLimit).Order("name DESC")
+				}
+				return tx.Offset(intOffset).Limit(intLimit).Order("name ASC")
+
+			case "rating":
+				if order == "desc" {
+					return tx.Offset(intOffset).Limit(intLimit).Order("rating DESC")
+				}
+				return tx.Offset(intOffset).Limit(intLimit).Order("rating ASC")
+
+			case "purchaseDate":
+				if order == "desc" {
+					return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date DESC")
+				}
+				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date ASC")
+
+			case "purchasePrice":
+				if order == "desc" {
+					return tx.Offset(intOffset).Limit(intLimit).Order("purchase_price DESC")
+				}
+				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_price ASC")
+
+			default:
+				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date DESC")
+			}
 		}).
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
@@ -108,7 +214,7 @@ func (r *CollectionsRepository) GetByIdWithoutCollectionItems(id string) (*model
 	return &collection, err
 }
 
-func (r *CollectionsRepository) GetOneByTransliteration(login string, transliteration string, limit string, offset string) (*models.Collections, error) {
+func (r *CollectionsRepository) GetOneByTransliteration(login string, transliteration string, limit string, offset string, orderByInput string, order string) (*models.Collections, error) {
 	var collection models.Collections
 
 	intLimit, _ := strconv.Atoi(limit)
@@ -121,7 +227,60 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 		Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
-			return tx.Offset(intOffset).Limit(intLimit).Order("created_at DESC")
+			switch orderByInput {
+			case "platform":
+				if order == "desc" {
+					return tx.
+						Offset(intOffset).
+						Limit(intLimit).
+						Joins("LEFT JOIN platforms ON platforms.id = collection_items.platform_id").
+						Order("platforms.name DESC")
+				}
+				return tx.
+					Offset(intOffset).
+					Limit(intLimit).
+					Joins("LEFT JOIN platforms ON platforms.id = collection_items.platform_id").
+					Order("platforms.name ASC")
+			case "type":
+				if order == "desc" {
+					return tx.
+						Offset(intOffset).
+						Limit(intLimit).
+						Joins("LEFT JOIN item_types ON item_types.id = collection_items.item_type_id").
+						Order("item_types.ru_name DESC")
+				}
+				return tx.
+					Offset(intOffset).
+					Limit(intLimit).
+					Joins("LEFT JOIN item_types ON item_types.id = collection_items.item_type_id").
+					Order("item_types.ru_name ASC")
+			case "name":
+				if order == "desc" {
+					return tx.Offset(intOffset).Limit(intLimit).Order("name DESC")
+				}
+				return tx.Offset(intOffset).Limit(intLimit).Order("name ASC")
+
+			case "rating":
+				if order == "desc" {
+					return tx.Offset(intOffset).Limit(intLimit).Order("rating DESC")
+				}
+				return tx.Offset(intOffset).Limit(intLimit).Order("rating ASC")
+
+			case "purchaseDate":
+				if order == "desc" {
+					return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date DESC")
+				}
+				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date ASC")
+
+			case "purchasePrice":
+				if order == "desc" {
+					return tx.Offset(intOffset).Limit(intLimit).Order("purchase_price DESC")
+				}
+				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_price ASC")
+
+			default:
+				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date DESC")
+			}
 		}).
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").

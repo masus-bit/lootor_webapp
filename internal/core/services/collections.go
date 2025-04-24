@@ -162,7 +162,7 @@ func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonR
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, s.repo.DeleteCollection(id)
 }
 
-func (s *CollectionService) GetByUserLogin(login string, authorizedUser string) (*models.AllCollectionsDataResponse, error) {
+func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, orderBy string, order string) (*models.AllCollectionsDataResponse, error) {
 	var collections []models.Collections
 	if authorizedUser == login {
 		collections, _ = s.repo.GetByUserIdWithoutCollectionItems(login)
@@ -196,18 +196,20 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string) 
 		result = append(result, temp)
 	}
 
-	return &models.AllCollectionsDataResponse{Data: result}, nil
+	sortedCollections := utils.GetCollectionOrderBy(orderBy, result, order)
+
+	return &models.AllCollectionsDataResponse{Data: sortedCollections}, nil
 }
 
-func (s *CollectionService) GetOne(authorizerUser string, id string, transliteration string, userLogin string, shareString string, ciLimit string, ciOffset string) (*models.CollectionDataResponse, error) {
+func (s *CollectionService) GetOne(authorizerUser string, id string, transliteration string, userLogin string, shareString string, ciLimit string, ciOffset string, orderBy string, order string) (*models.CollectionDataResponse, error) {
 	var dbCollection *models.Collections
 
 	if id != "" {
-		dbCollection, _ = s.repo.GetCollectionById(id, ciLimit, ciOffset)
+		dbCollection, _ = s.repo.GetCollectionById(id, ciLimit, ciOffset, orderBy, order)
 	} else if userLogin != "" {
-		dbCollection, _ = s.repo.GetOneByTransliteration(userLogin, transliteration, ciLimit, ciOffset)
+		dbCollection, _ = s.repo.GetOneByTransliteration(userLogin, transliteration, ciLimit, ciOffset, orderBy, order)
 	} else if shareString != "" {
-		dbCollection, _ = s.repo.GetByShareString(shareString, ciLimit, ciOffset)
+		dbCollection, _ = s.repo.GetByShareString(shareString, ciLimit, ciOffset, orderBy, order)
 	}
 
 	if dbCollection == nil {

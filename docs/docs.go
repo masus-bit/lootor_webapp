@@ -160,6 +160,20 @@ const docTemplate = `{
                         "name": "ciOffset",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "поле сортировки% может быть  name, purchaseDate, purchasePrice, platform, type, rating",
+                        "name": "orderBy",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "порядок сортировки asc или desc",
+                        "name": "order",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -191,6 +205,18 @@ const docTemplate = `{
                         "name": "userLogin",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "поле сортировки% может быть totalPrice, name, created, collectionItemsCount",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "порядок сортировки asc или desc",
+                        "name": "order",
+                        "in": "query"
                     }
                 ],
                 "responses": {

@@ -693,6 +693,17 @@ paths:
         name: ciOffset
         required: true
         type: string
+      - description: поле сортировки% может быть  name, purchaseDate, purchasePrice,
+          platform, type, rating
+        in: query
+        name: orderBy
+        required: true
+        type: string
+      - description: порядок сортировки asc или desc
+        in: query
+        name: order
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -712,6 +723,14 @@ paths:
         in: query
         name: userLogin
         required: true
+        type: string
+      - description: поле сортировки% может быть totalPrice, name, created, collectionItemsCount
+        in: query
+        name: orderBy
+        type: string
+      - description: порядок сортировки asc или desc
+        in: query
+        name: order
         type: string
       produces:
       - application/json
