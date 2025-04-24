@@ -240,3 +240,14 @@ func (r *CollectionsRepository) DeleteCollection(id string) error {
 	}
 	return nil
 }
+
+func (r *CollectionsRepository) GetUniqueByName(name string, login string) (*models.Collections, error) {
+	var collection models.Collections
+	err := r.db.Where("LOWER(name) = LOWER(?)", name).Where("LOWER(user_login) = LOWER(?)", login).First(&collection)
+
+	if err.Error != nil {
+		return nil, err.Error
+	}
+
+	return &collection, nil
+}

@@ -52,6 +52,15 @@ func (s *CollectionService) processTags(tags []string) ([]models.Tags, error) {
 	return resultTags, nil
 }
 func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models.CollectionDataResponse, error) {
+	existsCollection, err := s.repo.GetUniqueByName(dto.Name, dto.UserLogin)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(existsCollection)
+	if existsCollection != nil {
+		return nil, errors.New("collection с таким именем уже существует")
+	}
+
 	processTags, _ := s.processTags(dto.Tags)
 	dtoUser, _ := s.userRepo.GetUserByLogin(dto.UserLogin)
 	dbCollection := &models.Collections{
