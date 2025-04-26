@@ -64,6 +64,7 @@ type CollectionItemsResponse struct {
 	ItemType      *ItemTypes `json:"itemType"`
 	CanLike       bool       `json:"canLike"`
 	LikesCount    int64      `json:"likesCount"`
+	IsOwner       bool       `json:"isOwner"`
 }
 
 type CollectionItemsRequestCreate struct {

@@ -70,6 +70,7 @@ type CollectionsResponse struct {
 	LikesCount           int64                     `json:"likesCount"`
 	CreatedAt            time.Time                 `json:"createdAt"`
 	CanLike              bool                      `json:"canLike"`
+	IsOwner              bool                      `json:"isOwner"`
 }
 
 type CollectionDataResponse struct {

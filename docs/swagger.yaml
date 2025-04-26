@@ -39,6 +39,8 @@ definitions:
         items:
           type: string
         type: array
+      isOwner:
+        type: boolean
       itemType:
         $ref: '#/definitions/models.ItemTypes'
       name:
@@ -139,6 +141,8 @@ definitions:
         type: string
       id:
         type: string
+      isOwner:
+        type: boolean
       isPrivate:
         type: boolean
       likesCount:

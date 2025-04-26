@@ -118,49 +118,49 @@ func (r *CiRepository) UpdateCI(existsItem *models.CollectionItems, updated *mod
 
 func (r *CiRepository) Sum(collectionID uuid.UUID) (float64, error) {
 	var result struct {
-		Sum *float64 `gorm:"column:sum"` // Используем указатель для обработки NULL
+		Sum *float64 `gorm:"column:sum"`
 	}
 
 	err := r.db.
 		Model(&models.CollectionItems{}).
-		Select("COALESCE(SUM(purchase_price), 0) as sum"). // Заменяем NULL на 0
+		Select("COALESCE(SUM(purchase_price), 0) as sum").
 		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
 		Where("collections_collection_items_collection_items.collections_id = ? AND deleted = ?", collectionID, false).
 		Scan(&result).Error
 
 	if result.Sum == nil {
-		return 0, err // На случай, если все же получим nil
+		return 0, err
 	}
 	return *result.Sum, err
 }
 func (r *CiRepository) SumShippingCost(collectionID uuid.UUID) (float64, error) {
 	var result struct {
-		Sum *float64 `gorm:"column:sum"` // Используем указатель для обработки NULL
+		Sum *float64 `gorm:"column:sum"`
 	}
 
 	err := r.db.
 		Model(&models.CollectionItems{}).
-		Select("COALESCE(SUM(shipping_cost), 0) as sum"). // Заменяем NULL на 0
+		Select("COALESCE(SUM(shipping_cost), 0) as sum").
 		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
 		Where("collections_collection_items_collection_items.collections_id = ? AND collection_items.deleted = ?",
 			collectionID, false).
 		Scan(&result).Error
 
 	if result.Sum == nil {
-		return 0, err // На случай, если все же получим nil
+		return 0, err
 	}
 	return *result.Sum, err
 }
 
 func (r *CiRepository) SumByUserLogin(userLogin string) (float64, error) {
 	var result struct {
-		Sum *float64 `gorm:"column:sum"` // Используем указатель для обработки NULL
+		Sum *float64 `gorm:"column:sum"`
 	}
 
 	err := r.db.
 		Model(&models.CollectionItems{}).
-		Select("COALESCE(SUM(purchase_price), 0) as sum"). // Заменяем NULL на 0
-		Where("user_login = ?", userLogin).                // Используем user_login вместо owner (согласно вашей модели)
+		Select("COALESCE(SUM(purchase_price), 0) as sum").
+		Where("user_login = ?", userLogin).
 		Scan(&result).Error
 
 	if result.Sum == nil {
@@ -189,4 +189,91 @@ func (r *CiRepository) GetCountCI(collectionID uuid.UUID) (int64, error) {
 		Count(&count).Error
 
 	return count, err
+}
+
+func (r *CiRepository) GetCountCIByIDs(collectionIDs []uuid.UUID) (map[uuid.UUID]int64, error) {
+	var results []struct {
+		CollectionsId uuid.UUID
+		Count         int64
+	}
+	err := r.db.Table("collections_collection_items_collection_items").
+		Select("collections_id, COUNT(*) as count").
+		Where("collections_id IN (?) AND collection_items.deleted = ?", collectionIDs, false).
+		Group("collections_id").
+		Scan(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	counts := make(map[uuid.UUID]int64)
+	for _, result := range results {
+		counts[result.CollectionsId] = result.Count
+	}
+
+	for _, id := range collectionIDs {
+		if _, exists := counts[id]; !exists {
+			counts[id] = 0
+		}
+	}
+
+	return counts, nil
+}
+
+func (r *CiRepository) GetSumsByCollectionIDs(collectionIDs []uuid.UUID) (map[uuid.UUID]float64, error) {
+	var results []struct {
+		CollectionId uuid.UUID
+		Sum          float64
+	}
+	err := r.db.Table("collections_collection_items_collection_items").
+		Select("collections_id, COALESCE(SUM(purchase_price), 0) as sum").
+		Where("collections_id IN (?) AND collection_items.deleted = ?", collectionIDs, false).
+		Group("collections_id").
+		Scan(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	sums := make(map[uuid.UUID]float64)
+	for _, result := range results {
+		sums[result.CollectionId] = result.Sum
+	}
+
+	for _, id := range collectionIDs {
+		if _, exists := sums[id]; !exists {
+			sums[id] = 0
+		}
+	}
+
+	return sums, nil
+}
+
+func (r *CiRepository) GetShippingCostsByCollectionIDs(collectionIDs []uuid.UUID) (map[uuid.UUID]float64, error) {
+	var results []struct {
+		CollectionId uuid.UUID
+		Sum          float64
+	}
+	err := r.db.Table("collections_collection_items_collection_items").
+		Select("collections_id, COALESCE(SUM(shipping_cost), 0) as sum").
+		Where("collections_id IN (?) AND collection_items.deleted = ?", collectionIDs, false).
+		Group("collections_id").
+		Scan(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	sums := make(map[uuid.UUID]float64)
+	for _, result := range results {
+		sums[result.CollectionId] = result.Sum
+	}
+
+	for _, id := range collectionIDs {
+		if _, exists := sums[id]; !exists {
+			sums[id] = 0
+		}
+	}
+
+	return sums, nil
 }

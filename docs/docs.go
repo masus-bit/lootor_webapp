@@ -1228,6 +1228,9 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "isOwner": {
+                    "type": "boolean"
+                },
                 "itemType": {
                     "$ref": "#/definitions/models.ItemTypes"
                 },
@@ -1378,6 +1381,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "isOwner": {
+                    "type": "boolean"
                 },
                 "isPrivate": {
                     "type": "boolean"

@@ -1225,6 +1225,9 @@
                         "type": "string"
                     }
                 },
+                "isOwner": {
+                    "type": "boolean"
+                },
                 "itemType": {
                     "$ref": "#/definitions/models.ItemTypes"
                 },
@@ -1375,6 +1378,9 @@
                 },
                 "id": {
                     "type": "string"
+                },
+                "isOwner": {
+                    "type": "boolean"
                 },
                 "isPrivate": {
                     "type": "boolean"

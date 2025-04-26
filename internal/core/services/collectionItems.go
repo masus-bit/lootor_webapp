@@ -118,6 +118,7 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 	}
 	collectionItemResponse.LikesCount = int64(len(collectionItem.Likes))
 	collectionItemResponse.CanLike = true
+	collectionItemResponse.IsOwner = true
 
 	return &models.CollectionItemsDataResponse{Data: collectionItemResponse}, nil
 }
@@ -213,6 +214,7 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestCreate) 
 	collectionItemResponse.Owner = exists.Owner
 	collectionItemResponse.CanLike = true
 	collectionItemResponse.LikesCount = int64(len(exists.Likes))
+	collectionItemResponse.IsOwner = true
 	return &models.CollectionItemsDataResponse{Data: collectionItemResponse}, nil
 }
 
@@ -228,6 +230,7 @@ func (s *CiService) GetById(id string, authUser string) (*models.CollectionItems
 	collectionItemResponse.Owner = exists.Owner
 	collectionItemResponse.LikesCount = int64(len(exists.Likes))
 	collectionItemResponse.CanLike = true
+	collectionItemResponse.IsOwner = authUser == exists.Owner.Login
 	if authUser != "" {
 		if authUser == exists.Owner.Login {
 			collectionItemResponse.CanLike = true

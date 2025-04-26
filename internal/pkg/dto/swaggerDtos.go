@@ -117,6 +117,7 @@ type CollectionsResponseSwagger struct {
 	LikesCount           int64                            `json:"likesCount"`
 	CreatedAt            time.Time                        `json:"createdAt"`
 	CanLike              bool                             `json:"canLike"`
+	IsOwner              bool                             `json:"isOwner"`
 }
 
 type CollectionItemsResponseSwagger struct {
@@ -136,6 +137,7 @@ type CollectionItemsResponseSwagger struct {
 	ItemType      *models.ItemTypes `json:"itemType"`
 	Collection    uuid.UUID         `json:"collection"`
 	Owner         UsersSwagger      `json:"owner"`
+	IsOwner       bool              `json:"isOwner"`
 }
 
 type CollectionDataResponseSwagger struct {

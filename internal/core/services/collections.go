@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
 	"log"
 	"lootor/internal/core/models"
@@ -107,6 +108,7 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	}
 	response.CanLike = true
 	response.CanSubscribe = true
+	response.IsOwner = true
 	return &models.CollectionDataResponse{Data: response}, nil
 }
 
@@ -139,6 +141,7 @@ func (s *CollectionService) Update(id string, dto *models.CollectionCreateReques
 	}
 	finalCollection.CanLike = true
 	finalCollection.CanSubscribe = true
+	finalCollection.IsOwner = true
 
 	return &models.CollectionDataResponse{Data: finalCollection}, nil
 }
@@ -176,16 +179,27 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 		subArray = authUser.CollectionSubscriptions
 	}
 	result := make([]models.CollectionsResponse, 0)
+
+	collectionIds := make([]uuid.UUID, 0)
+	for _, dbCollection := range collections {
+		collectionIds = append(collectionIds, dbCollection.Id)
+	}
+
+	counts, _ := s.collectionItemRepo.GetCountCIByIDs(collectionIds)
+	totalPrices, _ := s.collectionItemRepo.GetSumsByCollectionIDs(collectionIds)
+	shippingCosts, _ := s.collectionItemRepo.GetShippingCostsByCollectionIDs(collectionIds)
+
 	for _, dbCollection := range collections {
 		var temp models.CollectionsResponse
 		err := mapstructure.Decode(dbCollection, &temp)
 		temp.ShareString = utils.DefineShareString(authorizedUser, login, &dbCollection)
-		temp.CollectionItemsCount, _ = s.collectionItemRepo.GetCountCI(dbCollection.Id)
-		temp.TotalPrice, _ = s.collectionItemRepo.Sum(dbCollection.Id)
-		temp.ShippingTotal, _ = s.collectionItemRepo.SumShippingCost(dbCollection.Id)
+		temp.CollectionItemsCount = counts[dbCollection.Id]
+		temp.TotalPrice = totalPrices[dbCollection.Id]
+		temp.ShippingTotal = shippingCosts[dbCollection.Id]
 		temp.CanSubscribe = !slices.Contains(subArray, dbCollection.Id.String())
 		temp.LikesCount = int64(len(dbCollection.Likes))
 		temp.CanLike = true
+		temp.IsOwner = authorizedUser == login
 		if authorizedUser != "" {
 			temp.CanLike = !slices.Contains(dbCollection.Likes, authorizedUser)
 		}
@@ -243,8 +257,10 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 		if authorizerUser != "" {
 			if authorizerUser == item.Owner.Login {
 				temp.CanLike = true
+				temp.IsOwner = true
 			} else {
 				temp.CanLike = !slices.Contains(item.Likes, authorizerUser)
+				temp.IsOwner = false
 			}
 		}
 		collectionItems = append(collectionItems, temp)
@@ -258,6 +274,7 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	finalCollection.CanSubscribe = !slices.Contains(subArray, dbCollection.Id.String())
 	finalCollection.LikesCount = int64(len(dbCollection.Likes))
 	finalCollection.CanLike = true
+	finalCollection.IsOwner = authorizerUser == userLogin
 	if authUser != nil {
 
 		finalCollection.CanLike = !slices.Contains(dbCollection.Likes, authUser.Login)
@@ -345,14 +362,24 @@ func (s *CollectionService) GetByTag(tag string, authUserLogin string, limit str
 	}
 	result := make([]models.CollectionsResponse, 0)
 
+	collectionIds := make([]uuid.UUID, 0)
+	for _, dbCollection := range collections {
+		collectionIds = append(collectionIds, dbCollection.Id)
+	}
+
+	counts, _ := s.collectionItemRepo.GetCountCIByIDs(collectionIds)
+	totalPrices, _ := s.collectionItemRepo.GetSumsByCollectionIDs(collectionIds)
+	shippingCosts, _ := s.collectionItemRepo.GetShippingCostsByCollectionIDs(collectionIds)
+
 	for _, dbCollection := range collections {
 		var temp models.CollectionsResponse
 		errMap := mapstructure.Decode(dbCollection, &temp)
 		temp.ShareString = utils.DefineShareString(authUserLogin, dbCollection.User.Login, &dbCollection)
-		temp.CollectionItemsCount, _ = s.collectionItemRepo.GetCountCI(dbCollection.Id)
-		temp.TotalPrice, _ = s.collectionItemRepo.Sum(dbCollection.Id)
-		temp.ShippingTotal, _ = s.collectionItemRepo.SumShippingCost(dbCollection.Id)
+		temp.CollectionItemsCount = counts[dbCollection.Id]
+		temp.TotalPrice = totalPrices[dbCollection.Id]
+		temp.ShippingTotal = shippingCosts[dbCollection.Id]
 		temp.CanSubscribe = !slices.Contains(subArray, dbCollection.Id.String())
+		temp.IsOwner = authUserLogin == dbCollection.User.Login
 		if errMap != nil {
 			return nil, errMap
 		}
