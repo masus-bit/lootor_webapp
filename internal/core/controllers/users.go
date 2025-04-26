@@ -175,7 +175,7 @@ func (c *UserController) ChangePass(ctx echo.Context) error {
 // @Param isSubscribe query boolean true "признак подписки"
 // @Param login query string true "User data"
 // @Success 201 {object} dto.CommonResponse
-// @Router /securec/user/subscriptions [post]
+// @Router /secured/user/subscriptions [post]
 func (c *UserController) Subscribe(ctx echo.Context) error {
 	login := ctx.QueryParam("login")
 	isSubscribe := ctx.QueryParam("isSubscribe")
@@ -281,4 +281,56 @@ func (c *UserController) TelegramOauth(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, response)
 
+}
+
+// ResetPassword
+// @Summary сброс пароля
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param email query string true "email"
+// @Success 201 {object} dto.CommonResponse
+// @Router /public/auth/reset [get]
+func (c *UserController) ResetPassword(ctx echo.Context) error {
+	email := ctx.QueryParam("email")
+
+	if email == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "email parameter is required",
+		})
+	}
+
+	response, err := c.userService.ResetPassword(email)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+}
+
+// ChangeResetPassword
+// @Summary смена пароля по токену
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param user body models.ChangePasswordReset true "User data"
+// @Success 201 {object} dto.CommonResponse
+// @Router /public/user/reset [post]
+func (c *UserController) ChangeResetPassword(ctx echo.Context) error {
+	var request models.ChangePasswordReset
+	err := ctx.Bind(&request)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	response, err := c.userService.ChangeResetPassword(&request)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
 }

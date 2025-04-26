@@ -29,3 +29,16 @@ func (s *MailService) SendConfirmationEmail(email, token string) error {
 
 	return s.dialer.DialAndSend(m)
 }
+
+func (s *MailService) SendResetPasswordEmail(email, token string) error {
+
+	subject := "Восстановление пароля на Lootor"
+	body := fmt.Sprintf("Восстановите пароль, перейдя по ссылке: https://dev.lootor.me/auth/reset?resetToken=%s \nЕсли вы не пытались восстановить пароль, то проигнорируйте это письмо", token)
+	m := gomail.NewMessage()
+	m.SetHeader("From", s.from)
+	m.SetHeader("To", email)
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/plain", body)
+
+	return s.dialer.DialAndSend(m)
+}

@@ -18,6 +18,7 @@ type Users struct {
 	AvatarUrl               string          `json:"avatarUrl"`
 	BackgroundUrl           string          `json:"backgroundUrl"`
 	VerificationToken       string          `json:"verificationToken"`
+	ResetToken              string          `json:"resetToken"`
 	Subscribers             int             `json:"subscribers"`
 	Subscriptions           pq.StringArray  `gorm:"type:text[]" json:"subscriptions"`
 	CollectionSubscriptions pq.StringArray  `gorm:"type:text[]" json:"collectionSubscriptions"`
@@ -42,6 +43,11 @@ type ChangeRatingRequest struct {
 
 type ChangePasswordRequest struct {
 	Password string `json:"password" validate:"required,min=8"`
+}
+
+type ChangePasswordReset struct {
+	Password string `json:"password" validate:"required,min=8"`
+	Token    string `json:"token" validate:"required"`
 }
 
 type UserResponse struct {

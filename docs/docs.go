@@ -20,6 +20,37 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/public/auth/reset": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "сброс пароля",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "email",
+                        "name": "email",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/public/auth/signin": {
             "post": {
                 "consumes": [
@@ -407,7 +438,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/securec/user/subscriptions": {
+        "/public/user/reset": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -418,21 +449,16 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Подписка одного юзера на другого",
+                "summary": "смена пароля по токену",
                 "parameters": [
                     {
-                        "type": "boolean",
-                        "description": "признак подписки",
-                        "name": "isSubscribe",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
                         "description": "User data",
-                        "name": "login",
-                        "in": "query",
-                        "required": true
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ChangePasswordReset"
+                        }
                     }
                 ],
                 "responses": {
@@ -1092,6 +1118,44 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.LikeUserSwagger"
                         }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/user/subscriptions": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Подписка одного юзера на другого",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "признак подписки",
+                        "name": "isSubscribe",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User data",
+                        "name": "login",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1798,6 +1862,22 @@ const docTemplate = `{
                             }
                         }
                     }
+                }
+            }
+        },
+        "models.ChangePasswordReset": {
+            "type": "object",
+            "required": [
+                "password",
+                "token"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "token": {
+                    "type": "string"
                 }
             }
         },

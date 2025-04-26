@@ -112,6 +112,18 @@ func (r *UsersRepository) GetByVerificationToken(token string) (*models.Users, e
 	return &user, nil
 }
 
+func (r *UsersRepository) GetByResetToken(token string) (*models.Users, error) {
+	var user models.Users
+
+	err := r.db.Where("reset_token = ?", token).First(&user).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (r *UsersRepository) GetByVkId(vkId string) (*models.Users, error) {
 	var user models.Users
 

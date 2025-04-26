@@ -416,6 +416,17 @@ definitions:
             type: array
         type: object
     type: object
+  models.ChangePasswordReset:
+    properties:
+      password:
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - password
+    - token
+    type: object
   models.CollectionCreateRequest:
     properties:
       bannerUrl:
@@ -609,6 +620,26 @@ info:
   title: Lootor
   version: "1.0"
 paths:
+  /public/auth/reset:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: email
+        in: query
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: сброс пароля
+      tags:
+      - users
   /public/auth/signin:
     post:
       consumes:
@@ -862,21 +893,17 @@ paths:
       summary: получение юзера по логину
       tags:
       - users
-  /securec/user/subscriptions:
+  /public/user/reset:
     post:
       consumes:
       - application/json
       parameters:
-      - description: признак подписки
-        in: query
-        name: isSubscribe
-        required: true
-        type: boolean
       - description: User data
-        in: query
-        name: login
+        in: body
+        name: user
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/models.ChangePasswordReset'
       produces:
       - application/json
       responses:
@@ -884,7 +911,7 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/dto.CommonResponse'
-      summary: Подписка одного юзера на другого
+      summary: смена пароля по токену
       tags:
       - users
   /secured/collection_item:
@@ -1311,6 +1338,31 @@ paths:
           schema:
             $ref: '#/definitions/dto.CommonResponse'
       summary: Лайк/дизлайк
+      tags:
+      - users
+  /secured/user/subscriptions:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: признак подписки
+        in: query
+        name: isSubscribe
+        required: true
+        type: boolean
+      - description: User data
+        in: query
+        name: login
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: Подписка одного юзера на другого
       tags:
       - users
   /secured/wishlist:

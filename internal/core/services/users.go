@@ -459,3 +459,44 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 		RefreshToken: tokens.RefreshToken,
 	}, nil
 }
+
+func (s *UserService) ResetPassword(email string) (*dto.CommonResponse, error) {
+	existsUser, err := s.repo.GetByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	hexString, _ := utils.GenerateRandomString(32)
+
+	existsUser.ResetToken = hexString
+
+	_, err = s.repo.UpdateUser(existsUser, *existsUser)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		if s.mailService == nil {
+			fmt.Println("mailService is not initialized")
+			return
+		}
+		err := s.mailService.SendResetPasswordEmail(email, hexString)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}()
+	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+}
+
+func (s *UserService) ChangeResetPassword(request *models.ChangePasswordReset) (*dto.CommonResponse, error) {
+	existsUser, err := s.repo.GetByResetToken(request.Token)
+	if err != nil {
+		return nil, err
+	}
+	existsUser.PasswordHash, _ = auth.HashPassword(request.Password)
+	existsUser.ResetToken = ""
+	_, err = s.repo.UpdateUser(existsUser, *existsUser)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+}
