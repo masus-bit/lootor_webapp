@@ -380,6 +380,7 @@ func (s *CollectionService) GetByTag(tag string, authUserLogin string, limit str
 		temp.ShippingTotal = shippingCosts[dbCollection.Id]
 		temp.CanSubscribe = !slices.Contains(subArray, dbCollection.Id.String())
 		temp.IsOwner = authUserLogin == dbCollection.User.Login
+		temp.CanLike = !slices.Contains(dbCollection.Likes, authUserLogin)
 		if errMap != nil {
 			return nil, errMap
 		}

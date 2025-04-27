@@ -362,7 +362,6 @@ func (r *CollectionsRepository) GetCollectionByTag(tag string, limit string, off
 		Where("LOWER(tags.name) = LOWER(?)", tag).
 		Preload("User").
 		Preload("Tags").
-		Preload("CollectionItems").
 		Where("collections.is_private = ?", false).
 		Order("collections.created ASC").
 		Limit(intLimit).
