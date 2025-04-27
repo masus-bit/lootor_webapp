@@ -504,3 +504,36 @@ func (s *UserService) ChangeResetPassword(request *models.ChangePasswordReset) (
 	}
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
+
+func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string, authUser string) (*models.DataUserResponse, error) {
+	if authUser != login {
+		return nil, errors.New("ошибка смены данных, можно сменить только свои данные")
+	}
+	existsUser, err := s.repo.GetUserByLogin(login)
+	if err != nil {
+		return nil, err
+	}
+	if user.UserName != "" {
+		existsUser.UserName = user.UserName
+	}
+	if user.AvatarUrl != "" {
+		existsUser.AvatarUrl = user.AvatarUrl
+	}
+	if user.BackgroundUrl != "" {
+		existsUser.BackgroundUrl = user.BackgroundUrl
+	}
+	if user.Email != "" {
+		existsUser.Email = user.Email
+	}
+	updatedUser, err := s.repo.UpdateUser(existsUser, *existsUser)
+	if err != nil {
+		return nil, err
+	}
+
+	var userResponse models.UserResponse
+	err = mapstructure.Decode(updatedUser, &userResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &models.DataUserResponse{Data: userResponse}, nil
+}

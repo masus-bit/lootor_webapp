@@ -71,6 +71,13 @@ type UserResponse struct {
 	WishListItems           []WishListItems `json:"wishListItems"`
 }
 
+type UserRequestUpdate struct {
+	UserName      string `json:"userName"`
+	Email         string `json:"email"`
+	AvatarUrl     string `json:"avatarUrl"`
+	BackgroundUrl string `json:"backgroundUrl"`
+}
+
 type UserResponseForCollection struct {
 	Login         string         `json:"login"`
 	UserName      string         `json:"userName"`

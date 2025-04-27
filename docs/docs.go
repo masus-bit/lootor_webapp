@@ -1168,6 +1168,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/user/update": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "смена некоторых данных пользователя",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "логин",
+                        "name": "login",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "User data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UserRequestUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DataUserResponseSwagger"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/wishlist": {
             "get": {
                 "consumes": [
@@ -2107,6 +2147,23 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserRequestUpdate": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "backgroundUrl": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "userName": {
                     "type": "string"
                 }
             }

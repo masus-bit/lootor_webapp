@@ -30,5 +30,6 @@ func RegisterRoutes(e *echo.Echo, jwtService *auth.JWTService, userService servi
 		securedGroup.POST("/user/rating", controller.ChangeRating)
 		securedGroup.POST("/user/password", controller.ChangePass)
 		securedGroup.GET("/user/subscriptions", controller.Subscribe)
+		securedGroup.POST("/user/update", controller.UpdateUser)
 	}
 }
