@@ -340,13 +340,11 @@ func (c *UserController) ChangeResetPassword(ctx echo.Context) error {
 // @Tags users
 // @Accept  json
 // @Produce  json
-// @Param login query string true "логин"
 // @Param user body models.UserRequestUpdate true "User data"
 // @Success 201 {object} dto.DataUserResponseSwagger
 // @Router /secured/user/update [post]
 func (c *UserController) UpdateUser(ctx echo.Context) error {
 	var request models.UserRequestUpdate
-	login := ctx.QueryParam("login")
 	err := ctx.Bind(&request)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, map[string]string{
@@ -358,7 +356,7 @@ func (c *UserController) UpdateUser(ctx echo.Context) error {
 		authUser = ""
 	}
 
-	response, err := c.userService.UpdateUser(&request, login, authUser)
+	response, err := c.userService.UpdateUser(&request, authUser)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": err.Error(),

@@ -1182,13 +1182,6 @@ const docTemplate = `{
                 "summary": "смена некоторых данных пользователя",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "логин",
-                        "name": "login",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
                         "description": "User data",
                         "name": "user",
                         "in": "body",

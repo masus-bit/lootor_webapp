@@ -505,9 +505,9 @@ func (s *UserService) ChangeResetPassword(request *models.ChangePasswordReset) (
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string, authUser string) (*models.DataUserResponse, error) {
-	if authUser != login {
-		return nil, errors.New("ошибка смены данных, можно сменить только свои данные")
+func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (*models.DataUserResponse, error) {
+	if login == "" {
+		return nil, errors.New("not authorized")
 	}
 	existsUser, err := s.repo.GetUserByLogin(login)
 	if err != nil {
