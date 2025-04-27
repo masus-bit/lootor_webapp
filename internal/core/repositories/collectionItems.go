@@ -196,9 +196,10 @@ func (r *CiRepository) GetCountCIByIDs(collectionIDs []uuid.UUID) (map[uuid.UUID
 		CollectionsId uuid.UUID
 		Count         int64
 	}
+
 	err := r.db.Table("collections_collection_items_collection_items").
-		Select("collections_id, COUNT(*) as count").
-		Where("collections_id IN (?) AND collection_items.deleted = ?", collectionIDs, false).
+		Select("collections_id as collections_id, COUNT(*) as count").
+		Where("collections_id IN (?)", collectionIDs).
 		Group("collections_id").
 		Scan(&results).Error
 
@@ -225,10 +226,11 @@ func (r *CiRepository) GetSumsByCollectionIDs(collectionIDs []uuid.UUID) (map[uu
 		CollectionId uuid.UUID
 		Sum          float64
 	}
-	err := r.db.Table("collections_collection_items_collection_items").
-		Select("collections_id, COALESCE(SUM(purchase_price), 0) as sum").
-		Where("collections_id IN (?) AND collection_items.deleted = ?", collectionIDs, false).
-		Group("collections_id").
+	err := r.db.Model(&models.CollectionItems{}).
+		Select("collections_collection_items_collection_items.collections_id as collection_id, SUM(collection_items.purchase_price) as sum").
+		Joins("JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
+		Where("collections_collection_items_collection_items.collections_id IN (?) AND collection_items.deleted = ?", collectionIDs, false).
+		Group("collections_collection_items_collection_items.collections_id").
 		Scan(&results).Error
 
 	if err != nil {
@@ -254,10 +256,12 @@ func (r *CiRepository) GetShippingCostsByCollectionIDs(collectionIDs []uuid.UUID
 		CollectionId uuid.UUID
 		Sum          float64
 	}
-	err := r.db.Table("collections_collection_items_collection_items").
-		Select("collections_id, COALESCE(SUM(shipping_cost), 0) as sum").
-		Where("collections_id IN (?) AND collection_items.deleted = ?", collectionIDs, false).
-		Group("collections_id").
+
+	err := r.db.Model(&models.CollectionItems{}).
+		Select("collections_collection_items_collection_items.collections_id as collection_id, SUM(collection_items.shipping_cost) as sum").
+		Joins("JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
+		Where("collections_collection_items_collection_items.collections_id IN (?) AND collection_items.deleted = ?", collectionIDs, false).
+		Group("collections_collection_items_collection_items.collections_id").
 		Scan(&results).Error
 
 	if err != nil {
