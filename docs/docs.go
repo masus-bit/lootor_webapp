@@ -196,15 +196,19 @@ const docTemplate = `{
                         "type": "string",
                         "description": "поле сортировки% может быть  name, purchaseDate, purchasePrice, platform, type, rating",
                         "name": "orderBy",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "порядок сортировки asc или desc",
                         "name": "order",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "поиск по именам КИ внутри коллекции",
+                        "name": "search",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -248,6 +252,12 @@ const docTemplate = `{
                         "description": "порядок сортировки asc или desc",
                         "name": "order",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "поиск по именам коллекций",
+                        "name": "search",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -271,7 +281,7 @@ const docTemplate = `{
                 "tags": [
                     "collections"
                 ],
-                "summary": "подписка на кололекцию",
+                "summary": "подписка на коллекцию",
                 "parameters": [
                     {
                         "type": "string",

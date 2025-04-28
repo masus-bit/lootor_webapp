@@ -743,12 +743,14 @@ paths:
           platform, type, rating
         in: query
         name: orderBy
-        required: true
         type: string
       - description: порядок сортировки asc или desc
         in: query
         name: order
-        required: true
+        type: string
+      - description: поиск по именам КИ внутри коллекции
+        in: query
+        name: search
         type: string
       produces:
       - application/json
@@ -777,6 +779,10 @@ paths:
       - description: порядок сортировки asc или desc
         in: query
         name: order
+        type: string
+      - description: поиск по именам коллекций
+        in: query
+        name: search
         type: string
       produces:
       - application/json
@@ -810,7 +816,7 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/dto.CommonResponse'
-      summary: подписка на кололекцию
+      summary: подписка на коллекцию
       tags:
       - collections
   /public/events/filter:

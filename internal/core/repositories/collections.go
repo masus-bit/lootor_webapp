@@ -43,7 +43,7 @@ func (r *CollectionsRepository) FindAllCollections() ([]models.Collections, erro
 	return collections, err
 }
 
-func (r *CollectionsRepository) GetCollectionById(id string, limit string, offset string, orderByInput string, order string) (*models.Collections, error) {
+func (r *CollectionsRepository) GetCollectionById(id string, limit string, offset string, orderByInput string, order string, search string) (*models.Collections, error) {
 	var collection models.Collections
 
 	intLimit, _ := strconv.Atoi(limit)
@@ -53,6 +53,11 @@ func (r *CollectionsRepository) GetCollectionById(id string, limit string, offse
 		Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
+
+			if search != "" {
+				tx = tx.Where("name ILIKE ?", "%"+search+"%")
+			}
+
 			switch orderByInput {
 			case "platform":
 				if order == "desc" {
@@ -131,7 +136,7 @@ func (r *CollectionsRepository) GetCollectionByIdWithoutLimits(id string) (*mode
 	return &collection, err
 }
 
-func (r *CollectionsRepository) GetByShareString(shareString string, limit string, offset string, orderByInput string, order string) (*models.Collections, error) {
+func (r *CollectionsRepository) GetByShareString(shareString string, limit string, offset string, orderByInput string, order string, search string) (*models.Collections, error) {
 	var collection models.Collections
 
 	intLimit, _ := strconv.Atoi(limit)
@@ -141,6 +146,11 @@ func (r *CollectionsRepository) GetByShareString(shareString string, limit strin
 		Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
+
+			if search != "" {
+				tx = tx.Where("name ILIKE ?", "%"+search+"%")
+			}
+
 			switch orderByInput {
 			case "platform":
 				if order == "desc" {
@@ -214,7 +224,7 @@ func (r *CollectionsRepository) GetByIdWithoutCollectionItems(id string) (*model
 	return &collection, err
 }
 
-func (r *CollectionsRepository) GetOneByTransliteration(login string, transliteration string, limit string, offset string, orderByInput string, order string) (*models.Collections, error) {
+func (r *CollectionsRepository) GetOneByTransliteration(login string, transliteration string, limit string, offset string, orderByInput string, order string, search string) (*models.Collections, error) {
 	var collection models.Collections
 
 	intLimit, _ := strconv.Atoi(limit)
@@ -227,6 +237,11 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 		Preload("User").
 		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
+
+			if search != "" {
+				tx = tx.Where("name ILIKE ?", "%"+search+"%")
+			}
+
 			switch orderByInput {
 			case "platform":
 				if order == "desc" {
@@ -315,28 +330,39 @@ func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Co
 	return collections, err
 }
 
-func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string) ([]models.Collections, error) {
+func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string, search string) ([]models.Collections, error) {
 	var collections []models.Collections
 
-	err := r.db.
+	query := r.db.
 		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
 		Preload("Tags").
-		Order("created DESC").
-		Find(&collections).Error
+		Order("created DESC")
+
+	if search != "" {
+		query = query.Where("name ILIKE ?", "%"+search+"%")
+	}
+
+	err := query.Find(&collections).Error
 
 	return collections, err
 }
 
-func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string) ([]models.Collections, error) {
+func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string, search string) ([]models.Collections, error) {
 	var collections []models.Collections
-	err := r.db.
+	query := r.db.
 		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
 		Preload("Tags").
 		Where("collections.is_private = ?", false).
-		Order("collections.created DESC").
-		Find(&collections).Error
+		Order("collections.created DESC")
+
+	if search != "" {
+		query = query.Where("name ILIKE ?", "%"+search+"%")
+	}
+
+	err := query.Find(&collections).Error
+
 	return collections, err
 }
 

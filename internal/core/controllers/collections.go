@@ -95,12 +95,14 @@ func (c *CollectionsController) UpdateCollection(ctx echo.Context) error {
 // @Param userLogin query string true "логин"
 // @Param orderBy query string false "поле сортировки% может быть totalPrice, name, created, collectionItemsCount"
 // @Param order query string false "порядок сортировки asc или desc"
+// @Param search query string false "поиск по именам коллекций"
 // @Success 201 {object} dto.AllCollectionsDataResponseSwagger
 // @Router /public/collections/all [get]
 func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 	login := ctx.QueryParam("userLogin")
 	orderBy := ctx.QueryParam("orderBy")
 	order := ctx.QueryParam("order")
+	search := ctx.QueryParam("search")
 	if login == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Login parameter is required",
@@ -110,7 +112,7 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 		IsAuthenticated bool
 		UserLogin       string
 	})
-	response, err := c.colService.GetByUserLogin(login, authInfo.UserLogin, orderBy, order)
+	response, err := c.colService.GetByUserLogin(login, authInfo.UserLogin, orderBy, order, search)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),
@@ -130,8 +132,9 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 // @Param transliteration query string false "translit"
 // @Param ciLimit query string true "limit"
 // @Param ciOffset query string true "offset"
-// @Param orderBy query string true "поле сортировки% может быть  name, purchaseDate, purchasePrice, platform, type, rating"
-// @Param order query string true "порядок сортировки asc или desc"
+// @Param orderBy query string false "поле сортировки% может быть  name, purchaseDate, purchasePrice, platform, type, rating"
+// @Param order query string false "порядок сортировки asc или desc"
+// @Param search query string false "поиск по именам КИ внутри коллекции"
 // @Success 201 {object} dto.CollectionDataResponseSwagger
 // @Router /public/collections [get]
 func (c *CollectionsController) GetOneByFewParams(ctx echo.Context) error {
@@ -143,13 +146,14 @@ func (c *CollectionsController) GetOneByFewParams(ctx echo.Context) error {
 	offset := ctx.QueryParam("ciOffset")
 	orderBy := ctx.QueryParam("orderBy")
 	order := ctx.QueryParam("order")
+	search := ctx.QueryParam("search")
 
 	authInfo := ctx.Get("auth_info").(struct {
 		IsAuthenticated bool
 		UserLogin       string
 	})
 
-	response, err := c.colService.GetOne(authInfo.UserLogin, id, transliteration, userLogin, shareString, limit, offset, orderBy, order)
+	response, err := c.colService.GetOne(authInfo.UserLogin, id, transliteration, userLogin, shareString, limit, offset, orderBy, order, search)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),
@@ -189,7 +193,7 @@ func (c *CollectionsController) Like(ctx echo.Context) error {
 }
 
 // Subscribe
-// @Summary подписка на кололекцию
+// @Summary подписка на коллекцию
 // @Tags collections
 // @Accept  json
 // @Produce  json
