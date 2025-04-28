@@ -411,7 +411,7 @@ func (r *CollectionsRepository) GetCollectionByTag(tag string, limit string, off
 		Offset(intOffset)
 
 	if search != "" {
-		query = query.Where("name ILIKE ?", "%"+search+"%")
+		query = query.Where("collections.name ILIKE ?", "%"+search+"%")
 	}
 
 	err = query.Find(&collections).Error
