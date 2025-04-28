@@ -737,6 +737,24 @@ const docTemplate = `{
                         "name": "offset",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "поле сортировки% может быть totalPrice, name, created, collectionItemsCount",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "порядок сортировки asc или desc",
+                        "name": "order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "поиск среди коллекций по тегу",
+                        "name": "search",
+                        "in": "query"
                     }
                 ],
                 "responses": {

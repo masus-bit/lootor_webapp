@@ -349,8 +349,8 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 
 }
 
-func (s *CollectionService) GetByTag(tag string, authUserLogin string, limit string, offset string) (*models.AllCollectionsDataResponse, error) {
-	collections, err := s.repo.GetCollectionByTag(tag, limit, offset)
+func (s *CollectionService) GetByTag(tag string, authUserLogin string, limit string, offset string, orderBy string, order string, search string) (*models.AllCollectionsDataByTag, error) {
+	collections, totalCount, err := s.repo.GetCollectionByTag(tag, limit, offset, search)
 	if err != nil {
 		return nil, err
 	}
@@ -387,5 +387,7 @@ func (s *CollectionService) GetByTag(tag string, authUserLogin string, limit str
 		result = append(result, temp)
 	}
 
-	return &models.AllCollectionsDataResponse{Data: result}, nil
+	sortedCollections := utils.GetCollectionOrderBy(orderBy, result, order)
+
+	return &models.AllCollectionsDataByTag{Data: sortedCollections, Total: totalCount}, nil
 }

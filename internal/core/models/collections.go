@@ -81,6 +81,11 @@ type AllCollectionsDataResponse struct {
 	Data []CollectionsResponse `json:"data"`
 }
 
+type AllCollectionsDataByTag struct {
+	Data  []CollectionsResponse `json:"data"`
+	Total int64                 `json:"total"`
+}
+
 type CollectionCreateRequest struct {
 	Name            string   `json:"name"`
 	Description     string   `json:"description"`

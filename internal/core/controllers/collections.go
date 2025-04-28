@@ -231,12 +231,19 @@ func (c *CollectionsController) Subscribe(ctx echo.Context) error {
 // @Param tag query string true "tag"
 // @Param limit query string true "limit"
 // @Param offset query string true "offset"
+// @Param orderBy query string false "поле сортировки% может быть totalPrice, name, created, collectionItemsCount"
+// @Param order query string false "порядок сортировки asc или desc"
+// @Param search query string false "поиск среди коллекций по тегу"
 // @Success 201 {object} dto.AllCollectionsDataResponseSwagger
 // @Router /secured/collections/tag [get]
 func (c *CollectionsController) GetByTag(ctx echo.Context) error {
 	tag := ctx.QueryParam("tag")
 	limit := ctx.QueryParam("limit")
 	offset := ctx.QueryParam("offset")
+	orderBy := ctx.QueryParam("orderBy")
+	order := ctx.QueryParam("order")
+	search := ctx.QueryParam("search")
+
 	if tag == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Tag parameter is required",
@@ -248,7 +255,7 @@ func (c *CollectionsController) GetByTag(ctx echo.Context) error {
 		UserLogin       string
 	})
 
-	response, err := c.colService.GetByTag(tag, authInfo.UserLogin, limit, offset)
+	response, err := c.colService.GetByTag(tag, authInfo.UserLogin, limit, offset, orderBy, order, search)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),

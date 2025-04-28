@@ -376,13 +376,30 @@ func (r *CollectionsRepository) GetByIdWithoutUser(id string) (models.Collection
 	return collection, err
 }
 
-func (r *CollectionsRepository) GetCollectionByTag(tag string, limit string, offset string) ([]models.Collections, error) {
+func (r *CollectionsRepository) GetCollectionByTag(tag string, limit string, offset string, search string) ([]models.Collections, int64, error) {
 	var collections []models.Collections
+	var totalCount int64
 
 	intLimit, _ := strconv.Atoi(limit)
 	intOffset, _ := strconv.Atoi(offset)
 
-	err := r.db.
+	countQuery := r.db.
+		Model(&models.Collections{}).
+		Joins("JOIN tags_collections_collections ON tags_collections_collections.collections_id = collections.id").
+		Joins("JOIN tags ON tags.id = tags_collections_collections.tags_id").
+		Where("LOWER(tags.name) = LOWER(?)", tag).
+		Where("collections.is_private = ?", false)
+
+	if search != "" {
+		countQuery = countQuery.Where("collections.name ILIKE ?", "%"+search+"%")
+	}
+
+	err := countQuery.Count(&totalCount).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	query := r.db.
 		Joins("JOIN tags_collections_collections ON tags_collections_collections.collections_id = collections.id").
 		Joins("JOIN tags ON tags.id = tags_collections_collections.tags_id").
 		Where("LOWER(tags.name) = LOWER(?)", tag).
@@ -391,13 +408,18 @@ func (r *CollectionsRepository) GetCollectionByTag(tag string, limit string, off
 		Where("collections.is_private = ?", false).
 		Order("collections.created ASC").
 		Limit(intLimit).
-		Offset(intOffset).
-		Find(&collections).Error
+		Offset(intOffset)
+
+	if search != "" {
+		query = query.Where("name ILIKE ?", "%"+search+"%")
+	}
+
+	err = query.Find(&collections).Error
 
 	if err != nil {
-		return nil, err
+		return nil, totalCount, err
 	}
-	return collections, nil
+	return collections, totalCount, nil
 }
 
 func (r *CollectionsRepository) UpdateCollection(existsCollection *models.Collections, updated *models.Collections) (*models.Collections, error) {
