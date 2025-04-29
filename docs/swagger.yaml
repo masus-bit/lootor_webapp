@@ -992,6 +992,49 @@ paths:
       summary: копирование/перемещение КИ
       tags:
       - collection items
+  /secured/collection_item/entity:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: entity
+        in: query
+        name: entity
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: поле сортировки% может быть  name, purchaseDate, purchasePrice,
+          platform, type, rating
+        in: query
+        name: orderBy
+        type: string
+      - description: порядок сортировки asc или desc
+        in: query
+        name: order
+        type: string
+      - description: поиск среди коллекций по тегу
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AllCollectionsDataResponseSwagger'
+      summary: получить КИ по кнтити
+      tags:
+      - collection items
   /secured/collection_item/like:
     get:
       consumes:

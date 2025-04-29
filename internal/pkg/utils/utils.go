@@ -80,3 +80,56 @@ func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsR
 	}
 	return collections
 }
+
+type CiOrder struct {
+	Joins string
+	Order string
+}
+
+func GetCIOrderString(orderBy string, order string) *CiOrder {
+	var result CiOrder
+
+	switch orderBy {
+	case "platform":
+		result.Joins = "LEFT JOIN platforms ON platforms.id = collection_items.platform_id"
+		if order == "desc" {
+			result.Order = "platforms.name DESC"
+		}
+		result.Order = "platforms.name ASC"
+		break
+	case "type":
+		result.Joins = "LEFT JOIN item_types ON item_types.id = collection_items.item_type_id"
+		if order == "desc" {
+			result.Order = "item_types.ru_name DESC"
+		}
+		result.Order = "item_types.ru_name ASC"
+		break
+	case "name":
+		if order == "desc" {
+			result.Order = "name DESC"
+		}
+		result.Order = "name ASC"
+		break
+	case "rating":
+		if order == "desc" {
+			result.Order = "rating DESC"
+		}
+		result.Order = "rating ASC"
+		break
+	case "purchaseDate":
+		if order == "desc" {
+			result.Order = "purchase_date DESC"
+		}
+		result.Order = "purchase_date ASC"
+		break
+	case "purchasePrice":
+		if order == "desc" {
+			result.Order = "purchase_price DESC"
+		}
+		result.Order = "purchase_price ASC"
+		break
+	default:
+		result.Order = "purchase_date DESC"
+	}
+	return &result
+}

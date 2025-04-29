@@ -93,3 +93,18 @@ type CollectionItemsCopyOrMoveRequest struct {
 	TargetCollectionIds []string `json:"targetCollectionIds"`
 	SourceCollectionId  string   `json:"sourceCollectionId"`
 }
+
+type CollectionItemsSortedResponse struct {
+	VideoGames         []CollectionItemsResponse `json:"videoGames"`
+	BoardGames         []CollectionItemsResponse `json:"boardGames"`
+	Comics             []CollectionItemsResponse `json:"comics"`
+	GamingHardware     []CollectionItemsResponse `json:"gamingHardware"`
+	CollectibleFigures []CollectionItemsResponse `json:"collectibleFigures"`
+	Books              []CollectionItemsResponse `json:"books"`
+	Vinyl              []CollectionItemsResponse `json:"vinyl"`
+}
+
+type CollectionItemsDataSortedResponse struct {
+	Data  CollectionItemsSortedResponse `json:"data"`
+	Total int64                         `json:"total"`
+}

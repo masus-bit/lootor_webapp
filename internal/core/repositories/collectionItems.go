@@ -7,6 +7,8 @@ import (
 	"log"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
+	"lootor/internal/pkg/utils"
+	"strconv"
 )
 
 type CiRepository struct {
@@ -280,4 +282,61 @@ func (r *CiRepository) GetShippingCostsByCollectionIDs(collectionIDs []uuid.UUID
 	}
 
 	return sums, nil
+}
+
+func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string, offset string, search string, orderBy string, order string) ([]models.CollectionItems, int64, error) {
+	var collectionItems []models.CollectionItems
+	var totalCount int64
+
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
+
+	countQuery := r.db.
+		Model(&models.CollectionItems{}).
+		Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
+		Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
+		Where("LOWER(entities.name) = LOWER(?)", entity).
+		Where("collection_items.deleted = ?", false)
+
+	if search != "" {
+		countQuery = countQuery.Where("collection_items.name ILIKE ?", "%"+search+"%").Where("collection_items.delete = ?", false)
+	}
+
+	err := countQuery.Count(&totalCount).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	query := r.db.
+		Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
+		Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
+		Where("LOWER(entities.name) = LOWER(?)", entity).
+		Preload("Collections").
+		Preload("Collections.User").
+		Preload("Owner").
+		Preload("Platform").
+		Preload("Entities").
+		Preload("ItemType").
+		Where("collection_items.deleted = ?", false).
+		Limit(intLimit).
+		Offset(intOffset)
+
+	if search != "" {
+		query = query.Where("collection_items.name ILIKE ?", "%"+search+"%").Where("collection_items.delete = ?", false)
+	}
+
+	ciOrder := utils.GetCIOrderString(orderBy, order)
+	if ciOrder.Joins != "" {
+		query.Joins(ciOrder.Joins).Order(ciOrder.Order)
+	} else {
+		query.Order(ciOrder.Order)
+	}
+
+	err = query.Find(&collectionItems).Error
+
+	if err != nil {
+		return nil, totalCount, err
+	}
+	return collectionItems, totalCount, nil
+
 }

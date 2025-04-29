@@ -337,3 +337,64 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 	}
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
+
+func (s *CiService) GetByEntity(entity string, authUserLogin string, limit string, offset string, orderBy string, order string, search string) (*models.CollectionItemsDataSortedResponse, error) {
+	collectionItems, totalCount, err := s.repo.GetCollectionItemsByEntity(entity, limit, offset, search, orderBy, order)
+	if err != nil {
+		return nil, err
+	}
+
+	var sortedCollectionItems models.CollectionItemsSortedResponse
+
+	for _, dbCollectionItem := range collectionItems {
+		var temp models.CollectionItemsResponse
+		errMap := mapstructure.Decode(dbCollectionItem, &temp)
+		temp.Collection = dbCollectionItem.Collections[0].Id
+		temp.Owner = dbCollectionItem.Owner
+		temp.LikesCount = int64(len(dbCollectionItem.Likes))
+		temp.CanLike = true
+		temp.IsOwner = authUserLogin == dbCollectionItem.Owner.Login
+		if authUserLogin != "" {
+			if authUserLogin == dbCollectionItem.Owner.Login {
+				temp.CanLike = true
+			} else {
+				temp.CanLike = !slices.Contains(dbCollectionItem.Likes, authUserLogin)
+			}
+
+		}
+		if errMap != nil {
+			return nil, errMap
+		}
+		switch temp.ItemType.Name {
+		case "Video games":
+			sortedCollectionItems.VideoGames = append(sortedCollectionItems.VideoGames, temp)
+			break
+
+		case "Board games":
+			sortedCollectionItems.BoardGames = append(sortedCollectionItems.BoardGames, temp)
+			break
+
+		case "Comics":
+			sortedCollectionItems.Comics = append(sortedCollectionItems.Comics, temp)
+			break
+
+		case "Gaming hardware":
+			sortedCollectionItems.GamingHardware = append(sortedCollectionItems.GamingHardware, temp)
+			break
+
+		case "Collectible figures":
+			sortedCollectionItems.CollectibleFigures = append(sortedCollectionItems.CollectibleFigures, temp)
+			break
+
+		case "Books":
+			sortedCollectionItems.Books = append(sortedCollectionItems.Books, temp)
+			break
+
+		case "Vinyl":
+			sortedCollectionItems.Vinyl = append(sortedCollectionItems.Vinyl, temp)
+			break
+		}
+	}
+
+	return &models.CollectionItemsDataSortedResponse{Data: sortedCollectionItems, Total: totalCount}, nil
+}

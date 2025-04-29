@@ -573,6 +573,69 @@
                 }
             }
         },
+        "/secured/collection_item/entity": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "collection items"
+                ],
+                "summary": "получить КИ по кнтити",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "entity",
+                        "name": "entity",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "поле сортировки% может быть  name, purchaseDate, purchasePrice, platform, type, rating",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "порядок сортировки asc или desc",
+                        "name": "order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "поиск среди коллекций по тегу",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AllCollectionsDataResponseSwagger"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/collection_item/like": {
             "get": {
                 "consumes": [

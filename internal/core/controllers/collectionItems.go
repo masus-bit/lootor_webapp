@@ -183,3 +183,45 @@ func (c *CIController) Like(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, response)
 }
+
+// GetByEntity
+// @Summary получить КИ по кнтити
+// @Tags collection items
+// @Accept  json
+// @Produce  json
+// @Param entity query string true "entity"
+// @Param limit query string true "limit"
+// @Param offset query string true "offset"
+// @Param orderBy query string false "поле сортировки% может быть  name, purchaseDate, purchasePrice, platform, type, rating"
+// @Param order query string false "порядок сортировки asc или desc"
+// @Param search query string false "поиск среди коллекций по тегу"
+// @Success 201 {object} dto.AllCollectionsDataResponseSwagger
+// @Router /secured/collection_item/entity [get]
+func (c *CIController) GetByEntity(ctx echo.Context) error {
+	entity := ctx.QueryParam("entity")
+	limit := ctx.QueryParam("limit")
+	offset := ctx.QueryParam("offset")
+	orderBy := ctx.QueryParam("orderBy")
+	order := ctx.QueryParam("order")
+	search := ctx.QueryParam("search")
+
+	if entity == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Entity parameter is required",
+		})
+	}
+
+	authInfo := ctx.Get("auth_info").(struct {
+		IsAuthenticated bool
+		UserLogin       string
+	})
+
+	response, err := c.ciService.GetByEntity(entity, authInfo.UserLogin, limit, offset, orderBy, order, search)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+}
