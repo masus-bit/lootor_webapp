@@ -181,14 +181,14 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "limit",
-                        "name": "ciLimit",
+                        "name": "limit",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "offset",
-                        "name": "ciOffset",
+                        "name": "offset",
                         "in": "query",
                         "required": true
                     },

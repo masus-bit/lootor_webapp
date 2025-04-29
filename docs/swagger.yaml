@@ -731,12 +731,12 @@ paths:
         type: string
       - description: limit
         in: query
-        name: ciLimit
+        name: limit
         required: true
         type: string
       - description: offset
         in: query
-        name: ciOffset
+        name: offset
         required: true
         type: string
       - description: поле сортировки% может быть  name, purchaseDate, purchasePrice,

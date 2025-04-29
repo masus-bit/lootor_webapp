@@ -130,8 +130,8 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 // @Param userLogin query string false "логин"
 // @Param id query string false "id"
 // @Param transliteration query string false "translit"
-// @Param ciLimit query string true "limit"
-// @Param ciOffset query string true "offset"
+// @Param limit query string true "limit"
+// @Param offset query string true "offset"
 // @Param orderBy query string false "поле сортировки% может быть  name, purchaseDate, purchasePrice, platform, type, rating"
 // @Param order query string false "порядок сортировки asc или desc"
 // @Param search query string false "поиск по именам КИ внутри коллекции"
@@ -142,8 +142,8 @@ func (c *CollectionsController) GetOneByFewParams(ctx echo.Context) error {
 	transliteration := ctx.QueryParam("transliteration")
 	shareString := ctx.QueryParam("shareString")
 	userLogin := ctx.QueryParam("userLogin")
-	limit := ctx.QueryParam("ciLimit")
-	offset := ctx.QueryParam("ciOffset")
+	limit := ctx.QueryParam("limit")
+	offset := ctx.QueryParam("offset")
 	orderBy := ctx.QueryParam("orderBy")
 	order := ctx.QueryParam("order")
 	search := ctx.QueryParam("search")
