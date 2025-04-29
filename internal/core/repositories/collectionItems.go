@@ -61,7 +61,7 @@ func (r *CiRepository) GetCountByUserLogin(login string) (int64, error) {
 	var count int64
 	err := r.db.
 		Model(&models.CollectionItems{}).
-		Where("LOWER(owner) = LOWER(?) AND deleted = ?", login, false).
+		Where("LOWER(user_login) = LOWER(?) AND deleted = ?", login, false).
 		Count(&count).Error
 
 	return count, err
