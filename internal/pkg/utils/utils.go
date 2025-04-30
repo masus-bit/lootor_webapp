@@ -133,3 +133,24 @@ func GetCIOrderString(orderBy string, order string) *CiOrder {
 	}
 	return &result
 }
+
+func GetReformatedItemType(itemType string) string {
+	switch itemType {
+	case "videoGames":
+		return "Video games"
+	case "boardGames":
+		return "Board games"
+	case "comics":
+		return "Comics"
+	case "gamingHardware":
+		return "Gaming hardware"
+	case "collectibleFigures":
+		return "Collectible figures"
+	case "books":
+		return "Books"
+	case "vinyl":
+		return "Vinyl"
+	default:
+		return ""
+	}
+}

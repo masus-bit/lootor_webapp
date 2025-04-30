@@ -173,6 +173,44 @@ const docTemplate = `{
                         "name": "limit",
                         "in": "query",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AllCollectionsDataResponseSwagger"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/collection_item/entity/type": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "collection items"
+                ],
+                "summary": "получить КИ по entity и типу",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "entity",
+                        "name": "entity",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
@@ -195,8 +233,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "поиск среди коллекций по тегу",
+                        "description": "поиск среди коллекций по entity",
                         "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "type",
+                        "name": "type",
                         "in": "query"
                     }
                 ],

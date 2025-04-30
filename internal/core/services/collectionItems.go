@@ -338,63 +338,78 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *CiService) GetByEntity(entity string, authUserLogin string, limit string, offset string, orderBy string, order string, search string) (*models.CollectionItemsDataSortedResponse, error) {
-	collectionItems, totalCount, err := s.repo.GetCollectionItemsByEntity(entity, limit, offset, search, orderBy, order)
+func (s *CiService) GetByEntity(entity string, authUserLogin string, limit string) (*models.CollectionItemsDataSortedResponse, error) {
+	collectionItems, totalCount, err := s.repo.GetCollectionItemsByEntity(entity, limit)
 	if err != nil {
 		return nil, err
 	}
 
 	var sortedCollectionItems models.CollectionItemsSortedResponse
 
-	for _, dbCollectionItem := range collectionItems {
+	sortedCollectionItems.CollectibleFigures, _ = processCI(collectionItems.CollectibleFigures, authUserLogin)
+	sortedCollectionItems.Books, _ = processCI(collectionItems.Books, authUserLogin)
+	sortedCollectionItems.BoardGames, _ = processCI(collectionItems.BoardGames, authUserLogin)
+	sortedCollectionItems.Comics, _ = processCI(collectionItems.Comics, authUserLogin)
+	sortedCollectionItems.GamingHardware, _ = processCI(collectionItems.GamingHardware, authUserLogin)
+	sortedCollectionItems.Vinyl, _ = processCI(collectionItems.Vinyl, authUserLogin)
+	sortedCollectionItems.VideoGames, _ = processCI(collectionItems.VideoGames, authUserLogin)
+
+	return &models.CollectionItemsDataSortedResponse{Data: sortedCollectionItems, Total: totalCount}, nil
+}
+
+func (s *CiService) GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string, authUser string) (*models.CollectionItemsDataResponseWithCount, error) {
+	var resultCollectionItems []models.CollectionItemsResponse
+	collectionItems, totalCount, err := s.repo.GetByEntityAndType(entity, itemType, limit, offset, search, orderBy, order)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, item := range collectionItems {
 		var temp models.CollectionItemsResponse
-		errMap := mapstructure.Decode(dbCollectionItem, &temp)
-		temp.Collection = dbCollectionItem.Collections[0].Id
-		temp.Owner = dbCollectionItem.Owner
-		temp.LikesCount = int64(len(dbCollectionItem.Likes))
+		err := mapstructure.Decode(item, &temp)
+		if err != nil {
+			return nil, err
+		}
+		temp.Collection = item.Collections[0].Id
+		temp.Owner = item.Owner
+		temp.LikesCount = int64(len(item.Likes))
 		temp.CanLike = true
-		temp.IsOwner = authUserLogin == dbCollectionItem.Owner.Login
-		if authUserLogin != "" {
-			if authUserLogin == dbCollectionItem.Owner.Login {
+		temp.IsOwner = authUser == item.Owner.Login
+		if authUser != "" {
+			if authUser == item.Owner.Login {
 				temp.CanLike = true
 			} else {
-				temp.CanLike = !slices.Contains(dbCollectionItem.Likes, authUserLogin)
+				temp.CanLike = !slices.Contains(item.Likes, authUser)
 			}
 
 		}
-		if errMap != nil {
-			return nil, errMap
-		}
-		switch temp.ItemType.Name {
-		case "Video games":
-			sortedCollectionItems.VideoGames = append(sortedCollectionItems.VideoGames, temp)
-			break
-
-		case "Board games":
-			sortedCollectionItems.BoardGames = append(sortedCollectionItems.BoardGames, temp)
-			break
-
-		case "Comics":
-			sortedCollectionItems.Comics = append(sortedCollectionItems.Comics, temp)
-			break
-
-		case "Gaming hardware":
-			sortedCollectionItems.GamingHardware = append(sortedCollectionItems.GamingHardware, temp)
-			break
-
-		case "Collectible figures":
-			sortedCollectionItems.CollectibleFigures = append(sortedCollectionItems.CollectibleFigures, temp)
-			break
-
-		case "Books":
-			sortedCollectionItems.Books = append(sortedCollectionItems.Books, temp)
-			break
-
-		case "Vinyl":
-			sortedCollectionItems.Vinyl = append(sortedCollectionItems.Vinyl, temp)
-			break
-		}
+		resultCollectionItems = append(resultCollectionItems, temp)
 	}
+	return &models.CollectionItemsDataResponseWithCount{Data: resultCollectionItems, Total: totalCount}, nil
+}
 
-	return &models.CollectionItemsDataSortedResponse{Data: sortedCollectionItems, Total: totalCount}, nil
+func processCI(slice []models.CollectionItems, authUser string) ([]models.CollectionItemsResponse, error) {
+	var resultCollectionItems []models.CollectionItemsResponse
+	for _, item := range slice {
+		var temp models.CollectionItemsResponse
+		err := mapstructure.Decode(item, &temp)
+		if err != nil {
+			return nil, err
+		}
+		temp.Collection = item.Collections[0].Id
+		temp.Owner = item.Owner
+		temp.LikesCount = int64(len(item.Likes))
+		temp.CanLike = true
+		temp.IsOwner = authUser == item.Owner.Login
+		if authUser != "" {
+			if authUser == item.Owner.Login {
+				temp.CanLike = true
+			} else {
+				temp.CanLike = !slices.Contains(item.Likes, authUser)
+			}
+
+		}
+		resultCollectionItems = append(resultCollectionItems, temp)
+	}
+	return resultCollectionItems, nil
 }

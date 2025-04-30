@@ -284,9 +284,85 @@ func (r *CiRepository) GetShippingCostsByCollectionIDs(collectionIDs []uuid.UUID
 	return sums, nil
 }
 
-func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string, offset string, search string, orderBy string, order string) ([]models.CollectionItems, int64, error) {
+func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (*struct {
+	VideoGames         []models.CollectionItems `json:"videoGames"`
+	BoardGames         []models.CollectionItems `json:"boardGames"`
+	Comics             []models.CollectionItems `json:"comics"`
+	GamingHardware     []models.CollectionItems `json:"gamingHardware"`
+	CollectibleFigures []models.CollectionItems `json:"collectibleFigures"`
+	Books              []models.CollectionItems `json:"books"`
+	Vinyl              []models.CollectionItems `json:"vinyl"`
+}, int64, error) {
+	var GroupedCollectionItems struct {
+		VideoGames         []models.CollectionItems `json:"videoGames"`
+		BoardGames         []models.CollectionItems `json:"boardGames"`
+		Comics             []models.CollectionItems `json:"comics"`
+		GamingHardware     []models.CollectionItems `json:"gamingHardware"`
+		CollectibleFigures []models.CollectionItems `json:"collectibleFigures"`
+		Books              []models.CollectionItems `json:"books"`
+		Vinyl              []models.CollectionItems `json:"vinyl"`
+	}
+	var totalCount int64
+	var itemTypesArr = []string{"Video games", "Board games", "Comics", "Gaming hardware", "Collectible figures", "Books", "Vinyl"}
+
+	intLimit, _ := strconv.Atoi(limit)
+
+	err := r.db.
+		Model(&models.CollectionItems{}).
+		Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
+		Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
+		Where("LOWER(entities.name) = LOWER(?)", entity).
+		Where("collection_items.deleted = ?", false).
+		Count(&totalCount).Error
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for _, itemType := range itemTypesArr {
+		query := r.db.
+			Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
+			Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
+			Joins("JOIN item_types ON item_types.id = collection_items.item_type_id").
+			Where("LOWER(entities.name) = LOWER(?)", entity).
+			Where("item_types.name = ?", itemType).
+			Preload("Collections").
+			Preload("Collections.User").
+			Preload("Owner").
+			Preload("Platform").
+			Preload("Entities").
+			Preload("ItemType").
+			Where("collection_items.deleted = ?", false).
+			Order("collection_items.created_at DESC").
+			Limit(intLimit)
+
+		switch itemType {
+		case "Video games":
+			query.Find(&GroupedCollectionItems.VideoGames)
+		case "Board games":
+			query.Find(&GroupedCollectionItems.BoardGames)
+		case "Comics":
+			query.Find(&GroupedCollectionItems.Comics)
+		case "Gaming hardware":
+			query.Find(&GroupedCollectionItems.GamingHardware)
+		case "Collectible figures":
+			query.Find(&GroupedCollectionItems.CollectibleFigures)
+		case "Books":
+			query.Find(&GroupedCollectionItems.Books)
+		case "Vinyl":
+			query.Find(&GroupedCollectionItems.Vinyl)
+		}
+	}
+
+	return &GroupedCollectionItems, totalCount, nil
+
+}
+
+func (r *CiRepository) GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string) ([]models.CollectionItems, int64, error) {
 	var collectionItems []models.CollectionItems
 	var totalCount int64
+
+	itemTypeNew := utils.GetReformatedItemType(itemType)
 
 	intLimit, _ := strconv.Atoi(limit)
 	intOffset, _ := strconv.Atoi(offset)
@@ -295,11 +371,13 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string, o
 		Model(&models.CollectionItems{}).
 		Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
 		Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
+		Joins("JOIN item_types ON item_types.id = collection_items.item_type_id").
 		Where("LOWER(entities.name) = LOWER(?)", entity).
+		Where("item_types.name = ?", itemTypeNew).
 		Where("collection_items.deleted = ?", false)
 
 	if search != "" {
-		countQuery = countQuery.Where("collection_items.name ILIKE ?", "%"+search+"%").Where("collection_items.delete = ?", false)
+		countQuery = countQuery.Where("collection_items.name ILIKE ?", "%"+search+"%")
 	}
 
 	err := countQuery.Count(&totalCount).Error
@@ -310,7 +388,9 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string, o
 	query := r.db.
 		Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
 		Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
+		Joins("JOIN item_types ON item_types.id = collection_items.item_type_id").
 		Where("LOWER(entities.name) = LOWER(?)", entity).
+		Where("item_types.name = ?", itemTypeNew).
 		Preload("Collections").
 		Preload("Collections.User").
 		Preload("Owner").
@@ -318,11 +398,12 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string, o
 		Preload("Entities").
 		Preload("ItemType").
 		Where("collection_items.deleted = ?", false).
+		Order("collection_items.created_at DESC").
 		Limit(intLimit).
 		Offset(intOffset)
 
 	if search != "" {
-		query = query.Where("collection_items.name ILIKE ?", "%"+search+"%").Where("collection_items.delete = ?", false)
+		query = query.Where("collection_items.name ILIKE ?", "%"+search+"%")
 	}
 
 	ciOrder := utils.GetCIOrderString(orderBy, order)
@@ -333,10 +414,8 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string, o
 	}
 
 	err = query.Find(&collectionItems).Error
-
 	if err != nil {
-		return nil, totalCount, err
+		return nil, 0, err
 	}
 	return collectionItems, totalCount, nil
-
 }

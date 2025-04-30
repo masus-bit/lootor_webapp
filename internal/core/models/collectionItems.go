@@ -88,6 +88,11 @@ type CollectionItemsDataResponse struct {
 	Data CollectionItemsResponse `json:"data"`
 }
 
+type CollectionItemsDataResponseWithCount struct {
+	Data  []CollectionItemsResponse `json:"data"`
+	Total int64                     `json:"total"`
+}
+
 type CollectionItemsCopyOrMoveRequest struct {
 	Id                  string   `json:"id"`
 	TargetCollectionIds []string `json:"targetCollectionIds"`
