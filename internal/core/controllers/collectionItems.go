@@ -196,7 +196,7 @@ func (c *CIController) Like(ctx echo.Context) error {
 // @Param order query string false "порядок сортировки asc или desc"
 // @Param search query string false "поиск среди коллекций по тегу"
 // @Success 201 {object} dto.AllCollectionsDataResponseSwagger
-// @Router /secured/collection_item/entity [get]
+// @Router /public/collection_item/entity [get]
 func (c *CIController) GetByEntity(ctx echo.Context) error {
 	entity := ctx.QueryParam("entity")
 	limit := ctx.QueryParam("limit")

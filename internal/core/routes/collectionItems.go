@@ -14,6 +14,7 @@ func RegisterCollectionItemsRoutes(e *echo.Echo, jwtService *auth.JWTService, ci
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
 		publicGroup.GET("/collection_item", controller.GetCollectionItem)
+		publicGroup.GET("/collection_item/entity", controller.GetByEntity)
 	}
 
 	securedGroup := e.Group("/secured")
@@ -24,6 +25,5 @@ func RegisterCollectionItemsRoutes(e *echo.Echo, jwtService *auth.JWTService, ci
 		securedGroup.DELETE("/collection_item", controller.DeleteCollectionItem)
 		securedGroup.POST("/collection_item/copy", controller.CopyOrMoveCollectionItem)
 		securedGroup.GET("/collection_item/like", controller.Like)
-		securedGroup.GET("/collection_item/entity", controller.GetByEntity)
 	}
 }
