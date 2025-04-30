@@ -51,7 +51,7 @@ func (r *EntitiesRepository) GetAllEntities() ([]models.Entities, error) {
 func (r *EntitiesRepository) SearchByEntityName(searchTerm string) ([]models.Entities, error) {
 	var entities []models.Entities
 
-	err := r.db.Where("name ILIKE ?", searchTerm).Find(&entities).Error
+	err := r.db.Where("name ILIKE ?", "%"+searchTerm+"%").Find(&entities).Error
 	if err != nil {
 		return nil, err
 	}

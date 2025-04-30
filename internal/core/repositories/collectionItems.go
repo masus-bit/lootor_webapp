@@ -53,7 +53,8 @@ func (r *CiRepository) GetCIByID(id string) (*models.CollectionItems, error) {
 		Preload("Platform").
 		Preload("Entities").
 		Preload("ItemType").
-		Where("id = ? AND deleted = ?", id, false).
+		Where("id = ?", id).
+		Where("deleted_at IS NULL").
 		First(&item).Error
 
 	return &item, err
@@ -63,7 +64,8 @@ func (r *CiRepository) GetCountByUserLogin(login string) (int64, error) {
 	var count int64
 	err := r.db.
 		Model(&models.CollectionItems{}).
-		Where("LOWER(user_login) = LOWER(?) AND deleted = ?", login, false).
+		Where("LOWER(user_login) = LOWER(?)", login).
+		Where("deleted_at IS NULL").
 		Count(&count).Error
 
 	return count, err
@@ -127,7 +129,8 @@ func (r *CiRepository) Sum(collectionID uuid.UUID) (float64, error) {
 		Model(&models.CollectionItems{}).
 		Select("COALESCE(SUM(purchase_price), 0) as sum").
 		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
-		Where("collections_collection_items_collection_items.collections_id = ? AND deleted = ?", collectionID, false).
+		Where("collections_collection_items_collection_items.collections_id = ?", collectionID).
+		Where("deleted_at IS NULL").
 		Scan(&result).Error
 
 	if result.Sum == nil {
@@ -144,8 +147,8 @@ func (r *CiRepository) SumShippingCost(collectionID uuid.UUID) (float64, error) 
 		Model(&models.CollectionItems{}).
 		Select("COALESCE(SUM(shipping_cost), 0) as sum").
 		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
-		Where("collections_collection_items_collection_items.collections_id = ? AND collection_items.deleted = ?",
-			collectionID, false).
+		Where("collections_collection_items_collection_items.collections_id = ?",
+			collectionID).
 		Where("collection_items.deleted_at IS NULL").
 		Scan(&result).Error
 
@@ -188,7 +191,7 @@ func (r *CiRepository) GetCountCI(collectionID uuid.UUID) (int64, error) {
 	err := r.db.
 		Model(&models.CollectionItems{}).
 		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
-		Where("collections_collection_items_collection_items.collections_id = ? AND collection_items.deleted = ?", collectionID, false).
+		Where("collections_collection_items_collection_items.collections_id = ?", collectionID).
 		Where("collection_items.deleted_at IS NULL").
 		Count(&count).Error
 
@@ -237,7 +240,7 @@ func (r *CiRepository) GetSumsByCollectionIDs(collectionIDs []uuid.UUID) (map[uu
 	err := r.db.Model(&models.CollectionItems{}).
 		Select("collections_collection_items_collection_items.collections_id as collection_id, SUM(collection_items.purchase_price) as sum").
 		Joins("JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
-		Where("collections_collection_items_collection_items.collections_id IN (?) AND collection_items.deleted = ?", collectionIDs, false).
+		Where("collections_collection_items_collection_items.collections_id IN (?)", collectionIDs).
 		Where("collection_items.deleted_at IS NULL").
 		Group("collections_collection_items_collection_items.collections_id").
 		Scan(&results).Error
@@ -269,7 +272,7 @@ func (r *CiRepository) GetShippingCostsByCollectionIDs(collectionIDs []uuid.UUID
 	err := r.db.Model(&models.CollectionItems{}).
 		Select("collections_collection_items_collection_items.collections_id as collection_id, SUM(collection_items.shipping_cost) as sum").
 		Joins("JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
-		Where("collections_collection_items_collection_items.collections_id IN (?) AND collection_items.deleted = ?", collectionIDs, false).
+		Where("collections_collection_items_collection_items.collections_id IN (?)", collectionIDs).
 		Where("collection_items.deleted_at IS NULL").
 		Group("collections_collection_items_collection_items.collections_id").
 		Scan(&results).Error
