@@ -116,7 +116,8 @@ func (r *CollectionsRepository) GetCollectionById(id string, limit string, offse
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.ItemType").
-		Where("id = ? AND deleted = ?", id, false).
+		Where("id = ?", id).
+		Where("deleted_at IS NULL").
 		First(&collection).Error
 	return &collection, err
 }
@@ -131,7 +132,8 @@ func (r *CollectionsRepository) GetCollectionByIdWithoutLimits(id string) (*mode
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.ItemType").
-		Where("id = ? AND deleted = ?", id, false).
+		Where("id = ?", id).
+		Where("deleted_at IS NULL").
 		First(&collection).Error
 	return &collection, err
 }
@@ -209,7 +211,8 @@ func (r *CollectionsRepository) GetByShareString(shareString string, limit strin
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.ItemType").
-		Where("share_string = ? AND deleted = ?", shareString, false).
+		Where("share_string = ?", shareString).
+		Where("deleted_at IS NULL").
 		First(&collection).Error
 	return &collection, err
 }
@@ -219,7 +222,8 @@ func (r *CollectionsRepository) GetByIdWithoutCollectionItems(id string) (*model
 	err := r.db.
 		Preload("User").
 		Preload("Tags").
-		Where("id = ? AND deleted = ?", id, false).
+		Where("id = ?", id).
+		Where("deleted_at IS NULL").
 		First(&collection).Error
 	return &collection, err
 }
@@ -232,7 +236,7 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 
 	err := r.db.
 		Where("collections.transliteration = ?", transliteration).
-		Where("collections.deleted = ?", false).
+		Where("deleted_at IS NULL").
 		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
 		Preload("Tags").
@@ -325,6 +329,7 @@ func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Co
 		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.Owner").
 		Preload("CollectionItems.ItemType").
+		Where("deleted_at IS NULL").
 		Order("created DESC").
 		Find(&collections).Error
 	return collections, err
@@ -337,6 +342,7 @@ func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string, 
 		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
 		Preload("Tags").
+		Where("deleted_at IS NULL").
 		Order("created DESC")
 
 	if search != "" {
@@ -355,6 +361,7 @@ func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string, search 
 		Preload("User").
 		Preload("Tags").
 		Where("collections.is_private = ?", false).
+		Where("collections.deleted_at IS NULL").
 		Order("collections.created DESC")
 
 	if search != "" {
@@ -370,7 +377,8 @@ func (r *CollectionsRepository) GetByIdWithoutUser(id string) (models.Collection
 	var collection models.Collections
 	err := r.db.
 		Preload("Tags").
-		Where("id = ? AND deleted = ?", id, false).
+		Where("id = ?", id).
+		Where("collections.deleted_at IS NULL").
 		Order("collections.created DESC").
 		First(&collection).Error
 	return collection, err
@@ -388,6 +396,7 @@ func (r *CollectionsRepository) GetCollectionByTag(tag string, limit string, off
 		Joins("JOIN tags_collections_collections ON tags_collections_collections.collections_id = collections.id").
 		Joins("JOIN tags ON tags.id = tags_collections_collections.tags_id").
 		Where("LOWER(tags.name) = LOWER(?)", tag).
+		Where("collections.deleted_at IS NULL").
 		Where("collections.is_private = ?", false)
 
 	if search != "" {
@@ -406,12 +415,13 @@ func (r *CollectionsRepository) GetCollectionByTag(tag string, limit string, off
 		Preload("User").
 		Preload("Tags").
 		Where("collections.is_private = ?", false).
+		Where("collections.deleted_at IS NULL").
 		Order("collections.created ASC").
 		Limit(intLimit).
 		Offset(intOffset)
 
 	if search != "" {
-		query = query.Where("collections.name ILIKE ?", "%"+search+"%").Where("collections.delete = ?", false)
+		query = query.Where("collections.name ILIKE ?", "%"+search+"%")
 	}
 
 	err = query.Find(&collections).Error
@@ -456,7 +466,7 @@ func (r *CollectionsRepository) GetCollectionCountByUserLogin(login string) (int
 		Model(&models.Collections{}).
 		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
-		Where("collections.deleted = ?", false).
+		Where("collections.deleted_at IS NULL").
 		Count(&count).Error
 
 	if err != nil {

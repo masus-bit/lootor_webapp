@@ -146,6 +146,7 @@ func (r *CiRepository) SumShippingCost(collectionID uuid.UUID) (float64, error) 
 		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
 		Where("collections_collection_items_collection_items.collections_id = ? AND collection_items.deleted = ?",
 			collectionID, false).
+		Where("collection_items.deleted_at IS NULL").
 		Scan(&result).Error
 
 	if result.Sum == nil {
@@ -188,6 +189,7 @@ func (r *CiRepository) GetCountCI(collectionID uuid.UUID) (int64, error) {
 		Model(&models.CollectionItems{}).
 		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
 		Where("collections_collection_items_collection_items.collections_id = ? AND collection_items.deleted = ?", collectionID, false).
+		Where("collection_items.deleted_at IS NULL").
 		Count(&count).Error
 
 	return count, err
@@ -201,7 +203,11 @@ func (r *CiRepository) GetCountCIByIDs(collectionIDs []uuid.UUID) (map[uuid.UUID
 
 	err := r.db.Table("collections_collection_items_collection_items").
 		Select("collections_id as collections_id, COUNT(*) as count").
+		Joins("JOIN collections ON collections.id = collections_collection_items_collection_items.collections_id").
+		Joins("JOIN collection_items ON collection_items.id = collections_collection_items_collection_items.collection_items_id").
 		Where("collections_id IN (?)", collectionIDs).
+		Where("collections.deleted_at IS NULL").
+		Where("collection_items.deleted_at IS NULL").
 		Group("collections_id").
 		Scan(&results).Error
 
@@ -232,6 +238,7 @@ func (r *CiRepository) GetSumsByCollectionIDs(collectionIDs []uuid.UUID) (map[uu
 		Select("collections_collection_items_collection_items.collections_id as collection_id, SUM(collection_items.purchase_price) as sum").
 		Joins("JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
 		Where("collections_collection_items_collection_items.collections_id IN (?) AND collection_items.deleted = ?", collectionIDs, false).
+		Where("collection_items.deleted_at IS NULL").
 		Group("collections_collection_items_collection_items.collections_id").
 		Scan(&results).Error
 
@@ -263,6 +270,7 @@ func (r *CiRepository) GetShippingCostsByCollectionIDs(collectionIDs []uuid.UUID
 		Select("collections_collection_items_collection_items.collections_id as collection_id, SUM(collection_items.shipping_cost) as sum").
 		Joins("JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
 		Where("collections_collection_items_collection_items.collections_id IN (?) AND collection_items.deleted = ?", collectionIDs, false).
+		Where("collection_items.deleted_at IS NULL").
 		Group("collections_collection_items_collection_items.collections_id").
 		Scan(&results).Error
 
@@ -312,7 +320,7 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (
 		Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
 		Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
 		Where("LOWER(entities.name) = LOWER(?)", entity).
-		Where("collection_items.deleted = ?", false).
+		Where("collection_items.deleted_at IS NULL").
 		Count(&totalCount).Error
 
 	if err != nil {
@@ -332,7 +340,7 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (
 			Preload("Platform").
 			Preload("Entities").
 			Preload("ItemType").
-			Where("collection_items.deleted = ?", false).
+			Where("collection_items.deleted_at IS NULL").
 			Order("collection_items.created_at DESC").
 			Limit(intLimit)
 
@@ -374,8 +382,7 @@ func (r *CiRepository) GetByEntityAndType(entity string, itemType string, limit 
 		Joins("JOIN item_types ON item_types.id = collection_items.item_type_id").
 		Where("LOWER(entities.name) = LOWER(?)", entity).
 		Where("item_types.name = ?", itemTypeNew).
-		Where("collection_items.deleted = ?", false)
-
+		Where("collection_items.deleted_at IS NULL")
 	if search != "" {
 		countQuery = countQuery.Where("collection_items.name ILIKE ?", "%"+search+"%")
 	}
@@ -397,7 +404,7 @@ func (r *CiRepository) GetByEntityAndType(entity string, itemType string, limit 
 		Preload("Platform").
 		Preload("Entities").
 		Preload("ItemType").
-		Where("collection_items.deleted = ?", false).
+		Where("collection_items.deleted_at IS NULL").
 		Order("collection_items.created_at DESC").
 		Limit(intLimit).
 		Offset(intOffset)
