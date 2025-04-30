@@ -249,52 +249,52 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 						Offset(intOffset).
 						Limit(intLimit).
 						Joins("LEFT JOIN platforms ON platforms.id = collection_items.platform_id").
-						Order("platforms.name DESC")
+						Order("platforms.name DESC, collection_items.id DESC")
 				}
 				return tx.
 					Offset(intOffset).
 					Limit(intLimit).
 					Joins("LEFT JOIN platforms ON platforms.id = collection_items.platform_id").
-					Order("platforms.name ASC")
+					Order("platforms.name ASC, collection_items.id ASC")
 			case "type":
 				if order == "desc" {
 					return tx.
 						Offset(intOffset).
 						Limit(intLimit).
 						Joins("LEFT JOIN item_types ON item_types.id = collection_items.item_type_id").
-						Order("item_types.ru_name DESC")
+						Order("item_types.ru_name DESC, collection_items.id DESC")
 				}
 				return tx.
 					Offset(intOffset).
 					Limit(intLimit).
 					Joins("LEFT JOIN item_types ON item_types.id = collection_items.item_type_id").
-					Order("item_types.ru_name ASC")
+					Order("item_types.ru_name ASC, collection_items.id ASC")
 			case "name":
 				if order == "desc" {
-					return tx.Offset(intOffset).Limit(intLimit).Order("name DESC")
+					return tx.Offset(intOffset).Limit(intLimit).Order("name DESC, collection_items.id DESC")
 				}
-				return tx.Offset(intOffset).Limit(intLimit).Order("name ASC")
+				return tx.Offset(intOffset).Limit(intLimit).Order("name ASC, collection_items.id ASC")
 
 			case "rating":
 				if order == "desc" {
-					return tx.Offset(intOffset).Limit(intLimit).Order("rating DESC")
+					return tx.Offset(intOffset).Limit(intLimit).Order("rating DESC, collection_items.id DESC")
 				}
-				return tx.Offset(intOffset).Limit(intLimit).Order("rating ASC")
+				return tx.Offset(intOffset).Limit(intLimit).Order("rating ASC, collection_items.id ASC")
 
 			case "purchaseDate":
 				if order == "desc" {
-					return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date DESC")
+					return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date DESC, collection_items.id DESC")
 				}
-				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date ASC")
+				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date ASC, collection_items.id ASC")
 
 			case "purchasePrice":
 				if order == "desc" {
-					return tx.Offset(intOffset).Limit(intLimit).Order("purchase_price DESC")
+					return tx.Offset(intOffset).Limit(intLimit).Order("purchase_price DESC, collection_items.id DESC")
 				}
-				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_price ASC")
+				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_price ASC, collection_items.id ASC")
 
 			default:
-				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_date DESC")
+				return tx.Offset(intOffset).Limit(intLimit).Order("created_at DESC, collection_items.id DESC")
 			}
 		}).
 		Preload("CollectionItems.Platform").
