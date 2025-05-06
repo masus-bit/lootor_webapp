@@ -81,7 +81,6 @@ func (s *CiService) getEntities(entities []string) []models.Entities {
 		if err != nil {
 			fmt.Errorf("failed to get entity: %w", err)
 		}
-
 		if entityByTranslit == nil {
 			newEntity := &models.Entities{Name: entity, Transliteration: slugify(entity)}
 			entityByTranslit, err = s.entityRepo.CreateEntity(newEntity)

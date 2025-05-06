@@ -39,6 +39,9 @@ func (r *EntitiesRepository) CreateEntity(entity *models.Entities) (*models.Enti
 func (r *EntitiesRepository) GetEntityByName(name string) (*models.Entities, error) {
 	var entity models.Entities
 	err := r.db.Where("name = ?", name).First(&entity).Error
+	if err != nil {
+		return nil, err
+	}
 	return &entity, err
 }
 
