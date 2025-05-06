@@ -12,6 +12,8 @@ import (
 	"lootor/internal/pkg/s3"
 	"lootor/internal/pkg/utils"
 	"slices"
+	"strings"
+	"unicode"
 )
 
 type CiService struct {
@@ -29,11 +31,68 @@ func NewCiService(repo *repositories.CiRepository, eventRepo *repositories.Event
 	return &CiService{repo: repo, eventRepo: eventRepo, collectionRepo: collectionRepo, userRepo: userRepo, platformsRepo: platformsRepo, entityRepo: entityRepo, s3Service: s3Service, itemTypeRepo: itemTypeRepo}
 }
 
+func slugify(input string) string {
+	translitMap := map[rune]string{
+		'а': "a", 'б': "b", 'в': "v", 'г': "g", 'д': "d", 'е': "e", 'ё': "yo",
+		'ж': "zh", 'з': "z", 'и': "i", 'й': "y", 'к': "k", 'л': "l", 'м': "m",
+		'н': "n", 'о': "o", 'п': "p", 'р': "r", 'с': "s", 'т': "t", 'у': "u",
+		'ф': "f", 'х': "kh", 'ц': "ts", 'ч': "ch", 'ш': "sh", 'щ': "shch",
+		'ъ': "", 'ы': "y", 'ь': "", 'э': "e", 'ю': "yu", 'я': "ya",
+		'А': "a", 'Б': "b", 'В': "v", 'Г': "g", 'Д': "d", 'Е': "e", 'Ё': "yo",
+		'Ж': "zh", 'З': "z", 'И': "i", 'Й': "y", 'К': "k", 'Л': "l", 'М': "m",
+		'Н': "n", 'О': "o", 'П': "p", 'Р': "r", 'С': "s", 'Т': "t", 'У': "u",
+		'Ф': "f", 'Х': "kh", 'Ц': "ts", 'Ч': "ch", 'Ш': "sh", 'Щ': "shch",
+		'Ъ': "", 'Ы': "y", 'Ь': "", 'Э': "e", 'Ю': "yu", 'Я': "ya",
+	}
+
+	var result strings.Builder
+	hasRussian := false
+
+	// Проверяем, есть ли русские буквы в строке
+	for _, char := range input {
+		if unicode.Is(unicode.Cyrillic, char) {
+			hasRussian = true
+			break
+		}
+	}
+
+	for _, char := range input {
+		switch {
+		case char == ' ':
+			result.WriteString("_")
+		case hasRussian && unicode.Is(unicode.Cyrillic, char):
+			if val, ok := translitMap[char]; ok {
+				result.WriteString(val)
+			}
+		case unicode.IsUpper(char):
+			result.WriteRune(unicode.ToLower(char))
+		default:
+			result.WriteRune(char)
+		}
+	}
+
+	return strings.ToLower(result.String())
+}
+
 func (s *CiService) getEntities(entities []string) []models.Entities {
 	var resultEntities []models.Entities
 	for _, entity := range entities {
-		dbEntity, _ := s.entityRepo.GetEntityByName(entity)
-		resultEntities = append(resultEntities, *dbEntity)
+		entityByTranslit, err := s.entityRepo.GetEntityByName(entity)
+		if err != nil {
+			fmt.Errorf("failed to get entity: %w", err)
+		}
+
+		if entityByTranslit == nil {
+			newEntity := &models.Entities{Name: entity, Transliteration: slugify(entity)}
+			entityByTranslit, err = s.entityRepo.CreateEntity(newEntity)
+			if err != nil {
+				fmt.Errorf("failed to add entity: %w", err)
+			}
+			if entityByTranslit == nil {
+				fmt.Errorf("unexpected nil entity after adding")
+			}
+		}
+		resultEntities = append(resultEntities, *entityByTranslit)
 	}
 	return resultEntities
 }
@@ -148,7 +207,7 @@ func (s *CiService) Delete(id string, ctx context.Context) (*dto.CommonResponse,
 	return result, nil
 }
 
-func (s *CiService) Update(id string, dto *models.CollectionItemsRequestCreate) (*models.CollectionItemsDataResponse, error) {
+func (s *CiService) Update(id string, dto *models.CollectionItemsRequestCreate) (*models.CollectionItems, error) {
 	exists, err := s.repo.GetCIByID(id)
 	if err != nil {
 		return nil, err
@@ -204,43 +263,16 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestCreate) 
 			log.Default().Print(eventError)
 		}
 	}
-
-	var collectionItemResponse models.CollectionItemsResponse
-	err = mapstructure.Decode(result, &collectionItemResponse)
-
-	colId, _ := uuid.Parse(dto.Collection)
-
-	collectionItemResponse.Collection = colId
-	collectionItemResponse.Owner = exists.Owner
-	collectionItemResponse.CanLike = true
-	collectionItemResponse.LikesCount = int64(len(exists.Likes))
-	collectionItemResponse.IsOwner = true
-	return &models.CollectionItemsDataResponse{Data: collectionItemResponse}, nil
+	return result, nil
 }
 
-func (s *CiService) GetById(id string, authUser string) (*models.CollectionItemsDataResponse, error) {
+func (s *CiService) GetById(id string, authUser string) (*models.CollectionItems, error) {
 	exists, err := s.repo.GetCIByID(id)
 	if err != nil {
 		return nil, err
 	}
 
-	var collectionItemResponse models.CollectionItemsResponse
-	err = mapstructure.Decode(exists, &collectionItemResponse)
-	collectionItemResponse.Collection = exists.Collections[0].Id
-	collectionItemResponse.Owner = exists.Owner
-	collectionItemResponse.LikesCount = int64(len(exists.Likes))
-	collectionItemResponse.CanLike = true
-	collectionItemResponse.IsOwner = authUser == exists.Owner.Login
-	if authUser != "" {
-		if authUser == exists.Owner.Login {
-			collectionItemResponse.CanLike = true
-		} else {
-			collectionItemResponse.CanLike = !slices.Contains(exists.Likes, authUser)
-		}
-
-	}
-
-	return &models.CollectionItemsDataResponse{Data: collectionItemResponse}, nil
+	return exists, nil
 }
 
 func (s *CiService) CopyOrMove(id string, targetCollectionIds []string, sourceCollectionId string) (*dto.CommonResponse, error) {
@@ -258,14 +290,6 @@ func (s *CiService) CopyOrMove(id string, targetCollectionIds []string, sourceCo
 
 		for _, collection := range collections {
 			collectionItem.Collections = append(collectionItem.Collections, collection)
-			//existsCollection := collection
-			//existsCollectionItems := collection.CollectionItems
-			//existsCollectionItems = append(existsCollectionItems, *collectionItem)
-			//collection.CollectionItems = existsCollectionItems
-			//_, errCol := s.collectionRepo.UpdateCollection(&existsCollection, &collection)
-			//if errCol != nil {
-			//	return nil, err
-			//}
 			_, erroring := s.repo.UpdateCI(collectionItem, collectionItem)
 			if erroring != nil {
 				return nil, erroring
@@ -339,6 +363,10 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 }
 
 func (s *CiService) GetByEntity(entity string, authUserLogin string, limit string) (*models.CollectionItemsDataSortedResponse, error) {
+	dbEntity, err := s.entityRepo.GetEntityByTranslit(entity)
+	if dbEntity == nil {
+		return nil, fmt.Errorf("entity not found")
+	}
 	collectionItems, totalCount, err := s.repo.GetCollectionItemsByEntity(entity, limit)
 	if err != nil {
 		return nil, err
@@ -357,35 +385,17 @@ func (s *CiService) GetByEntity(entity string, authUserLogin string, limit strin
 	return &models.CollectionItemsDataSortedResponse{Data: sortedCollectionItems, Total: totalCount}, nil
 }
 
-func (s *CiService) GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string, authUser string) (*models.CollectionItemsDataResponseWithCount, error) {
-	var resultCollectionItems []models.CollectionItemsResponse
+func (s *CiService) GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string, authUser string) ([]models.CollectionItems, int64, error) {
+	dbEntity, err := s.entityRepo.GetEntityByTranslit(entity)
+	if dbEntity == nil {
+		return nil, 0, fmt.Errorf("entity not found")
+	}
 	collectionItems, totalCount, err := s.repo.GetByEntityAndType(entity, itemType, limit, offset, search, orderBy, order)
 	if err != nil {
-		return nil, err
+		return nil, totalCount, err
 	}
 
-	for _, item := range collectionItems {
-		var temp models.CollectionItemsResponse
-		err := mapstructure.Decode(item, &temp)
-		if err != nil {
-			return nil, err
-		}
-		temp.Collection = item.Collections[0].Id
-		temp.Owner = item.Owner
-		temp.LikesCount = int64(len(item.Likes))
-		temp.CanLike = true
-		temp.IsOwner = authUser == item.Owner.Login
-		if authUser != "" {
-			if authUser == item.Owner.Login {
-				temp.CanLike = true
-			} else {
-				temp.CanLike = !slices.Contains(item.Likes, authUser)
-			}
-
-		}
-		resultCollectionItems = append(resultCollectionItems, temp)
-	}
-	return &models.CollectionItemsDataResponseWithCount{Data: resultCollectionItems, Total: totalCount}, nil
+	return collectionItems, totalCount, err
 }
 
 func processCI(slice []models.CollectionItems, authUser string) ([]models.CollectionItemsResponse, error) {

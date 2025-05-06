@@ -42,6 +42,12 @@ func (r *EntitiesRepository) GetEntityByName(name string) (*models.Entities, err
 	return &entity, err
 }
 
+func (r *EntitiesRepository) GetEntityByTranslit(translit string) (*models.Entities, error) {
+	var entity models.Entities
+	err := r.db.Where("transliteration = ?", translit).First(&entity).Error
+	return &entity, err
+}
+
 func (r *EntitiesRepository) GetAllEntities() ([]models.Entities, error) {
 	var entities []models.Entities
 	err := r.db.Find(&entities).Error

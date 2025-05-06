@@ -5,10 +5,11 @@ import (
 	"lootor/internal/core/controllers"
 	"lootor/internal/core/services"
 	"lootor/internal/pkg/auth"
+	"lootor/internal/pkg/utils"
 )
 
-func RegisterCollectionItemsRoutes(e *echo.Echo, jwtService *auth.JWTService, ciService services.CiService) {
-	controller := controllers.NewCIController(ciService)
+func RegisterCollectionItemsRoutes(e *echo.Echo, jwtService *auth.JWTService, ciService services.CiService, enrichedCiService utils.EnrichingCIService) {
+	controller := controllers.NewCIController(ciService, enrichedCiService)
 
 	publicGroup := e.Group("/public")
 	publicGroup.Use(jwtService.AuthInfoMiddleware())

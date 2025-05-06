@@ -322,7 +322,7 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (
 		Model(&models.CollectionItems{}).
 		Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
 		Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
-		Where("LOWER(entities.name) = LOWER(?)", entity).
+		Where("LOWER(entities.transliteration) = LOWER(?)", entity).
 		Where("collection_items.deleted_at IS NULL").
 		Count(&totalCount).Error
 
@@ -335,7 +335,7 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (
 			Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
 			Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
 			Joins("JOIN item_types ON item_types.id = collection_items.item_type_id").
-			Where("LOWER(entities.name) = LOWER(?)", entity).
+			Where("LOWER(entities.transliteration) = LOWER(?)", entity).
 			Where("item_types.name = ?", itemType).
 			Preload("Collections").
 			Preload("Collections.User").
@@ -383,7 +383,7 @@ func (r *CiRepository) GetByEntityAndType(entity string, itemType string, limit 
 		Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
 		Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
 		Joins("JOIN item_types ON item_types.id = collection_items.item_type_id").
-		Where("LOWER(entities.name) = LOWER(?)", entity).
+		Where("LOWER(entities.transliteration) = LOWER(?)", entity).
 		Where("item_types.name = ?", itemTypeNew).
 		Where("collection_items.deleted_at IS NULL")
 	if search != "" {
@@ -399,7 +399,7 @@ func (r *CiRepository) GetByEntityAndType(entity string, itemType string, limit 
 		Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
 		Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
 		Joins("JOIN item_types ON item_types.id = collection_items.item_type_id").
-		Where("LOWER(entities.name) = LOWER(?)", entity).
+		Where("LOWER(entities.transliteration) = LOWER(?)", entity).
 		Where("item_types.name = ?", itemTypeNew).
 		Preload("Collections").
 		Preload("Collections.User").

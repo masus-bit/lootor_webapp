@@ -17,6 +17,7 @@ import (
 	"lootor/internal/pkg/feedback"
 	"lootor/internal/pkg/mail"
 	"lootor/internal/pkg/s3"
+	"lootor/internal/pkg/utils"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -110,6 +111,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	tagsService := services.NewTagsService(tagRepo)
 	fbService := feedback.NewFeedbackService()
 	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsRepo)
+	enrichedCIService := utils.NewEnrichedCIService(ciService)
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
@@ -122,7 +124,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.RegisterRoutes(e, jwtService, *userService)
 	routes.TagsRouter(e, jwtService, *tagsService)
 	routes.RegisterCollectionsRoutes(e, jwtService, *colService)
-	routes.RegisterCollectionItemsRoutes(e, jwtService, *ciService)
+	routes.RegisterCollectionItemsRoutes(e, jwtService, *ciService, *enrichedCIService)
 	routes.EntitiesRouter(e, jwtService, *entitiesService)
 	routes.PlatformsRouter(e, jwtService, *platformsService)
 	routes.S3Router(e, jwtService, *s3Service)

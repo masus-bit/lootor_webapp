@@ -4,15 +4,17 @@ import (
 	"github.com/labstack/echo/v4"
 	"lootor/internal/core/models"
 	"lootor/internal/core/services"
+	"lootor/internal/pkg/utils"
 	"net/http"
 )
 
 type CIController struct {
-	ciService services.CiService
+	ciService       services.CiService
+	enrichedService utils.EnrichingCIService
 }
 
-func NewCIController(ciService services.CiService) *CIController {
-	return &CIController{ciService: ciService}
+func NewCIController(ciService services.CiService, enrichedService utils.EnrichingCIService) *CIController {
+	return &CIController{ciService: ciService, enrichedService: enrichedService}
 }
 
 // CreateCollectionItem
@@ -90,7 +92,12 @@ func (c *CIController) UpdateCollectionItem(ctx echo.Context) error {
 		})
 	}
 
-	value, err := c.ciService.Update(id, &request)
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+
+	value, err := c.enrichedService.Update(id, &request, authUser)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -119,7 +126,7 @@ func (c *CIController) GetCollectionItem(ctx echo.Context) error {
 		UserLogin       string
 	})
 
-	response, err := c.ciService.GetById(id, authInfo.UserLogin)
+	response, err := c.enrichedService.GetById(id, authInfo.UserLogin)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),
@@ -251,7 +258,7 @@ func (c *CIController) GetByEntityAndType(ctx echo.Context) error {
 		UserLogin       string
 	})
 
-	response, err := c.ciService.GetByEntityAndType(entity, ciType, limit, offset, search, orderBy, order, authInfo.UserLogin)
+	response, err := c.enrichedService.GetByEntityAndType(entity, ciType, limit, offset, search, orderBy, order, authInfo.UserLogin)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),
