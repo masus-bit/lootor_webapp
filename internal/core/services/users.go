@@ -267,7 +267,7 @@ type VkAuthResponse struct {
 	Email       string `json:"email,omitempty"`
 }
 
-func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInResponse, error) {
+func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInResponseWithTmpLogin, error) {
 
 	bodyRequest := map[string]string{
 		"grant_type":    "authorization_code",
@@ -305,14 +305,15 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 
 	existsUser, _ := s.repo.GetByVkId(userInfo.FirstName + "@" + newId)
 
-	if existsUser != nil {
+	if existsUser != nil && !existsUser.TmpLogin {
 		tokens, err := s.jwtService.GenerateTokenPair(existsUser)
 		if err != nil {
 			return nil, fmt.Errorf("token generation error: %w", err)
 		}
-		return &models.SignInResponse{
+		return &models.SignInResponseWithTmpLogin{
 			AccessToken:  tokens.AccessToken,
 			RefreshToken: tokens.RefreshToken,
+			TmpLogin:     false,
 		}, nil
 	}
 
@@ -328,6 +329,7 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		UserName:     userInfo.FirstName,
 		AvatarUrl:    userInfo.AvatarUrl,
 		Created:      time.Now().Format(time.RFC3339),
+		TmpLogin:     true,
 		PasswordHash: passwordHash,
 	}
 
@@ -345,9 +347,10 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		return nil, fmt.Errorf("token generation error: %w", err)
 	}
 
-	return &models.SignInResponse{
+	return &models.SignInResponseWithTmpLogin{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
+		TmpLogin:     true,
 	}, nil
 }
 func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo, error) {
@@ -376,7 +379,7 @@ func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo
 	return &response.Response[0], nil
 }
 
-func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.SignInResponse, error) {
+func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.SignInResponseWithTmpLogin, error) {
 	if dto.LastName == "" {
 
 	}
@@ -417,15 +420,16 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 
 	existUser, _ := s.repo.GetByTgId(newId)
 
-	if existUser != nil {
+	if existUser != nil && !existUser.TmpLogin {
 
 		tokens, err := s.jwtService.GenerateTokenPair(existUser)
 		if err != nil {
 			return nil, fmt.Errorf("token generation error: %w", err)
 		}
-		return &models.SignInResponse{
+		return &models.SignInResponseWithTmpLogin{
 			AccessToken:  tokens.AccessToken,
 			RefreshToken: tokens.RefreshToken,
+			TmpLogin:     false,
 		}, nil
 	}
 
@@ -436,11 +440,12 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 
 	newUser := models.Users{
 		TelegramId:   newId,
-		Login:        dto.Username,
+		Login:        dto.Username + newId,
 		UserName:     dto.FirstName + " " + dto.LastName,
 		AvatarUrl:    dto.PhotoUrl,
 		Created:      time.Now().Format(time.RFC3339),
 		PasswordHash: passwordHash,
+		TmpLogin:     true,
 	}
 
 	err = s.repo.CreateUser(&newUser)
@@ -458,9 +463,10 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 		return nil, fmt.Errorf("token generation error: %w", err)
 	}
 
-	return &models.SignInResponse{
+	return &models.SignInResponseWithTmpLogin{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
+		TmpLogin:     true,
 	}, nil
 }
 
@@ -542,4 +548,31 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 		return nil, err
 	}
 	return &models.DataUserResponse{Data: userResponse}, nil
+}
+
+func (s *UserService) UpdateLoginOnly(newLogin string, targetUserLogin string) (*models.SignInResponse, error) {
+	existsUser, _ := s.repo.GetUserByLogin(newLogin)
+	targetUser, _ := s.repo.GetUserByLogin(targetUserLogin)
+	if existsUser != nil {
+		return nil, errors.New("user with this login already exists")
+	}
+	if targetUser == nil {
+		return nil, errors.New("error pizda")
+	}
+
+	targetUser.Login = newLogin
+	targetUser.TmpLogin = false
+
+	updatedUser, err := s.repo.UpdateLogin(existsUser, targetUser)
+	if err != nil {
+		return nil, err
+	}
+
+	tokens, err := s.jwtService.GenerateTokenPair(updatedUser)
+	if err != nil {
+		return nil, fmt.Errorf("token generation error: %w", err)
+	}
+
+	return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
+
 }

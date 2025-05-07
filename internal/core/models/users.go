@@ -9,6 +9,7 @@ type Users struct {
 	UserName                string          `json:"userName"`
 	City                    string          `json:"city"`
 	Bio                     string          `json:"bio"`
+	TmpLogin                bool            `gorm:"default:false" json:"tmpLogin"`
 	Password                string          `gorm:"-" json:"-"`
 	PasswordHash            string          `gorm:"column:password" json:"-"`
 	VkId                    string          `json:"vkId"`
@@ -45,6 +46,10 @@ type ChangeRatingRequest struct {
 
 type ChangePasswordRequest struct {
 	Password string `json:"password" validate:"required,min=8"`
+}
+
+type ChangeLoginRequest struct {
+	Login string `json:"login" validate:"required,min=3"`
 }
 
 type ChangePasswordReset struct {
@@ -101,6 +106,12 @@ type DataUserResponse struct {
 type SignInResponse struct {
 	AccessToken  string `json:"accessToken"`
 	RefreshToken string `json:"refreshToken"`
+}
+
+type SignInResponseWithTmpLogin struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+	TmpLogin     bool   `json:"tmpLogin"`
 }
 
 type RenewTokensRequest struct {

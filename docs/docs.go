@@ -1206,12 +1206,12 @@ const docTemplate = `{
                 "summary": "Смена пароля",
                 "parameters": [
                     {
-                        "description": "isLike",
-                        "name": "isLike",
+                        "description": "parolj",
+                        "name": "password",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "boolean"
+                            "type": "string"
                         }
                     },
                     {
@@ -1331,6 +1331,39 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/dto.DataUserResponseSwagger"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/user/update/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "смена логина после оауса",
+                "parameters": [
+                    {
+                        "description": "new login",
+                        "name": "login",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.SignInResponse"
                         }
                     }
                 }
@@ -2286,6 +2319,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "backgroundUrl": {
+                    "type": "string"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "city": {
                     "type": "string"
                 },
                 "email": {

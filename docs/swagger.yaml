@@ -584,6 +584,10 @@ definitions:
         type: string
       backgroundUrl:
         type: string
+      bio:
+        type: string
+      city:
+        type: string
       email:
         type: string
       userName:
@@ -1399,12 +1403,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: isLike
+      - description: parolj
         in: body
-        name: isLike
+        name: password
         required: true
         schema:
-          type: boolean
+          type: string
       - description: User data
         in: query
         name: login
@@ -1485,6 +1489,27 @@ paths:
           schema:
             $ref: '#/definitions/dto.DataUserResponseSwagger'
       summary: смена некоторых данных пользователя
+      tags:
+      - users
+  /secured/user/update/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: new login
+        in: body
+        name: login
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.SignInResponse'
+      summary: смена логина после оауса
       tags:
       - users
   /secured/wishlist:

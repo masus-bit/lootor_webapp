@@ -136,7 +136,7 @@ func (c *UserController) ChangeRating(ctx echo.Context) error {
 // @Tags users
 // @Accept  json
 // @Produce  json
-// @Param isLike body boolean true "isLike"
+// @Param password body string true "parolj"
 // @Param login query string true "User data"
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/user/password [post]
@@ -357,6 +357,36 @@ func (c *UserController) UpdateUser(ctx echo.Context) error {
 	}
 
 	response, err := c.userService.UpdateUser(&request, authUser)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
+// UpdateLogin
+// @Summary смена логина после оауса
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param login body string true "new login"
+// @Success 201 {object} models.SignInResponse
+// @Router /secured/user/update/login [post]
+func (c *UserController) UpdateLogin(ctx echo.Context) error {
+	var request models.ChangeLoginRequest
+	err := ctx.Bind(&request)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+
+	response, err := c.userService.UpdateLoginOnly(request.Login, authUser)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": err.Error(),
