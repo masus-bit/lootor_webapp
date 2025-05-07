@@ -48,6 +48,9 @@ func (r *EntitiesRepository) GetEntityByName(name string) (*models.Entities, err
 func (r *EntitiesRepository) GetEntityByTranslit(translit string) (*models.Entities, error) {
 	var entity models.Entities
 	err := r.db.Where("transliteration = ?", translit).First(&entity).Error
+	if err != nil {
+		return nil, err
+	}
 	return &entity, err
 }
 

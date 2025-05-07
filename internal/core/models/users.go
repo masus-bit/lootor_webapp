@@ -7,6 +7,8 @@ import (
 type Users struct {
 	Login                   string          `gorm:"primaryKey" json:"login"`
 	UserName                string          `json:"userName"`
+	City                    string          `json:"city"`
+	Bio                     string          `json:"bio"`
 	Password                string          `gorm:"-" json:"-"`
 	PasswordHash            string          `gorm:"column:password" json:"-"`
 	VkId                    string          `json:"vkId"`
@@ -53,6 +55,8 @@ type ChangePasswordReset struct {
 type UserResponse struct {
 	Login                   string          `json:"login"`
 	UserName                string          `json:"userName"`
+	City                    string          `json:"city"`
+	Bio                     string          `json:"bio"`
 	VkId                    string          `json:"vkId"`
 	TelegramId              string          `json:"telegramId"`
 	Email                   string          `json:"email"`
@@ -76,11 +80,15 @@ type UserRequestUpdate struct {
 	Email         string `json:"email"`
 	AvatarUrl     string `json:"avatarUrl"`
 	BackgroundUrl string `json:"backgroundUrl"`
+	City          string `json:"city"`
+	Bio           string `json:"bio"`
 }
 
 type UserResponseForCollection struct {
 	Login         string         `json:"login"`
 	UserName      string         `json:"userName"`
+	City          string         `json:"city"`
+	Bio           string         `json:"bio"`
 	Email         string         `json:"email"`
 	AvatarUrl     string         `json:"avatarUrl"`
 	Subscriptions pq.StringArray `json:"subscriptions"`

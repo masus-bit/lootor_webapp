@@ -525,6 +525,12 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 	if user.Email != "" {
 		existsUser.Email = user.Email
 	}
+	if user.City != "" {
+		existsUser.City = user.City
+	}
+	if user.Bio != "" {
+		existsUser.Bio = user.Bio
+	}
 	updatedUser, err := s.repo.UpdateUser(existsUser, *existsUser)
 	if err != nil {
 		return nil, err
