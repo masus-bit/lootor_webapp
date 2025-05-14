@@ -511,7 +511,7 @@ func (s *UserService) ChangeResetPassword(request *models.ChangePasswordReset) (
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (*models.DataUserResponse, error) {
+func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (*models.SignInResponse, error) {
 	if login == "" {
 		return nil, errors.New("not authorized")
 	}
@@ -542,12 +542,12 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 		return nil, err
 	}
 
-	var userResponse models.UserResponse
-	err = mapstructure.Decode(updatedUser, &userResponse)
+	tokens, err := s.jwtService.GenerateTokenPair(updatedUser)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("token generation error: %w", err)
 	}
-	return &models.DataUserResponse{Data: userResponse}, nil
+
+	return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
 }
 
 func (s *UserService) UpdateLoginOnly(newLogin string, targetUserLogin string) (*models.SignInResponse, error) {
