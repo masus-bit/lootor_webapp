@@ -597,6 +597,12 @@ definitions:
     properties:
       collectionItemId:
         type: string
+      images:
+        items:
+          type: string
+        type: array
+      itemName:
+        type: string
       notes:
         type: string
       priority:
@@ -1007,6 +1013,26 @@ paths:
       summary: смена пароля по токену
       tags:
       - users
+  /public/wishlist:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: login
+        in: query
+        name: userLogin
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.WishlistDataResponseSwagger'
+      summary: получить вишлист по юзер логину
+      tags:
+      - wishlist
   /secured/collection_item:
     delete:
       consumes:
@@ -1513,25 +1539,6 @@ paths:
       tags:
       - users
   /secured/wishlist:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: login
-        in: query
-        name: userLogin
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.WishlistDataResponseSwagger'
-      summary: получить вишлист по юзер логину
-      tags:
-      - wishlist
     post:
       consumes:
       - application/json

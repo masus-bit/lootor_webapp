@@ -41,16 +41,30 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 		return nil, fmt.Errorf("colelction item not найден")
 	}
 
-	wishListItem := &models.WishListItems{
-		UserLogin:        userLogin,
-		User:             *user,
-		CollectionItemID: &collectionItem.Id,
-		CollectionItem:   collectionItem,
-		PurchaseLinks:    requestDto.PurchaseLinks,
-		Priority:         requestDto.Priority,
-		Notes:            requestDto.Notes,
+	var wishListItem models.WishListItems
+	if requestDto.CollectionItemId != "" {
+		wishListItem = models.WishListItems{
+			UserLogin:        userLogin,
+			User:             *user,
+			CollectionItemID: &collectionItem.Id,
+			CollectionItem:   collectionItem,
+			PurchaseLinks:    requestDto.PurchaseLinks,
+			Priority:         requestDto.Priority,
+			Notes:            requestDto.Notes,
+		}
+	} else {
+		wishListItem = models.WishListItems{
+			UserLogin:     userLogin,
+			User:          *user,
+			ItemName:      requestDto.ItemName,
+			Images:        requestDto.Images,
+			PurchaseLinks: requestDto.PurchaseLinks,
+			Priority:      requestDto.Priority,
+			Notes:         requestDto.Notes,
+		}
 	}
-	wlItem, err := s.wlRepo.AddItem(wishListItem)
+
+	wlItem, err := s.wlRepo.AddItem(&wishListItem)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +72,7 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 		userLogin,
 		utils.EventActionCreate,
 		utils.EventTargetWL,
-		collectionItem.Name,
+		utils.FirstNonZero(collectionItem.Name, requestDto.ItemName),
 		nil,
 		nil,
 		nil,

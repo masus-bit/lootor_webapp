@@ -19,6 +19,9 @@ type WishListItems struct {
 	CollectionItemID *uuid.UUID       `gorm:"type:uuid;index"`
 	CollectionItem   *CollectionItems `gorm:"foreignKey:CollectionItemID;references:Id;constraint:OnDelete:SET NULL;"`
 
+	ItemName string
+	Images   pq.StringArray `gorm:"type:text[]"`
+
 	PurchaseLinks pq.StringArray `gorm:"type:text[]"`
 	Priority      int64
 	Notes         string
@@ -33,6 +36,8 @@ type WishListCreateRequest struct {
 	PurchaseLinks    []string `json:"purchaseLinks"`
 	Notes            string   `json:"notes"`
 	Priority         int64    `json:"priority"`
+	ItemName         string   `json:"itemName"`
+	Images           []string `json:"images"`
 }
 
 type WishListItemResponse struct {
@@ -42,4 +47,6 @@ type WishListItemResponse struct {
 	PurchaseLinks  []string                `json:"purchaseLinks"`
 	Priority       int64                   `json:"priority"`
 	Notes          string                  `json:"notes"`
+	ItemName       string                  `json:"itemName"`
+	Images         []string                `json:"images"`
 }

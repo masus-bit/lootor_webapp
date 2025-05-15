@@ -12,13 +12,13 @@ func WLRouter(e *echo.Echo, jwtService *auth.JWTService, wlService services.WLSe
 
 	publicGroup := e.Group("/public")
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
+	publicGroup.GET("/wishlist", controller.GetWishList)
 	{
 	}
 
 	securedGroup := e.Group("/secured")
 	securedGroup.Use(jwtService.RequireAuthMiddleware())
 	{
-		securedGroup.GET("/wishlist", controller.GetWishList)
 		securedGroup.POST("/wishlist", controller.AddWishListItem)
 	}
 }

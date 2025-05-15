@@ -588,6 +588,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/wishlist": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wishlist"
+                ],
+                "summary": "получить вишлист по юзер логину",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "login",
+                        "name": "userLogin",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WishlistDataResponseSwagger"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/collection_item": {
             "post": {
                 "consumes": [
@@ -1370,35 +1401,6 @@ const docTemplate = `{
             }
         },
         "/secured/wishlist": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "wishlist"
-                ],
-                "summary": "получить вишлист по юзер логину",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "login",
-                        "name": "userLogin",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.WishlistDataResponseSwagger"
-                        }
-                    }
-                }
-            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -2339,6 +2341,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "collectionItemId": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "itemName": {
                     "type": "string"
                 },
                 "notes": {

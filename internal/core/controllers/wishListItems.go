@@ -52,7 +52,7 @@ func (c *WLController) AddWishListItem(ctx echo.Context) error {
 // @Produce  json
 // @Param userLogin query string true "login"
 // @Success 201 {object} dto.WishlistDataResponseSwagger
-// @Router /secured/wishlist [get]
+// @Router /public/wishlist [get]
 func (c *WLController) GetWishList(ctx echo.Context) error {
 	login := ctx.QueryParam("userLogin")
 	response, err := c.wlService.GetAllUserItems(login)
