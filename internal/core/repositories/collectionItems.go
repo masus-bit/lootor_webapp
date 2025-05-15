@@ -2,13 +2,16 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"log"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
 	"lootor/internal/pkg/utils"
+	"reflect"
 	"strconv"
+	"time"
 )
 
 type CiRepository struct {
@@ -118,6 +121,68 @@ func (r *CiRepository) UpdateCI(existsItem *models.CollectionItems, updated *mod
 	err := r.db.Preload("Platform").Preload("Collections").Preload("Entities").Preload("ItemType").First(&result, existsItem.Id).Error
 	return &result, err
 
+}
+
+func (r *CiRepository) UpdateCIFull(existsItem *models.CollectionItems) (*models.CollectionItems, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var result models.CollectionItems
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(existsItem).Select("*").Updates(existsItem).Error; err != nil {
+			return fmt.Errorf("failed to update base fields: %w", err)
+		}
+
+		associations := []struct {
+			name  string
+			value interface{}
+		}{
+			{"Platform", existsItem.Platform},
+			{"Collections", existsItem.Collections},
+			{"Entities", existsItem.Entities},
+			{"ItemType", existsItem.ItemType},
+		}
+
+		for _, assoc := range associations {
+			if assoc.value != nil {
+				if reflect.ValueOf(assoc.value).Kind() == reflect.Slice {
+					if reflect.ValueOf(assoc.value).Len() == 0 {
+						if err := tx.Model(existsItem).Association(assoc.name).Clear(); err != nil {
+							return fmt.Errorf("failed to clear association %s: %w", assoc.name, err)
+						}
+						continue
+					}
+				}
+				if err := tx.Model(existsItem).Association(assoc.name).Replace(assoc.value); err != nil {
+					return fmt.Errorf("failed to update association %s: %w", assoc.name, err)
+				}
+			}
+		}
+
+		return tx.Select("*").
+			Preload("Platform").
+			Preload("Collections").
+			Preload("Entities").
+			Preload("ItemType").
+			First(&result, "id = ?", existsItem.Id).
+			Error
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("transaction failed: %w", err)
+	}
+
+	go func() {
+		doc := map[string]interface{}{
+			"id":   result.Id.String(),
+			"name": result.Name,
+		}
+		if err := r.es.IndexDocument(context.Background(), "collection_items", doc); err != nil {
+			log.Printf("Failed to index collection item: %v", err)
+		}
+	}()
+
+	return &result, nil
 }
 
 func (r *CiRepository) Sum(collectionID uuid.UUID) (float64, error) {

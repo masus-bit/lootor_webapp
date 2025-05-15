@@ -69,7 +69,7 @@ func (c *CollectionsController) DeleteCollection(ctx echo.Context) error {
 // @Success 201 {object} dto.CollectionDataResponseSwagger
 // @Router /secured/collections/update [post]
 func (c *CollectionsController) UpdateCollection(ctx echo.Context) error {
-	var request models.CollectionCreateRequest
+	var request models.CollectionUpdateRequest
 	id := ctx.QueryParam("id")
 
 	if err := ctx.Bind(&request); err != nil {

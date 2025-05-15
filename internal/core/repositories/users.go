@@ -171,6 +171,29 @@ func (r *UsersRepository) UpdateUser(existsUser *models.Users, updated models.Us
 	return &updatedUser, err
 }
 
+func (r *UsersRepository) UpdateUserFull(existsUser *models.Users) (*models.Users, error) {
+	result := r.db.Session(&gorm.Session{FullSaveAssociations: true}).Save(existsUser)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	var updatedUser models.Users
+	err := r.db.Where("login = ?", existsUser.Login).Preload("WishListItems").First(&updatedUser).Error
+
+	doc := map[string]interface{}{
+		"id":        updatedUser.Login,
+		"login":     updatedUser.Login,
+		"user_name": updatedUser.UserName,
+		"email":     updatedUser.Email,
+	}
+
+	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {
+		log.Printf("Failed to index user: %v", err)
+	}
+
+	return &updatedUser, err
+}
+
 func (r *UsersRepository) UpdateLogin(existsUser *models.Users, updated *models.Users) (*models.Users, error) {
 	result := r.db.Model(existsUser).Select("*").Updates(updated)
 	if result.Error != nil {

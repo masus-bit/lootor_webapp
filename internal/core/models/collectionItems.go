@@ -84,6 +84,23 @@ type CollectionItemsRequestCreate struct {
 	ItemType      string   `json:"itemType"`
 }
 
+type CollectionItemsRequestUpdate struct {
+	Name          *string  `json:"name"`
+	Description   *string  `json:"description"`
+	Images        []string `json:"images"`
+	PurchaseDate  *string  `json:"purchaseDate"`
+	PurchasePrice *float64 `json:"purchasePrice"`
+	Sealed        *bool    `json:"sealed"`
+	Edition       *string  `json:"edition"`
+	Rating        *float64 `json:"rating"`
+	CopyNumber    []int64  `json:"copyNumber"`
+	ShippingCost  *float64 `json:"shippingCost"`
+	Entities      []string `json:"entities"`
+	Platform      *string  `json:"platform"`
+	Collection    *string  `json:"collection"`
+	ItemType      *string  `json:"itemType"`
+}
+
 type CollectionItemsDataResponse struct {
 	Data CollectionItemsResponse `json:"data"`
 }

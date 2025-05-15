@@ -11,6 +11,7 @@ import (
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/s3"
 	"lootor/internal/pkg/utils"
+	"reflect"
 	"slices"
 	"strings"
 	"unicode"
@@ -206,25 +207,67 @@ func (s *CiService) Delete(id string, ctx context.Context) (*dto.CommonResponse,
 	return result, nil
 }
 
-func (s *CiService) Update(id string, dto *models.CollectionItemsRequestCreate) (*models.CollectionItems, error) {
+func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) (*models.CollectionItems, error) {
 	exists, err := s.repo.GetCIByID(id)
 	if err != nil {
 		return nil, err
 	}
 
-	resultEntities := s.getEntities(dto.Entities)
+	var resultEntities []models.Entities
 
-	var dbCollectionItem models.CollectionItems
-	err = mapstructure.Decode(dto, &dbCollectionItem)
-	dbCollectionItem.Entities = resultEntities
+	if len(dto.Entities) != 0 {
+		resultEntities = s.getEntities(dto.Entities)
+	} else {
+		resultEntities = make([]models.Entities, 0)
+	}
+
+	dst := reflect.ValueOf(exists).Elem()
+	src := reflect.ValueOf(dto).Elem()
+
+	for i := 0; i < src.NumField(); i++ {
+		field := src.Field(i)
+		fieldName := src.Type().Field(i).Name
+
+		if fieldName == "Entities" || fieldName == "Platform" || fieldName == "ItemType" {
+			continue
+		}
+
+		if field.Kind() == reflect.Ptr {
+			if field.IsNil() {
+				continue
+			}
+			field = field.Elem()
+		}
+
+		dstField := dst.FieldByName(fieldName)
+		if dstField.IsValid() && dstField.CanSet() {
+			if fieldName == "PlatformID" || fieldName == "ItemTypeID" {
+				if str, ok := field.Interface().(string); ok && str != "" {
+					uuidVal, err := uuid.Parse(str)
+					if err != nil {
+						return nil, fmt.Errorf("invalid UUID format for field %s: %v", fieldName, err)
+					}
+					dstField.Set(reflect.ValueOf(uuidVal))
+				}
+			} else {
+				dstField.Set(field)
+			}
+		}
+	}
+
+	//var dbCollectionItem models.CollectionItems
+	//err = mapstructure.Decode(dto, &dbCollectionItem)
+	//dbCollectionItem.Entities = resultEntities
+
+	exists.Entities = resultEntities
 
 	var platform *models.Platforms
 	var platformID *uuid.UUID
 	var itemType *models.ItemTypes
 	var itemTypeID *uuid.UUID
 
-	if dto.Platform != "" {
-		foundPlatform, err := s.platformsRepo.GetPlatformById(dto.Platform)
+	if *dto.Platform != "" {
+		foundPlatform, err := s.platformsRepo.GetPlatformById(*dto.Platform)
 		if err != nil {
 			return nil, fmt.Errorf("error getting platform: %v", err)
 		}
@@ -235,8 +278,8 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestCreate) 
 		platformID = nil
 	}
 
-	if dto.ItemType != "" {
-		foundItemType, err := s.itemTypeRepo.GetTypeById(dto.ItemType)
+	if *dto.ItemType != "" {
+		foundItemType, err := s.itemTypeRepo.GetTypeById(*dto.ItemType)
 		if err != nil {
 			return nil, fmt.Errorf("error getting item type: %v", err)
 		}
@@ -247,11 +290,11 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestCreate) 
 		itemTypeID = nil
 	}
 
-	dbCollectionItem.Platform = platform
-	dbCollectionItem.PlatformID = platformID
-	dbCollectionItem.ItemTypeID = itemTypeID
-	dbCollectionItem.ItemType = itemType
-	result, err := s.repo.UpdateCI(exists, &dbCollectionItem)
+	exists.Platform = platform
+	exists.PlatformID = platformID
+	exists.ItemTypeID = itemTypeID
+	exists.ItemType = itemType
+	result, err := s.repo.UpdateCIFull(exists)
 	if err != nil {
 		return nil, err
 	}

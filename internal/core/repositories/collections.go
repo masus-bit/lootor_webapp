@@ -459,6 +459,45 @@ func (r *CollectionsRepository) UpdateCollection(existsCollection *models.Collec
 	return &result, err
 }
 
+func (r *CollectionsRepository) UpdateCollectionFull(existsCollection *models.Collections) (*models.Collections, error) {
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(existsCollection).Select("*").Updates(existsCollection).Error; err != nil {
+			return err
+		}
+
+		if existsCollection.Tags != nil {
+			if err := tx.Model(existsCollection).Association("Tags").Replace(existsCollection.Tags); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result models.Collections
+	if err := r.db.
+		Preload("Tags").
+		First(&result, "id = ?", existsCollection.Id).
+		Error; err != nil {
+		return nil, err
+	}
+
+	doc := map[string]interface{}{
+		"id":   result.Id.String(),
+		"name": result.Name,
+	}
+
+	if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
+		log.Printf("Failed to index collection: %v", err)
+	}
+
+	return &result, nil
+}
+
 func (r *CollectionsRepository) GetCollectionCountByUserLogin(login string) (int64, error) {
 	var count int64
 

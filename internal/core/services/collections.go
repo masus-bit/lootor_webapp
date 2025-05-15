@@ -12,6 +12,7 @@ import (
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/s3"
 	"lootor/internal/pkg/utils"
+	"reflect"
 	"slices"
 	"time"
 )
@@ -112,31 +113,56 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	return &models.CollectionDataResponse{Data: response}, nil
 }
 
-func (s *CollectionService) Update(id string, dto *models.CollectionCreateRequest) (*models.CollectionDataResponse, error) {
+func (s *CollectionService) Update(id string, dto *models.CollectionUpdateRequest) (*models.CollectionDataResponse, error) {
 	exists, err := s.repo.GetCollectionByIdWithoutLimits(id)
 	if err != nil {
 		return nil, err
 	}
+
 	processTags, _ := s.processTags(dto.Tags)
 
-	var dbCollection models.Collections
-	err = mapstructure.Decode(dto, &dbCollection)
-	dbCollection.Tags = processTags
-	resultCollection, err := s.repo.UpdateCollection(exists, &dbCollection)
-	resultCollection.Tags = processTags
+	dst := reflect.ValueOf(exists).Elem()
+	src := reflect.ValueOf(dto).Elem()
+
+	for i := 0; i < src.NumField(); i++ {
+		field := src.Field(i)
+		if !field.IsNil() {
+			fieldName := src.Type().Field(i).Name
+			if fieldName == "Tags" || fieldName == "UserLogin" || fieldName == "IsPrivate" {
+				continue
+			}
+			dstField := dst.FieldByName(fieldName)
+			if dstField.IsValid() {
+				dstField.Set(field.Elem())
+			}
+		}
+	}
+
+	exists.Tags = processTags
+
+	resultCollection, err := s.repo.UpdateCollectionFull(exists)
 	if err != nil {
 		return nil, err
 	}
 
-	if !dto.IsPrivate {
-		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionUpdate, utils.EventTargetCollection, dto.Name, nil, &resultCollection.Id, nil, nil)
+	if !*dto.IsPrivate {
+		eventError := s.eventRepo.AddEvent(
+			*dto.UserLogin,
+			utils.EventActionUpdate,
+			utils.EventTargetCollection,
+			*dto.Name,
+			nil,
+			&resultCollection.Id,
+			nil,
+			nil,
+		)
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
 	}
+
 	var finalCollection models.CollectionsResponse
-	err = mapstructure.Decode(resultCollection, &finalCollection)
-	if err != nil {
+	if err := mapstructure.Decode(resultCollection, &finalCollection); err != nil {
 		return nil, err
 	}
 	finalCollection.CanLike = true

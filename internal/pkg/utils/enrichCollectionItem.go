@@ -7,7 +7,7 @@ import (
 )
 
 type EnrichedCI interface {
-	Update(id string, dto *models.CollectionItemsRequestCreate) (*models.CollectionItems, error)
+	Update(id string, dto *models.CollectionItemsRequestUpdate) (*models.CollectionItems, error)
 	GetById(id string, authUser string) (*models.CollectionItems, error)
 	GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string, authUser string) ([]models.CollectionItems, int64, error)
 }
@@ -73,7 +73,7 @@ func (s *EnrichingCIService) GetById(id string, authUser string) (*models.Collec
 	return &models.CollectionItemsDataResponse{Data: *enriched}, err
 }
 
-func (s *EnrichingCIService) Update(id string, dto *models.CollectionItemsRequestCreate, authUser string) (*models.CollectionItemsDataResponse, error) {
+func (s *EnrichingCIService) Update(id string, dto *models.CollectionItemsRequestUpdate, authUser string) (*models.CollectionItemsDataResponse, error) {
 	item, err := s.service.Update(id, dto)
 	if err != nil {
 		return nil, err

@@ -83,7 +83,7 @@ func (c *CIController) DeleteCollectionItem(ctx echo.Context) error {
 // @Success 201 {object} dto.CollectionItemsDataResponseSwagger
 // @Router /secured/collection_item/update [post]
 func (c *CIController) UpdateCollectionItem(ctx echo.Context) error {
-	var request models.CollectionItemsRequestCreate
+	var request models.CollectionItemsRequestUpdate
 	id := ctx.QueryParam("id")
 
 	if err := ctx.Bind(&request); err != nil {

@@ -81,12 +81,12 @@ type UserResponse struct {
 }
 
 type UserRequestUpdate struct {
-	UserName      string `json:"userName"`
-	Email         string `json:"email"`
-	AvatarUrl     string `json:"avatarUrl"`
-	BackgroundUrl string `json:"backgroundUrl"`
-	City          string `json:"city"`
-	Bio           string `json:"bio"`
+	UserName      *string `json:"userName,omitempty"`
+	Email         *string `json:"email,omitempty"`
+	AvatarUrl     *string `json:"avatarUrl,omitempty"`
+	BackgroundUrl *string `json:"backgroundUrl,omitempty"`
+	City          *string `json:"city,omitempty"`
+	Bio           *string `json:"bio,omitempty"`
 }
 
 type UserResponseForCollection struct {

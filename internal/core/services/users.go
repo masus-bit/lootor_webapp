@@ -16,6 +16,7 @@ import (
 	"lootor/internal/pkg/mail"
 	"lootor/internal/pkg/utils"
 	"os"
+	"reflect"
 	"slices"
 	"sort"
 	"strings"
@@ -515,29 +516,27 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 	if login == "" {
 		return nil, errors.New("not authorized")
 	}
+
 	existsUser, err := s.repo.GetUserByLogin(login)
 	if err != nil {
 		return nil, err
 	}
-	if user.UserName != "" {
-		existsUser.UserName = user.UserName
+
+	dst := reflect.ValueOf(existsUser).Elem()
+	src := reflect.ValueOf(user).Elem()
+
+	for i := 0; i < src.NumField(); i++ {
+		field := src.Field(i)
+		if !field.IsNil() {
+			fieldName := src.Type().Field(i).Name
+			dstField := dst.FieldByName(fieldName)
+			if dstField.IsValid() {
+				dstField.Set(field.Elem())
+			}
+		}
 	}
-	if user.AvatarUrl != "" {
-		existsUser.AvatarUrl = user.AvatarUrl
-	}
-	if user.BackgroundUrl != "" {
-		existsUser.BackgroundUrl = user.BackgroundUrl
-	}
-	if user.Email != "" {
-		existsUser.Email = user.Email
-	}
-	if user.City != "" {
-		existsUser.City = user.City
-	}
-	if user.Bio != "" {
-		existsUser.Bio = user.Bio
-	}
-	updatedUser, err := s.repo.UpdateUser(existsUser, *existsUser)
+
+	updatedUser, err := s.repo.UpdateUserFull(existsUser)
 	if err != nil {
 		return nil, err
 	}
@@ -547,7 +546,10 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 		return nil, fmt.Errorf("token generation error: %w", err)
 	}
 
-	return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
+	return &models.SignInResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	}, nil
 }
 
 func (s *UserService) UpdateLoginOnly(newLogin string, targetUserLogin string) (*models.SignInResponse, error) {
