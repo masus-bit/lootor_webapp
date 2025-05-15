@@ -164,6 +164,7 @@ func (r *CiRepository) UpdateCIFull(existsItem *models.CollectionItems) (*models
 			Preload("Collections").
 			Preload("Entities").
 			Preload("ItemType").
+			Preload("Owner").
 			First(&result, "id = ?", existsItem.Id).
 			Error
 	})
