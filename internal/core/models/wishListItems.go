@@ -31,6 +31,10 @@ type WishListDataResponse struct {
 	Data []WishListItemResponse `json:"data"`
 }
 
+type WishListSingleDataResponse struct {
+	Data WishListItemResponse `json:"data"`
+}
+
 type WishListCreateRequest struct {
 	CollectionItemId string   `json:"collectionItemId"`
 	PurchaseLinks    []string `json:"purchaseLinks"`
@@ -38,6 +42,15 @@ type WishListCreateRequest struct {
 	Priority         int64    `json:"priority"`
 	ItemName         string   `json:"itemName"`
 	Images           []string `json:"images"`
+}
+
+type WishListUpdateRequest struct {
+	CollectionItemId *string   `json:"collectionItemId"`
+	PurchaseLinks    *[]string `json:"purchaseLinks"`
+	Notes            *string   `json:"notes"`
+	Priority         *int64    `json:"priority"`
+	ItemName         *string   `json:"itemName"`
+	Images           *[]string `json:"images"`
 }
 
 type WishListItemResponse struct {
@@ -49,4 +62,8 @@ type WishListItemResponse struct {
 	Notes          string                  `json:"notes"`
 	ItemName       string                  `json:"itemName"`
 	Images         []string                `json:"images"`
+}
+
+type WishListItemUpdatePriority struct {
+	Priority int64 `json:"priority"`
 }

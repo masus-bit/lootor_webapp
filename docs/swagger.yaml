@@ -612,6 +612,11 @@ definitions:
           type: string
         type: array
     type: object
+  models.WishListItemUpdatePriority:
+    properties:
+      priority:
+        type: integer
+    type: object
   s3.DeleteFilesRequest:
     properties:
       keys:
@@ -1539,6 +1544,25 @@ paths:
       tags:
       - users
   /secured/wishlist:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: удаление айтема
+      tags:
+      - wishlist
     post:
       consumes:
       - application/json
@@ -1557,6 +1581,58 @@ paths:
           schema:
             $ref: '#/definitions/dto.CommonResponse'
       summary: Создание экземпляра вишлиста
+      tags:
+      - wishlist
+  /secured/wishlist/priority:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: priority
+        in: body
+        name: priority
+        required: true
+        schema:
+          $ref: '#/definitions/models.WishListItemUpdatePriority'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.WishlistDataResponseSwagger'
+      summary: обновление приоритета
+      tags:
+      - wishlist
+  /secured/wishlist/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: priority
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.WishListItemUpdatePriority'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.WishlistDataResponseSwagger'
+      summary: обновление
       tags:
       - wishlist
 schemes:

@@ -63,3 +63,87 @@ func (c *WLController) GetWishList(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
+
+// UpdatePriority
+// @Summary обновление приоритета
+// @Tags wishlist
+// @Accept  json
+// @Produce  json
+// @Param id query string true "id"
+// @Param priority body models.WishListItemUpdatePriority true "priority"
+// @Success 201 {object} dto.WishlistDataResponseSwagger
+// @Router /secured/wishlist/priority [post]
+func (c *WLController) UpdatePriority(ctx echo.Context) error {
+	id := ctx.QueryParam("id")
+	var request models.WishListItemUpdatePriority
+	if err := ctx.Bind(&request); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body",
+		})
+	}
+	authUser, ok := ctx.Get("user_login").(string)
+
+	if !ok {
+		authUser = ""
+	}
+
+	response, err := c.wlService.UpdatePriority(id, request, authUser)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
+// Delete
+// @Summary удаление айтема
+// @Tags wishlist
+// @Accept  json
+// @Produce  json
+// @Param id query string true "id"
+// @Success 201 {object} dto.CommonResponse
+// @Router /secured/wishlist [delete]
+func (c *WLController) Delete(ctx echo.Context) error {
+	id := ctx.QueryParam("id")
+
+	response, err := c.wlService.DeleteItem(id)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
+// Update
+// @Summary обновление
+// @Tags wishlist
+// @Accept  json
+// @Produce  json
+// @Param id query string true "id"
+// @Param request body models.WishListItemUpdatePriority true "priority"
+// @Success 201 {object} dto.WishlistDataResponseSwagger
+// @Router /secured/wishlist/update [post]
+func (c *WLController) Update(ctx echo.Context) error {
+	id := ctx.QueryParam("id")
+	var request models.WishListUpdateRequest
+	if err := ctx.Bind(&request); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body",
+		})
+	}
+	authUser, ok := ctx.Get("user_login").(string)
+
+	if !ok {
+		authUser = ""
+	}
+
+	response, err := c.wlService.Update(id, request, authUser)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}

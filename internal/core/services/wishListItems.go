@@ -1,12 +1,16 @@
 package services
 
 import (
+	"cmp"
+	"errors"
 	"fmt"
 	"github.com/mitchellh/mapstructure"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/utils"
+	"reflect"
+	"slices"
 )
 
 type WLService struct {
@@ -35,14 +39,16 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-
-	collectionItem, err := s.ciRepo.GetCIByID(requestDto.CollectionItemId)
-	if err != nil {
-		return nil, fmt.Errorf("colelction item not найден")
+	var collectionItem *models.CollectionItems
+	if requestDto.CollectionItemId != "" {
+		collectionItem, err = s.ciRepo.GetCIByID(requestDto.CollectionItemId)
+		if err != nil {
+			return nil, fmt.Errorf("collection item not found")
+		}
 	}
 
 	var wishListItem models.WishListItems
-	if requestDto.CollectionItemId != "" {
+	if collectionItem != nil {
 		wishListItem = models.WishListItems{
 			UserLogin:        userLogin,
 			User:             *user,
@@ -64,6 +70,13 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 		}
 	}
 
+	var name string
+	if collectionItem != nil {
+		name = utils.FirstNonZero(collectionItem.Name, requestDto.ItemName)
+	} else {
+		name = requestDto.ItemName
+	}
+
 	wlItem, err := s.wlRepo.AddItem(&wishListItem)
 	if err != nil {
 		return nil, err
@@ -72,7 +85,7 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 		userLogin,
 		utils.EventActionCreate,
 		utils.EventTargetWL,
-		utils.FirstNonZero(collectionItem.Name, requestDto.ItemName),
+		name,
 		nil,
 		nil,
 		nil,
@@ -104,4 +117,103 @@ func (s *WLService) GetAllUserItems(userLogin string) (*models.WishListDataRespo
 	return &models.WishListDataResponse{
 		Data: wlItems,
 	}, nil
+}
+
+func (s *WLService) UpdatePriority(id string, dto models.WishListItemUpdatePriority, authUser string) (*models.WishListDataResponse, error) {
+	allUsersItems, err := s.wlRepo.GetAllByUserLogin(authUser)
+	if err != nil {
+		return nil, err
+	}
+
+	slices.SortFunc(allUsersItems, func(a, b models.WishListItems) int {
+		return cmp.Compare(a.Priority, b.Priority)
+	})
+
+	var targetItem models.WishListItems
+	var targetIndex int
+
+	for idx, item := range allUsersItems {
+		if item.Id.String() == id {
+			targetItem = item
+			targetIndex = idx
+		}
+	}
+
+	tmpSlice := utils.RemoveOrdered(allUsersItems, targetIndex)
+
+	var newSlice []models.WishListItems
+
+	for _, tmpItem := range tmpSlice {
+		if tmpItem.Priority > dto.Priority && targetItem.Priority < tmpItem.Priority {
+			newSlice = append(newSlice, tmpItem)
+			continue
+		} else if tmpItem.Priority >= dto.Priority {
+			tmpItem.Priority++
+		}
+		newSlice = append(newSlice, tmpItem)
+
+	}
+
+	targetItem.Priority = dto.Priority
+
+	newSlice = append(newSlice, targetItem)
+
+	slices.SortFunc(newSlice, func(a, b models.WishListItems) int {
+		return cmp.Compare(a.Priority, b.Priority)
+	})
+
+	for _, item := range newSlice {
+		_, err = s.wlRepo.UpdatePriority(&item)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return s.GetAllUserItems(authUser)
+}
+
+func (s *WLService) DeleteItem(id string) (*dto.CommonResponse, error) {
+	err := s.wlRepo.DeleteItem(id)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+}
+
+func (s *WLService) Update(id string, req models.WishListUpdateRequest, login string) (*models.WishListSingleDataResponse, error) {
+	if login == "" {
+		return nil, errors.New("not authorized")
+	}
+
+	existsItem, err := s.wlRepo.GetById(id)
+	if err != nil {
+		return nil, err
+	}
+
+	dst := reflect.ValueOf(existsItem).Elem()
+	src := reflect.ValueOf(req).Elem()
+
+	for i := 0; i < src.NumField(); i++ {
+		field := src.Field(i)
+		if !field.IsNil() {
+			fieldName := src.Type().Field(i).Name
+			dstField := dst.FieldByName(fieldName)
+			if dstField.IsValid() {
+				dstField.Set(field.Elem())
+			}
+		}
+	}
+
+	updated, err := s.wlRepo.UpdateItem(existsItem)
+	if err != nil {
+		return nil, err
+	}
+
+	var resultItem models.WishListItemResponse
+	err = mapstructure.Decode(updated, &resultItem)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.WishListSingleDataResponse{Data: resultItem}, nil
 }

@@ -41,3 +41,32 @@ func (r *WLRepository) GetById(id string) (*models.WishListItems, error) {
 	}
 	return &item, nil
 }
+
+func (r *WLRepository) UpdatePriority(item *models.WishListItems) ([]models.WishListItems, error) {
+	err := r.db.Model(item).Updates(item).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return r.GetAllByUserLogin(item.UserLogin)
+}
+
+func (r *WLRepository) DeleteItem(id string) error {
+	err := r.db.Delete(&models.WishListItems{}, "id = ?", id).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *WLRepository) UpdateItem(item *models.WishListItems) (*models.WishListItems, error) {
+	result := r.db.Session(&gorm.Session{FullSaveAssociations: true}).Save(item)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	var updated models.WishListItems
+	err := r.db.Where("id = ?", item.Id).Preload("CollectionItem").First(&updated).Error
+
+	return &updated, err
+}

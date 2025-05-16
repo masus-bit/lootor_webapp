@@ -164,3 +164,7 @@ func FirstNonZero[T comparable](values ...T) T {
 	}
 	return zero
 }
+
+func RemoveOrdered[T any](slice []T, index int) []T {
+	return append(slice[:index], slice[index+1:]...)
+}
