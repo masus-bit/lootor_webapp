@@ -24,7 +24,7 @@ func (r *WLRepository) AddItem(item *models.WishListItems) (*models.WishListItem
 func (r *WLRepository) GetAllByUserLogin(userLogin string) ([]models.WishListItems, error) {
 	var items []models.WishListItems
 
-	err := r.db.Where("LOWER(user_login) = LOWER(?)", userLogin).Preload("User").Preload("CollectionItem").Order("priority DESC").Find(&items)
+	err := r.db.Where("LOWER(user_login) = LOWER(?)", userLogin).Preload("User").Preload("CollectionItem").Order("priority ASC").Find(&items)
 	if err.Error != nil {
 		return nil, err.Error
 	}
@@ -34,10 +34,10 @@ func (r *WLRepository) GetAllByUserLogin(userLogin string) ([]models.WishListIte
 
 func (r *WLRepository) GetById(id string) (*models.WishListItems, error) {
 	var item models.WishListItems
-	err := r.db.Where("id = ?", id).First(&item)
+	err := r.db.Where("id = ?", id).Preload("User").Preload("CollectionItem").First(&item).Error
 
 	if err != nil {
-		return nil, err.Error
+		return nil, err
 	}
 	return &item, nil
 }
@@ -66,7 +66,7 @@ func (r *WLRepository) UpdateItem(item *models.WishListItems) (*models.WishListI
 	}
 
 	var updated models.WishListItems
-	err := r.db.Where("id = ?", item.Id).Preload("CollectionItem").First(&updated).Error
+	err := r.db.Where("id = ?", item.Id).Preload("User").Preload("CollectionItem").First(&updated).Error
 
 	return &updated, err
 }

@@ -34,12 +34,32 @@ func NewWLService(
 	}
 }
 
-func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin string) (*dto.CommonResponse, error) {
+func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin string) (*models.WishListSingleDataResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(userLogin)
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
 	var collectionItem *models.CollectionItems
+
+	allUsersItems, err := s.wlRepo.GetAllByUserLogin(userLogin)
+	if err != nil {
+		return nil, err
+	}
+
+	var newSlice []models.WishListItems
+
+	for _, tmpItem := range allUsersItems {
+		newSlice = append(newSlice, tmpItem)
+	}
+
+	for _, wlItem := range newSlice {
+		wlItem.Priority++
+		_, err = s.wlRepo.UpdatePriority(&wlItem)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if requestDto.CollectionItemId != "" {
 		collectionItem, err = s.ciRepo.GetCIByID(requestDto.CollectionItemId)
 		if err != nil {
@@ -55,7 +75,7 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 			CollectionItemID: &collectionItem.Id,
 			CollectionItem:   collectionItem,
 			PurchaseLinks:    requestDto.PurchaseLinks,
-			Priority:         requestDto.Priority,
+			Priority:         1,
 			Notes:            requestDto.Notes,
 		}
 	} else {
@@ -65,7 +85,7 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 			ItemName:      requestDto.ItemName,
 			Images:        requestDto.Images,
 			PurchaseLinks: requestDto.PurchaseLinks,
-			Priority:      requestDto.Priority,
+			Priority:      1,
 			Notes:         requestDto.Notes,
 		}
 	}
@@ -90,11 +110,18 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 		nil,
 		nil,
 		&wlItem.Id)
+
 	if err != nil {
 		return nil, err
 	}
 
-	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+	var resultItem models.WishListItemResponse
+	err = mapstructure.Decode(wlItem, &resultItem)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.WishListSingleDataResponse{Data: resultItem}, nil
 }
 
 func (s *WLService) GetAllUserItems(userLogin string) (*models.WishListDataResponse, error) {
@@ -186,20 +213,58 @@ func (s *WLService) Update(id string, req models.WishListUpdateRequest, login st
 	}
 
 	existsItem, err := s.wlRepo.GetById(id)
+
+	fmt.Println(existsItem)
 	if err != nil {
 		return nil, err
 	}
+	if existsItem.CollectionItemID == nil {
+		existsItem.CollectionItem = nil
+		existsItem.CollectionItemID = nil
+	}
 
-	dst := reflect.ValueOf(existsItem).Elem()
-	src := reflect.ValueOf(req).Elem()
+	dst := reflect.ValueOf(existsItem)
+	// Если это указатель, разыменовываем
+	if dst.Kind() == reflect.Ptr {
+		dst = dst.Elem()
+	}
+
+	// Проверяем, что dst теперь является структурой
+	if dst.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("expected struct, got %v", dst.Kind())
+	}
+
+	src := reflect.ValueOf(req)
+	// Если req это указатель, разыменовываем
+	if src.Kind() == reflect.Ptr {
+		src = src.Elem()
+	}
+
+	// Проверяем, что src теперь является структурой
+	if src.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("expected struct, got %v", src.Kind())
+	}
 
 	for i := 0; i < src.NumField(); i++ {
 		field := src.Field(i)
-		if !field.IsNil() {
-			fieldName := src.Type().Field(i).Name
+		fieldType := src.Type().Field(i)
+
+		// Пропускаем неэкспортируемые поля
+		if fieldType.PkgPath != "" {
+			continue
+		}
+
+		// Проверяем, является ли поле указателем и не nil
+		if field.Kind() == reflect.Ptr && !field.IsNil() {
+			fieldName := fieldType.Name
 			dstField := dst.FieldByName(fieldName)
-			if dstField.IsValid() {
-				dstField.Set(field.Elem())
+
+			// Проверяем, что поле существует в dst и может быть установлено
+			if dstField.IsValid() && dstField.CanSet() {
+				// Проверяем совместимость типов
+				if field.Elem().Type().AssignableTo(dstField.Type()) {
+					dstField.Set(field.Elem())
+				}
 			}
 		}
 	}

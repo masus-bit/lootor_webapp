@@ -45,23 +45,23 @@ type WishListCreateRequest struct {
 }
 
 type WishListUpdateRequest struct {
-	CollectionItemId *string   `json:"collectionItemId"`
-	PurchaseLinks    *[]string `json:"purchaseLinks"`
-	Notes            *string   `json:"notes"`
-	Priority         *int64    `json:"priority"`
-	ItemName         *string   `json:"itemName"`
-	Images           *[]string `json:"images"`
+	CollectionItemId *string  `json:"collectionItemId"`
+	PurchaseLinks    []string `json:"purchaseLinks"`
+	Notes            *string  `json:"notes"`
+	Priority         *int64   `json:"priority"`
+	ItemName         *string  `json:"itemName"`
+	Images           []string `json:"images"`
 }
 
 type WishListItemResponse struct {
-	Id             uuid.UUID               `json:"id"`
-	User           UserResponse            `json:"user"`
-	CollectionItem CollectionItemsResponse `json:"collectionItem"`
-	PurchaseLinks  []string                `json:"purchaseLinks"`
-	Priority       int64                   `json:"priority"`
-	Notes          string                  `json:"notes"`
-	ItemName       string                  `json:"itemName"`
-	Images         []string                `json:"images"`
+	Id             uuid.UUID                `json:"id"`
+	User           UserResponse             `json:"user"`
+	CollectionItem *CollectionItemsResponse `json:"collectionItem"`
+	PurchaseLinks  []string                 `json:"purchaseLinks"`
+	Priority       int64                    `json:"priority"`
+	Notes          string                   `json:"notes"`
+	ItemName       string                   `json:"itemName"`
+	Images         []string                 `json:"images"`
 }
 
 type WishListItemUpdatePriority struct {
