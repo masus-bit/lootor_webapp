@@ -77,6 +77,8 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 			PurchaseLinks:    requestDto.PurchaseLinks,
 			Priority:         1,
 			Notes:            requestDto.Notes,
+			ItemName:         collectionItem.Name,
+			Images:           collectionItem.Images,
 		}
 	} else {
 		wishListItem = models.WishListItems{
@@ -120,6 +122,8 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 	if err != nil {
 		return nil, err
 	}
+
+	resultItem.CollectionItem.Collection = wlItem.CollectionItem.Collections[0].Id
 
 	return &models.WishListSingleDataResponse{Data: resultItem}, nil
 }
@@ -224,23 +228,19 @@ func (s *WLService) Update(id string, req models.WishListUpdateRequest, login st
 	}
 
 	dst := reflect.ValueOf(existsItem)
-	// Если это указатель, разыменовываем
 	if dst.Kind() == reflect.Ptr {
 		dst = dst.Elem()
 	}
 
-	// Проверяем, что dst теперь является структурой
 	if dst.Kind() != reflect.Struct {
 		return nil, fmt.Errorf("expected struct, got %v", dst.Kind())
 	}
 
 	src := reflect.ValueOf(req)
-	// Если req это указатель, разыменовываем
 	if src.Kind() == reflect.Ptr {
 		src = src.Elem()
 	}
 
-	// Проверяем, что src теперь является структурой
 	if src.Kind() != reflect.Struct {
 		return nil, fmt.Errorf("expected struct, got %v", src.Kind())
 	}
@@ -249,19 +249,15 @@ func (s *WLService) Update(id string, req models.WishListUpdateRequest, login st
 		field := src.Field(i)
 		fieldType := src.Type().Field(i)
 
-		// Пропускаем неэкспортируемые поля
 		if fieldType.PkgPath != "" {
 			continue
 		}
 
-		// Проверяем, является ли поле указателем и не nil
 		if field.Kind() == reflect.Ptr && !field.IsNil() {
 			fieldName := fieldType.Name
 			dstField := dst.FieldByName(fieldName)
 
-			// Проверяем, что поле существует в dst и может быть установлено
 			if dstField.IsValid() && dstField.CanSet() {
-				// Проверяем совместимость типов
 				if field.Elem().Type().AssignableTo(dstField.Type()) {
 					dstField.Set(field.Elem())
 				}

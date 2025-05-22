@@ -36,7 +36,6 @@ func (r *CiRepository) CreateCI(ci *models.CollectionItems) (*models.CollectionI
 
 	if err := r.es.IndexDocument(context.Background(), "collection_items", doc); err != nil {
 		log.Printf("Failed to index collection item: %v", err)
-		// Не возвращаем ошибку, чтобы не ломать основной flow
 	}
 	return ci, nil
 }
