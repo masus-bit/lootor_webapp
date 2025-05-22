@@ -68,7 +68,6 @@ func NewElasticService(configPath string) (*ElasticService, error) {
 
 	logger := log.New(os.Stdout, "[Elastic] ", log.LstdFlags|log.Lshortfile)
 
-	// Проверка соединения
 	res, err := es.Ping()
 	if err != nil {
 		return nil, fmt.Errorf("elasticsearch ping failed: %w", err)
@@ -87,21 +86,18 @@ func NewElasticService(configPath string) (*ElasticService, error) {
 }
 
 func (es *ElasticService) ReindexAll(ctx context.Context, dataProviders map[string]func() ([]map[string]interface{}, error)) error {
-	// 1. Удаляем старые индексы
 	for indexName := range dataProviders {
 		if err := es.deleteIndexIfExists(indexName); err != nil {
 			return fmt.Errorf("failed to delete index %s: %w", indexName, err)
 		}
 	}
 
-	// 2. Создаем новые индексы
 	for indexName := range dataProviders {
 		if err := es.createIndex(indexName); err != nil {
 			return fmt.Errorf("failed to create index %s: %w", indexName, err)
 		}
 	}
 
-	// 3. Индексируем данные
 	for indexName, provider := range dataProviders {
 		data, err := provider()
 		if err != nil {
@@ -133,7 +129,7 @@ func (es *ElasticService) deleteIndexIfExists(indexName string) error {
 	defer res.Body.Close()
 
 	if res.StatusCode == 404 {
-		return nil // Индекс не существует - ничего делать не нужно
+		return nil
 	}
 
 	res, err = es.client.Indices.Delete([]string{indexName})

@@ -1,12 +1,14 @@
 package app
 
 import (
+	"context"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/redis/go-redis/v9"
 	echoSwagger "github.com/swaggo/echo-swagger"
 	"lootor/internal/config"
+	"lootor/internal/core/controllers"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/core/routes"
@@ -134,6 +136,8 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.FeedbackRouter(e, jwtService, *fbService)
 	routes.ItemTypesRouter(e, jwtService, *itemTypesService)
 	routes.WLRouter(e, jwtService, *wlService)
+
+	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagRepo, entityRepo).ReindexInternal(context.Background())
 
 	return &App{Echo: e}, nil
 }

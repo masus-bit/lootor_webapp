@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"lootor/internal/core/repositories"
 	"lootor/internal/pkg/elasticsearch"
@@ -50,6 +51,17 @@ func (c *ReindexController) Reindex(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, map[string]string{"message": "Reindexing completed successfully"})
+}
+
+func (c *ReindexController) ReindexInternal(ctx context.Context) error {
+	dataProviders := map[string]func() ([]map[string]interface{}, error){
+		"users":            c.getUserData,
+		"collections":      c.getCollectionData,
+		"collection_items": c.getCollectionItemData,
+		"tags":             c.getTagData,
+		"entities":         c.getEntityData,
+	}
+	return c.es.ReindexAll(ctx, dataProviders)
 }
 
 func (c *ReindexController) getUserData() ([]map[string]interface{}, error) {
