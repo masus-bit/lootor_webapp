@@ -72,7 +72,7 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		for _, userInArray := range subArray {
 			lowerCasedUsers = append(lowerCasedUsers, strings.ToLower(userInArray))
 		}
-		canSubscribe := !slices.Contains(lowerCasedUsers, userLogin)
+		canSubscribe := !slices.Contains(lowerCasedUsers, strings.ToLower(userLogin))
 		response.CanSubscribe = canSubscribe
 	}
 
