@@ -122,8 +122,9 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 	if err != nil {
 		return nil, err
 	}
-
-	resultItem.CollectionItem.Collection = wlItem.CollectionItem.Collections[0].Id
+	if collectionItem != nil {
+		resultItem.CollectionItem.Collection = wlItem.CollectionItem.Collections[0].Id
+	}
 
 	return &models.WishListSingleDataResponse{Data: resultItem}, nil
 }

@@ -36,7 +36,7 @@ type WishListSingleDataResponse struct {
 }
 
 type WishListCreateRequest struct {
-	CollectionItemId string   `json:"collectionItemId"`
+	CollectionItemId string   `json:"collectionItemId,omitempty"`
 	PurchaseLinks    []string `json:"purchaseLinks"`
 	Notes            string   `json:"notes"`
 	Priority         int64    `json:"priority"`

@@ -266,7 +266,7 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 	var itemType *models.ItemTypes
 	var itemTypeID *uuid.UUID
 
-	if *dto.Platform != "" {
+	if dto.Platform != nil {
 		foundPlatform, err := s.platformsRepo.GetPlatformById(*dto.Platform)
 		if err != nil {
 			return nil, fmt.Errorf("error getting platform: %v", err)
