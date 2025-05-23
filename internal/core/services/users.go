@@ -133,10 +133,10 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 	}
 
 	if isSubscribe {
-		subscriber.Subscriptions = append(subscriber.Subscriptions, targetUserLogin)
+		subscriber.Subscriptions = append(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers + 1
 	} else {
-		subscriber.Subscriptions = utils.RemoveByValue(subscriber.Subscriptions, targetUserLogin)
+		subscriber.Subscriptions = utils.RemoveByValue(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers - 1
 	}
 	_, err = s.repo.UpdateUser(subscriber, *subscriber)
