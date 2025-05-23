@@ -163,31 +163,45 @@ func (s *WLService) UpdatePriority(id string, dto models.WishListItemUpdatePrior
 
 	var targetItem models.WishListItems
 	var targetIndex int
+	var found bool
 
 	for idx, item := range allUsersItems {
 		if item.Id.String() == id {
 			targetItem = item
 			targetIndex = idx
+			found = true
+			break
 		}
 	}
+	if !found {
+		return nil, fmt.Errorf("item not found")
+	}
 
-	tmpSlice := utils.RemoveOrdered(allUsersItems, targetIndex)
+	oldPriority := targetItem.Priority
+	newPriority := dto.Priority
+
+	if oldPriority == newPriority {
+		return s.GetAllUserItems(authUser)
+	}
+
+	tmpSlice := append(allUsersItems[:targetIndex], allUsersItems[targetIndex+1:]...)
 
 	var newSlice []models.WishListItems
 
 	for _, tmpItem := range tmpSlice {
-		if tmpItem.Priority > dto.Priority && targetItem.Priority < tmpItem.Priority {
-			newSlice = append(newSlice, tmpItem)
-			continue
-		} else if tmpItem.Priority >= dto.Priority {
-			tmpItem.Priority++
+		if newPriority > oldPriority {
+			if tmpItem.Priority > oldPriority && tmpItem.Priority <= newPriority {
+				tmpItem.Priority--
+			}
+		} else {
+			if tmpItem.Priority >= newPriority && tmpItem.Priority < oldPriority {
+				tmpItem.Priority++
+			}
 		}
 		newSlice = append(newSlice, tmpItem)
-
 	}
 
-	targetItem.Priority = dto.Priority
-
+	targetItem.Priority = newPriority
 	newSlice = append(newSlice, targetItem)
 
 	slices.SortFunc(newSlice, func(a, b models.WishListItems) int {
