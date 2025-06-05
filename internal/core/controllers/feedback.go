@@ -32,9 +32,7 @@ func (c *FeedbackController) AddIssue(ctx echo.Context) error {
 	}
 
 	file := form.File["file"]
-	if file == nil {
-		return ctx.JSON(http.StatusBadRequest, echo.Map{"error": "no files provided"})
-	}
+
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
 		authUser = ""
@@ -51,17 +49,23 @@ func (c *FeedbackController) AddIssue(ctx echo.Context) error {
 	}
 
 	var fileBuffer []byte
-	src, err := file[0].Open()
-	if err != nil {
-	}
-	defer src.Close()
+	if file == nil {
+		fileBuffer = nil
+	} else {
+		src, err := file[0].Open()
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, echo.Map{"error": "file хуевый"})
+		}
+		defer src.Close()
 
-	buf := make([]byte, file[0].Size)
-	if _, err = src.Read(buf); err != nil {
+		buf := make([]byte, file[0].Size)
+		if _, err = src.Read(buf); err != nil {
 
+		}
+		fileBuffer = buf
 	}
-	fileBuffer = buf
 	response, err := c.feedService.AddIssue(title, description, fileBuffer, authUser)
+
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}

@@ -45,28 +45,30 @@ func (s *FeedbackService) AddIssue(title string, description string, file []byte
 		Body        map[string]string
 		File        []byte
 	}{Method: "POST", URL: os.Getenv("TRELLO_API_URL"), Headers: headers, QueryParams: reqParams, Body: reqBody, File: []byte{}})
+	if file != nil {
 
-	attachReqUrl := fmt.Sprintf("%s/%s/attachments",
-		os.Getenv("TRELLO_API_URL"),
-		response.Id,
-	)
+		attachReqUrl := fmt.Sprintf("%s/%s/attachments",
+			os.Getenv("TRELLO_API_URL"),
+			response.Id,
+		)
 
-	attachReqParams := map[string]string{
-		"key":   os.Getenv("TRELLO_API_KEY"),
-		"token": os.Getenv("TRELLO_TOKEN"),
-	}
+		attachReqParams := map[string]string{
+			"key":   os.Getenv("TRELLO_API_KEY"),
+			"token": os.Getenv("TRELLO_TOKEN"),
+		}
 
-	_, attachErr := utils.SendRequest[any](struct {
-		Method      string
-		URL         string
-		Headers     map[string]string
-		QueryParams map[string]string
-		Body        map[string]string
-		File        []byte
-	}{Method: "POST", URL: attachReqUrl, Headers: map[string]string{}, QueryParams: attachReqParams, Body: map[string]string{}, File: file})
+		_, attachErr := utils.SendRequest[any](struct {
+			Method      string
+			URL         string
+			Headers     map[string]string
+			QueryParams map[string]string
+			Body        map[string]string
+			File        []byte
+		}{Method: "POST", URL: attachReqUrl, Headers: map[string]string{}, QueryParams: attachReqParams, Body: map[string]string{}, File: file})
 
-	if attachErr != nil {
-		return nil, fmt.Errorf("failed to request attach: %w", err)
+		if attachErr != nil {
+			return nil, fmt.Errorf("failed to request attach: %w", err)
+		}
 	}
 
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
