@@ -242,7 +242,25 @@ func (es *ElasticService) bulkIndexDocuments(ctx context.Context, indexName stri
 
 func (es *ElasticService) buildSearchQuery(query string, limit string) map[string]interface{} {
 	limitInt, _ := strconv.Atoi(limit)
-	lowerQuery := strings.ToLower(query)
+	lowerQuery := strings.ToLower(strings.TrimSpace(query))
+
+	queryLen := len(lowerQuery)
+
+	commonConditions := []map[string]interface{}{
+		{"term": map[string]interface{}{"name.keyword": lowerQuery}},
+	}
+
+	if queryLen >= 3 {
+		prefixCondition := map[string]interface{}{
+			"match_phrase_prefix": map[string]interface{}{
+				"name.prefix": map[string]interface{}{
+					"query":          lowerQuery,
+					"max_expansions": 10,
+				},
+			},
+		}
+		commonConditions = append(commonConditions, prefixCondition)
+	}
 
 	return map[string]interface{}{
 		"query": map[string]interface{}{
@@ -256,8 +274,14 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 									"bool": map[string]interface{}{
 										"should": []map[string]interface{}{
 											{"term": map[string]interface{}{"login.keyword": lowerQuery}},
-											{"match_phrase": map[string]interface{}{"login.prefix": lowerQuery}},
-											{"match": map[string]interface{}{"user_name": lowerQuery}},
+											{
+												"match_phrase_prefix": map[string]interface{}{
+													"login.prefix": map[string]interface{}{
+														"query":          lowerQuery,
+														"max_expansions": 10,
+													},
+												},
+											},
 										},
 									},
 								},
@@ -268,15 +292,7 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
 								{"term": map[string]interface{}{"_index": "collections"}},
-								{
-									"bool": map[string]interface{}{
-										"should": []map[string]interface{}{
-											{"term": map[string]interface{}{"name.keyword": lowerQuery}},
-											{"match_phrase": map[string]interface{}{"name.prefix": lowerQuery}},
-											{"match": map[string]interface{}{"name.full": lowerQuery}},
-										},
-									},
-								},
+								{"bool": map[string]interface{}{"should": commonConditions}},
 							},
 						},
 					},
@@ -284,15 +300,7 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
 								{"term": map[string]interface{}{"_index": "tags"}},
-								{
-									"bool": map[string]interface{}{
-										"should": []map[string]interface{}{
-											{"term": map[string]interface{}{"name.keyword": lowerQuery}},
-											{"match_phrase": map[string]interface{}{"name.prefix": lowerQuery}},
-											{"match": map[string]interface{}{"name.full": lowerQuery}},
-										},
-									},
-								},
+								{"bool": map[string]interface{}{"should": commonConditions}},
 							},
 						},
 					},
@@ -300,15 +308,7 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
 								{"term": map[string]interface{}{"_index": "collection_items"}},
-								{
-									"bool": map[string]interface{}{
-										"should": []map[string]interface{}{
-											{"term": map[string]interface{}{"name.keyword": lowerQuery}},
-											{"match_phrase": map[string]interface{}{"name.prefix": lowerQuery}},
-											{"match": map[string]interface{}{"name.full": lowerQuery}},
-										},
-									},
-								},
+								{"bool": map[string]interface{}{"should": commonConditions}},
 							},
 						},
 					},
@@ -316,20 +316,11 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
 								{"term": map[string]interface{}{"_index": "entities"}},
-								{
-									"bool": map[string]interface{}{
-										"should": []map[string]interface{}{
-											{"term": map[string]interface{}{"name.keyword": lowerQuery}},
-											{"match_phrase": map[string]interface{}{"name.prefix": lowerQuery}},
-											{"match": map[string]interface{}{"name.full": lowerQuery}},
-										},
-									},
-								},
+								{"bool": map[string]interface{}{"should": commonConditions}},
 							},
 						},
 					},
 				},
-				"minimum_should_match": 1,
 			},
 		},
 		"size": limitInt,
