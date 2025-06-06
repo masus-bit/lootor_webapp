@@ -33,6 +33,13 @@ type SearchResult struct {
 	} `json:"hits"`
 }
 
+type SearchResultFormatted struct {
+	Result []struct {
+		Index  string                 `json:"_index"`
+		Source map[string]interface{} `json:"_source"`
+	} `json:"result"`
+}
+
 type ElasticService struct {
 	client *elasticsearch.Client
 	config ElasticConfig
@@ -112,13 +119,18 @@ func (es *ElasticService) ReindexAll(ctx context.Context, dataProviders map[stri
 	return nil
 }
 
-func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string, query string) (*SearchResult, error) {
+func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string, query string) (*SearchResultFormatted, error) {
 	if strings.TrimSpace(query) == "" {
-		return &SearchResult{}, nil
+		return &SearchResultFormatted{}, nil
 	}
 
 	searchQuery := es.buildSearchQuery(query)
-	return es.search(ctx, indices, searchQuery)
+	res, err := es.search(ctx, indices, searchQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SearchResultFormatted{Result: res.Hits.Hits}, nil
 }
 
 func (es *ElasticService) deleteIndexIfExists(indexName string) error {
