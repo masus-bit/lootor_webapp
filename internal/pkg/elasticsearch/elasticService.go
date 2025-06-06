@@ -256,9 +256,8 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 									"bool": map[string]interface{}{
 										"should": []map[string]interface{}{
 											{"term": map[string]interface{}{"login.keyword": lowerQuery}},
-											{"match": map[string]interface{}{"login.prefix": lowerQuery}},
+											{"match_phrase": map[string]interface{}{"login.prefix": lowerQuery}},
 											{"match": map[string]interface{}{"user_name": lowerQuery}},
-											{"wildcard": map[string]interface{}{"login.keyword": "*" + lowerQuery + "*"}},
 										},
 									},
 								},
@@ -267,12 +266,65 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 					},
 					{
 						"bool": map[string]interface{}{
-							"must_not": map[string]interface{}{"term": map[string]interface{}{"_index": "users"}},
-							"should": []map[string]interface{}{
-								{"term": map[string]interface{}{"name.keyword": lowerQuery}},
-								{"match": map[string]interface{}{"name.prefix": lowerQuery}},
-								{"match": map[string]interface{}{"name.full": lowerQuery}},
-								{"wildcard": map[string]interface{}{"name.keyword": "*" + lowerQuery + "*"}},
+							"must": []map[string]interface{}{
+								{"term": map[string]interface{}{"_index": "collections"}},
+								{
+									"bool": map[string]interface{}{
+										"should": []map[string]interface{}{
+											{"term": map[string]interface{}{"name.keyword": lowerQuery}},
+											{"match_phrase": map[string]interface{}{"name.prefix": lowerQuery}},
+											{"match": map[string]interface{}{"name.full": lowerQuery}},
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						"bool": map[string]interface{}{
+							"must": []map[string]interface{}{
+								{"term": map[string]interface{}{"_index": "tags"}},
+								{
+									"bool": map[string]interface{}{
+										"should": []map[string]interface{}{
+											{"term": map[string]interface{}{"name.keyword": lowerQuery}},
+											{"match_phrase": map[string]interface{}{"name.prefix": lowerQuery}},
+											{"match": map[string]interface{}{"name.full": lowerQuery}},
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						"bool": map[string]interface{}{
+							"must": []map[string]interface{}{
+								{"term": map[string]interface{}{"_index": "collection_items"}},
+								{
+									"bool": map[string]interface{}{
+										"should": []map[string]interface{}{
+											{"term": map[string]interface{}{"name.keyword": lowerQuery}},
+											{"match_phrase": map[string]interface{}{"name.prefix": lowerQuery}},
+											{"match": map[string]interface{}{"name.full": lowerQuery}},
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						"bool": map[string]interface{}{
+							"must": []map[string]interface{}{
+								{"term": map[string]interface{}{"_index": "entities"}},
+								{
+									"bool": map[string]interface{}{
+										"should": []map[string]interface{}{
+											{"term": map[string]interface{}{"name.keyword": lowerQuery}},
+											{"match_phrase": map[string]interface{}{"name.prefix": lowerQuery}},
+											{"match": map[string]interface{}{"name.full": lowerQuery}},
+										},
+									},
+								},
 							},
 						},
 					},
