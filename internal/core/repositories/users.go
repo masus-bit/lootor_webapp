@@ -26,8 +26,11 @@ func (r *UsersRepository) CreateUser(user *models.Users) error {
 	doc := map[string]interface{}{
 		"id":        user.Login,
 		"login":     user.Login,
-		"user_name": user.UserName,
+		"userName":  user.UserName,
 		"email":     user.Email,
+		"avatarUrl": user.AvatarUrl,
+		"vkId":      user.VkId,
+		"tgId":      user.TelegramId,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {
@@ -160,8 +163,11 @@ func (r *UsersRepository) UpdateUser(existsUser *models.Users, updated models.Us
 	doc := map[string]interface{}{
 		"id":        updatedUser.Login,
 		"login":     updatedUser.Login,
-		"user_name": updatedUser.UserName,
+		"userName":  updatedUser.UserName,
 		"email":     updatedUser.Email,
+		"avatarUrl": updatedUser.AvatarUrl,
+		"vkId":      updatedUser.VkId,
+		"tgId":      updatedUser.TelegramId,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {
@@ -183,8 +189,11 @@ func (r *UsersRepository) UpdateUserFull(existsUser *models.Users) (*models.User
 	doc := map[string]interface{}{
 		"id":        updatedUser.Login,
 		"login":     updatedUser.Login,
-		"user_name": updatedUser.UserName,
+		"userName":  updatedUser.UserName,
 		"email":     updatedUser.Email,
+		"avatarUrl": updatedUser.AvatarUrl,
+		"vkId":      updatedUser.VkId,
+		"tgId":      updatedUser.TelegramId,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {
@@ -206,8 +215,11 @@ func (r *UsersRepository) UpdateLogin(existsUser *models.Users, updated *models.
 	doc := map[string]interface{}{
 		"id":        updatedUser.Login,
 		"login":     updatedUser.Login,
-		"user_name": updatedUser.UserName,
+		"userName":  updatedUser.UserName,
 		"email":     updatedUser.Email,
+		"avatarUrl": updatedUser.AvatarUrl,
+		"vkId":      updatedUser.VkId,
+		"tgId":      updatedUser.TelegramId,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {

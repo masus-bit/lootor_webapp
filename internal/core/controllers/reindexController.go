@@ -75,10 +75,11 @@ func (c *ReindexController) getUserData() ([]map[string]interface{}, error) {
 		result[i] = map[string]interface{}{
 			"id":        user.Login,
 			"login":     user.Login,
-			"user_name": user.UserName,
+			"userName":  user.UserName,
 			"email":     user.Email,
-			"vk_id":     user.VkId,
-			// Добавьте другие нужные поля
+			"vkId":      user.VkId,
+			"tgId":      user.TelegramId,
+			"avatarUrl": user.AvatarUrl,
 		}
 	}
 	return result, nil
@@ -96,8 +97,8 @@ func (c *ReindexController) getCollectionData() ([]map[string]interface{}, error
 			"id":          collection.Id.String(),
 			"name":        collection.Name,
 			"description": collection.Description,
-			"is_private":  collection.IsPrivate,
-			// Добавьте другие нужные поля
+			"isPrivate":   collection.IsPrivate,
+			"bannerUrl":   collection.BannerUrl,
 		}
 	}
 	return result, nil
@@ -115,7 +116,7 @@ func (c *ReindexController) getCollectionItemData() ([]map[string]interface{}, e
 			"id":          item.Id.String(),
 			"name":        item.Name,
 			"description": item.Description,
-			// Добавьте другие нужные поля
+			"images":      item.Images,
 		}
 	}
 	return result, nil

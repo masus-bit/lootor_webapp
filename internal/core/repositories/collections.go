@@ -26,8 +26,11 @@ func (r *CollectionsRepository) CreateCollection(collection *models.Collections)
 	}
 
 	doc := map[string]interface{}{
-		"id":   collection.Id.String(),
-		"name": collection.Name,
+		"id":          collection.Id.String(),
+		"name":        collection.Name,
+		"description": collection.Description,
+		"isPrivate":   collection.IsPrivate,
+		"bannerUrl":   collection.BannerUrl,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
@@ -448,8 +451,11 @@ func (r *CollectionsRepository) UpdateCollection(existsCollection *models.Collec
 	err := r.db.Preload("Tags").First(&result, existsCollection.Id).Error
 
 	doc := map[string]interface{}{
-		"id":   result.Id.String(),
-		"name": result.Name,
+		"id":          result.Id.String(),
+		"name":        result.Name,
+		"description": result.Description,
+		"isPrivate":   result.IsPrivate,
+		"bannerUrl":   result.BannerUrl,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
@@ -487,8 +493,11 @@ func (r *CollectionsRepository) UpdateCollectionFull(existsCollection *models.Co
 	}
 
 	doc := map[string]interface{}{
-		"id":   result.Id.String(),
-		"name": result.Name,
+		"id":          result.Id.String(),
+		"name":        result.Name,
+		"description": result.Description,
+		"isPrivate":   result.IsPrivate,
+		"bannerUrl":   result.BannerUrl,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {

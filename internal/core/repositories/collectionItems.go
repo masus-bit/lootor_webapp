@@ -30,8 +30,10 @@ func (r *CiRepository) CreateCI(ci *models.CollectionItems) (*models.CollectionI
 	}
 
 	doc := map[string]interface{}{
-		"id":   ci.Id.String(),
-		"name": ci.Name,
+		"id":          ci.Id.String(),
+		"name":        ci.Name,
+		"description": ci.Description,
+		"images":      ci.Images,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "collection_items", doc); err != nil {
@@ -107,8 +109,10 @@ func (r *CiRepository) UpdateCI(existsItem *models.CollectionItems, updated *mod
 	}
 
 	doc := map[string]interface{}{
-		"id":   updated.Id.String(),
-		"name": updated.Name,
+		"id":          updated.Id.String(),
+		"name":        updated.Name,
+		"description": updated.Description,
+		"images":      updated.Images,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "collection_items", doc); err != nil {
@@ -174,8 +178,10 @@ func (r *CiRepository) UpdateCIFull(existsItem *models.CollectionItems) (*models
 
 	go func() {
 		doc := map[string]interface{}{
-			"id":   result.Id.String(),
-			"name": result.Name,
+			"id":          result.Id.String(),
+			"name":        result.Name,
+			"description": result.Description,
+			"images":      result.Images,
 		}
 		if err := r.es.IndexDocument(context.Background(), "collection_items", doc); err != nil {
 			log.Printf("Failed to index collection item: %v", err)
