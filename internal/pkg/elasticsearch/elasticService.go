@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v8"
@@ -119,12 +120,12 @@ func (es *ElasticService) ReindexAll(ctx context.Context, dataProviders map[stri
 	return nil
 }
 
-func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string, query string) (*SearchResultFormatted, error) {
+func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string, query string, limit string) (*SearchResultFormatted, error) {
 	if strings.TrimSpace(query) == "" {
 		return &SearchResultFormatted{}, nil
 	}
 
-	searchQuery := es.buildSearchQuery(query)
+	searchQuery := es.buildSearchQuery(query, limit)
 	res, err := es.search(ctx, indices, searchQuery)
 	if err != nil {
 		return nil, err
@@ -239,7 +240,8 @@ func (es *ElasticService) bulkIndexDocuments(ctx context.Context, indexName stri
 	return nil
 }
 
-func (es *ElasticService) buildSearchQuery(query string) map[string]interface{} {
+func (es *ElasticService) buildSearchQuery(query string, limit string) map[string]interface{} {
+	limitInt, _ := strconv.Atoi(limit)
 	lowerQuery := strings.ToLower(query)
 
 	return map[string]interface{}{
@@ -278,7 +280,7 @@ func (es *ElasticService) buildSearchQuery(query string) map[string]interface{} 
 				"minimum_should_match": 1,
 			},
 		},
-		"size": 100,
+		"size": limitInt,
 	}
 }
 

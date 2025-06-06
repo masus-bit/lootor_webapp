@@ -967,6 +967,11 @@ paths:
         name: search
         required: true
         type: string
+      - description: количество результатов
+        in: query
+        name: limit
+        required: true
+        type: string
       produces:
       - application/json
       responses:

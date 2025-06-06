@@ -512,6 +512,13 @@ const docTemplate = `{
                         "name": "search",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "количество результатов",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
