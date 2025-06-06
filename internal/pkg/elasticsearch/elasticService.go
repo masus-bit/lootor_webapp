@@ -243,63 +243,94 @@ func (es *ElasticService) bulkIndexDocuments(ctx context.Context, indexName stri
 func (es *ElasticService) buildSearchQuery(query string, limit string) map[string]interface{} {
 	limitInt, _ := strconv.Atoi(limit)
 	lowerQuery := strings.ToLower(strings.TrimSpace(query))
+	queryLen := len(lowerQuery)
+
+	var prefixMustNot []map[string]interface{}
+	if queryLen > 3 {
+		prefixMustNot = []map[string]interface{}{
+			{"term": map[string]interface{}{"login.keyword": lowerQuery}},
+		}
+	}
+
+	var namePrefixMustNot []map[string]interface{}
+	if queryLen > 3 {
+		namePrefixMustNot = []map[string]interface{}{
+			{"term": map[string]interface{}{"name.keyword": lowerQuery}},
+		}
+	}
 
 	return map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
 				"should": []map[string]interface{}{
-					// Поиск по users (точное совпадение)
 					{
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
 								{"term": map[string]interface{}{"_index": "users"}},
 								{"term": map[string]interface{}{"login.keyword": lowerQuery}},
 							},
+							"boost": 2.0,
 						},
 					},
-					// Поиск по collections (точное совпадение)
+					{
+						"bool": map[string]interface{}{
+							"must": []map[string]interface{}{
+								{"term": map[string]interface{}{"_index": "users"}},
+								{"prefix": map[string]interface{}{
+									"login.keyword": map[string]interface{}{
+										"value":            lowerQuery,
+										"case_insensitive": true,
+									},
+								}},
+							},
+							"must_not": prefixMustNot,
+						},
+					},
 					{
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
 								{"term": map[string]interface{}{"_index": "collections"}},
 								{"term": map[string]interface{}{"name.keyword": lowerQuery}},
 							},
+							"boost": 2.0,
 						},
 					},
-					// Поиск по tags (точное совпадение)
 					{
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
 								{"term": map[string]interface{}{"_index": "tags"}},
 								{"term": map[string]interface{}{"name.keyword": lowerQuery}},
 							},
+							"boost": 2.0,
 						},
 					},
-					// Поиск по collection_items (точное совпадение)
 					{
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
 								{"term": map[string]interface{}{"_index": "collection_items"}},
 								{"term": map[string]interface{}{"name.keyword": lowerQuery}},
 							},
+							"boost": 2.0,
 						},
 					},
-					// Поиск по entities (точное совпадение)
 					{
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
 								{"term": map[string]interface{}{"_index": "entities"}},
 								{"term": map[string]interface{}{"name.keyword": lowerQuery}},
 							},
+							"boost": 2.0,
 						},
 					},
-					// Поиск по префиксу (только если длина запроса >= 3)
 					{
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
-								{"range": map[string]interface{}{
-									"name.keyword.length": map[string]interface{}{
-										"gte": len(lowerQuery),
+								{"bool": map[string]interface{}{
+									"should": []map[string]interface{}{
+										{"term": map[string]interface{}{"_index": "collections"}},
+										{"term": map[string]interface{}{"_index": "tags"}},
+										{"term": map[string]interface{}{"_index": "collection_items"}},
+										{"term": map[string]interface{}{"_index": "entities"}},
 									},
 								}},
 								{"prefix": map[string]interface{}{
@@ -309,9 +340,11 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 									},
 								}},
 							},
+							"must_not": namePrefixMustNot,
 						},
 					},
 				},
+				"minimum_should_match": 1,
 			},
 		},
 		"size": limitInt,
