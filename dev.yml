@@ -1,18 +1,24 @@
+# This file is a template, and might need editing before it works on your project.
+# You can copy and paste this template into a new `.gitlab-ci.yml` file.
+# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
+
 image: docker:19-dind
 services:
   - docker:19-dind
 
 variables:
+  # See https://github.com/docker-library/docker/pull/166
   DOCKER_TLS_CERTDIR: ""
   GIT_STRATEGY: clone
   DOCKER_DRIVER: overlay2
-
+# This folder is cached between builds
+# https://docs.gitlab.com/ee/ci/yaml/index.html#cache
 stages:
-  - build
+  - auc
   - deploy
 
 build:
-  stage: build
+  stage: auc
   tags:
     - auc
   before_script:
@@ -24,6 +30,7 @@ build:
     - echo -n $DOCKERHUB_PASSWORD | docker login docker.io --username $DOCKERHUB_LOGIN --password-stdin
     - docker build -t 5575123963/auc:latest -f Dockerfile .
     - docker push 5575123963/auc:latest
+
 
 deploy:
   tags:
@@ -39,29 +46,17 @@ deploy:
     - |
       ssh -o StrictHostKeyChecking=no -t -t root@62.109.30.145 << EOF
       cd ../lootor
-      
-      # Проверяем и создаем сеть если нужно
+      ls
       docker network inspect lootor_network >/dev/null 2>&1 || docker network create lootor_network
+      docker-compose -f docker-compose.backend.yml stop backend
+      docker-compose -p lootor -f docker-compose.backend.yml rm -f backend
+      docker rm -f lootor_backend_1 2>/dev/null || true
+      docker network disconnect -f lootor_network lootor_backend_1 2>/dev/null || true
+      docker-compose -p lootor -f docker-compose.backend.yml up -d --force-recreate backend
       
-      # Останавливаем и удаляем все бэкенды
-      for i in {1..4}; do
-        docker-compose stop backend\$i || true
-        docker-compose rm -f backend\$i || true
-        docker rm -f lootor_backend\$i\_1 2>/dev/null || true
-        docker network disconnect -f lootor_network lootor_backend\$i\_1 2>/dev/null || true
-      done
-      
-      # Подтягиваем новый образ
-      docker-compose pull
-      
-      # Запускаем все сервисы
-      docker-compose up -d
-      
-      # Проверяем статус
-      docker-compose ps
-      
-      exit
+      exit 
       EOF
 
   only:
     - dev
+
