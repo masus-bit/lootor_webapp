@@ -45,20 +45,20 @@ deploy:
       
       # Останавливаем и удаляем все бэкенды
       for i in {1..4}; do
-        docker-compose stop backend\$i || true
-        docker-compose rm -f backend\$i || true
+        docker-compose -f docker-compose.backend.yml stop backend\$i || true
+        docker-compose -f docker-compose.backend.yml rm -f backend\$i || true
         docker rm -f lootor_backend\$i\_1 2>/dev/null || true
         docker network disconnect -f lootor_network lootor_backend\$i\_1 2>/dev/null || true
       done
       
       # Подтягиваем новый образ
-      docker-compose pull
+      docker-compose -f docker-compose.backend.yml pull
       
-      # Запускаем все сервисы
-      docker-compose up -d
+      # Запускаем только бэкенды
+      docker-compose -f docker-compose.backend.yml up -d
       
       # Проверяем статус
-      docker-compose ps
+      docker-compose -f docker-compose.backend.yml ps
       
       exit
       EOF
