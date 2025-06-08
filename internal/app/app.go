@@ -44,6 +44,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{
 			"https://dev.lootor.me", // Ваш основной домен
+			"https://lootor.me",     // Ваш основной домен
 			"https://www.lootor.me", // С www
 			"http://localhost:3000", // Локальная разработка
 			"http://localhost:4173", // Vite dev server

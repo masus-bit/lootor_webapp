@@ -1,5 +1,5 @@
 {
-  "address": "http://62.109.30.145:9200",
+  "address": "https://62.109.30.145:9200",
   "indices": {
     "collections": {
       "settings": {
