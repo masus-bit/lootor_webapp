@@ -3,6 +3,7 @@ package mail
 import (
 	"fmt"
 	"gopkg.in/gomail.v2"
+	"os"
 )
 
 type MailService struct {
@@ -19,8 +20,10 @@ func NewMailService(host string, port int, username, password, from string) *Mai
 
 func (s *MailService) SendConfirmationEmail(email, token string) error {
 
+	domain := os.Getenv("TRELLO_API_KEY")
+
 	subject := "Подтверждение регистрации на Lootor"
-	body := fmt.Sprintf("Подтвердите ваш аккаунт, перейдя по ссылке: https://dev.lootor.me/auth?confirmationToken=%s", token)
+	body := fmt.Sprintf("Подтвердите ваш аккаунт, перейдя по ссылке: https://%s/auth?confirmationToken=%s", domain, token)
 	m := gomail.NewMessage()
 	m.SetHeader("From", s.from)
 	m.SetHeader("To", email)
