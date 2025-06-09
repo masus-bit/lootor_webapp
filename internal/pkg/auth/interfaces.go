@@ -12,4 +12,6 @@ type TokenData interface {
 	GetAvatarUrl() string
 	GetBackgroundUrl() string
 	GetSubscribers() int
+	GetBio() string
+	GetCity() string
 }

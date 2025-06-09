@@ -29,10 +29,12 @@ type Users struct {
 }
 
 type SignUpRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8"`
-	Login    string `json:"login" validate:"required"`
-	UserName string `json:"userName" validate:"required"`
+	Email    string  `json:"email" validate:"required,email"`
+	Password string  `json:"password" validate:"required,min=8"`
+	Login    string  `json:"login" validate:"required"`
+	UserName string  `json:"userName" validate:"required"`
+	City     *string `json:"city"`
+	Bio      *string `json:"bio"`
 }
 
 type SignInRequest struct {
@@ -176,3 +178,5 @@ func (u *Users) GetDislikes() int         { return u.Dislikes }
 func (u *Users) GetAvatarUrl() string     { return u.AvatarUrl }
 func (u *Users) GetBackgroundUrl() string { return u.BackgroundUrl }
 func (u *Users) GetSubscribers() int      { return u.Subscribers }
+func (u *Users) GetBio() string           { return u.Bio }
+func (u *Users) GetCity() string          { return u.City }

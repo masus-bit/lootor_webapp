@@ -204,6 +204,8 @@ func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*m
 		PasswordHash:      passwordHash,
 		Created:           isoTime,
 		VerificationToken: hexString,
+		Bio:               *dto.Bio,
+		City:              *dto.City,
 	}
 
 	err := s.repo.CreateUser(&dbUser)
