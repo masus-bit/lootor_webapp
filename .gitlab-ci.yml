@@ -30,6 +30,12 @@ deploy:
     - deploy
   stage: deploy
   script:
+    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "${SSH_PRIVATE_KEY}" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 600 ~/.ssh
+    - echo "=================deploy to host================="
     - |
       ssh -o StrictHostKeyChecking=no -t -t root@62.109.30.145 << EOF
       cd ../lootor
