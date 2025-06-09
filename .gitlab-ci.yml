@@ -30,30 +30,26 @@ deploy:
     - deploy
   stage: deploy
   script:
-    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
-    - eval $(ssh-agent -s)
-    - echo "${SSH_PRIVATE_KEY}" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 600 ~/.ssh
-    - echo "=================deploy to host================="
     - |
       ssh -o StrictHostKeyChecking=no -t -t root@62.109.30.145 << EOF
       cd ../lootor
       
-      docker network inspect lootor_network >/dev/null 2>&1 || docker network create lootor_network
+      docker-compose -f docker-compose.backend.yml stop nginx || true
+      docker-compose -f docker-compose.backend.yml stop backend1 backend2 backend3 backend4 || true
       
-      docker-compose -f docker-compose.backend.yml stop || true
-      
-
       docker-compose -f docker-compose.backend.yml pull
       
       docker-compose -f docker-compose.backend.yml up -d auc redis elasticsearch
-      sleep 10  # Даем время БД и другим сервисам запуститься
-      docker-compose -f docker-compose.backend.yml up -d backend1 backend2 backend3 backend4 nginx
+      sleep 15 
+      
+      docker-compose -f docker-compose.backend.yml up -d backend1 backend2 backend3 backend4
+      sleep 5 
+      
+      docker-compose -f docker-compose.backend.yml up -d nginx
       
       docker-compose -f docker-compose.backend.yml ps
-      docker network inspect lootor_network
-      
+      docker logs lootor_backend1_1 --tail 50
+      docker logs lootor_auc_1 --tail 20
       exit
       EOF
 
