@@ -124,6 +124,7 @@ func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string,
 	if strings.TrimSpace(query) == "" {
 		return &SearchResultFormatted{}, nil
 	}
+	limitInt, _ := strconv.Atoi(limit)
 
 	searchQuery := es.buildSearchQuery(query, limit)
 	res, err := es.search(ctx, indices, searchQuery)
@@ -138,10 +139,8 @@ func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string,
 
 	indexCounts := make(map[string]int)
 	for _, hit := range res.Hits.Hits {
-		if count, ok := indexCounts[hit.Index]; ok {
-			if count >= searchQuery["post_filter"].(map[string]interface{})["bool"].(map[string]interface{})["should"].([]map[string]interface{})[getIndexPosition(hit.Index)]["bool"].(map[string]interface{})["must"].([]map[string]interface{})[1]["range"].(map[string]interface{})["inner_hits"].(map[string]interface{})["size"].(int) {
-				continue
-			}
+		if indexCounts[hit.Index] >= limitInt {
+			continue
 		}
 		filteredHits = append(filteredHits, hit)
 		indexCounts[hit.Index]++
@@ -278,14 +277,6 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 	lowerQuery := strings.ToLower(strings.TrimSpace(query))
 	queryLen := len(lowerQuery)
 
-	indexLimits := map[string]int{
-		"users":            limitInt,
-		"collections":      limitInt,
-		"tags":             limitInt,
-		"collection_items": limitInt,
-		"entities":         limitInt,
-	}
-
 	var prefixMustNot []map[string]interface{}
 	if queryLen > 3 {
 		prefixMustNot = []map[string]interface{}{
@@ -386,72 +377,6 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 					},
 				},
 				"minimum_should_match": 1,
-			},
-		},
-		"post_filter": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"should": []map[string]interface{}{
-					{
-						"bool": map[string]interface{}{
-							"must": []map[string]interface{}{
-								{"term": map[string]interface{}{"_index": "users"}},
-								{"range": map[string]interface{}{
-									"inner_hits": map[string]interface{}{
-										"size": indexLimits["users"],
-									},
-								}},
-							},
-						},
-					},
-					{
-						"bool": map[string]interface{}{
-							"must": []map[string]interface{}{
-								{"term": map[string]interface{}{"_index": "collections"}},
-								{"range": map[string]interface{}{
-									"inner_hits": map[string]interface{}{
-										"size": indexLimits["collections"],
-									},
-								}},
-							},
-						},
-					},
-					{
-						"bool": map[string]interface{}{
-							"must": []map[string]interface{}{
-								{"term": map[string]interface{}{"_index": "tags"}},
-								{"range": map[string]interface{}{
-									"inner_hits": map[string]interface{}{
-										"size": indexLimits["tags"],
-									},
-								}},
-							},
-						},
-					},
-					{
-						"bool": map[string]interface{}{
-							"must": []map[string]interface{}{
-								{"term": map[string]interface{}{"_index": "collection_items"}},
-								{"range": map[string]interface{}{
-									"inner_hits": map[string]interface{}{
-										"size": indexLimits["collection_items"],
-									},
-								}},
-							},
-						},
-					},
-					{
-						"bool": map[string]interface{}{
-							"must": []map[string]interface{}{
-								{"term": map[string]interface{}{"_index": "entities"}},
-								{"range": map[string]interface{}{
-									"inner_hits": map[string]interface{}{
-										"size": indexLimits["entities"],
-									},
-								}},
-							},
-						},
-					},
-				},
 			},
 		},
 		"size": limitInt * 5,
