@@ -25,16 +25,18 @@ func (r *CollectionsRepository) CreateCollection(collection *models.Collections)
 		return nil, err.Error
 	}
 
-	doc := map[string]interface{}{
-		"id":          collection.Id.String(),
-		"name":        collection.Name,
-		"description": collection.Description,
-		"isPrivate":   collection.IsPrivate,
-		"bannerUrl":   collection.BannerUrl,
-	}
+	if !collection.IsPrivate {
+		doc := map[string]interface{}{
+			"id":          collection.Id.String(),
+			"name":        collection.Name,
+			"description": collection.Description,
+			"isPrivate":   collection.IsPrivate,
+			"bannerUrl":   collection.BannerUrl,
+		}
 
-	if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
-		log.Printf("Failed to index collection: %v", err)
+		if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
+			log.Printf("Failed to index collection: %v", err)
+		}
 	}
 
 	return collection, nil
@@ -450,16 +452,18 @@ func (r *CollectionsRepository) UpdateCollection(existsCollection *models.Collec
 	var result models.Collections
 	err := r.db.Preload("Tags").First(&result, existsCollection.Id).Error
 
-	doc := map[string]interface{}{
-		"id":          result.Id.String(),
-		"name":        result.Name,
-		"description": result.Description,
-		"isPrivate":   result.IsPrivate,
-		"bannerUrl":   result.BannerUrl,
-	}
+	if !result.IsPrivate {
+		doc := map[string]interface{}{
+			"id":          result.Id.String(),
+			"name":        result.Name,
+			"description": result.Description,
+			"isPrivate":   result.IsPrivate,
+			"bannerUrl":   result.BannerUrl,
+		}
 
-	if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
-		log.Printf("Failed to index collection: %v", err)
+		if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
+			log.Printf("Failed to index collection: %v", err)
+		}
 	}
 
 	return &result, err
@@ -485,23 +489,25 @@ func (r *CollectionsRepository) UpdateCollectionFull(existsCollection *models.Co
 	}
 
 	var result models.Collections
+
 	if err := r.db.
 		Preload("Tags").
 		First(&result, "id = ?", existsCollection.Id).
 		Error; err != nil {
 		return nil, err
 	}
+	if !result.IsPrivate {
+		doc := map[string]interface{}{
+			"id":          result.Id.String(),
+			"name":        result.Name,
+			"description": result.Description,
+			"isPrivate":   result.IsPrivate,
+			"bannerUrl":   result.BannerUrl,
+		}
 
-	doc := map[string]interface{}{
-		"id":          result.Id.String(),
-		"name":        result.Name,
-		"description": result.Description,
-		"isPrivate":   result.IsPrivate,
-		"bannerUrl":   result.BannerUrl,
-	}
-
-	if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
-		log.Printf("Failed to index collection: %v", err)
+		if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
+			log.Printf("Failed to index collection: %v", err)
+		}
 	}
 
 	return &result, nil

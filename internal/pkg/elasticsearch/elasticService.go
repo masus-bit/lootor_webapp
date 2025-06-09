@@ -131,7 +131,40 @@ func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string,
 		return nil, err
 	}
 
-	return &SearchResultFormatted{Result: res.Hits.Hits}, nil
+	var filteredHits []struct {
+		Index  string                 `json:"_index"`
+		Source map[string]interface{} `json:"_source"`
+	}
+
+	indexCounts := make(map[string]int)
+	for _, hit := range res.Hits.Hits {
+		if count, ok := indexCounts[hit.Index]; ok {
+			if count >= searchQuery["post_filter"].(map[string]interface{})["bool"].(map[string]interface{})["should"].([]map[string]interface{})[getIndexPosition(hit.Index)]["bool"].(map[string]interface{})["must"].([]map[string]interface{})[1]["range"].(map[string]interface{})["inner_hits"].(map[string]interface{})["size"].(int) {
+				continue
+			}
+		}
+		filteredHits = append(filteredHits, hit)
+		indexCounts[hit.Index]++
+	}
+
+	return &SearchResultFormatted{Result: filteredHits}, nil
+}
+
+func getIndexPosition(index string) int {
+	switch index {
+	case "users":
+		return 0
+	case "collections":
+		return 1
+	case "tags":
+		return 2
+	case "collection_items":
+		return 3
+	case "entities":
+		return 4
+	default:
+		return -1
+	}
 }
 
 func (es *ElasticService) deleteIndexIfExists(indexName string) error {
@@ -245,6 +278,14 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 	lowerQuery := strings.ToLower(strings.TrimSpace(query))
 	queryLen := len(lowerQuery)
 
+	indexLimits := map[string]int{
+		"users":            limitInt,
+		"collections":      limitInt,
+		"tags":             limitInt,
+		"collection_items": limitInt,
+		"entities":         limitInt,
+	}
+
 	var prefixMustNot []map[string]interface{}
 	if queryLen > 3 {
 		prefixMustNot = []map[string]interface{}{
@@ -347,7 +388,73 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 				"minimum_should_match": 1,
 			},
 		},
-		"size": limitInt,
+		"post_filter": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"should": []map[string]interface{}{
+					{
+						"bool": map[string]interface{}{
+							"must": []map[string]interface{}{
+								{"term": map[string]interface{}{"_index": "users"}},
+								{"range": map[string]interface{}{
+									"inner_hits": map[string]interface{}{
+										"size": indexLimits["users"],
+									},
+								}},
+							},
+						},
+					},
+					{
+						"bool": map[string]interface{}{
+							"must": []map[string]interface{}{
+								{"term": map[string]interface{}{"_index": "collections"}},
+								{"range": map[string]interface{}{
+									"inner_hits": map[string]interface{}{
+										"size": indexLimits["collections"],
+									},
+								}},
+							},
+						},
+					},
+					{
+						"bool": map[string]interface{}{
+							"must": []map[string]interface{}{
+								{"term": map[string]interface{}{"_index": "tags"}},
+								{"range": map[string]interface{}{
+									"inner_hits": map[string]interface{}{
+										"size": indexLimits["tags"],
+									},
+								}},
+							},
+						},
+					},
+					{
+						"bool": map[string]interface{}{
+							"must": []map[string]interface{}{
+								{"term": map[string]interface{}{"_index": "collection_items"}},
+								{"range": map[string]interface{}{
+									"inner_hits": map[string]interface{}{
+										"size": indexLimits["collection_items"],
+									},
+								}},
+							},
+						},
+					},
+					{
+						"bool": map[string]interface{}{
+							"must": []map[string]interface{}{
+								{"term": map[string]interface{}{"_index": "entities"}},
+								{"range": map[string]interface{}{
+									"inner_hits": map[string]interface{}{
+										"size": indexLimits["entities"],
+									},
+								}},
+							},
+						},
+					},
+				},
+			},
+		},
+		"size": limitInt * 5,
 	}
 }
 
@@ -438,7 +545,7 @@ func (es *ElasticService) DeleteDocument(ctx context.Context, index, id string) 
 	defer res.Body.Close()
 
 	if res.StatusCode == 404 {
-		return nil // Документ не найден - не считаем ошибкой
+		return nil
 	} else if res.IsError() {
 		return parseErrorResponse(res)
 	}
