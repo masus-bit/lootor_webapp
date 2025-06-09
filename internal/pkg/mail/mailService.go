@@ -20,7 +20,7 @@ func NewMailService(host string, port int, username, password, from string) *Mai
 
 func (s *MailService) SendConfirmationEmail(email, token string) error {
 
-	domain := os.Getenv("TRELLO_API_KEY")
+	domain := os.Getenv("DOMAIN")
 
 	subject := "Подтверждение регистрации на Lootor"
 	body := fmt.Sprintf("Подтвердите ваш аккаунт, перейдя по ссылке: https://%s/auth?confirmationToken=%s", domain, token)
