@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/redis/go-redis/v9"
 	echoSwagger "github.com/swaggo/echo-swagger"
+	"log"
 	"lootor/internal/config"
 	"lootor/internal/core/controllers"
 	"lootor/internal/core/models"
@@ -71,7 +72,9 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	// Инициализация БД
 	db, err := database.InitDB(&cfg.Database)
 	if err != nil {
-		return nil, err
+		if err := database.Reconnect(&cfg.Database); err != nil {
+			log.Printf("Reconnection failed: %v", err)
+		}
 	}
 
 	jwtService := auth.NewJWTService(

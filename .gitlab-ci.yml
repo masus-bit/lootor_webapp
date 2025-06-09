@@ -40,25 +40,19 @@ deploy:
       ssh -o StrictHostKeyChecking=no -t -t root@62.109.30.145 << EOF
       cd ../lootor
       
-      # Проверяем и создаем сеть если нужно
       docker network inspect lootor_network >/dev/null 2>&1 || docker network create lootor_network
       
-      # Останавливаем и удаляем все бэкенды
-      for i in {1..4}; do
-        docker-compose -f docker-compose.backend.yml stop backend\$i || true
-        docker-compose -f docker-compose.backend.yml rm -f backend\$i || true
-        docker rm -f lootor_backend\$i\_1 2>/dev/null || true
-        docker network disconnect -f lootor_network lootor_backend\$i\_1 2>/dev/null || true
-      done
+      docker-compose -f docker-compose.backend.yml stop || true
       
-      # Подтягиваем новый образ
+
       docker-compose -f docker-compose.backend.yml pull
       
-      # Запускаем только бэкенды
-      docker-compose -f docker-compose.backend.yml up -d
+      docker-compose -f docker-compose.backend.yml up -d auc redis elasticsearch
+      sleep 10  # Даем время БД и другим сервисам запуститься
+      docker-compose -f docker-compose.backend.yml up -d backend1 backend2 backend3 backend4 nginx
       
-      # Проверяем статус
       docker-compose -f docker-compose.backend.yml ps
+      docker network inspect lootor_network
       
       exit
       EOF
