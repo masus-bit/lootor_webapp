@@ -24,6 +24,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"time"
 )
 
@@ -44,11 +45,11 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{
-			"https://dev.lootor.me", // Ваш основной домен
-			"https://lootor.me",     // Ваш основной домен
-			"https://www.lootor.me", // С www
-			"http://localhost:3000", // Локальная разработка
-			"http://localhost:4173", // Vite dev server
+			"https://dev.lootor.me",
+			"https://lootor.me",
+			"https://www.lootor.me",
+			"http://localhost:3000",
+			"http://localhost:4173",
 			"*",
 		},
 		AllowMethods: []string{
@@ -106,8 +107,15 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	host := os.Getenv("YANDEX_POST_HOST")
+	port := os.Getenv("YANDEX_POST_PORT")
+	portInt, _ := strconv.Atoi(port)
+	user := os.Getenv("YANDEX_POST_USER")
+	password := os.Getenv("YANDEX_POST_PASSWORD")
+
 	s3Service := s3.NewS3Service(redisClient)
-	mailService := mail.NewMailService("smtp.yandex.ru", 465, "noreply@lootor.me", "cytuhekbl13", `"Lootor" <noreply@lootor.me>`)
+	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootor.me>`)
 	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsRepo)
 	ciService := services.NewCiService(ciRepo, eventsRepo, colRepo, userRepo, platformRepo, entityRepo, s3Service, itemTypesRepo)
 	colService := services.NewCollectionService(colRepo, tagRepo, userRepo, eventsRepo, ciRepo, s3Service)
