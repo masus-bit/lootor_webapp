@@ -1,10 +1,12 @@
 package auth
 
 import (
+	recaptcha "cloud.google.com/go/recaptchaenterprise/v2/apiv1"
+	recaptchapb "cloud.google.com/go/recaptchaenterprise/v2/apiv1/recaptchaenterprisepb"
+	"context"
 	"fmt"
 	"github.com/joho/godotenv"
 	"lootor/internal/pkg/dto"
-	"lootor/internal/pkg/utils"
 	"os"
 )
 
@@ -17,42 +19,66 @@ func NewRecaptchaService() *RecaptchaService {
 }
 
 func (s *RecaptchaService) CheckRecaptcha(token string) (*dto.CommonResponse, error) {
-	baseUrl := os.Getenv("RECAPTCHA_URL")
 	secret := os.Getenv("RECAPTCHA_SECRET")
+	projectID := os.Getenv("RECAPTCHA_PROJECT_ID")
+	recaptchaKey := secret
+	recaptchaAction := "login"
 
-	reqBody := map[string]string{
-		"secret":   secret,
-		"response": token,
+	success := createAssessment(projectID, recaptchaKey, token, recaptchaAction)
+
+	return &dto.CommonResponse{Data: dto.Resp{Success: success}}, nil
+}
+
+func createAssessment(projectID string, recaptchaKey string, token string, recaptchaAction string) bool {
+
+	ctx := context.Background()
+	client, err := recaptcha.NewClient(ctx)
+	if err != nil {
+		fmt.Printf("Error creating reCAPTCHA client\n")
+	}
+	defer client.Close()
+
+	event := &recaptchapb.Event{
+		Token:   token,
+		SiteKey: recaptchaKey,
 	}
 
-	headers := map[string]string{
-		"Content-Type": "application/json",
+	assessment := &recaptchapb.Assessment{
+		Event: event,
 	}
 
-	response, err := utils.SendRequest[struct {
-		Data struct {
-			Success bool    `json:"success"`
-			Score   float64 `json:"score"`
-		}
-	}](struct {
-		Method      string
-		URL         string
-		Headers     map[string]string
-		QueryParams map[string]string
-		Body        map[string]string
-		File        []byte
-	}{Method: "POST", URL: baseUrl, Headers: headers, QueryParams: nil, Body: reqBody, File: []byte{}})
+	request := &recaptchapb.CreateAssessmentRequest{
+		Assessment: assessment,
+		Parent:     fmt.Sprintf("projects/%s", projectID),
+	}
+
+	response, err := client.CreateAssessment(
+		ctx,
+		request)
 
 	if err != nil {
-		return nil, err
+		fmt.Printf("Error calling CreateAssessment: %v", err.Error())
 	}
-	fmt.Println(response)
-	log := fmt.Sprintf("data: %v, score: %v, success: %v", response.Data, response.Data.Score, response.Data.Success)
-	fmt.Println(log)
-	if response.Data.Success && response.Data.Score > 0.5 {
-		return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+
+	if !response.TokenProperties.Valid {
+		fmt.Printf("The CreateAssessment() call failed because the token was invalid for the following reasons: %v",
+			response.TokenProperties.InvalidReason)
+		return false
 	}
-	return &dto.CommonResponse{Data: dto.Resp{
-		Success: false,
-	}}, nil
+
+	if response.TokenProperties.Action != recaptchaAction {
+		fmt.Printf("The action attribute in your reCAPTCHA tag does not match the action you are expecting to score")
+		return false
+	}
+
+	fmt.Printf("The reCAPTCHA score for this token is:  %v", response.RiskAnalysis.Score)
+
+	if response.RiskAnalysis.Score < 0.5 {
+		return false
+	}
+	return true
+
+	//for _, reason := range response.RiskAnalysis.Reasons {
+	//	fmt.Printf(reason.String() + "\n")
+	//}
 }
