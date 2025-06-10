@@ -120,7 +120,6 @@ func HashPassword(password string) (string, error) {
 	return string(hashedBytes), nil
 }
 func (s *JWTService) RenewTokenPair(refreshToken string) (*TokenPair, error) {
-	// Парсим refresh-токен и проверяем подпись
 	token, err := jwt.ParseWithClaims(refreshToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
@@ -132,23 +131,19 @@ func (s *JWTService) RenewTokenPair(refreshToken string) (*TokenPair, error) {
 		return nil, fmt.Errorf("invalid refresh token: %w", err)
 	}
 
-	// Проверяем валидность токена
 	if !token.Valid {
 		return nil, errors.New("invalid refresh token")
 	}
 
-	// Извлекаем claims
 	claims, ok := token.Claims.(*Claims)
 	if !ok {
 		return nil, errors.New("invalid token claims")
 	}
 
-	// Проверяем, что токен не истек
 	if time.Now().After(claims.ExpiresAt.Time) {
 		return nil, errors.New("refresh token expired")
 	}
 
-	// Создаем TokenData из claims (адаптируйте под вашу структуру)
 	userData := &tokenData{
 		login:         claims.Login,
 		userName:      claims.UserName,
@@ -161,9 +156,10 @@ func (s *JWTService) RenewTokenPair(refreshToken string) (*TokenPair, error) {
 		avatarUrl:     claims.AvatarUrl,
 		backgroundUrl: claims.BackgroundUrl,
 		subscribers:   claims.Subscribers,
+		bio:           claims.Bio,
+		city:          claims.City,
 	}
 
-	// Генерируем новую пару токенов
 	return s.GenerateTokenPair(userData)
 }
 
