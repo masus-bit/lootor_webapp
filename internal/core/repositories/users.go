@@ -6,6 +6,7 @@ import (
 	"log"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
+	"time"
 )
 
 type UsersRepository struct {
@@ -227,4 +228,30 @@ func (r *UsersRepository) UpdateLogin(existsUser *models.Users, updated *models.
 	}
 
 	return &updatedUser, err
+}
+
+func (r *UsersRepository) ActivatePremium(existsUser *models.Users, updatedUser *models.Users) (bool, error) {
+	result := r.db.Model(existsUser).Select("*").Updates(updatedUser)
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return true, nil
+}
+
+func (r *UsersRepository) CheckPremiumStatus(userLogin string) (bool, error) {
+	var user models.Users
+	if err := r.db.Where("login = ?", userLogin).First(&user).Error; err != nil {
+		return false, err
+	}
+	return user.IsPremium && user.PremiumUntil.After(time.Now()), nil
+}
+
+func (r *UsersRepository) DeactivatePremium() error {
+	result := r.db.Model(&models.Users{}).
+		Where("is_premium = ? AND premium_until < ?", true, time.Now()).
+		Updates(map[string]interface{}{"is_premium": false})
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }

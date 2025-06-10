@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/redis/go-redis/v9"
+	"github.com/robfig/cron/v3"
 	echoSwagger "github.com/swaggo/echo-swagger"
 	"log"
 	"lootor/internal/config"
@@ -152,6 +153,8 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.RecaptchaRouter(e, jwtService, *recaptchaService)
 
 	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagRepo, entityRepo).ReindexInternal(context.Background())
-
+	c := cron.New()
+	c.AddFunc("@midnight", func() { userService.CheckExpiredSubscriptions() })
+	c.Start()
 	return &App{Echo: e}, nil
 }
