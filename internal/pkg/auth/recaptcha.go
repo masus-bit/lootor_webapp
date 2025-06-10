@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"github.com/joho/godotenv"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/utils"
@@ -45,6 +46,9 @@ func (s *RecaptchaService) CheckRecaptcha(token string) (*dto.CommonResponse, er
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(response)
+	log := fmt.Sprintf("data: %v, score: %v, success: %v", response.Data, response.Data.Score, response.Data.Success)
+	fmt.Println(log)
 	if response.Data.Success && response.Data.Score > 0.5 {
 		return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 	}
