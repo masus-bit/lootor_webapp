@@ -126,6 +126,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	fbService := feedback.NewFeedbackService()
 	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsRepo)
 	enrichedCIService := utils.NewEnrichedCIService(ciService)
+	recaptchaService := auth.NewRecaptchaService()
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
@@ -148,6 +149,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.FeedbackRouter(e, jwtService, *fbService)
 	routes.ItemTypesRouter(e, jwtService, *itemTypesService)
 	routes.WLRouter(e, jwtService, *wlService)
+	routes.RecaptchaRouter(e, jwtService, *recaptchaService)
 
 	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagRepo, entityRepo).ReindexInternal(context.Background())
 
