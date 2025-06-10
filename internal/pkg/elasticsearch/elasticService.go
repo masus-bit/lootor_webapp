@@ -365,6 +365,26 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 										{"term": map[string]interface{}{"_index": "entities"}},
 									},
 								}},
+								{"match": map[string]interface{}{
+									"name.full": map[string]interface{}{
+										"query":    lowerQuery,
+										"operator": "or",
+									},
+								}},
+							},
+						},
+					},
+					{
+						"bool": map[string]interface{}{
+							"must": []map[string]interface{}{
+								{"bool": map[string]interface{}{
+									"should": []map[string]interface{}{
+										{"term": map[string]interface{}{"_index": "collections"}},
+										{"term": map[string]interface{}{"_index": "tags"}},
+										{"term": map[string]interface{}{"_index": "collection_items"}},
+										{"term": map[string]interface{}{"_index": "entities"}},
+									},
+								}},
 								{"prefix": map[string]interface{}{
 									"name.keyword": map[string]interface{}{
 										"value":            lowerQuery,
