@@ -9,9 +9,9 @@ import (
 func RecaptchaRouter(e *echo.Echo, jwtService *auth.JWTService, service auth.RecaptchaService) {
 	controller := controllers.NewRecaptchaController(&service)
 
-	publicGroup := e.Group("/recaptcha_verify")
+	publicGroup := e.Group("/public")
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
-		publicGroup.GET("", controller.CheckRecaptcha)
+		publicGroup.GET("/recaptcha_verify", controller.CheckRecaptcha)
 	}
 }
