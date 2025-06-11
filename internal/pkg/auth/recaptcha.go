@@ -11,32 +11,51 @@ import (
 )
 
 type RecaptchaService struct {
+	client *recaptcha.Client
 }
 
-func NewRecaptchaService() *RecaptchaService {
-	_ = godotenv.Load()
-	return &RecaptchaService{}
-}
-
-func (s *RecaptchaService) CheckRecaptcha(token string, action string) (*dto.CommonResponse, error) {
-	secret := os.Getenv("RECAPTCHA_SECRET")
-	projectID := os.Getenv("RECAPTCHA_PROJECT_ID")
-	recaptchaKey := secret
-	recaptchaAction := action
-
-	success := createAssessment(projectID, recaptchaKey, token, recaptchaAction)
-
-	return &dto.CommonResponse{Data: dto.Resp{Success: success}}, nil
-}
-
-func createAssessment(projectID string, recaptchaKey string, token string, recaptchaAction string) bool {
+func NewRecaptchaService() (*RecaptchaService, error) {
+	if err := godotenv.Load(); err != nil {
+		return nil, fmt.Errorf("error loading .env file: %v", err)
+	}
 
 	ctx := context.Background()
 	client, err := recaptcha.NewClient(ctx)
 	if err != nil {
-		fmt.Printf("Error creating reCAPTCHA client\n")
+		return nil, fmt.Errorf("failed to create reCAPTCHA client: %v", err)
 	}
-	defer client.Close()
+
+	return &RecaptchaService{client: client}, nil
+}
+
+func (s *RecaptchaService) Close() error {
+	if s.client != nil {
+		return s.client.Close()
+	}
+	return nil
+}
+
+func (s *RecaptchaService) CheckRecaptcha(token, action string) (*dto.CommonResponse, error) {
+	if s.client == nil {
+		return nil, fmt.Errorf("reCAPTCHA client not initialized")
+	}
+
+	secret := os.Getenv("RECAPTCHA_SECRET")
+	projectID := os.Getenv("RECAPTCHA_PROJECT_ID")
+	if secret == "" || projectID == "" {
+		return nil, fmt.Errorf("reCAPTCHA configuration missing")
+	}
+
+	success, err := s.createAssessment(projectID, secret, token, action)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.CommonResponse{Data: dto.Resp{Success: success}}, nil
+}
+
+func (s *RecaptchaService) createAssessment(projectID, recaptchaKey, token, recaptchaAction string) (bool, error) {
+	ctx := context.Background()
 
 	event := &recaptchapb.Event{
 		Token:   token,
@@ -52,33 +71,34 @@ func createAssessment(projectID string, recaptchaKey string, token string, recap
 		Parent:     fmt.Sprintf("projects/%s", projectID),
 	}
 
-	response, err := client.CreateAssessment(
-		ctx,
-		request)
-
+	response, err := s.client.CreateAssessment(ctx, request)
 	if err != nil {
-		fmt.Printf("Error calling CreateAssessment: %v", err.Error())
+		return false, fmt.Errorf("error calling CreateAssessment: %v", err)
+	}
+
+	if response == nil {
+		return false, fmt.Errorf("empty response from reCAPTCHA API")
+	}
+
+	if response.TokenProperties == nil {
+		return false, fmt.Errorf("missing token properties in response")
 	}
 
 	if !response.TokenProperties.Valid {
-		fmt.Printf("The CreateAssessment() call failed because the token was invalid for the following reasons: %v",
-			response.TokenProperties.InvalidReason)
-		return false
+		return false, fmt.Errorf("invalid token: %v", response.TokenProperties.InvalidReason)
 	}
 
 	if response.TokenProperties.Action != recaptchaAction {
-		fmt.Printf("The action attribute in your reCAPTCHA tag does not match the action you are expecting to score")
-		return false
+		return false, fmt.Errorf("action mismatch: expected %s, got %s",
+			recaptchaAction, response.TokenProperties.Action)
 	}
 
-	fmt.Printf("The reCAPTCHA score for this token is:  %v", response.RiskAnalysis.Score)
-
-	if response.RiskAnalysis.Score < 0.5 {
-		return false
+	if response.RiskAnalysis == nil {
+		return false, fmt.Errorf("missing risk analysis in response")
 	}
-	return true
 
-	//for _, reason := range response.RiskAnalysis.Reasons {
-	//	fmt.Printf(reason.String() + "\n")
-	//}
+	score := response.RiskAnalysis.Score
+	fmt.Printf("The reCAPTCHA score for this token is: %v\n", score)
+
+	return score >= 0.5, nil
 }
