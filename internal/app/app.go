@@ -126,7 +126,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	fbService := feedback.NewFeedbackService()
 	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsRepo)
 	enrichedCIService := utils.NewEnrichedCIService(ciService)
-	recaptchaService := auth.NewRecaptchaService()
+	recaptchaService, _ := auth.NewRecaptchaService()
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
