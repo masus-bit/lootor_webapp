@@ -16,8 +16,9 @@ func NewRecaptchaController(recaptchaService *auth.RecaptchaService) *RecaptchaC
 
 func (c *RecaptchaController) CheckRecaptcha(ctx echo.Context) error {
 	token := ctx.QueryParam("token")
+	action := ctx.QueryParam("action")
 
-	response, err := c.recaptchaService.CheckRecaptcha(token)
+	response, err := c.recaptchaService.CheckRecaptcha(token, action)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}

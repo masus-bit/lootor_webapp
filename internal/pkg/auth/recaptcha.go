@@ -18,11 +18,11 @@ func NewRecaptchaService() *RecaptchaService {
 	return &RecaptchaService{}
 }
 
-func (s *RecaptchaService) CheckRecaptcha(token string) (*dto.CommonResponse, error) {
+func (s *RecaptchaService) CheckRecaptcha(token string, action string) (*dto.CommonResponse, error) {
 	secret := os.Getenv("RECAPTCHA_SECRET")
 	projectID := os.Getenv("RECAPTCHA_PROJECT_ID")
 	recaptchaKey := secret
-	recaptchaAction := "login"
+	recaptchaAction := action
 
 	success := createAssessment(projectID, recaptchaKey, token, recaptchaAction)
 
