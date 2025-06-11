@@ -12,6 +12,6 @@ func RecaptchaRouter(e *echo.Echo, jwtService *auth.JWTService, service auth.Rec
 	publicGroup := e.Group("/public")
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
-		publicGroup.GET("/recaptcha_verify", controller.CheckRecaptcha)
+		publicGroup.GET("/captcha_verify", controller.CheckCaptcha)
 	}
 }
