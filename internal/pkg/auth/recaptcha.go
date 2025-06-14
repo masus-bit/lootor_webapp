@@ -33,14 +33,7 @@ func (s *RecaptchaService) CheckCaptcha(token string) (*dto.CommonResponse, erro
 		"Content-Type": "application/x-www-form-urlencoded",
 	}
 
-	response, err := utils.SendRequest[ValidationResponse](struct {
-		Method      string
-		URL         string
-		Headers     map[string]string
-		QueryParams map[string]string
-		Body        map[string]string
-		File        []byte
-	}{Method: "POST", URL: url, Headers: headers, QueryParams: reqParams, Body: reqBody, File: []byte{}})
+	response, err := utils.SendRequest[ValidationResponse](utils.RequestOptions{Method: "POST", URL: url, Headers: headers, QueryParams: reqParams, Body: reqBody, File: []byte{}, BasicAuth: nil})
 
 	if err != nil {
 		return nil, err
