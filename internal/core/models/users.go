@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/lib/pq"
+	"time"
 )
 
 type Users struct {
@@ -26,6 +27,10 @@ type Users struct {
 	Subscriptions           pq.StringArray  `gorm:"type:text[]" json:"subscriptions"`
 	CollectionSubscriptions pq.StringArray  `gorm:"type:text[]" json:"collectionSubscriptions"`
 	WishListItems           []WishListItems `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
+	IsPremium               bool            `gorm:"default:false" json:"isPremium"`
+	PremiumSince            time.Time       `json:"premiumSince,omitempty"`
+	PremiumUntil            time.Time       `json:"premiumUntil,omitempty"`
+	PremiumType             string          `json:"premiumType,omitempty"`
 }
 
 type SignUpRequest struct {
@@ -80,6 +85,7 @@ type UserResponse struct {
 	CollectionsCount        int             `json:"collectionsCount" default:"0"`
 	TotalSum                int             `json:"totalSum" default:"0"`
 	WishListItems           []WishListItems `json:"wishListItems"`
+	IsPremium               bool            `json:"isPremium"`
 }
 
 type UserRequestUpdate struct {
@@ -180,3 +186,4 @@ func (u *Users) GetBackgroundUrl() string { return u.BackgroundUrl }
 func (u *Users) GetSubscribers() int      { return u.Subscribers }
 func (u *Users) GetBio() string           { return u.Bio }
 func (u *Users) GetCity() string          { return u.City }
+func (u *Users) GetIsPremium() bool       { return u.IsPremium }

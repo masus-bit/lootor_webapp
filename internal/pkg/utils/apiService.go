@@ -18,15 +18,19 @@ type RequestOptions struct {
 	URL         string
 	Headers     map[string]string
 	QueryParams map[string]string
-	Body        map[string]string
+	Body        interface{}
 	File        []byte
+	BasicAuth   *struct {
+		Username string
+		Password string
+	}
 }
 
 func SendRequest[T any](options RequestOptions) (T, error) {
 	var result T
 
 	queryParams := url.Values{}
-	requestBody := url.Values{}
+	var reqBody io.Reader
 
 	var fileBody bytes.Buffer
 	writer := multipart.NewWriter(&fileBody)
@@ -44,10 +48,22 @@ func SendRequest[T any](options RequestOptions) (T, error) {
 		modifiedUrl = options.URL + "?" + queryParams.Encode()
 	}
 
-	if len(options.Body) > 0 {
-		for key, value := range options.Body {
-			requestBody.Add(key, value)
+	switch body := options.Body.(type) {
+	case nil:
+	case map[string]string:
+		values := url.Values{}
+		for key, value := range body {
+			values.Add(key, value)
 		}
+		reqBody = strings.NewReader(values.Encode())
+	case []byte:
+		reqBody = bytes.NewReader(body)
+	default:
+		jsonData, err := json.Marshal(body)
+		if err != nil {
+			return result, fmt.Errorf("failed to marshal request body: %w", err)
+		}
+		reqBody = bytes.NewReader(jsonData)
 	}
 
 	var req *http.Request
@@ -61,14 +77,17 @@ func SendRequest[T any](options RequestOptions) (T, error) {
 		}
 		req.Header.Set("Content-Type", writer.FormDataContentType())
 	} else {
-		req, err = http.NewRequest(options.Method, modifiedUrl, strings.NewReader(requestBody.Encode()))
+		req, err = http.NewRequest(options.Method, modifiedUrl, reqBody)
 		if err != nil {
 			return result, fmt.Errorf("failed to create request: %w", err)
 		}
 	}
-
 	for key, value := range options.Headers {
 		req.Header.Set(key, value)
+	}
+
+	if options.BasicAuth != nil {
+		req.SetBasicAuth(options.BasicAuth.Username, options.BasicAuth.Password)
 	}
 
 	client := &http.Client{}

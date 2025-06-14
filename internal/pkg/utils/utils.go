@@ -168,3 +168,14 @@ func FirstNonZero[T comparable](values ...T) T {
 func RemoveOrdered[T any](slice []T, index int) []T {
 	return append(slice[:index], slice[index+1:]...)
 }
+
+func GetSubscriptionType(subscriptionType string) string {
+	switch subscriptionType {
+	case "monthly":
+		return "99"
+	case "yearly":
+		return "799"
+	default:
+		return "99"
+	}
+}

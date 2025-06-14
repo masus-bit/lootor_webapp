@@ -1,0 +1,126 @@
+package payment
+
+import (
+	"context"
+	"fmt"
+	"github.com/google/uuid"
+	"github.com/mitchellh/mapstructure"
+	"lootor/internal/core/repositories"
+	"lootor/internal/core/services"
+	"lootor/internal/pkg/utils"
+	"os"
+)
+
+type PayService struct {
+	userRepo    *repositories.UsersRepository
+	userService *services.UserService
+	subService  *services.SubscriptionService
+}
+
+func NewPayService(userRepo *repositories.UsersRepository, userService *services.UserService, subService *services.SubscriptionService) *PayService {
+	return &PayService{userRepo: userRepo, userService: userService, subService: subService}
+}
+
+func (s *PayService) StartTransaction(login string, subType string) (*PayResponseToClientData, error) {
+	existsUser, err := s.userRepo.GetUserByLogin(login)
+	if err != nil {
+		return nil, err
+	}
+	amountValue := utils.GetSubscriptionType(subType)
+
+	item := ItemCustomer{
+		Description: "subscription",
+		Amount: Amount{
+			Currency: "RUB",
+			Value:    amountValue,
+		},
+		VatCode:        1,
+		Quantity:       1,
+		PaymentSubject: "service",
+	}
+
+	payment := Payment{
+		Amount:  Amount{Value: amountValue, Currency: "RUB"},
+		Capture: true,
+		Confirmation: Confirmation{
+			Type:      "redirect",
+			ReturnUrl: "https://lootor.me/payment_success",
+		},
+		Description: "Подписка плана " + subType,
+		Receipt: Receipt{
+			Customer: Customer{Email: existsUser.Email},
+			Items:    []ItemCustomer{item},
+		},
+		Metadata: Metadata{
+			UserLogin: login,
+			OrderID:   uuid.New().String(),
+			Type:      subType,
+		},
+	}
+
+	idempotenceKey, _ := utils.GenerateRandomString(5)
+
+	baseUrl := os.Getenv("YOOKASSA_URL")
+
+	parameters := map[string]string{}
+
+	headers := map[string]string{
+		"Idempotence-Key": idempotenceKey,
+		"Content-Type":    "application/json",
+	}
+	basicAuth := &struct {
+		Username string
+		Password string
+	}{
+		Username: os.Getenv("YOOKASSA_SHOP_ID"),
+		Password: os.Getenv("YOOKASSA_SECRET_KEY"),
+	}
+
+	response, err := utils.SendRequest[struct {
+		Response PayResponse `json:"response"`
+	}](utils.RequestOptions{Method: "POST", URL: baseUrl, Headers: headers, Body: payment, QueryParams: parameters, File: []byte{}, BasicAuth: basicAuth})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result PayResponseToClient
+
+	err = mapstructure.Decode(response, result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PayResponseToClientData{Data: result}, nil
+}
+
+func (s *PayService) EndTransaction(data *Notification) {
+	userLogin := data.Object.Metadata.UserLogin
+
+	if data.Event != "payment.succeeded" {
+		fmt.Println("expected notification: payment.succeeded")
+	}
+
+	months := 0
+	years := 0
+
+	subType := data.Object.Metadata.Type
+
+	if subType == "monthly" {
+		months = 1
+	} else {
+		years = 1
+	}
+
+	if data.Object.Paid && data.Object.Status == "succeeded" {
+		err := s.userService.ActivatePremium(userLogin, months, years, subType)
+		if err != nil {
+			return
+		}
+		ctx := context.Background()
+		_, err = s.subService.CreateSubscription(ctx, userLogin, subType, months, years)
+		if err != nil {
+			return
+		}
+	}
+}
