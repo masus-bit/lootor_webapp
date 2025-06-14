@@ -268,18 +268,21 @@ func (s *WLService) Update(id string, req models.WishListUpdateRequest, login st
 			continue
 		}
 
-		if field.Kind() == reflect.Ptr && !field.IsNil() {
+		if (field.Kind() == reflect.Ptr && !field.IsNil()) ||
+			(field.Kind() == reflect.Slice && field.Len() > 0) {
 			fieldName := fieldType.Name
 			dstField := dst.FieldByName(fieldName)
 
 			if dstField.IsValid() && dstField.CanSet() {
-				if field.Elem().Type().AssignableTo(dstField.Type()) {
+				if field.Kind() == reflect.Ptr && field.Elem().Type().AssignableTo(dstField.Type()) {
 					dstField.Set(field.Elem())
+				}
+				if field.Kind() == reflect.Slice && field.Type().AssignableTo(dstField.Type()) {
+					dstField.Set(field)
 				}
 			}
 		}
 	}
-
 	updated, err := s.wlRepo.UpdateItem(existsItem)
 	if err != nil {
 		return nil, err
