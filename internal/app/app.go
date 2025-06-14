@@ -20,6 +20,7 @@ import (
 	"lootor/internal/pkg/elasticsearch"
 	"lootor/internal/pkg/feedback"
 	"lootor/internal/pkg/mail"
+	"lootor/internal/pkg/payment"
 	"lootor/internal/pkg/s3"
 	"lootor/internal/pkg/utils"
 	"os"
@@ -104,6 +105,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	eventsRepo := repositories.NewEventsRepository(db)
 	itemTypesRepo := repositories.NewItemTypesRepository(db)
 	wlRepo := repositories.NewWLRepository(db)
+	subRepo := repositories.NewSubscriptionRepository(db)
 	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Events{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{}, &models.ItemTypes{}, &models.WishListItems{})
 	if err != nil {
 		return nil, err
@@ -127,7 +129,8 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	fbService := feedback.NewFeedbackService()
 	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsRepo)
 	enrichedCIService := utils.NewEnrichedCIService(ciService)
-	recaptchaService := auth.NewRecaptchaService()
+	subService := services.NewSubscriptionService(subRepo)
+	paymentService := payment.NewPayService(userRepo, userService, subService)
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
@@ -150,11 +153,14 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.FeedbackRouter(e, jwtService, *fbService)
 	routes.ItemTypesRouter(e, jwtService, *itemTypesService)
 	routes.WLRouter(e, jwtService, *wlService)
-	routes.RecaptchaRouter(e, jwtService, *recaptchaService)
+	routes.PaymentRouter(e, jwtService, *paymentService)
 
 	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagRepo, entityRepo).ReindexInternal(context.Background())
 	c := cron.New()
-	c.AddFunc("@midnight", func() { userService.CheckExpiredSubscriptions() })
+	_, err = c.AddFunc("@midnight", func() { userService.CheckExpiredSubscriptions() })
+	if err != nil {
+		return nil, err
+	}
 	c.Start()
 	return &App{Echo: e}, nil
 }

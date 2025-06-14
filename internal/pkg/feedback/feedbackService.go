@@ -37,14 +37,7 @@ func (s *FeedbackService) AddIssue(title string, description string, file []byte
 
 	response, err := utils.SendRequest[struct {
 		Id string `json:"id"`
-	}](struct {
-		Method      string
-		URL         string
-		Headers     map[string]string
-		QueryParams map[string]string
-		Body        map[string]string
-		File        []byte
-	}{Method: "POST", URL: os.Getenv("TRELLO_API_URL"), Headers: headers, QueryParams: reqParams, Body: reqBody, File: []byte{}})
+	}](utils.RequestOptions{Method: "POST", URL: os.Getenv("TRELLO_API_URL"), Headers: headers, QueryParams: reqParams, Body: reqBody, File: []byte{}, BasicAuth: nil})
 	if file != nil {
 
 		attachReqUrl := fmt.Sprintf("%s/%s/attachments",
@@ -57,14 +50,7 @@ func (s *FeedbackService) AddIssue(title string, description string, file []byte
 			"token": os.Getenv("TRELLO_TOKEN"),
 		}
 
-		_, attachErr := utils.SendRequest[any](struct {
-			Method      string
-			URL         string
-			Headers     map[string]string
-			QueryParams map[string]string
-			Body        map[string]string
-			File        []byte
-		}{Method: "POST", URL: attachReqUrl, Headers: map[string]string{}, QueryParams: attachReqParams, Body: map[string]string{}, File: file})
+		_, attachErr := utils.SendRequest[any](utils.RequestOptions{Method: "POST", URL: attachReqUrl, Headers: map[string]string{}, QueryParams: attachReqParams, Body: map[string]string{}, File: file, BasicAuth: nil})
 
 		if attachErr != nil {
 			return nil, fmt.Errorf("failed to request attach: %w", err)

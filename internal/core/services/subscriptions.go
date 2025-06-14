@@ -15,13 +15,13 @@ func NewSubscriptionService(repo *repositories.SubscriptionRepository) *Subscrip
 	return &SubscriptionService{repo: repo}
 }
 
-func (s *SubscriptionService) CreateSubscription(ctx context.Context, login string, subType string, duration time.Duration) (*models.Subscription, error) {
+func (s *SubscriptionService) CreateSubscription(ctx context.Context, login string, subType string, months int, years int) (*models.Subscription, error) {
 	now := time.Now()
 	subscription := &models.Subscription{
 		UserLogin: login,
 		Type:      subType,
-		StartDate: now,
-		EndDate:   now.Add(duration),
+		StartedAt: now,
+		ExpiresAt: now.AddDate(years, months, 0),
 	}
 
 	if err := s.repo.Create(ctx, subscription); err != nil {

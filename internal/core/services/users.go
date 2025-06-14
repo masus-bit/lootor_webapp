@@ -286,14 +286,7 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		"Content-Type": "application/x-www-form-urlencoded",
 	}
 
-	response, err := utils.SendRequest[models.VkAuthGetTokenData](struct {
-		Method      string
-		URL         string
-		Headers     map[string]string
-		QueryParams map[string]string
-		Body        map[string]string
-		File        []byte
-	}{Method: "POST", URL: "https://id.vk.com/oauth2/auth", Headers: headers, QueryParams: map[string]string{}, Body: bodyRequest, File: []byte{}})
+	response, err := utils.SendRequest[models.VkAuthGetTokenData](utils.RequestOptions{Method: "POST", URL: "https://id.vk.com/oauth2/auth", Headers: headers, QueryParams: map[string]string{}, Body: bodyRequest, File: []byte{}, BasicAuth: nil})
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -366,14 +359,7 @@ func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo
 	}
 	response, err := utils.SendRequest[struct {
 		Response []models.VkAuthGetUserInfo `json:"response"`
-	}](struct {
-		Method      string
-		URL         string
-		Headers     map[string]string
-		QueryParams map[string]string
-		Body        map[string]string
-		File        []byte
-	}{Method: "GET", URL: baseUrl, Headers: map[string]string{}, Body: map[string]string{}, QueryParams: parameters, File: []byte{}})
+	}](utils.RequestOptions{Method: "GET", URL: baseUrl, Headers: map[string]string{}, Body: map[string]string{}, QueryParams: parameters, File: []byte{}, BasicAuth: nil})
 
 	if err != nil {
 		return nil, err
@@ -581,14 +567,14 @@ func (s *UserService) UpdateLoginOnly(newLogin string, targetUserLogin string) (
 
 }
 
-func (s *UserService) ActivatePremium(userLogin string, duration time.Duration, premiumType string) error {
+func (s *UserService) ActivatePremium(userLogin string, months int, years int, premiumType string) error {
 	existsUser, _ := s.repo.GetUserByLogin(userLogin)
 
 	updatedUser := models.Users{
 		Login:        existsUser.Login,
 		IsPremium:    true,
 		PremiumSince: time.Now(),
-		PremiumUntil: time.Now().Add(duration),
+		PremiumUntil: time.Now().AddDate(years, months, 0),
 		PremiumType:  premiumType,
 	}
 
