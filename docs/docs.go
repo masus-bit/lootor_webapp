@@ -1177,6 +1177,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/payment": {
+            "get": {
+                "description": "создание платежа",
+                "tags": [
+                    "payment"
+                ],
+                "summary": "Создать Платеж",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "тип подписки monthly/yearly",
+                        "name": "subType",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/payment.PayResponseToClientData"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/platforms": {
             "get": {
                 "consumes": [
@@ -2407,6 +2433,12 @@ const docTemplate = `{
                 "userName"
             ],
             "properties": {
+                "bio": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -2487,6 +2519,42 @@ const docTemplate = `{
             "properties": {
                 "priority": {
                     "type": "integer"
+                }
+            }
+        },
+        "payment.ConfirmURL": {
+            "type": "object",
+            "properties": {
+                "confirmation_url": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "payment.PayResponseToClient": {
+            "type": "object",
+            "properties": {
+                "confirmation": {
+                    "$ref": "#/definitions/payment.ConfirmURL"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "paid": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "payment.PayResponseToClientData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/payment.PayResponseToClient"
                 }
             }
         },
