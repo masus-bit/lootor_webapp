@@ -97,6 +97,16 @@ type UserRequestUpdate struct {
 	Bio           *string `json:"bio,omitempty"`
 }
 
+type UserRequestUpdateFirstTime struct {
+	Login         *string `json:"login,omitempty"`
+	UserName      *string `json:"userName,omitempty"`
+	Email         *string `json:"email,omitempty"`
+	AvatarUrl     *string `json:"avatarUrl,omitempty"`
+	BackgroundUrl *string `json:"backgroundUrl,omitempty"`
+	City          *string `json:"city,omitempty"`
+	Bio           *string `json:"bio,omitempty"`
+}
+
 type UserResponseForCollection struct {
 	Login         string         `json:"login"`
 	UserName      string         `json:"userName"`

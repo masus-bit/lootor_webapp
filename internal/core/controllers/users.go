@@ -370,11 +370,11 @@ func (c *UserController) UpdateUser(ctx echo.Context) error {
 // @Tags users
 // @Accept  json
 // @Produce  json
-// @Param login body string true "new login"
+// @Param user body models.UserRequestUpdateFirstTime true "User data"
 // @Success 201 {object} models.SignInResponse
 // @Router /secured/user/update/login [post]
 func (c *UserController) UpdateLogin(ctx echo.Context) error {
-	var request models.ChangeLoginRequest
+	var request models.UserRequestUpdateFirstTime
 	err := ctx.Bind(&request)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, map[string]string{
@@ -386,7 +386,7 @@ func (c *UserController) UpdateLogin(ctx echo.Context) error {
 		authUser = ""
 	}
 
-	response, err := c.userService.UpdateLoginOnly(request.Login, authUser)
+	response, err := c.userService.UpdateOnlyOnce(&request, authUser)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": err.Error(),

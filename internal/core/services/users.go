@@ -540,8 +540,8 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 	}, nil
 }
 
-func (s *UserService) UpdateLoginOnly(newLogin string, targetUserLogin string) (*models.SignInResponse, error) {
-	existsUser, _ := s.repo.GetUserByLogin(newLogin)
+func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, targetUserLogin string) (*models.SignInResponse, error) {
+	existsUser, _ := s.repo.GetUserByLogin(*data.Login)
 	targetUser, _ := s.repo.GetUserByLogin(targetUserLogin)
 	if existsUser != nil {
 		return nil, errors.New("user with this login already exists")
@@ -550,8 +550,28 @@ func (s *UserService) UpdateLoginOnly(newLogin string, targetUserLogin string) (
 		return nil, errors.New("error pizda")
 	}
 
-	targetUser.Login = newLogin
+	targetUser.Login = *data.Login
+	targetUser.UserName = *data.UserName
+	targetUser.Email = *data.Email
+	targetUser.AvatarUrl = *data.AvatarUrl
+	targetUser.BackgroundUrl = *data.BackgroundUrl
+	targetUser.City = *data.City
+	targetUser.Bio = *data.Bio
 	targetUser.TmpLogin = false
+
+	if *data.Email != "" {
+		hexString, _ := utils.GenerateRandomString(32)
+		go func() {
+			if s.mailService == nil {
+				fmt.Println("mailService is not initialized")
+				return
+			}
+			err := s.mailService.SendConfirmationEmail(*data.Email, hexString)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}()
+	}
 
 	updatedUser, err := s.repo.UpdateLogin(existsUser, targetUser)
 	if err != nil {

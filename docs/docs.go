@@ -1414,12 +1414,12 @@ const docTemplate = `{
                 "summary": "смена логина после оауса",
                 "parameters": [
                     {
-                        "description": "new login",
-                        "name": "login",
+                        "description": "User data",
+                        "name": "user",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.UserRequestUpdateFirstTime"
                         }
                     }
                 ],
@@ -2478,6 +2478,32 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "email": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserRequestUpdateFirstTime": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "backgroundUrl": {
+                    "type": "string"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "login": {
                     "type": "string"
                 },
                 "userName": {

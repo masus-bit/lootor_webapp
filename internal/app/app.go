@@ -131,6 +131,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	enrichedCIService := utils.NewEnrichedCIService(ciService)
 	subService := services.NewSubscriptionService(subRepo)
 	paymentService := payment.NewPayService(userRepo, userService, subService)
+	captchaService := auth.NewRecaptchaService()
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
@@ -154,6 +155,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.ItemTypesRouter(e, jwtService, *itemTypesService)
 	routes.WLRouter(e, jwtService, *wlService)
 	routes.PaymentRouter(e, jwtService, *paymentService)
+	routes.RecaptchaRouter(e, jwtService, *captchaService)
 
 	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagRepo, entityRepo).ReindexInternal(context.Background())
 	c := cron.New()

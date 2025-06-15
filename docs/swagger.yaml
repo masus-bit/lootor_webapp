@@ -597,6 +597,23 @@ definitions:
       userName:
         type: string
     type: object
+  models.UserRequestUpdateFirstTime:
+    properties:
+      avatarUrl:
+        type: string
+      backgroundUrl:
+        type: string
+      bio:
+        type: string
+      city:
+        type: string
+      email:
+        type: string
+      login:
+        type: string
+      userName:
+        type: string
+    type: object
   models.WishListCreateRequest:
     properties:
       collectionItemId:
@@ -1576,12 +1593,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: new login
+      - description: User data
         in: body
-        name: login
+        name: user
         required: true
         schema:
-          type: string
+          $ref: '#/definitions/models.UserRequestUpdateFirstTime'
       produces:
       - application/json
       responses:
