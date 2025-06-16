@@ -14,4 +14,5 @@ type TokenData interface {
 	GetSubscribers() int
 	GetBio() string
 	GetCity() string
+	GetIsPremium() bool
 }
