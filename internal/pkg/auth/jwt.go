@@ -32,6 +32,7 @@ type Claims struct {
 	Subscribers   int    `json:"subscribers"`
 	Bio           string `json:"bio"`
 	City          string `json:"city"`
+	IsPremium     bool   `json:"isPremium"`
 	jwt.RegisteredClaims
 }
 
@@ -77,6 +78,7 @@ func (s *JWTService) generateToken(user TokenData, exp time.Duration) (string, e
 		Subscribers:   user.GetSubscribers(),
 		Bio:           user.GetBio(),
 		City:          user.GetCity(),
+		IsPremium:     user.GetIsPremium(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(exp)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -158,6 +160,7 @@ func (s *JWTService) RenewTokenPair(refreshToken string) (*TokenPair, error) {
 		subscribers:   claims.Subscribers,
 		bio:           claims.Bio,
 		city:          claims.City,
+		isPremium:     claims.IsPremium,
 	}
 
 	return s.GenerateTokenPair(userData)
@@ -177,6 +180,7 @@ type tokenData struct {
 	subscribers   int
 	bio           string
 	city          string
+	isPremium     bool
 }
 
 func (t *tokenData) GetLogin() string         { return t.login }
@@ -192,3 +196,4 @@ func (t *tokenData) GetBackgroundUrl() string { return t.backgroundUrl }
 func (t *tokenData) GetSubscribers() int      { return t.subscribers }
 func (t *tokenData) GetBio() string           { return t.bio }
 func (t *tokenData) GetCity() string          { return t.city }
+func (t *tokenData) GetIsPremium() bool       { return t.isPremium }
