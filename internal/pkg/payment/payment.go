@@ -58,7 +58,7 @@ func (s *PayService) StartTransaction(login string, subType string) (*PayRespons
 		},
 	}
 
-	idempotenceKey, _ := utils.GenerateRandomString(5)
+	idempotenceKey, _ := utils.GenerateRandomString(10)
 
 	baseUrl := os.Getenv("YOOKASSA_URL")
 
