@@ -204,14 +204,14 @@ func (r *UsersRepository) UpdateUserFull(existsUser *models.Users) (*models.User
 	return &updatedUser, err
 }
 
-func (r *UsersRepository) UpdateLogin(existsUser *models.Users, updated *models.Users) (*models.Users, error) {
-	result := r.db.Model(existsUser).Select("*").Updates(updated)
+func (r *UsersRepository) UpdateLogin(existsUser string, updated *models.Users) (*models.Users, error) {
+	result := r.db.Model(updated).Where("login = ?", existsUser).Updates(updated)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
 	var updatedUser models.Users
-	err := r.db.Where("login = ?", existsUser.Login).Preload("WishListItems").First(&updatedUser).Error
+	err := r.db.Where("login = ?", updated.Login).Preload("WishListItems").First(&updatedUser).Error
 
 	doc := map[string]interface{}{
 		"id":        updatedUser.Login,
