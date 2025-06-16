@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 	"log"
 	"lootor/internal/core/models"
@@ -445,6 +446,13 @@ func (r *CollectionsRepository) UpdateCollection(existsCollection *models.Collec
 		}
 	}
 
+	if updated.CollectionItems != nil {
+		err := r.db.Model(existsCollection).Association("CollectionItems").Replace(updated.CollectionItems)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if err := r.db.Model(existsCollection).Updates(updated).Error; err != nil {
 		return nil, err
 	}
@@ -467,6 +475,24 @@ func (r *CollectionsRepository) UpdateCollection(existsCollection *models.Collec
 	}
 
 	return &result, err
+}
+
+func (r *CollectionsRepository) DeleteRelation(sourceCollectionId string, itemId string) (bool, error) {
+	result := r.db.Exec(
+		"DELETE FROM lootor.public.collections_collection_items_collection_items WHERE collection_items_id = ? AND collections_id = ?",
+		itemId,
+		sourceCollectionId,
+	)
+
+	if result.Error != nil {
+		return false, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return false, fmt.Errorf("relation not found")
+	}
+
+	return true, nil
 }
 
 func (r *CollectionsRepository) UpdateCollectionFull(existsCollection *models.Collections) (*models.Collections, error) {

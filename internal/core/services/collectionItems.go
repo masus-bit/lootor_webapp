@@ -355,15 +355,21 @@ func (s *CiService) CopyOrMove(id string, targetCollectionIds []string, sourceCo
 	existsSourceCollection := sourceCollection
 	existsTargetCollection := targetCollection
 	sourceCollectionItems := utils.RemoveByValueStruct(sourceCollection.CollectionItems, collectionItem.Id)
+	fmt.Println(sourceCollectionItems)
 	targetCollectionItems := append(targetCollection.CollectionItems, *collectionItem)
-	existsSourceCollection.CollectionItems = sourceCollectionItems
-	existsTargetCollection.CollectionItems = targetCollectionItems
+	sourceCollection.CollectionItems = sourceCollectionItems
+	targetCollection.CollectionItems = targetCollectionItems
+	fmt.Println(sourceCollection.CollectionItems)
 	_, errCol := s.collectionRepo.UpdateCollection(existsSourceCollection, sourceCollection)
 	if errCol != nil {
 		return nil, err
 	}
 	_, errCol = s.collectionRepo.UpdateCollection(existsTargetCollection, targetCollection)
 	if errCol != nil {
+		return nil, err
+	}
+	ok, err := s.collectionRepo.DeleteRelation(sourceCollectionId, id)
+	if !ok || err != nil {
 		return nil, err
 	}
 	result = &dto.CommonResponse{Data: dto.Resp{Success: true}}
