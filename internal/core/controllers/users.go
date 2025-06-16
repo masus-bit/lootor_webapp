@@ -372,7 +372,7 @@ func (c *UserController) UpdateUser(ctx echo.Context) error {
 // @Produce  json
 // @Param user body models.UserRequestUpdateFirstTime true "User data"
 // @Success 201 {object} models.SignInResponse
-// @Router /secured/user/update/login [post]
+// @Router /secured/user/update/reg [post]
 func (c *UserController) UpdateLogin(ctx echo.Context) error {
 	var request models.UserRequestUpdateFirstTime
 	err := ctx.Bind(&request)

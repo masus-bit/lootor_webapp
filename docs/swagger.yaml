@@ -1588,7 +1588,7 @@ paths:
       summary: смена некоторых данных пользователя
       tags:
       - users
-  /secured/user/update/login:
+  /secured/user/update/reg:
     post:
       consumes:
       - application/json

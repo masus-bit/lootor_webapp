@@ -319,7 +319,7 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		return &models.SignInResponseWithTmpLogin{
 			AccessToken:  tokens.AccessToken,
 			RefreshToken: tokens.RefreshToken,
-			TmpLogin:     false,
+			TmpLogin:     true,
 		}, nil
 	}
 
@@ -438,7 +438,7 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 		return &models.SignInResponseWithTmpLogin{
 			AccessToken:  tokens.AccessToken,
 			RefreshToken: tokens.RefreshToken,
-			TmpLogin:     false,
+			TmpLogin:     true,
 		}, nil
 	}
 

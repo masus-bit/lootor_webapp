@@ -1400,7 +1400,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/secured/user/update/login": {
+        "/secured/user/update/reg": {
             "post": {
                 "consumes": [
                     "application/json"
