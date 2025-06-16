@@ -560,7 +560,7 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 	}, nil
 }
 
-func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, targetUserLogin string) (*models.SignInResponse, error) {
+func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, targetUserLogin string) (*dto.CommonResponse, error) {
 	if data == nil {
 		return nil, errors.New("update data is nil")
 	}
@@ -603,20 +603,12 @@ func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, ta
 		}()
 	}
 
-	updatedUser, err := s.repo.UpdateLogin(targetUserLogin, existsUser)
+	_, err = s.repo.UpdateLogin(targetUserLogin, existsUser)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 
-	tokens, err := s.jwtService.GenerateTokenPair(updatedUser)
-	if err != nil {
-		return nil, fmt.Errorf("token generation error: %w", err)
-	}
-
-	return &models.SignInResponse{
-		AccessToken:  tokens.AccessToken,
-		RefreshToken: tokens.RefreshToken,
-	}, nil
+	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
 func (s *UserService) ActivatePremium(userLogin string, months int, years int, premiumType string) error {
