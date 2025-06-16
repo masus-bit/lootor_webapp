@@ -311,6 +311,16 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 			RefreshToken: tokens.RefreshToken,
 			TmpLogin:     false,
 		}, nil
+	} else if existsUser != nil && existsUser.TmpLogin {
+		tokens, err := s.jwtService.GenerateTokenPair(existsUser)
+		if err != nil {
+			return nil, fmt.Errorf("token generation error: %w", err)
+		}
+		return &models.SignInResponseWithTmpLogin{
+			AccessToken:  tokens.AccessToken,
+			RefreshToken: tokens.RefreshToken,
+			TmpLogin:     false,
+		}, nil
 	}
 
 	passwordHash, err := auth.HashPassword("vk" + newId)
@@ -411,6 +421,16 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 
 	if existUser != nil && !existUser.TmpLogin {
 
+		tokens, err := s.jwtService.GenerateTokenPair(existUser)
+		if err != nil {
+			return nil, fmt.Errorf("token generation error: %w", err)
+		}
+		return &models.SignInResponseWithTmpLogin{
+			AccessToken:  tokens.AccessToken,
+			RefreshToken: tokens.RefreshToken,
+			TmpLogin:     false,
+		}, nil
+	} else if existUser != nil && existUser.TmpLogin {
 		tokens, err := s.jwtService.GenerateTokenPair(existUser)
 		if err != nil {
 			return nil, fmt.Errorf("token generation error: %w", err)
