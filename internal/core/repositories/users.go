@@ -205,7 +205,7 @@ func (r *UsersRepository) UpdateUserFull(existsUser *models.Users) (*models.User
 }
 
 func (r *UsersRepository) UpdateLogin(existsUser string, updated *models.Users) (*models.Users, error) {
-	result := r.db.Model(updated).Where("login = ?", existsUser).Updates(updated)
+	result := r.db.Model(&models.Users{}).Where("login = ?", existsUser).Updates(updated)
 	if result.Error != nil {
 		return nil, result.Error
 	}

@@ -561,26 +561,36 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 }
 
 func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, targetUserLogin string) (*models.SignInResponse, error) {
-	existsUser, _ := s.repo.GetUserByLogin(*data.Login)
-	targetUser, _ := s.repo.GetUserByLogin(targetUserLogin)
-	if existsUser != nil {
-		return nil, errors.New("user with this login already exists")
-	}
-	if targetUser == nil {
-		return nil, errors.New("error pizda")
+	if data == nil {
+		return nil, errors.New("update data is nil")
 	}
 
-	targetUser.Login = *data.Login
-	targetUser.UserName = *data.UserName
-	targetUser.Email = *data.Email
-	targetUser.AvatarUrl = *data.AvatarUrl
-	targetUser.BackgroundUrl = *data.BackgroundUrl
-	targetUser.City = *data.City
-	targetUser.Bio = *data.Bio
-	targetUser.TmpLogin = false
+	if data.Login == nil || data.UserName == nil || data.Email == nil {
+		return nil, errors.New("required fields are missing")
+	}
+
+	existsUser, err := s.repo.GetUserByLogin(targetUserLogin)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check user existence: %w", err)
+	}
+	if existsUser == nil {
+		return nil, errors.New("user with this login not exists")
+	}
+
+	hexString, _ := utils.GenerateRandomString(32)
+
+	existsUser.Login = *data.Login
+	existsUser.UserName = *data.UserName
+	existsUser.Email = *data.Email
+	existsUser.AvatarUrl = *data.AvatarUrl
+	existsUser.BackgroundUrl = *data.BackgroundUrl
+	existsUser.City = *data.City
+	existsUser.Bio = *data.Bio
+	existsUser.TmpLogin = false
+	existsUser.VerificationToken = hexString
 
 	if *data.Email != "" {
-		hexString, _ := utils.GenerateRandomString(32)
+
 		go func() {
 			if s.mailService == nil {
 				fmt.Println("mailService is not initialized")
@@ -593,9 +603,9 @@ func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, ta
 		}()
 	}
 
-	updatedUser, err := s.repo.UpdateLogin(existsUser.Login, targetUser)
+	updatedUser, err := s.repo.UpdateLogin(targetUserLogin, existsUser)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 
 	tokens, err := s.jwtService.GenerateTokenPair(updatedUser)
@@ -603,8 +613,10 @@ func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, ta
 		return nil, fmt.Errorf("token generation error: %w", err)
 	}
 
-	return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
-
+	return &models.SignInResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	}, nil
 }
 
 func (s *UserService) ActivatePremium(userLogin string, months int, years int, premiumType string) error {
