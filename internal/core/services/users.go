@@ -593,7 +593,7 @@ func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, ta
 		}()
 	}
 
-	updatedUser, err := s.repo.UpdateLogin(existsUser, targetUser)
+	updatedUser, err := s.repo.UpdateLogin(existsUser.Login, targetUser)
 	if err != nil {
 		return nil, err
 	}
