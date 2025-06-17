@@ -110,6 +110,7 @@ func (s *PayService) EndTransaction(data *Notification) {
 	//years := 0
 
 	subType := data.Object.Metadata.Type
+	fmt.Println(data.Object)
 	if subType == "donate" {
 		return
 	} else {
