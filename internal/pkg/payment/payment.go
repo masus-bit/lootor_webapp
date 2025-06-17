@@ -96,8 +96,7 @@ func (s *PayService) StartTransaction(login string, subType string, amount strin
 	}
 
 	var result PayResponseToClient
-
-	err = mapstructure.Decode(response, result)
+	err = mapstructure.Decode(response, &result)
 	if err != nil {
 		return nil, err
 	}
