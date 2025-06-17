@@ -57,6 +57,7 @@ func (s *ReportsService) ReportAnything(id string) (*dto.CommonResponse, error) 
 			if err != nil {
 				return nil, err
 			}
+			return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 		}
 		collection.ReportsCount = collection.ReportsCount + 1
 		_, err := s.collectionRepo.UpdateCollectionFull(collection)
@@ -78,6 +79,7 @@ func (s *ReportsService) ReportAnything(id string) (*dto.CommonResponse, error) 
 			if err != nil {
 				return nil, err
 			}
+			return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 		}
 		collectionItem.ReportsCount = collectionItem.ReportsCount + 1
 		_, err := s.ciRepo.UpdateCI(collectionItem, collectionItem)
@@ -99,6 +101,7 @@ func (s *ReportsService) ReportAnything(id string) (*dto.CommonResponse, error) 
 			if err != nil {
 				return nil, err
 			}
+			return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 		}
 		user.ReportsCount = user.ReportsCount + 1
 		_, err := s.userRepo.UpdateUser(user, *user)
@@ -120,6 +123,7 @@ func (s *ReportsService) ReportAnything(id string) (*dto.CommonResponse, error) 
 			if err != nil {
 				return nil, err
 			}
+			return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 		}
 		wishListItem.ReportsCount = wishListItem.ReportsCount + 1
 		_, err := s.wlRepo.UpdateItem(wishListItem)
