@@ -614,15 +614,13 @@ func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, ta
 func (s *UserService) ActivatePremium(userLogin string, months int, years int, premiumType string) error {
 	existsUser, _ := s.repo.GetUserByLogin(userLogin)
 
-	updatedUser := models.Users{
-		Login:        existsUser.Login,
-		IsPremium:    true,
-		PremiumSince: time.Now(),
-		PremiumUntil: time.Now().AddDate(years, months, 0),
-		PremiumType:  premiumType,
-	}
+	updatedUser := existsUser
+	updatedUser.IsPremium = true
+	updatedUser.PremiumSince = time.Now()
+	updatedUser.PremiumUntil = time.Now().AddDate(years, months, 0)
+	updatedUser.PremiumType = premiumType
 
-	ok, err := s.repo.ActivatePremium(existsUser, &updatedUser)
+	ok, err := s.repo.ActivatePremium(existsUser, updatedUser)
 	if err != nil {
 		return err
 	}
@@ -634,15 +632,13 @@ func (s *UserService) ActivatePremium(userLogin string, months int, years int, p
 func (s *UserService) ActivateTestPremium(userLogin string, duration time.Duration, premiumType string) error {
 	existsUser, _ := s.repo.GetUserByLogin(userLogin)
 
-	updatedUser := models.Users{
-		Login:        existsUser.Login,
-		IsPremium:    true,
-		PremiumSince: time.Now(),
-		PremiumUntil: time.Now().Add(duration),
-		PremiumType:  premiumType,
-	}
+	updatedUser := existsUser
+	updatedUser.IsPremium = true
+	updatedUser.PremiumSince = time.Now()
+	updatedUser.PremiumUntil = time.Now().Add(duration)
+	updatedUser.PremiumType = premiumType
 
-	ok, err := s.repo.ActivatePremium(existsUser, &updatedUser)
+	ok, err := s.repo.ActivatePremium(existsUser, updatedUser)
 	if err != nil {
 		return err
 	}
