@@ -1475,6 +1475,26 @@ paths:
       summary: получить список платформ
       tags:
       - platforms
+  /secured/reports:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id/login
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: подать жалобу
+      tags:
+      - reports
   /secured/tags:
     get:
       consumes:

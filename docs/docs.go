@@ -1225,6 +1225,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/reports": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reports"
+                ],
+                "summary": "подать жалобу",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id/login",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/tags": {
             "get": {
                 "consumes": [

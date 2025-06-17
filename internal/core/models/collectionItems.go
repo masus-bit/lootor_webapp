@@ -39,6 +39,7 @@ type CollectionItems struct {
 	UserLogin       string        `gorm:"type:varchar(255);index"`
 	PlatformID      *uuid.UUID    `gorm:"type:uuid;index"`
 	ItemTypeID      *uuid.UUID    `gorm:"type:uuid;index"`
+	ReportsCount    int64         `json:"-"`
 }
 
 func (EntitiesCollectionItemCollectionItem) TableName() string {

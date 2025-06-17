@@ -19,25 +19,11 @@ func NewFeedbackService() *FeedbackService {
 func (s *FeedbackService) AddIssue(title string, description string, file []byte, authUserLogin string) (*dto.CommonResponse, error) {
 
 	description = description + "\n\n\n__________\n\nЛогин пользователя: " + authUserLogin
-
-	reqParams := map[string]string{
-		"idList": os.Getenv("TRELLO_LIST_ID"),
-		"key":    os.Getenv("TRELLO_API_KEY"),
-		"token":  os.Getenv("TRELLO_TOKEN"),
+	response, err := s.SendTextTicket(title, description, false)
+	if err != nil {
+		return nil, err
 	}
 
-	reqBody := map[string]string{
-		"name": title,
-		"desc": description,
-	}
-
-	headers := map[string]string{
-		"Content-Type": "application/x-www-form-urlencoded",
-	}
-
-	response, err := utils.SendRequest[struct {
-		Id string `json:"id"`
-	}](utils.RequestOptions{Method: "POST", URL: os.Getenv("TRELLO_API_URL"), Headers: headers, QueryParams: reqParams, Body: reqBody, File: []byte{}, BasicAuth: nil})
 	if file != nil {
 
 		attachReqUrl := fmt.Sprintf("%s/%s/attachments",
@@ -58,4 +44,40 @@ func (s *FeedbackService) AddIssue(title string, description string, file []byte
 	}
 
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+}
+
+func (s *FeedbackService) SendTextTicket(title string, description string, isReports bool) (*struct {
+	Id string `json:"id"`
+}, error) {
+
+	var listId string
+	if isReports {
+		listId = os.Getenv("TRELLO_REPORTS_LIST_ID")
+	} else {
+		listId = os.Getenv("TRELLO_LIST_ID")
+	}
+
+	reqParams := map[string]string{
+		"idList": listId,
+		"key":    os.Getenv("TRELLO_API_KEY"),
+		"token":  os.Getenv("TRELLO_TOKEN"),
+	}
+
+	reqBody := map[string]string{
+		"name": title,
+		"desc": description,
+	}
+
+	headers := map[string]string{
+		"Content-Type": "application/x-www-form-urlencoded",
+	}
+
+	response, err := utils.SendRequest[struct {
+		Id string `json:"id"`
+	}](utils.RequestOptions{Method: "POST", URL: os.Getenv("TRELLO_API_URL"), Headers: headers, QueryParams: reqParams, Body: reqBody, File: []byte{}, BasicAuth: nil})
+
+	if err != nil {
+		return nil, err
+	}
+	return &response, nil
 }

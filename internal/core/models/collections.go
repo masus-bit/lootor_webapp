@@ -39,6 +39,7 @@ type Collections struct {
 	User             *Users            `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;" json:"user"`
 	Tags             []Tags            `gorm:"many2many:tags_collections_collections;constraint:OnDelete:CASCADE;" json:"tags"`
 	UserLogin        string            `gorm:"type:varchar(255);index"`
+	ReportsCount     int64             `json:"-"`
 }
 
 func (CollectionsCollectionItemsCollectionItems) TableName() string {

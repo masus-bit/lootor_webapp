@@ -31,6 +31,7 @@ type Users struct {
 	PremiumSince            time.Time       `json:"premiumSince,omitempty"`
 	PremiumUntil            time.Time       `json:"premiumUntil,omitempty"`
 	PremiumType             string          `json:"premiumType,omitempty"`
+	ReportsCount            int64           `json:"-"`
 }
 
 type SignUpRequest struct {

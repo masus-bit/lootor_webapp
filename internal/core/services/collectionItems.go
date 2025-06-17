@@ -355,11 +355,9 @@ func (s *CiService) CopyOrMove(id string, targetCollectionIds []string, sourceCo
 	existsSourceCollection := sourceCollection
 	existsTargetCollection := targetCollection
 	sourceCollectionItems := utils.RemoveByValueStruct(sourceCollection.CollectionItems, collectionItem.Id)
-	fmt.Println(sourceCollectionItems)
 	targetCollectionItems := append(targetCollection.CollectionItems, *collectionItem)
 	sourceCollection.CollectionItems = sourceCollectionItems
 	targetCollection.CollectionItems = targetCollectionItems
-	fmt.Println(sourceCollection.CollectionItems)
 	_, errCol := s.collectionRepo.UpdateCollection(existsSourceCollection, sourceCollection)
 	if errCol != nil {
 		return nil, err
