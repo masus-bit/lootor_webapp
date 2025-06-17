@@ -631,6 +631,26 @@ func (s *UserService) ActivatePremium(userLogin string, months int, years int, p
 	}
 	return nil
 }
+func (s *UserService) ActivateTestPremium(userLogin string, duration time.Duration, premiumType string) error {
+	existsUser, _ := s.repo.GetUserByLogin(userLogin)
+
+	updatedUser := models.Users{
+		Login:        existsUser.Login,
+		IsPremium:    true,
+		PremiumSince: time.Now(),
+		PremiumUntil: time.Now().Add(duration),
+		PremiumType:  premiumType,
+	}
+
+	ok, err := s.repo.ActivatePremium(existsUser, &updatedUser)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errors.New("error pizda")
+	}
+	return nil
+}
 
 func (s *UserService) CheckPremiumStatus(userLogin string) (bool, error) {
 	return s.repo.CheckPremiumStatus(userLogin)

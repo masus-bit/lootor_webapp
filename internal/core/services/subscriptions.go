@@ -30,6 +30,21 @@ func (s *SubscriptionService) CreateSubscription(ctx context.Context, login stri
 
 	return subscription, nil
 }
+func (s *SubscriptionService) CreateTestSubscription(ctx context.Context, login string, subType string, duration time.Duration) (*models.Subscription, error) {
+	now := time.Now()
+	subscription := &models.Subscription{
+		UserLogin: login,
+		Type:      subType,
+		StartedAt: now,
+		ExpiresAt: now.Add(duration),
+	}
+
+	if err := s.repo.Create(ctx, subscription); err != nil {
+		return nil, err
+	}
+
+	return subscription, nil
+}
 
 func (s *SubscriptionService) CheckActiveSubscription(ctx context.Context, login string) (bool, *models.Subscription, error) {
 	sub, err := s.repo.GetActiveByUser(ctx, login)
