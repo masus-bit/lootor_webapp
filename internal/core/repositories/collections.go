@@ -555,9 +555,29 @@ func (r *CollectionsRepository) GetCollectionCountByUserLogin(login string) (int
 }
 
 func (r *CollectionsRepository) DeleteCollection(id string) error {
-	err := r.db.Delete(&models.Collections{}, "id = ?", id).Error
+	var itemIDs []string
+	err := r.db.Table("lootor.public.collections_collection_items_collection_items").
+		Where("collections_id = ?", id).
+		Pluck("collection_items_id", &itemIDs).Error
 	if err != nil {
 		return err
+	}
+	err = r.db.Delete(&models.Collections{}, "id = ?", id).Error
+	if err != nil {
+		return err
+	}
+	result := r.db.Exec(
+		"DELETE FROM lootor.public.collections_collection_items_collection_items WHERE collections_id = ?",
+		id,
+	)
+	if result.Error != nil {
+		return result.Error
+	}
+	if len(itemIDs) > 0 {
+		err = r.db.Delete(&models.CollectionItems{}, "id IN (?)", itemIDs).Error
+		if err != nil {
+			return err
+		}
 	}
 	if err := r.es.DeleteDocument(context.Background(), "collections", id); err != nil {
 		log.Printf("Failed to delete collection from index: %v", err)

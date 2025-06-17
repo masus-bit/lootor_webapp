@@ -238,6 +238,7 @@ func (r *CiRepository) SumByUserLogin(userLogin string) (float64, error) {
 		Model(&models.CollectionItems{}).
 		Select("COALESCE(SUM(purchase_price), 0) as sum").
 		Where("user_login = ?", userLogin).
+		Where("collection_items.deleted_at IS NULL").
 		Scan(&result).Error
 
 	if result.Sum == nil {
