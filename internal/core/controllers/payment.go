@@ -19,6 +19,7 @@ func NewPaymentController(payService payment.PayService) *PaymentController {
 // @Description создание платежа
 // @Tags payment
 // @Param subType query string true "тип подписки monthly/yearly"
+// @Param amount query string true "сумма"
 // @Success 200 {object} payment.PayResponseToClientData
 // @Router /secured/payment [get]
 func (c *PaymentController) CreatePayment(ctx echo.Context) error {
@@ -28,12 +29,13 @@ func (c *PaymentController) CreatePayment(ctx echo.Context) error {
 	}
 
 	subType := ctx.QueryParam("subType")
+	amount := ctx.QueryParam("amount")
 
 	if subType == "" {
 		return ctx.JSON(http.StatusBadRequest, echo.Map{"error": "subType обязателен"})
 	}
 
-	response, err := c.payService.StartTransaction(authUser, subType)
+	response, err := c.payService.StartTransaction(authUser, subType, amount)
 
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})

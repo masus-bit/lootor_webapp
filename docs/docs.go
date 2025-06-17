@@ -1191,6 +1191,13 @@ const docTemplate = `{
                         "name": "subType",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "сумма",
+                        "name": "amount",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {

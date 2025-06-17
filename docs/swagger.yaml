@@ -1453,6 +1453,11 @@ paths:
         name: subType
         required: true
         type: string
+      - description: сумма
+        in: query
+        name: amount
+        required: true
+        type: string
       responses:
         "200":
           description: OK

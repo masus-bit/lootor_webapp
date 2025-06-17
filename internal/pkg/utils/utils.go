@@ -172,9 +172,9 @@ func RemoveOrdered[T any](slice []T, index int) []T {
 func GetSubscriptionType(subscriptionType string) string {
 	switch subscriptionType {
 	case "monthly":
-		return "99"
+		return "149"
 	case "yearly":
-		return "799"
+		return "1190"
 	default:
 		return "99"
 	}

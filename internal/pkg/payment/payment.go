@@ -21,18 +21,17 @@ func NewPayService(userRepo *repositories.UsersRepository, userService *services
 	return &PayService{userRepo: userRepo, userService: userService, subService: subService}
 }
 
-func (s *PayService) StartTransaction(login string, subType string) (*PayResponseToClientData, error) {
+func (s *PayService) StartTransaction(login string, subType string, amount string) (*PayResponseToClientData, error) {
 	existsUser, err := s.userRepo.GetUserByLogin(login)
 	if err != nil {
 		return nil, err
 	}
-	amountValue := utils.GetSubscriptionType(subType)
 
 	item := ItemCustomer{
 		Description: "subscription",
 		Amount: Amount{
 			Currency: "RUB",
-			Value:    amountValue,
+			Value:    amount,
 		},
 		VatCode:        1,
 		Quantity:       1,
@@ -40,7 +39,7 @@ func (s *PayService) StartTransaction(login string, subType string) (*PayRespons
 	}
 
 	payment := Payment{
-		Amount:  Amount{Value: amountValue, Currency: "RUB"},
+		Amount:  Amount{Value: amount, Currency: "RUB"},
 		Capture: true,
 		Confirmation: Confirmation{
 			Type:      "redirect",
