@@ -25,6 +25,7 @@ type WishListItems struct {
 	PurchaseLinks pq.StringArray `gorm:"type:text[]"`
 	Priority      int64
 	Notes         string
+	ReportsCount  int64 `json:"-"`
 }
 
 type WishListDataResponse struct {

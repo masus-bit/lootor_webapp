@@ -11,15 +11,18 @@ type ReportsService struct {
 	ciRepo         *repositories.CiRepository
 	userRepo       *repositories.UsersRepository
 	collectionRepo *repositories.CollectionsRepository
+	wlRepo         *repositories.WLRepository
 }
 
 func NewReportsService(
 	feedService *FeedbackService,
 	ciRepo *repositories.CiRepository,
 	userRepo *repositories.UsersRepository,
-	collectionRepo *repositories.CollectionsRepository) *ReportsService {
+	collectionRepo *repositories.CollectionsRepository,
+	wlRepo *repositories.WLRepository,
+) *ReportsService {
 	_ = godotenv.Load()
-	return &ReportsService{feedService: feedService, ciRepo: ciRepo, userRepo: userRepo, collectionRepo: collectionRepo}
+	return &ReportsService{feedService: feedService, ciRepo: ciRepo, userRepo: userRepo, collectionRepo: collectionRepo, wlRepo: wlRepo}
 }
 
 func (s *ReportsService) ReportAnything(id string) (*dto.CommonResponse, error) {
@@ -36,6 +39,10 @@ func (s *ReportsService) ReportAnything(id string) (*dto.CommonResponse, error) 
 	user, err := s.userRepo.GetUserByLogin(id)
 	if err != nil {
 		user = nil
+	}
+	wishListItem, err := s.wlRepo.GetById(id)
+	if err != nil {
+		wishListItem = nil
 	}
 
 	if collection != nil {
@@ -95,6 +102,27 @@ func (s *ReportsService) ReportAnything(id string) (*dto.CommonResponse, error) 
 		}
 		user.ReportsCount = user.ReportsCount + 1
 		_, err := s.userRepo.UpdateUser(user, *user)
+		if err != nil {
+			return nil, err
+		}
+		return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+	}
+
+	if wishListItem != nil {
+		if wishListItem.ReportsCount == 2 {
+			description = description + "\n\n\n__________\n\nЭкземпляр вишлиста: " + wishListItem.Id.String() + "\n\nВладелец: " + wishListItem.User.Login
+			_, err := s.feedService.SendTextTicket(title, description, true)
+			if err != nil {
+				return nil, err
+			}
+			wishListItem.ReportsCount = 0
+			_, err = s.wlRepo.UpdateItem(wishListItem)
+			if err != nil {
+				return nil, err
+			}
+		}
+		wishListItem.ReportsCount = wishListItem.ReportsCount + 1
+		_, err := s.wlRepo.UpdateItem(wishListItem)
 		if err != nil {
 			return nil, err
 		}

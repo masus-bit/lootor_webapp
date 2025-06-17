@@ -132,7 +132,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	subService := services.NewSubscriptionService(subRepo)
 	paymentService := payment.NewPayService(userRepo, userService, subService)
 	captchaService := auth.NewRecaptchaService()
-	reportsService := feedback.NewReportsService(fbService, ciRepo, userRepo, colRepo)
+	reportsService := feedback.NewReportsService(fbService, ciRepo, userRepo, colRepo, wlRepo)
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
