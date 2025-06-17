@@ -24,6 +24,15 @@ func NewPayService(userRepo *repositories.UsersRepository, userService *services
 
 func (s *PayService) StartTransaction(login string, subType string, amount string) (*PayResponseToClientData, error) {
 	existsUser, err := s.userRepo.GetUserByLogin(login)
+
+	var description string
+
+	if subType == "donate" {
+		description = "Пожертвование"
+	} else {
+		description = "Подписка плана " + subType
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +55,7 @@ func (s *PayService) StartTransaction(login string, subType string, amount strin
 			Type:      "redirect",
 			ReturnUrl: "https://lootor.me/payment_success",
 		},
-		Description: "Подписка плана " + subType,
+		Description: description,
 		Receipt: Receipt{
 			Customer: Customer{Email: existsUser.Email},
 			Items:    []ItemCustomer{item},
@@ -105,12 +114,15 @@ func (s *PayService) EndTransaction(data *Notification) {
 	//years := 0
 
 	subType := data.Object.Metadata.Type
-
-	//if subType == "monthly" {
-	//	months = 1
-	//} else {
-	//	years = 1
-	//}
+	if subType == "donate" {
+		return
+	} else {
+		//if subType == "monthly" {
+		//	months = 1
+		//} else {
+		//	years = 1
+		//}
+	}
 
 	if data.Object.Paid && data.Object.Status == "succeeded" {
 		err := s.userService.ActivateTestPremium(userLogin, 3*time.Minute, subType)

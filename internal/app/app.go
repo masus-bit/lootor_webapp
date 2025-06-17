@@ -106,7 +106,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	itemTypesRepo := repositories.NewItemTypesRepository(db)
 	wlRepo := repositories.NewWLRepository(db)
 	subRepo := repositories.NewSubscriptionRepository(db)
-	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Events{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{}, &models.ItemTypes{}, &models.WishListItems{})
+	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Events{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{}, &models.ItemTypes{}, &models.WishListItems{}, &models.Subscription{})
 	if err != nil {
 		return nil, err
 	}
