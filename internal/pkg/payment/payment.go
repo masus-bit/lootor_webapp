@@ -73,8 +73,6 @@ func (s *PayService) StartTransaction(login string, subType string, amount strin
 
 	baseUrl := os.Getenv("YOOKASSA_URL")
 
-	parameters := map[string]string{}
-
 	headers := map[string]string{
 		"Idempotence-Key": idempotenceKey,
 		"Content-Type":    "application/json",
@@ -87,14 +85,11 @@ func (s *PayService) StartTransaction(login string, subType string, amount strin
 		Password: os.Getenv("YOOKASSA_SECRET_KEY"),
 	}
 
-	response, err := utils.SendRequest[struct {
-		Response PayResponse `json:"response"`
-	}](utils.RequestOptions{Method: "POST", URL: baseUrl, Headers: headers, Body: payment, QueryParams: parameters, File: []byte{}, BasicAuth: basicAuth})
+	response, err := utils.SendRequest[PayResponse](utils.RequestOptions{Method: "POST", URL: baseUrl, Headers: headers, Body: payment, QueryParams: nil, File: nil, BasicAuth: basicAuth})
 
 	if err != nil {
 		return nil, err
 	}
-
 	var result PayResponseToClient
 	err = mapstructure.Decode(response, &result)
 	if err != nil {
