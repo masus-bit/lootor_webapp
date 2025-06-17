@@ -106,7 +106,8 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	itemTypesRepo := repositories.NewItemTypesRepository(db)
 	wlRepo := repositories.NewWLRepository(db)
 	subRepo := repositories.NewSubscriptionRepository(db)
-	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Events{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{}, &models.ItemTypes{}, &models.WishListItems{}, &models.Subscription{})
+	paymentsRepo := repositories.NewPaymentsRepository(db)
+	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Events{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{}, &models.ItemTypes{}, &models.WishListItems{}, &models.Subscription{}, &models.Payments{})
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +131,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsRepo)
 	enrichedCIService := utils.NewEnrichedCIService(ciService)
 	subService := services.NewSubscriptionService(subRepo)
-	paymentService := payment.NewPayService(userRepo, userService, subService)
+	paymentService := payment.NewPayService(userRepo, userService, subService, paymentsRepo)
 	captchaService := auth.NewRecaptchaService()
 	reportsService := feedback.NewReportsService(fbService, ciRepo, userRepo, colRepo, wlRepo)
 

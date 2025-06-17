@@ -22,6 +22,7 @@ func (s *SubscriptionService) CreateSubscription(ctx context.Context, login stri
 		Type:      subType,
 		StartedAt: now,
 		ExpiresAt: now.AddDate(years, months, 0),
+		Status:    "active",
 	}
 
 	if err := s.repo.Create(ctx, subscription); err != nil {
@@ -37,6 +38,7 @@ func (s *SubscriptionService) CreateTestSubscription(ctx context.Context, login 
 		Type:      subType,
 		StartedAt: now,
 		ExpiresAt: now.Add(duration),
+		Status:    "active",
 	}
 
 	if err := s.repo.Create(ctx, subscription); err != nil {

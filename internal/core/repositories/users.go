@@ -247,11 +247,30 @@ func (r *UsersRepository) CheckPremiumStatus(userLogin string) (bool, error) {
 }
 
 func (r *UsersRepository) DeactivatePremium() error {
+	var expiredPremiumLogins []string
 	result := r.db.Model(&models.Users{}).
+		Select("login").
 		Where("is_premium = ? AND premium_until < ?", true, time.Now()).
-		Updates(map[string]interface{}{"is_premium": false})
+		Pluck("login", &expiredPremiumLogins)
 	if result.Error != nil {
 		return result.Error
 	}
+
+	if len(expiredPremiumLogins) > 0 {
+		updateResult := r.db.Model(&models.Users{}).
+			Where("login IN ?", expiredPremiumLogins).
+			Updates(map[string]interface{}{"is_premium": false})
+		if updateResult.Error != nil {
+			return updateResult.Error
+		}
+
+		subscriptionUpdateResult := r.db.Model(&models.Subscription{}).
+			Where("user_login IN ?", expiredPremiumLogins).
+			Updates(map[string]interface{}{"status": "expired"})
+		if subscriptionUpdateResult.Error != nil {
+			return subscriptionUpdateResult.Error
+		}
+	}
+
 	return nil
 }

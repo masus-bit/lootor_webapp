@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
+	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/core/services"
 	"lootor/internal/pkg/utils"
@@ -13,13 +14,14 @@ import (
 )
 
 type PayService struct {
-	userRepo    *repositories.UsersRepository
-	userService *services.UserService
-	subService  *services.SubscriptionService
+	userRepo     *repositories.UsersRepository
+	userService  *services.UserService
+	subService   *services.SubscriptionService
+	paymentsRepo *repositories.PaymentsRepository
 }
 
-func NewPayService(userRepo *repositories.UsersRepository, userService *services.UserService, subService *services.SubscriptionService) *PayService {
-	return &PayService{userRepo: userRepo, userService: userService, subService: subService}
+func NewPayService(userRepo *repositories.UsersRepository, userService *services.UserService, subService *services.SubscriptionService, paymentsRepo *repositories.PaymentsRepository) *PayService {
+	return &PayService{userRepo: userRepo, userService: userService, subService: subService, paymentsRepo: paymentsRepo}
 }
 
 func (s *PayService) StartTransaction(login string, subType string, amount string) (*PayResponseToClientData, error) {
@@ -53,7 +55,7 @@ func (s *PayService) StartTransaction(login string, subType string, amount strin
 		Capture: true,
 		Confirmation: Confirmation{
 			Type:      "redirect",
-			ReturnUrl: "https://lootor.me/payment_success",
+			ReturnUrl: "https://lootor.me/payment-success",
 		},
 		Description: description,
 		Receipt: Receipt{
@@ -134,5 +136,12 @@ func (s *PayService) EndTransaction(data *Notification) {
 		if err != nil {
 			return
 		}
+	}
+	payment := models.Payments{
+		Amount: data.Object.Amount.Value,
+	}
+	err := s.paymentsRepo.CreateRecord(&payment)
+	if err != nil {
+		fmt.Println(err)
 	}
 }
