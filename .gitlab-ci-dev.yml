@@ -49,7 +49,7 @@ deploy:
       docker rm -f lootor_backend_1 2>/dev/null || true
       docker network disconnect -f lootor_network lootor_backend_1 2>/dev/null || true
       docker-compose -p lootor -f docker-compose.backend.yml up -d --force-recreate backend
-      docker system prune -f
+      docker image prune -f
       exit 
       EOF
 
