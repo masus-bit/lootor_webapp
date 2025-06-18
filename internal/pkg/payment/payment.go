@@ -10,7 +10,6 @@ import (
 	"lootor/internal/core/services"
 	"lootor/internal/pkg/utils"
 	"os"
-	"time"
 )
 
 type PayService struct {
@@ -106,27 +105,34 @@ func (s *PayService) EndTransaction(data *Notification) {
 		fmt.Println("expected notification: payment.succeeded")
 	}
 
-	//months := 0
-	//years := 0
+	months := 0
+	years := 0
 
 	subType := data.Object.Metadata.Type
 	if subType == "donate" {
+		payment := models.Payments{
+			Amount: data.Object.Amount.Value,
+		}
+		err := s.paymentsRepo.CreateRecord(&payment)
+		if err != nil {
+			fmt.Println(err)
+		}
 		return
 	} else {
-		//if subType == "monthly" {
-		//	months = 1
-		//} else {
-		//	years = 1
-		//}
+		if subType == "monthly" {
+			months = 1
+		} else {
+			years = 1
+		}
 	}
 
 	if data.Object.Paid && data.Object.Status == "succeeded" {
-		err := s.userService.ActivateTestPremium(userLogin, 3*time.Minute, subType)
+		err := s.userService.ActivatePremium(userLogin, months, years, subType)
 		if err != nil {
 			return
 		}
 		ctx := context.Background()
-		_, err = s.subService.CreateTestSubscription(ctx, userLogin, subType, 3*time.Minute)
+		_, err = s.subService.CreateSubscription(ctx, userLogin, subType, months, years)
 		if err != nil {
 			return
 		}

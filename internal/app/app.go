@@ -162,8 +162,8 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 
 	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagRepo, entityRepo).ReindexInternal(context.Background())
 	c := cron.New()
-	//_, err = c.AddFunc("@midnight", func() { userService.CheckExpiredSubscriptions() })
-	_, err = c.AddFunc("@every 2m", func() { userService.CheckExpiredSubscriptions() })
+	_, err = c.AddFunc("@midnight", func() { userService.CheckExpiredSubscriptions() })
+	//_, err = c.AddFunc("@every 2m", func() { userService.CheckExpiredSubscriptions() })
 	if err != nil {
 		return nil, err
 	}
