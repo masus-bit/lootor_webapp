@@ -1,14 +1,7 @@
-image: docker:19-dind
-services:
-  - docker:19-dind
-
-before_script:
-    - sleep 30
+image: alpine:3.16  # Используем легковесный образ
 
 variables:
-  DOCKER_TLS_CERTDIR: ""
-  GIT_STRATEGY: clone
-  DOCKER_DRIVER: overlay2
+  DOCKER_BUILDKIT: 1  # Для более быстрой сборки
 
 stages:
   - build
@@ -19,44 +12,39 @@ build:
   tags:
     - gitlab-org-docker
   before_script:
+    - apk add --no-cache docker-cli curl
     - mkdir -p ~/.docker
-    - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
-    - echo "127.0.0.1 docker" > /etc/hosts
-
+    - echo "$DOCKER_AUTH_CONFIG" > ~/.docker/config.json
   script:
-    - echo -n $DOCKERHUB_PASSWORD | docker login docker.io --username $DOCKERHUB_LOGIN --password-stdin
-    - docker build -t 5575123963/auc:latest -f Dockerfile .
-    - docker push 5575123963/auc:latest
+    - echo "$DOCKERHUB_PASSWORD" | docker login docker.io --username "$DOCKERHUB_LOGIN" --password-stdin
+    - docker buildx build --platform linux/amd64 -t 5575123963/auc:latest -f Dockerfile --push .
 
 deploy:
+  stage: deploy
   tags:
     - gitlab-org-docker
-  stage: deploy
-  script:
-    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
-    - eval $(ssh-agent -s)
-    - echo "${SSH_PRIVATE_KEY_DEV}" | tr -d '\r' | ssh-add -  # Используем DEV ключ
+  before_script:
+    - apk add --no-cache openssh-client
     - mkdir -p ~/.ssh
-    - chmod 600 ~/.ssh
-    - echo "=================deploy to host================="
+    - echo "$SSH_PRIVATE_KEY_DEV" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+  script:
     - |
-      ssh -o StrictHostKeyChecking=no -t -t root@185.43.4.23 << EOF  # DEV хост
+      ssh -o StrictHostKeyChecking=no root@185.43.4.23 << 'EOF'
       cd ../lootor
       
-      # Сеть (аналогично main)
+      # Обновляем образ
+      docker pull 5575123963/auc:latest
+      
+      # Перезапускаем сервисы
+      docker-compose -f docker-compose.backend.yml down
       docker network rm lootor_network || true
       docker network create lootor_network || true
       
-      # Остановка всех сервисов
-      docker-compose -f docker-compose.backend.yml down
-      
-      # Пулл образов
-      docker-compose -f docker-compose.backend.yml pull
-      
-      # Запуск зависимостей (аналогично main)
+      # Запускаем сервисы
       docker-compose -f docker-compose.backend.yml up -d auc redis elasticsearch
       
-      # Ожидание готовности Postgres (аналогично main)
+      # Ожидаем готовности Postgres
       for i in {1..10}; do
         if docker exec lootor_auc pg_isready -U auc -d lootor; then
           break
@@ -64,42 +52,13 @@ deploy:
         sleep 5
       done
       
-      # Запуск ОДНОГО backend (вместо 4-х)
-      docker-compose -f docker-compose.backend.yml up -d backend
+      # Запускаем backend и nginx
+      docker-compose -f docker-compose.backend.yml up -d backend nginx
       
-      # Проверка healthcheck (адаптировано под один backend)
-      for i in {1..10}; do
-        if docker exec lootor_backend curl -f http://localhost:5111/health; then
-          break
-        fi
-        sleep 3
-      done
-      
-      # Запуск nginx (аналогично main)
-      for attempt in {1..5}; do
-        echo "Attempt $attempt to start nginx"
-        docker-compose -f docker-compose.backend.yml up -d nginx
-        sleep 10
-      
-        if docker ps --filter "name=lootor_nginx" --format "{{.Status}}" | grep -q "Up"; then
-          echo "Nginx is up and running"
-          break
-        else
-          echo "Nginx failed to start, retrying..."
-          docker-compose -f docker-compose.backend.yml stop nginx || true
-        fi
-      done
-      
-      # Вывод статуса (адаптировано под один backend)
+      # Проверяем статус
       docker-compose -f docker-compose.backend.yml ps
       docker logs lootor_backend --tail 50
-      docker logs lootor_auc --tail 20
-      docker logs lootor_nginx --tail 20 || true
-      
-      # Безопасная очистка (только неиспользуемые образы)
-      docker image prune -f
       exit
       EOF
-
   only:
-    - dev  # Запуск только для dev ветки
+    - dev
