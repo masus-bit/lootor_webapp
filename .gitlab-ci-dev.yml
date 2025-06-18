@@ -3,7 +3,7 @@ services:
   - docker:19-dind
 
 before_script:
-  - until docker info; do sleep 1; done
+    - sleep 30
 
 variables:
   DOCKER_TLS_CERTDIR: ""
