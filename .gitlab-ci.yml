@@ -83,5 +83,6 @@ deploy:
       docker logs lootor_backend1 --tail 50
       docker logs lootor_auc --tail 20
       docker logs lootor_nginx --tail 20 || true
+      docker system prune -f
       exit
       EOF
