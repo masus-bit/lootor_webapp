@@ -1,0 +1,1731 @@
+basePath: /
+definitions:
+  dto.AllCollectionsDataResponseSwagger:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.CollectionsResponseSwagger'
+        type: array
+    type: object
+  dto.CollectionDataResponseSwagger:
+    properties:
+      data:
+        $ref: '#/definitions/dto.CollectionsResponseSwagger'
+    type: object
+  dto.CollectionItemsDataResponseSwagger:
+    properties:
+      data:
+        $ref: '#/definitions/dto.CollectionItemsResponseSwagger'
+    type: object
+  dto.CollectionItemsResponseSwagger:
+    properties:
+      collection:
+        type: string
+      copyNumber:
+        items:
+          type: string
+        type: array
+      description:
+        type: string
+      edition:
+        type: string
+      entities:
+        items:
+          $ref: '#/definitions/dto.EntitiesSwagger'
+        type: array
+      id:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      isOwner:
+        type: boolean
+      itemType:
+        $ref: '#/definitions/models.ItemTypes'
+      name:
+        type: string
+      owner:
+        $ref: '#/definitions/dto.UsersSwagger'
+      platform:
+        $ref: '#/definitions/models.Platforms'
+      purchaseDate:
+        type: string
+      purchasePrice:
+        type: number
+      rating:
+        type: number
+      sealed:
+        type: boolean
+      shippingCost:
+        type: number
+    type: object
+  dto.CollectionItemsSwagger:
+    properties:
+      collections:
+        items:
+          $ref: '#/definitions/dto.CollectionsSwagger'
+        type: array
+      copyNumber:
+        items:
+          type: string
+        type: array
+      createdAt:
+        type: string
+      deleted:
+        type: boolean
+      description:
+        type: string
+      edition:
+        type: string
+      entities:
+        items:
+          $ref: '#/definitions/dto.EntitiesSwagger'
+        type: array
+      id:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      itemType:
+        $ref: '#/definitions/models.ItemTypes'
+      itemTypeID:
+        type: string
+      name:
+        type: string
+      owner:
+        $ref: '#/definitions/dto.UsersSwagger'
+      platform:
+        $ref: '#/definitions/models.Platforms'
+      platformID:
+        type: string
+      purchaseDate:
+        type: string
+      purchasePrice:
+        type: number
+      rating:
+        type: number
+      sealed:
+        type: boolean
+      shippingCost:
+        type: number
+      transliteration:
+        type: string
+      updatedAt:
+        type: string
+      userLogin:
+        type: string
+    type: object
+  dto.CollectionsResponseSwagger:
+    properties:
+      bannerUrl:
+        type: string
+      canLike:
+        type: boolean
+      canSubscribe:
+        type: boolean
+      collectionItems:
+        items:
+          $ref: '#/definitions/dto.CollectionItemsResponseSwagger'
+        type: array
+      collectionItemsCount:
+        type: integer
+      created:
+        type: string
+      createdAt:
+        type: string
+      deleted:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: string
+      isOwner:
+        type: boolean
+      isPrivate:
+        type: boolean
+      likesCount:
+        type: integer
+      name:
+        type: string
+      shareString:
+        type: string
+      shippingTotal:
+        type: number
+      subscribersCount:
+        type: integer
+      tags:
+        items:
+          $ref: '#/definitions/dto.TagsSwagger'
+        type: array
+      totalPrice:
+        type: number
+      transliteration:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserResponseSwagger'
+    type: object
+  dto.CollectionsSwagger:
+    properties:
+      bannerUrl:
+        type: string
+      collectionItems:
+        items:
+          $ref: '#/definitions/dto.CollectionItemsSwagger'
+        type: array
+      created:
+        type: string
+      createdAt:
+        type: string
+      deleted:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: string
+      isPrivate:
+        type: boolean
+      likes:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      shareString:
+        type: string
+      shippingTotal:
+        type: integer
+      subscribersCount:
+        type: integer
+      tags:
+        items:
+          $ref: '#/definitions/dto.TagsSwagger'
+        type: array
+      totalPrice:
+        type: integer
+      transliteration:
+        type: string
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UsersSwagger'
+      userLogin:
+        type: string
+    type: object
+  dto.CommonResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.Resp'
+    type: object
+  dto.DataUserResponseSwagger:
+    properties:
+      data:
+        $ref: '#/definitions/dto.UserResponseSwagger'
+    type: object
+  dto.EntitiesDataResponseSwagger:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.EntitiesSwagger'
+        type: array
+    type: object
+  dto.EntitiesSwagger:
+    properties:
+      collectionItem:
+        items:
+          $ref: '#/definitions/dto.CollectionItemsSwagger'
+        type: array
+      createdAt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  dto.EventsDataResponseSwagger:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.EventsSwagger'
+        type: array
+    type: object
+  dto.EventsSwagger:
+    properties:
+      Id:
+        type: string
+      action:
+        type: string
+      date:
+        type: string
+      eventTargetType:
+        description: '"collection", "user" или "item"'
+        type: string
+      initiator:
+        $ref: '#/definitions/dto.UsersSwagger'
+      initiatorLogin:
+        type: string
+      targetCollection:
+        $ref: '#/definitions/dto.CollectionsSwagger'
+      targetCollectionID:
+        type: string
+      targetItem:
+        $ref: '#/definitions/dto.CollectionItemsSwagger'
+      targetItemID:
+        type: string
+      targetName:
+        type: string
+      targetUser:
+        $ref: '#/definitions/dto.UsersSwagger'
+      targetUserLogin:
+        type: string
+    type: object
+  dto.ImagesResponse:
+    properties:
+      keys:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.LikeUserSwagger:
+    properties:
+      isLike:
+        type: boolean
+    type: object
+  dto.Resp:
+    properties:
+      success:
+        type: boolean
+    type: object
+  dto.TagsSwagger:
+    properties:
+      collections:
+        items:
+          $ref: '#/definitions/dto.CollectionsSwagger'
+        type: array
+      createdAt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  dto.UserResponseSwagger:
+    properties:
+      avatarUrl:
+        type: string
+      backgroundUrl:
+        type: string
+      canSubscribe:
+        type: boolean
+      collectionItemsCount:
+        default: 0
+        type: integer
+      collectionSubscriptions:
+        items:
+          type: string
+        type: array
+      collectionsCount:
+        default: 0
+        type: integer
+      created:
+        type: string
+      dislikes:
+        type: integer
+      email:
+        type: string
+      likes:
+        type: integer
+      login:
+        type: string
+      subscribers:
+        type: integer
+      subscriptions:
+        items:
+          type: string
+        type: array
+      telegramId:
+        type: string
+      totalSum:
+        default: 0
+        type: integer
+      userName:
+        type: string
+      vkId:
+        type: string
+    type: object
+  dto.UsersSwagger:
+    properties:
+      avatarUrl:
+        type: string
+      backgroundUrl:
+        type: string
+      collectionSubscriptions:
+        items:
+          type: string
+        type: array
+      created:
+        type: string
+      dislikes:
+        type: integer
+      email:
+        type: string
+      likes:
+        type: integer
+      login:
+        type: string
+      subscribers:
+        type: integer
+      subscriptions:
+        items:
+          type: string
+        type: array
+      telegramId:
+        type: string
+      userName:
+        type: string
+      verificationToken:
+        type: string
+      vkId:
+        type: string
+    type: object
+  dto.WishlistDataResponseSwagger:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.WishlistDataResponseSwagger'
+        type: array
+    type: object
+  elasticsearch.SearchResult:
+    properties:
+      hits:
+        properties:
+          hits:
+            items:
+              properties:
+                _index:
+                  type: string
+                _source:
+                  additionalProperties: true
+                  type: object
+              type: object
+            type: array
+        type: object
+    type: object
+  models.ChangePasswordReset:
+    properties:
+      password:
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - password
+    - token
+    type: object
+  models.CollectionCreateRequest:
+    properties:
+      bannerUrl:
+        type: string
+      description:
+        type: string
+      isPrivate:
+        type: boolean
+      name:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      transliteration:
+        type: string
+      userLogin:
+        type: string
+    type: object
+  models.CollectionItemsCopyOrMoveRequest:
+    properties:
+      id:
+        type: string
+      sourceCollectionId:
+        type: string
+      targetCollectionIds:
+        items:
+          type: string
+        type: array
+    type: object
+  models.CollectionItemsRequestCreate:
+    properties:
+      collection:
+        type: string
+      copyNumber:
+        items:
+          type: integer
+        type: array
+      description:
+        type: string
+      edition:
+        type: string
+      entities:
+        items:
+          type: string
+        type: array
+      images:
+        items:
+          type: string
+        type: array
+      itemType:
+        type: string
+      name:
+        type: string
+      platform:
+        type: string
+      purchaseDate:
+        type: string
+      purchasePrice:
+        type: number
+      rating:
+        type: number
+      sealed:
+        type: boolean
+      shippingCost:
+        type: number
+    type: object
+  models.EntitiesCreateRequest:
+    properties:
+      names:
+        items:
+          type: string
+        type: array
+    type: object
+  models.ItemTypes:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      ruName:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.ItemTypesDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.ItemTypes'
+        type: array
+    type: object
+  models.Platforms:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.PlatformsDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Platforms'
+        type: array
+    type: object
+  models.SignInRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.SignInResponse:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+  models.SignUpRequest:
+    properties:
+      bio:
+        type: string
+      city:
+        type: string
+      email:
+        type: string
+      login:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      userName:
+        type: string
+    required:
+    - email
+    - login
+    - password
+    - userName
+    type: object
+  models.SignUpResponse:
+    properties:
+      data:
+        type: string
+    type: object
+  models.UserRequestUpdate:
+    properties:
+      avatarUrl:
+        type: string
+      backgroundUrl:
+        type: string
+      bio:
+        type: string
+      city:
+        type: string
+      email:
+        type: string
+      userName:
+        type: string
+    type: object
+  models.UserRequestUpdateFirstTime:
+    properties:
+      avatarUrl:
+        type: string
+      backgroundUrl:
+        type: string
+      bio:
+        type: string
+      city:
+        type: string
+      email:
+        type: string
+      login:
+        type: string
+      userName:
+        type: string
+    type: object
+  models.WishListCreateRequest:
+    properties:
+      collectionItemId:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      itemName:
+        type: string
+      notes:
+        type: string
+      priority:
+        type: integer
+      purchaseLinks:
+        items:
+          type: string
+        type: array
+    type: object
+  models.WishListItemUpdatePriority:
+    properties:
+      priority:
+        type: integer
+    type: object
+  payment.ConfirmURL:
+    properties:
+      confirmation_url:
+        type: string
+      type:
+        type: string
+    type: object
+  payment.PayResponseToClient:
+    properties:
+      confirmation:
+        $ref: '#/definitions/payment.ConfirmURL'
+      id:
+        type: string
+      paid:
+        type: boolean
+      status:
+        type: string
+    type: object
+  payment.PayResponseToClientData:
+    properties:
+      data:
+        $ref: '#/definitions/payment.PayResponseToClient'
+    type: object
+  s3.DeleteFilesRequest:
+    properties:
+      keys:
+        items:
+          type: string
+        type: array
+    type: object
+  s3.DeleteFilesResponse:
+    properties:
+      error:
+        type: string
+      notFound:
+        items:
+          type: string
+        type: array
+      success:
+        type: boolean
+    type: object
+host: dev.lootor.me
+info:
+  contact: {}
+  description: Документация к API Lootor.me
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Lootor
+  version: "1.0"
+paths:
+  /public/auth/reset:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: email
+        in: query
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: сброс пароля
+      tags:
+      - users
+  /public/auth/signin:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignInRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.SignInResponse'
+      summary: Авторизация
+      tags:
+      - users
+  /public/auth/signup:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.SignUpResponse'
+      summary: создание пользователя
+      tags:
+      - users
+  /public/collection_item:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CollectionItemsDataResponseSwagger'
+      summary: получение одного КИ
+      tags:
+      - collection items
+  /public/collection_item/entity:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: entity
+        in: query
+        name: entity
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AllCollectionsDataResponseSwagger'
+      summary: получить КИ по кнтити
+      tags:
+      - collection items
+  /public/collection_item/entity/type:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: entity
+        in: query
+        name: entity
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: поле сортировки% может быть  name, purchaseDate, purchasePrice,
+          platform, type, rating
+        in: query
+        name: orderBy
+        type: string
+      - description: порядок сортировки asc или desc
+        in: query
+        name: order
+        type: string
+      - description: поиск среди коллекций по entity
+        in: query
+        name: search
+        type: string
+      - description: type
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AllCollectionsDataResponseSwagger'
+      summary: получить КИ по entity и типу
+      tags:
+      - collection items
+  /public/collections:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: логин
+        in: query
+        name: userLogin
+        type: string
+      - description: id
+        in: query
+        name: id
+        type: string
+      - description: translit
+        in: query
+        name: transliteration
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: поле сортировки% может быть  name, purchaseDate, purchasePrice,
+          platform, type, rating
+        in: query
+        name: orderBy
+        type: string
+      - description: порядок сортировки asc или desc
+        in: query
+        name: order
+        type: string
+      - description: поиск по именам КИ внутри коллекции
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CollectionDataResponseSwagger'
+      summary: получение коллекций по id или по логину + транслит
+      tags:
+      - collections
+  /public/collections/all:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: логин
+        in: query
+        name: userLogin
+        required: true
+        type: string
+      - description: поле сортировки% может быть totalPrice, name, created, collectionItemsCount
+        in: query
+        name: orderBy
+        type: string
+      - description: порядок сортировки asc или desc
+        in: query
+        name: order
+        type: string
+      - description: поиск по именам коллекций
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AllCollectionsDataResponseSwagger'
+      summary: получение коллекций по логину
+      tags:
+      - collections
+  /public/collections/subscribe:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: flag
+        in: query
+        name: isSubscribe
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: подписка на коллекцию
+      tags:
+      - collections
+  /public/events/filter:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: login
+        in: query
+        name: userLogin
+        type: string
+      - description: collection id
+        in: query
+        name: collectionId
+        type: string
+      - description: collection item id
+        in: query
+        name: collectionItemId
+        type: string
+      - description: wish list item id
+        in: query
+        name: wishListItemId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.EventsDataResponseSwagger'
+      summary: получить эвенты filtered
+      tags:
+      - events
+  /public/images/{key}:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - image/png
+      - image/jpeg
+      - image/webp
+      responses:
+        "200":
+          description: image
+          schema:
+            type: file
+      summary: получить изображение
+      tags:
+      - images
+  /public/search:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: поисковая строка
+        in: query
+        name: search
+        required: true
+        type: string
+      - description: количество результатов
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/elasticsearch.SearchResult'
+      summary: Поиск по коллекциям, ентити, КИ, тегам, юзерам
+      tags:
+      - search
+  /public/user:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: логин
+        in: query
+        name: login
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.DataUserResponseSwagger'
+      summary: получение юзера по логину
+      tags:
+      - users
+  /public/user/reset:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChangePasswordReset'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: смена пароля по токену
+      tags:
+      - users
+  /public/wishlist:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: login
+        in: query
+        name: userLogin
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.WishlistDataResponseSwagger'
+      summary: получить вишлист по юзер логину
+      tags:
+      - wishlist
+  /secured/collection_item:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: удаление КИ
+      tags:
+      - collection items
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля создания
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.CollectionItemsRequestCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CollectionItemsDataResponseSwagger'
+      summary: Создание КИ
+      tags:
+      - collection items
+  /secured/collection_item/copy:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: polya
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.CollectionItemsCopyOrMoveRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: копирование/перемещение КИ
+      tags:
+      - collection items
+  /secured/collection_item/like:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: like/dislike
+      tags:
+      - collection items
+  /secured/collection_item/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля создания
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.CollectionItemsRequestCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CollectionItemsDataResponseSwagger'
+      summary: обновление КИ
+      tags:
+      - collection items
+  /secured/collections:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля создания
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.CollectionCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CollectionDataResponseSwagger'
+      summary: Создание коллекции
+      tags:
+      - collections
+  /secured/collections/like:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: like/dislike
+      tags:
+      - collections
+  /secured/collections/tag:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: tag
+        in: query
+        name: tag
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: поле сортировки% может быть totalPrice, name, created, collectionItemsCount
+        in: query
+        name: orderBy
+        type: string
+      - description: порядок сортировки asc или desc
+        in: query
+        name: order
+        type: string
+      - description: поиск среди коллекций по тегу
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AllCollectionsDataResponseSwagger'
+      summary: получить коллекции по тегу
+      tags:
+      - collections
+  /secured/collections/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля создания
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.CollectionCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CollectionDataResponseSwagger'
+      summary: обновление коллекции
+      tags:
+      - collections
+  /secured/entities:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: имя
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.EntitiesDataResponseSwagger'
+      summary: поиск по entities
+      tags:
+      - entities
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля создания
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.EntitiesCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.EntitiesDataResponseSwagger'
+      summary: Создание entity
+      tags:
+      - entities
+  /secured/events:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.EventsDataResponseSwagger'
+      summary: получить эвенты по юзеру из токена
+      tags:
+      - events
+  /secured/feedback:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Загрузка файла через multipart/form-data
+      parameters:
+      - description: Файл для загрузки
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Заголовок тикета
+        in: query
+        name: title
+        required: true
+        type: string
+      - description: Описание тикета
+        in: query
+        name: description
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: Создать обращение
+      tags:
+      - feedback
+  /secured/images/delete:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/s3.DeleteFilesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/s3.DeleteFilesResponse'
+      summary: удалить изображения из хранилища
+      tags:
+      - images
+  /secured/images/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - collectionFormat: csv
+        description: файлы для загрузки
+        in: formData
+        items:
+          type: file
+        name: files
+        required: true
+        type: array
+      - description: ширина картинки
+        in: query
+        name: width
+        type: string
+      - description: высота
+        in: query
+        name: height
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ImagesResponse'
+      summary: Загрузить изображения в хранилище
+      tags:
+      - images
+  /secured/item_types:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ItemTypesDataResponse'
+      summary: получить список типов КИ
+      tags:
+      - itemTypes
+  /secured/payment:
+    get:
+      description: создание платежа
+      parameters:
+      - description: тип подписки monthly/yearly
+        in: query
+        name: subType
+        required: true
+        type: string
+      - description: сумма
+        in: query
+        name: amount
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/payment.PayResponseToClientData'
+      summary: Создать Платеж
+      tags:
+      - payment
+  /secured/platforms:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.PlatformsDataResponse'
+      summary: получить список платформ
+      tags:
+      - platforms
+  /secured/reports:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id/login
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: подать жалобу
+      tags:
+      - reports
+  /secured/tags:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: name
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.TagsSwagger'
+      summary: Поиск по тегам
+      tags:
+      - tags
+  /secured/user/password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: parolj
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      - description: User data
+        in: query
+        name: login
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: Смена пароля
+      tags:
+      - users
+  /secured/user/rating:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LikeUserSwagger'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: Лайк/дизлайк
+      tags:
+      - users
+  /secured/user/subscriptions:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: признак подписки
+        in: query
+        name: isSubscribe
+        required: true
+        type: boolean
+      - description: User data
+        in: query
+        name: login
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: Подписка одного юзера на другого
+      tags:
+      - users
+  /secured/user/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserRequestUpdate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.DataUserResponseSwagger'
+      summary: смена некоторых данных пользователя
+      tags:
+      - users
+  /secured/user/update/reg:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserRequestUpdateFirstTime'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.SignInResponse'
+      summary: смена логина после оауса
+      tags:
+      - users
+  /secured/wishlist:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: удаление айтема
+      tags:
+      - wishlist
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля создания
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.WishListCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: Создание экземпляра вишлиста
+      tags:
+      - wishlist
+  /secured/wishlist/priority:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: priority
+        in: body
+        name: priority
+        required: true
+        schema:
+          $ref: '#/definitions/models.WishListItemUpdatePriority'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.WishlistDataResponseSwagger'
+      summary: обновление приоритета
+      tags:
+      - wishlist
+  /secured/wishlist/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: priority
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.WishListItemUpdatePriority'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.WishlistDataResponseSwagger'
+      summary: обновление
+      tags:
+      - wishlist
+schemes:
+- https
+swagger: "2.0"

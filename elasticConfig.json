@@ -1,0 +1,325 @@
+{
+  "address": "http://62.109.30.145:9200",
+  "indices": {
+    "collections": {
+      "settings": {
+        "analysis": {
+          "analyzer": {
+            "exact_match": {
+              "type": "custom",
+              "tokenizer": "keyword",
+              "filter": ["lowercase"]
+            },
+            "prefix_search": {
+              "type": "custom",
+              "tokenizer": "standard",
+              "filter": ["lowercase", "edge_ngram_filter"]
+            },
+            "full_text": {
+              "type": "standard",
+              "filter": ["lowercase"]
+            }
+          },
+          "filter": {
+            "edge_ngram_filter": {
+              "type": "edge_ngram",
+              "min_gram": 3,
+              "max_gram": 15
+            }
+          },
+          "normalizer": {
+            "lowercase": {
+              "type": "custom",
+              "filter": ["lowercase"]
+            }
+          }
+        }
+      },
+      "mappings": {
+        "properties": {
+          "name": {
+            "type": "text",
+            "fields": {
+              "exact": {
+                "type": "text",
+                "analyzer": "exact_match"
+              },
+              "prefix": {
+                "type": "text",
+                "analyzer": "prefix_search"
+              },
+              "full": {
+                "type": "text",
+                "analyzer": "full_text"
+              },
+              "keyword": {
+                "type": "keyword",
+                "normalizer": "lowercase"
+              }
+            }
+          },
+          "id": {
+            "type": "keyword"
+          }
+        }
+      }
+    },
+    "users": {
+      "settings": {
+        "analysis": {
+          "analyzer": {
+            "exact_match": {
+              "type": "custom",
+              "tokenizer": "keyword",
+              "filter": ["lowercase"]
+            },
+            "prefix_search": {
+              "type": "custom",
+              "tokenizer": "standard",
+              "filter": ["lowercase", "edge_ngram_filter"]
+            },
+            "full_text": {
+              "type": "standard",
+              "filter": ["lowercase"]
+            }
+          },
+          "filter": {
+            "edge_ngram_filter": {
+              "type": "edge_ngram",
+              "min_gram": 3,
+              "max_gram": 15
+            }
+          },
+          "normalizer": {
+            "lowercase": {
+              "type": "custom",
+              "filter": ["lowercase"]
+            }
+          }
+        }
+      },
+      "mappings": {
+        "properties": {
+          "login": {
+            "type": "text",
+            "fields": {
+              "exact": {
+                "type": "text",
+                "analyzer": "exact_match"
+              },
+              "prefix": {
+                "type": "text",
+                "analyzer": "prefix_search"
+              },
+              "keyword": {
+                "type": "keyword",
+                "normalizer": "lowercase"
+              }
+            }
+          },
+          "user_name": {
+            "type": "text",
+            "fields": {
+              "full": {
+                "type": "text",
+                "analyzer": "full_text"
+              }
+            }
+          },
+          "id": {
+            "type": "keyword"
+          }
+        }
+      }
+    },
+    "tags": {
+      "settings": {
+        "analysis": {
+          "analyzer": {
+            "exact_match": {
+              "type": "custom",
+              "tokenizer": "keyword",
+              "filter": ["lowercase"]
+            },
+            "prefix_search": {
+              "type": "custom",
+              "tokenizer": "standard",
+              "filter": ["lowercase", "edge_ngram_filter"]
+            },
+            "full_text": {
+              "type": "standard",
+              "filter": ["lowercase"]
+            }
+          },
+          "filter": {
+            "edge_ngram_filter": {
+              "type": "edge_ngram",
+              "min_gram": 3,
+              "max_gram": 15
+            }
+          },
+          "normalizer": {
+            "lowercase": {
+              "type": "custom",
+              "filter": ["lowercase"]
+            }
+          }
+        }
+      },
+      "mappings": {
+        "properties": {
+          "name": {
+            "type": "text",
+            "fields": {
+              "exact": {
+                "type": "text",
+                "analyzer": "exact_match"
+              },
+              "prefix": {
+                "type": "text",
+                "analyzer": "prefix_search"
+              },
+              "full": {
+                "type": "text",
+                "analyzer": "full_text"
+              },
+              "keyword": {
+                "type": "keyword",
+                "normalizer": "lowercase"
+              }
+            }
+          },
+          "id": {
+            "type": "keyword"
+          }
+        }
+      }
+    },
+    "collection_items": {
+      "settings": {
+        "analysis": {
+          "analyzer": {
+            "exact_match": {
+              "type": "custom",
+              "tokenizer": "keyword",
+              "filter": ["lowercase"]
+            },
+            "prefix_search": {
+              "type": "custom",
+              "tokenizer": "standard",
+              "filter": ["lowercase", "edge_ngram_filter"]
+            },
+            "full_text": {
+              "type": "standard",
+              "filter": ["lowercase"]
+            }
+          },
+          "filter": {
+            "edge_ngram_filter": {
+              "type": "edge_ngram",
+              "min_gram": 3,
+              "max_gram": 15
+            }
+          },
+          "normalizer": {
+            "lowercase": {
+              "type": "custom",
+              "filter": ["lowercase"]
+            }
+          }
+        }
+      },
+      "mappings": {
+        "properties": {
+          "name": {
+            "type": "text",
+            "fields": {
+              "exact": {
+                "type": "text",
+                "analyzer": "exact_match"
+              },
+              "prefix": {
+                "type": "text",
+                "analyzer": "prefix_search"
+              },
+              "full": {
+                "type": "text",
+                "analyzer": "full_text"
+              },
+              "keyword": {
+                "type": "keyword",
+                "normalizer": "lowercase"
+              }
+            }
+          },
+          "id": {
+            "type": "keyword"
+          }
+        }
+      }
+    },
+    "entities": {
+      "settings": {
+        "analysis": {
+          "analyzer": {
+            "exact_match": {
+              "type": "custom",
+              "tokenizer": "keyword",
+              "filter": ["lowercase"]
+            },
+            "prefix_search": {
+              "type": "custom",
+              "tokenizer": "standard",
+              "filter": ["lowercase", "edge_ngram_filter"]
+            },
+            "full_text": {
+              "type": "standard",
+              "filter": ["lowercase"]
+            }
+          },
+          "filter": {
+            "edge_ngram_filter": {
+              "type": "edge_ngram",
+              "min_gram": 3,
+              "max_gram": 15
+            }
+          },
+          "normalizer": {
+            "lowercase": {
+              "type": "custom",
+              "filter": ["lowercase"]
+            }
+          }
+        }
+      },
+      "mappings": {
+        "properties": {
+          "name": {
+            "type": "text",
+            "fields": {
+              "exact": {
+                "type": "text",
+                "analyzer": "exact_match"
+              },
+              "prefix": {
+                "type": "text",
+                "analyzer": "prefix_search"
+              },
+              "full": {
+                "type": "text",
+                "analyzer": "full_text"
+              },
+              "keyword": {
+                "type": "keyword",
+                "normalizer": "lowercase"
+              }
+            }
+          },
+          "id": {
+            "type": "keyword"
+          }
+        }
+      }
+    }
+  }
+}
