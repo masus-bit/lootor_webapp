@@ -564,7 +564,15 @@ func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, ta
 	if data == nil {
 		return nil, errors.New("update data is nil")
 	}
+	emailUser, err := s.repo.GetByEmail(*data.Email)
+	if err != nil {
+		fmt.Errorf("failed to check user existence: %w", err)
+	}
 
+	if emailUser != nil && emailUser.Email == *data.Email {
+		return nil, errors.New("email already exists")
+
+	}
 	if data.Login == nil || data.UserName == nil || data.Email == nil {
 		return nil, errors.New("required fields are missing")
 	}

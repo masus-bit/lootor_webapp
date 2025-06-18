@@ -128,6 +128,7 @@ type CollectionItemsSortedResponse struct {
 }
 
 type CollectionItemsDataSortedResponse struct {
-	Data  CollectionItemsSortedResponse `json:"data"`
-	Total int64                         `json:"total"`
+	Data   CollectionItemsSortedResponse `json:"data"`
+	Total  int64                         `json:"total"`
+	Entity Entities                      `json:"entity"`
 }
