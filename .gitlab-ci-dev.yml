@@ -1,8 +1,6 @@
-image: docker:19.03.12
+image: docker:19-dind
 services:
-  - name: docker:19.03.12-dind
-    alias: docker
-    command: ["--tls=false", "--host=tcp://0.0.0.0:2375"]
+  - docker:19-dind
 
 variables:
   DOCKER_TLS_CERTDIR: ""
@@ -16,7 +14,7 @@ stages:
 build:
   stage: build
   tags:
-    - gitlab-org-docker
+    - auc
   before_script:
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
@@ -29,7 +27,7 @@ build:
 
 deploy:
   tags:
-    - gitlab-org-docker
+    - auc
   stage: deploy
   script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
