@@ -116,7 +116,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		os.Getenv("JWT_SECRET"),
 		100*time.Minute,
 		7*24*time.Hour,
-		userRepo,
+		*userRepo,
 	)
 
 	s3Service := s3.NewS3Service(redisClient)
