@@ -14,7 +14,7 @@ stages:
 build:
   stage: build
   tags:
-    - gitlab-org
+    - gitlab-org-docker
   before_script:
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
@@ -27,7 +27,7 @@ build:
 
 deploy:
   tags:
-    - gitlab-org
+    - gitlab-org-docker
   stage: deploy
   script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
