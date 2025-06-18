@@ -13,6 +13,8 @@ stages:
 
 build:
   stage: build
+  only:
+    - main
   tags:
     - auc
   before_script:
@@ -26,9 +28,11 @@ build:
     - docker push 5575123963/auc:latest
 
 deploy:
+  stage: deploy
+  only:
+    - main
   tags:
     - deploy
-  stage: deploy
   script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
