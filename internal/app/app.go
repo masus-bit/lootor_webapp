@@ -80,12 +80,6 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		}
 	}
 
-	jwtService := auth.NewJWTService(
-		os.Getenv("JWT_SECRET"),
-		100*time.Minute,
-		7*24*time.Hour,
-	)
-
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv("REDIS_HOST"),
 		Password: "",
@@ -117,6 +111,13 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	portInt, _ := strconv.Atoi(port)
 	user := os.Getenv("YANDEX_POST_USER")
 	password := os.Getenv("YANDEX_POST_PASSWORD")
+
+	jwtService := auth.NewJWTService(
+		os.Getenv("JWT_SECRET"),
+		100*time.Minute,
+		7*24*time.Hour,
+		userRepo,
+	)
 
 	s3Service := s3.NewS3Service(redisClient)
 	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootor.me>`)

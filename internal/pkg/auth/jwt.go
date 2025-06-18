@@ -5,17 +5,15 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"lootor/internal/core/repositories"
 	"time"
 )
 
-type UserRepository interface {
-	GetUserByLogin(login string) (TokenData, error)
-}
 type JWTService struct {
 	secretKey       []byte
 	accessTokenExp  time.Duration
 	refreshTokenExp time.Duration
-	userRepo        UserRepository
+	userRepo        repositories.UsersRepository
 }
 
 type TokenPair struct {
@@ -40,7 +38,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func NewJWTService(secret string, accessExp time.Duration, refreshExp time.Duration, userRepo UserRepository) *JWTService {
+func NewJWTService(secret string, accessExp time.Duration, refreshExp time.Duration, userRepo repositories.UsersRepository) *JWTService {
 	return &JWTService{
 		secretKey:       []byte(secret),
 		accessTokenExp:  accessExp,
