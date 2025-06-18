@@ -1,7 +1,7 @@
-image: alpine:3.16  # Используем легковесный образ
+image: docker:20.10.24  # Используем официальный образ Docker с поддержкой buildx
 
 variables:
-  DOCKER_BUILDKIT: 1  # Для более быстрой сборки
+  DOCKER_BUILDKIT: 1
 
 stages:
   - build
@@ -12,15 +12,16 @@ build:
   tags:
     - gitlab-org-docker
   before_script:
-    - apk add --no-cache docker-cli curl
     - mkdir -p ~/.docker
     - echo "$DOCKER_AUTH_CONFIG" > ~/.docker/config.json
   script:
     - echo "$DOCKERHUB_PASSWORD" | docker login docker.io --username "$DOCKERHUB_LOGIN" --password-stdin
+    - docker buildx create --use  # Активируем buildx
     - docker buildx build --platform linux/amd64 -t 5575123963/auc:latest -f Dockerfile --push .
 
 deploy:
   stage: deploy
+  image: alpine:3.16
   tags:
     - gitlab-org-docker
   before_script:
@@ -32,33 +33,12 @@ deploy:
     - |
       ssh -o StrictHostKeyChecking=no root@185.43.4.23 << 'EOF'
       cd ../lootor
-      
-      # Обновляем образ
       docker pull 5575123963/auc:latest
-      
-      # Перезапускаем сервисы
       docker-compose -f docker-compose.backend.yml down
       docker network rm lootor_network || true
       docker network create lootor_network || true
-      
-      # Запускаем сервисы
-      docker-compose -f docker-compose.backend.yml up -d auc redis elasticsearch
-      
-      # Ожидаем готовности Postgres
-      for i in {1..10}; do
-        if docker exec lootor_auc pg_isready -U auc -d lootor; then
-          break
-        fi
-        sleep 5
-      done
-      
-      # Запускаем backend и nginx
-      docker-compose -f docker-compose.backend.yml up -d backend nginx
-      
-      # Проверяем статус
+      docker-compose -f docker-compose.backend.yml up -d
       docker-compose -f docker-compose.backend.yml ps
-      docker logs lootor_backend --tail 50
-      exit
       EOF
   only:
     - dev
