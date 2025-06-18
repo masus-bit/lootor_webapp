@@ -8,10 +8,14 @@ import (
 	"time"
 )
 
+type UserRepository interface {
+	GetUserByLogin(login string) (TokenData, error)
+}
 type JWTService struct {
 	secretKey       []byte
 	accessTokenExp  time.Duration
 	refreshTokenExp time.Duration
+	userRepo        UserRepository
 }
 
 type TokenPair struct {
@@ -36,11 +40,12 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func NewJWTService(secret string, accessExp time.Duration, refreshExp time.Duration) *JWTService {
+func NewJWTService(secret string, accessExp time.Duration, refreshExp time.Duration, userRepo UserRepository) *JWTService {
 	return &JWTService{
 		secretKey:       []byte(secret),
 		accessTokenExp:  accessExp,
 		refreshTokenExp: refreshExp,
+		userRepo:        userRepo,
 	}
 }
 
@@ -146,21 +151,9 @@ func (s *JWTService) RenewTokenPair(refreshToken string) (*TokenPair, error) {
 		return nil, errors.New("refresh token expired")
 	}
 
-	userData := &tokenData{
-		login:         claims.Login,
-		userName:      claims.UserName,
-		vkId:          claims.VkId,
-		telegramId:    claims.TelegramId,
-		email:         claims.Email,
-		created:       claims.Created,
-		likes:         claims.Likes,
-		dislikes:      claims.Dislikes,
-		avatarUrl:     claims.AvatarUrl,
-		backgroundUrl: claims.BackgroundUrl,
-		subscribers:   claims.Subscribers,
-		bio:           claims.Bio,
-		city:          claims.City,
-		isPremium:     claims.IsPremium,
+	userData, err := s.userRepo.GetUserByLogin(claims.Login)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user data: %w", err)
 	}
 
 	return s.GenerateTokenPair(userData)
