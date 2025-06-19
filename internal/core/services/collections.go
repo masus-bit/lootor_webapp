@@ -380,6 +380,10 @@ func (s *CollectionService) GetByTag(tag string, authUserLogin string, limit str
 	if err != nil {
 		return nil, err
 	}
+	dbTag, err := s.tagsRepo.GetTagByName(tag)
+	if err != nil {
+		return nil, err
+	}
 	var authUser *models.Users
 	var subArray []string
 	if authUserLogin != "" {
@@ -415,5 +419,5 @@ func (s *CollectionService) GetByTag(tag string, authUserLogin string, limit str
 
 	sortedCollections := utils.GetCollectionOrderBy(orderBy, result, order)
 
-	return &models.AllCollectionsDataByTag{Data: sortedCollections, Total: totalCount}, nil
+	return &models.AllCollectionsDataByTag{Data: sortedCollections, Total: totalCount, Tag: *dbTag}, nil
 }
