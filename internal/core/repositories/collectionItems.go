@@ -376,6 +376,12 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (
 	Books              []models.CollectionItems `json:"books"`
 	Vinyl              []models.CollectionItems `json:"vinyl"`
 }, int64, error) {
+	type Result struct {
+		Items     []models.CollectionItems
+		UniqueIDs map[uuid.UUID]bool
+		FieldName string
+	}
+
 	var GroupedCollectionItems struct {
 		VideoGames         []models.CollectionItems `json:"videoGames"`
 		BoardGames         []models.CollectionItems `json:"boardGames"`
@@ -386,7 +392,16 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (
 		Vinyl              []models.CollectionItems `json:"vinyl"`
 	}
 	var totalCount int64
-	var itemTypesArr = []string{"Video games", "Board games", "Comics", "Gaming hardware", "Collectible figures", "Books", "Vinyl"}
+	itemTypes := []Result{
+		{FieldName: "Video Games", UniqueIDs: make(map[uuid.UUID]bool)},
+		{FieldName: "Board Games", UniqueIDs: make(map[uuid.UUID]bool)},
+		{FieldName: "Comics", UniqueIDs: make(map[uuid.UUID]bool)},
+		{FieldName: "Gaming Hardware", UniqueIDs: make(map[uuid.UUID]bool)},
+		{FieldName: "Collectible Figures", UniqueIDs: make(map[uuid.UUID]bool)},
+		{FieldName: "Books", UniqueIDs: make(map[uuid.UUID]bool)},
+		{FieldName: "Vinyl", UniqueIDs: make(map[uuid.UUID]bool)},
+	}
+	itemTypeNames := []string{"Video games", "Board games", "Comics", "Gaming hardware", "Collectible figures", "Books", "Vinyl"}
 
 	intLimit, _ := strconv.Atoi(limit)
 
@@ -402,8 +417,10 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (
 		return nil, 0, err
 	}
 
-	for _, itemType := range itemTypesArr {
-		query := r.db.
+	for i, itemType := range itemTypeNames {
+		var items []models.CollectionItems
+
+		err := r.db.
 			Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
 			Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
 			Joins("JOIN item_types ON item_types.id = collection_items.item_type_id").
@@ -417,28 +434,40 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (
 			Preload("ItemType").
 			Where("collection_items.deleted_at IS NULL").
 			Order("collection_items.created_at DESC").
-			Limit(intLimit)
+			Limit(intLimit).
+			Find(&items).Error
 
-		switch itemType {
-		case "Video games":
-			query.Find(&GroupedCollectionItems.VideoGames)
-		case "Board games":
-			query.Find(&GroupedCollectionItems.BoardGames)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		var uniqueItems []models.CollectionItems
+		for _, item := range items {
+			if !itemTypes[i].UniqueIDs[item.Id] {
+				itemTypes[i].UniqueIDs[item.Id] = true
+				uniqueItems = append(uniqueItems, item)
+			}
+		}
+
+		switch itemTypes[i].FieldName {
+		case "Video Games":
+			GroupedCollectionItems.VideoGames = uniqueItems
+		case "Board Games":
+			GroupedCollectionItems.BoardGames = uniqueItems
 		case "Comics":
-			query.Find(&GroupedCollectionItems.Comics)
-		case "Gaming hardware":
-			query.Find(&GroupedCollectionItems.GamingHardware)
-		case "Collectible figures":
-			query.Find(&GroupedCollectionItems.CollectibleFigures)
+			GroupedCollectionItems.Comics = uniqueItems
+		case "Gaming Hardware":
+			GroupedCollectionItems.GamingHardware = uniqueItems
+		case "Collectible Figures":
+			GroupedCollectionItems.CollectibleFigures = uniqueItems
 		case "Books":
-			query.Find(&GroupedCollectionItems.Books)
+			GroupedCollectionItems.Books = uniqueItems
 		case "Vinyl":
-			query.Find(&GroupedCollectionItems.Vinyl)
+			GroupedCollectionItems.Vinyl = uniqueItems
 		}
 	}
 
 	return &GroupedCollectionItems, totalCount, nil
-
 }
 
 func (r *CiRepository) GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string) ([]models.CollectionItems, int64, error) {
@@ -458,6 +487,7 @@ func (r *CiRepository) GetByEntityAndType(entity string, itemType string, limit 
 		Where("LOWER(entities.transliteration) = LOWER(?)", entity).
 		Where("item_types.name = ?", itemTypeNew).
 		Where("collection_items.deleted_at IS NULL")
+
 	if search != "" {
 		countQuery = countQuery.Where("collection_items.name ILIKE ?", "%"+search+"%")
 	}
@@ -479,10 +509,7 @@ func (r *CiRepository) GetByEntityAndType(entity string, itemType string, limit 
 		Preload("Platform").
 		Preload("Entities").
 		Preload("ItemType").
-		Where("collection_items.deleted_at IS NULL").
-		Order("collection_items.created_at DESC").
-		Limit(intLimit).
-		Offset(intOffset)
+		Where("collection_items.deleted_at IS NULL")
 
 	if search != "" {
 		query = query.Where("collection_items.name ILIKE ?", "%"+search+"%")
@@ -490,14 +517,38 @@ func (r *CiRepository) GetByEntityAndType(entity string, itemType string, limit 
 
 	ciOrder := utils.GetCIOrderString(orderBy, order)
 	if ciOrder.Joins != "" {
-		query.Joins(ciOrder.Joins).Order(ciOrder.Order)
+		query = query.Joins(ciOrder.Joins).Order(ciOrder.Order)
 	} else {
-		query.Order(ciOrder.Order)
+		query = query.Order(ciOrder.Order)
 	}
 
-	err = query.Find(&collectionItems).Error
+	var allItems []models.CollectionItems
+	err = query.Find(&allItems).Error
 	if err != nil {
 		return nil, 0, err
 	}
+
+	uniqueItems := make([]models.CollectionItems, 0)
+	seenIDs := make(map[uuid.UUID]bool)
+	for _, item := range allItems {
+		if !seenIDs[item.Id] {
+			seenIDs[item.Id] = true
+			uniqueItems = append(uniqueItems, item)
+		}
+	}
+
+	totalCount = int64(len(uniqueItems))
+
+	start := intOffset
+	end := intOffset + intLimit
+	if start > len(uniqueItems) {
+		start = len(uniqueItems)
+	}
+	if end > len(uniqueItems) {
+		end = len(uniqueItems)
+	}
+
+	collectionItems = uniqueItems[start:end]
+
 	return collectionItems, totalCount, nil
 }
