@@ -140,7 +140,9 @@ func (s *PayService) EndTransaction(data *Notification) {
 		}
 	}
 	payment := models.Payments{
-		Amount: data.Object.Amount.Value,
+		Amount:        data.Object.Amount.Value,
+		InnerOrderId:  data.Object.Metadata.OrderID,
+		TransactionId: data.Object.ID,
 	}
 	err := s.paymentsRepo.CreateRecord(&payment)
 	if err != nil {
