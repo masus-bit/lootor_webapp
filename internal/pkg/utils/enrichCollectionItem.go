@@ -9,7 +9,7 @@ import (
 type EnrichedCI interface {
 	Update(id string, dto *models.CollectionItemsRequestUpdate) (*models.CollectionItems, error)
 	GetById(id string, authUser string) (*models.CollectionItems, error)
-	GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string, authUser string) ([]models.CollectionItems, int64, error)
+	GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string, authUser string) ([]models.CollectionItems, *models.Entities, int64, error)
 }
 
 type EnrichingCIService struct {
@@ -83,10 +83,10 @@ func (s *EnrichingCIService) Update(id string, dto *models.CollectionItemsReques
 }
 
 func (s *EnrichingCIService) GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string, authUser string) (*models.CollectionItemsDataResponseWithCount, error) {
-	items, total, err := s.service.GetByEntityAndType(entity, itemType, limit, offset, search, orderBy, order, authUser)
+	items, entityModel, total, err := s.service.GetByEntityAndType(entity, itemType, limit, offset, search, orderBy, order, authUser)
 	if err != nil {
 		return nil, err
 	}
 	enriched, err := s.enrichAnyItems(items, authUser)
-	return &models.CollectionItemsDataResponseWithCount{Data: enriched, Total: total}, err
+	return &models.CollectionItemsDataResponseWithCount{Data: enriched, Total: total, Entity: *entityModel}, err
 }

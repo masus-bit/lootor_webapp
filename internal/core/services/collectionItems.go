@@ -431,17 +431,17 @@ func (s *CiService) GetByEntity(entity string, authUserLogin string, limit strin
 	return &models.CollectionItemsDataSortedResponse{Data: sortedCollectionItems, Total: totalCount, Entity: *dbEntity}, nil
 }
 
-func (s *CiService) GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string, authUser string) ([]models.CollectionItems, int64, error) {
+func (s *CiService) GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string, authUser string) ([]models.CollectionItems, *models.Entities, int64, error) {
 	dbEntity, err := s.entityRepo.GetEntityByTranslit(entity)
 	if dbEntity == nil {
-		return nil, 0, fmt.Errorf("entity not found")
+		return nil, nil, 0, fmt.Errorf("entity not found")
 	}
 	collectionItems, totalCount, err := s.repo.GetByEntityAndType(entity, itemType, limit, offset, search, orderBy, order)
 	if err != nil {
-		return nil, totalCount, err
+		return nil, nil, totalCount, err
 	}
 
-	return collectionItems, totalCount, err
+	return collectionItems, dbEntity, totalCount, err
 }
 
 func processCI(slice []models.CollectionItems, authUser string) ([]models.CollectionItemsResponse, error) {

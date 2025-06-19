@@ -50,6 +50,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 			"https://dev.lootor.me",
 			"https://lootor.me",
 			"https://www.lootor.me",
+			"https://www.dev.lootor.me",
 			"http://localhost:3000",
 			"http://localhost:4173",
 			"*",

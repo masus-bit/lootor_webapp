@@ -107,8 +107,9 @@ type CollectionItemsDataResponse struct {
 }
 
 type CollectionItemsDataResponseWithCount struct {
-	Data  []CollectionItemsResponse `json:"data"`
-	Total int64                     `json:"total"`
+	Data   []CollectionItemsResponse `json:"data"`
+	Total  int64                     `json:"total"`
+	Entity Entities                  `json:"entity"`
 }
 
 type CollectionItemsCopyOrMoveRequest struct {
