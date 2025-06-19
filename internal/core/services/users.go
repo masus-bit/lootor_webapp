@@ -305,6 +305,9 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 	existsUser, _ := s.repo.GetByVkId(userInfo.FirstName + "@" + newId)
 
 	if existsUser != nil && !existsUser.TmpLogin {
+		if existsUser.VerificationToken != "" {
+			return nil, errors.New("user is not verified")
+		}
 		tokens, err := s.jwtService.GenerateTokenPair(existsUser)
 		if err != nil {
 			return nil, fmt.Errorf("token generation error: %w", err)
@@ -324,10 +327,6 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 			RefreshToken: tokens.RefreshToken,
 			TmpLogin:     true,
 		}, nil
-	}
-
-	if existsUser != nil && existsUser.VerificationToken != "" {
-		return nil, errors.New("user is not verified")
 	}
 
 	passwordHash, err := auth.HashPassword("vk" + newId)
@@ -427,7 +426,9 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 	existUser, _ := s.repo.GetByTgId(newId)
 
 	if existUser != nil && !existUser.TmpLogin {
-
+		if existUser.VerificationToken != "" {
+			return nil, errors.New("user is not verified")
+		}
 		tokens, err := s.jwtService.GenerateTokenPair(existUser)
 		if err != nil {
 			return nil, fmt.Errorf("token generation error: %w", err)
@@ -447,10 +448,6 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 			RefreshToken: tokens.RefreshToken,
 			TmpLogin:     true,
 		}, nil
-	}
-
-	if existUser != nil && existUser.VerificationToken != "" {
-		return nil, errors.New("user is not verified")
 	}
 
 	passwordHash, err := auth.HashPassword("tg" + newId + dto.Username)
