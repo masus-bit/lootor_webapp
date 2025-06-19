@@ -161,6 +161,9 @@ func (s *UserService) SignIn(dto *models.SignInRequest) (*models.SignInResponse,
 	if err != nil {
 		return nil, err
 	}
+	if dbUser.VerificationToken != "" {
+		return nil, errors.New("user is not verified")
+	}
 	ok := auth.CheckPasswordHash(dto.Password, dbUser.PasswordHash)
 	if !ok {
 		return nil, errors.New("incorrect email or password")
@@ -323,6 +326,10 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		}, nil
 	}
 
+	if existsUser != nil && existsUser.VerificationToken != "" {
+		return nil, errors.New("user is not verified")
+	}
+
 	passwordHash, err := auth.HashPassword("vk" + newId)
 	if err != nil {
 		return nil, fmt.Errorf("password hash error: %w", err)
@@ -440,6 +447,10 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 			RefreshToken: tokens.RefreshToken,
 			TmpLogin:     true,
 		}, nil
+	}
+
+	if existUser != nil && existUser.VerificationToken != "" {
+		return nil, errors.New("user is not verified")
 	}
 
 	passwordHash, err := auth.HashPassword("tg" + newId + dto.Username)
