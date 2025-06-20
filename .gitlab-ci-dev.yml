@@ -40,21 +40,8 @@ deploy:
       ssh -o StrictHostKeyChecking=no -t -t root@185.43.4.23 << EOF  # DEV хост
       cd ../lootor
       
-      docker network rm lootor_network || true
-      docker network create lootor_network || true
-      
-      docker-compose -f docker-compose.backend.yml down
-      docker-compose -f docker-compose.backend.yml pull
-      
-      docker-compose -f docker-compose.backend.yml up -d auc
-      
-      for i in {1..10}; do
-        if docker exec lootor_auc pg_isready -U auc -d lootor; then
-          echo "AUC is ready"
-          break
-        fi
-        sleep 5
-      done
+      docker-compose -f docker-compose.backend.yml stop backend
+      docker-compose -f docker-compose.backend.yml pull backend
       
       docker-compose -f docker-compose.backend.yml up -d backend
       
@@ -66,17 +53,9 @@ deploy:
         sleep 3
       done
       
-      docker-compose -f docker-compose.backend.yml up -d nginx
-      
-      echo "Waiting for all services to stabilize..."
-      sleep 15
-      
-      echo "Restarting nginx to ensure clean state..."
       docker-compose -f docker-compose.backend.yml restart nginx
       
-      docker-compose -f docker-compose.backend.yml ps
       docker logs lootor_backend --tail 50
-      docker logs lootor_auc --tail 20
       docker logs lootor_nginx --tail 20 || true
       
       docker image prune -f
