@@ -306,12 +306,10 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 
 	fmt.Println(fmt.Sprintf("user%+v", existsUser))
 	if existsUser != nil && !existsUser.TmpLogin {
-		fmt.Println(fmt.Sprintf("existsUser != nil && !existsUser.TmpLogin: %+v", existsUser != nil && !existsUser.TmpLogin))
 
 		if existsUser.VerificationToken != "" {
 			return nil, errors.New("user is not verified")
 		}
-		fmt.Println(fmt.Sprintf("existsUser.VerificationToken != \"\": %+v", existsUser.VerificationToken != ""))
 
 		tokens, err := s.jwtService.GenerateTokenPair(existsUser)
 		if err != nil {
@@ -323,7 +321,6 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 			TmpLogin:     false,
 		}, nil
 	} else if existsUser != nil && existsUser.TmpLogin {
-		fmt.Println(fmt.Sprintf("existsUser != nil && existsUser.TmpLogin: %+v", existsUser != nil && existsUser.TmpLogin))
 
 		tokens, err := s.jwtService.GenerateTokenPair(existsUser)
 		if err != nil {
@@ -352,20 +349,22 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		PasswordHash: passwordHash,
 	}
 
+	fmt.Println(1)
+
 	if err := s.repo.CreateUser(&newUser); err != nil {
 		return nil, fmt.Errorf("user creation error: %w", err)
 	}
-
+	fmt.Println(2)
 	user, err := s.repo.GetByVkId(newUser.VkId)
 	if err != nil {
 		return nil, fmt.Errorf("db error: %w", err)
 	}
-
+	fmt.Println(3)
 	tokens, err := s.jwtService.GenerateTokenPair(user)
 	if err != nil {
 		return nil, fmt.Errorf("token generation error: %w", err)
 	}
-
+	fmt.Println(4)
 	return &models.SignInResponseWithTmpLogin{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
