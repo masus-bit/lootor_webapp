@@ -35,12 +35,12 @@ type Users struct {
 }
 
 type SignUpRequest struct {
-	Email    string  `json:"email" validate:"required,email"`
-	Password string  `json:"password" validate:"required,min=8"`
-	Login    string  `json:"login" validate:"required"`
-	UserName string  `json:"userName" validate:"required"`
-	City     *string `json:"city"`
-	Bio      *string `json:"bio"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8"`
+	Login    string `json:"login" validate:"required"`
+	UserName string `json:"userName" validate:"required"`
+	City     string `json:"city"`
+	Bio      string `json:"bio"`
 }
 
 type SignInRequest struct {

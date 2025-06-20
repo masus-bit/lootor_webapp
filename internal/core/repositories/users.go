@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"gorm.io/gorm"
 	"log"
 	"lootor/internal/core/models"
@@ -20,8 +21,21 @@ func NewUsersRepository(db *gorm.DB, es *elasticsearch.ElasticService) *UsersRep
 
 func (r *UsersRepository) CreateUser(user *models.Users) error {
 
+	if user == nil {
+		return errors.New("user is nil")
+	}
+
+	if r.db == nil {
+		return errors.New("database connection is nil")
+	}
+
 	if err := r.db.Create(user).Error; err != nil {
 		return err
+	}
+
+	if r.es == nil {
+		log.Printf("ElasticSearch client is nil, skipping indexing")
+		return nil
 	}
 
 	doc := map[string]interface{}{

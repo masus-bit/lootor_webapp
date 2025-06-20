@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
@@ -68,7 +70,7 @@ func NewElasticService(configPath string) (*ElasticService, error) {
 	}
 
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{config.Address},
+		Addresses: []string{os.Getenv("ELASTIC_URL")},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create elastic client: %w", err)
@@ -94,13 +96,33 @@ func NewElasticService(configPath string) (*ElasticService, error) {
 }
 
 func (es *ElasticService) ReindexAll(ctx context.Context, dataProviders map[string]func() ([]map[string]interface{}, error)) error {
-	for indexName := range dataProviders {
+
+	for indexName, provider := range dataProviders {
+		data, err := provider()
+		if err != nil {
+			return fmt.Errorf("failed to get data for %s: %w", indexName, err)
+		}
+
+		if len(data) == 0 {
+			es.logger.Printf("Skipping %s: no data", indexName)
+			continue
+		}
 		if err := es.deleteIndexIfExists(indexName); err != nil {
 			return fmt.Errorf("failed to delete index %s: %w", indexName, err)
 		}
 	}
 
-	for indexName := range dataProviders {
+	for indexName, provider := range dataProviders {
+		data, err := provider()
+		if err != nil {
+			return fmt.Errorf("failed to get data for %s: %w", indexName, err)
+		}
+
+		// Пропускаем индексы без данных
+		if len(data) == 0 {
+			es.logger.Printf("Skipping %s: no data", indexName)
+			continue
+		}
 		if err := es.createIndex(indexName); err != nil {
 			return fmt.Errorf("failed to create index %s: %w", indexName, err)
 		}
@@ -202,12 +224,17 @@ func (es *ElasticService) createIndex(indexName string) error {
 		return err
 	}
 
+	// Добавляем контекст с таймаутом
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
 	res, err := es.client.Indices.Create(
 		indexName,
 		es.client.Indices.Create.WithBody(strings.NewReader(buf.String())),
+		es.client.Indices.Create.WithContext(ctx), // Важно: добавляем контекст
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("create index request failed: %w", err)
 	}
 	defer res.Body.Close()
 
@@ -215,7 +242,7 @@ func (es *ElasticService) createIndex(indexName string) error {
 		return parseErrorResponse(res)
 	}
 
-	es.logger.Printf("Index %s created", indexName)
+	es.logger.Printf("Index %s created successfully", indexName)
 	return nil
 }
 
@@ -446,6 +473,20 @@ func parseErrorResponse(res *esapi.Response) error {
 }
 
 func (es *ElasticService) IndexDocument(ctx context.Context, index string, doc map[string]interface{}) error {
+	ctxCheck, cancelCheck := context.WithTimeout(ctx, 5*time.Second)
+	defer cancelCheck()
+
+	exists, err := es.indexExists(ctxCheck, index)
+	if err != nil {
+		return fmt.Errorf("index check failed: %w", err)
+	}
+
+	if !exists {
+		if err := es.createIndex(index); err != nil {
+			return fmt.Errorf("failed to create index: %w", err)
+		}
+	}
+
 	id, ok := doc["id"].(string)
 	if !ok {
 		return fmt.Errorf("document missing id field")
@@ -460,7 +501,7 @@ func (es *ElasticService) IndexDocument(ctx context.Context, index string, doc m
 		Index:      index,
 		DocumentID: id,
 		Body:       strings.NewReader(buf.String()),
-		Refresh:    "true", // Ждем обновления индекса
+		Refresh:    "wait_for", // Ждем обновления индекса
 	}
 
 	res, err := req.Do(ctx, es.client)
@@ -496,4 +537,17 @@ func (es *ElasticService) DeleteDocument(ctx context.Context, index, id string) 
 	}
 
 	return nil
+}
+
+func (es *ElasticService) indexExists(ctx context.Context, indexName string) (bool, error) {
+	res, err := es.client.Indices.Exists(
+		[]string{indexName},
+		es.client.Indices.Exists.WithContext(ctx),
+	)
+	if err != nil {
+		return false, err
+	}
+	defer res.Body.Close()
+
+	return res.StatusCode == http.StatusOK, nil
 }

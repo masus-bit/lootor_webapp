@@ -197,7 +197,6 @@ func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*m
 	}
 	now := time.Now()
 	isoTime := now.Format(time.RFC3339)
-
 	hexString, _ := utils.GenerateRandomString(32)
 
 	dbUser := models.Users{
@@ -207,11 +206,11 @@ func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*m
 		PasswordHash:      passwordHash,
 		Created:           isoTime,
 		VerificationToken: hexString,
-		Bio:               *dto.Bio,
-		City:              *dto.City,
+		Bio:               dto.Bio,
+		City:              dto.City,
 	}
-
 	err := s.repo.CreateUser(&dbUser)
+
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +229,6 @@ func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*m
 	return &models.SignUpResponse{
 		Data: "success",
 	}, nil
-
 }
 
 func (s *UserService) Verification(token string) (*models.SignInResponse, error) {
