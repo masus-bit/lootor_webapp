@@ -538,6 +538,13 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 		return nil, err
 	}
 
+	userByEmail, _ := s.repo.GetByEmail(*user.Email)
+
+	if userByEmail != nil && userByEmail.Email == *user.Email {
+		return nil, errors.New("пользователь с таким email уже существует")
+
+	}
+
 	dst := reflect.ValueOf(existsUser).Elem()
 	src := reflect.ValueOf(user).Elem()
 
