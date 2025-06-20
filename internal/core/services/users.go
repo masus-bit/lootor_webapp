@@ -159,7 +159,7 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 func (s *UserService) SignIn(dto *models.SignInRequest) (*models.SignInResponse, error) {
 	dbUser, err := s.repo.GetByEmailWithPassword(dto.Email)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("incorrect email or password")
 	}
 	if dbUser.VerificationToken != "" {
 		return nil, errors.New("user is not verified")
