@@ -351,8 +351,9 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 
 	fmt.Println(1)
 
-	if err := s.repo.CreateUser(&newUser); err != nil {
-		return nil, fmt.Errorf("user creation error: %w", err)
+	err2 := s.repo.CreateUser(&newUser)
+	if err2 != nil {
+		return nil, fmt.Errorf("db error: %w", err)
 	}
 	fmt.Println(2)
 	user, err := s.repo.GetByVkId(newUser.VkId)
