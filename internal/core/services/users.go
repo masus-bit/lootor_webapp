@@ -302,7 +302,7 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 
 	newId := fmt.Sprintf("%d", userInfo.Id)
 
-	existsUser, _ := s.repo.GetByVkId(userInfo.FirstName + "@" + newId)
+	existsUser, _ := s.repo.GetByVkId(newId)
 
 	fmt.Println(fmt.Sprintf("user%+v", existsUser))
 	if existsUser != nil && !existsUser.TmpLogin {
