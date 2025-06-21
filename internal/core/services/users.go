@@ -542,8 +542,10 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 	if err != nil {
 		return nil, err
 	}
-
-	userByEmail, _ := s.repo.GetByEmail(*user.Email)
+	var userByEmail *models.Users
+	if user.Email != nil {
+		userByEmail, _ = s.repo.GetByEmail(*user.Email)
+	}
 
 	if userByEmail != nil && userByEmail.Email == *user.Email {
 		return nil, errors.New("пользователь с таким email уже существует")
