@@ -86,7 +86,8 @@ deploy:
       docker image prune -f
       docker builder prune --all --force
       docker image prune -a --force
-      docker volume prune --force      exit
+      docker volume prune --force      
+      exit
       EOF
 
   only:
