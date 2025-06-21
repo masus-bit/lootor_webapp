@@ -84,7 +84,9 @@ deploy:
       docker logs lootor_nginx --tail 20 || true
       
       docker image prune -f
-      exit
+      docker builder prune --all --force
+      docker image prune -a --force
+      docker volume prune --force      exit
       EOF
 
   only:
