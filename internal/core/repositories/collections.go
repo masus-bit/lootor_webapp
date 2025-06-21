@@ -500,10 +500,8 @@ func (r *CollectionsRepository) UpdateCollectionFull(existsCollection *models.Co
 			return err
 		}
 
-		if existsCollection.Tags != nil {
-			if err := tx.Model(existsCollection).Association("Tags").Replace(existsCollection.Tags); err != nil {
-				return err
-			}
+		if err := tx.Model(existsCollection).Association("Tags").Replace(existsCollection.Tags); err != nil {
+			return err
 		}
 
 		return nil
@@ -517,6 +515,7 @@ func (r *CollectionsRepository) UpdateCollectionFull(existsCollection *models.Co
 
 	if err := r.db.
 		Preload("Tags").
+		Preload("User").
 		First(&result, "id = ?", existsCollection.Id).
 		Error; err != nil {
 		return nil, err
