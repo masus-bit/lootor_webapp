@@ -583,6 +583,13 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 }
 
 func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, targetUserLogin string) (*dto.CommonResponse, error) {
+	userByLogin, err := s.repo.GetUserByLogin(*data.Login)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check user existence by login: %w", err)
+	}
+	if userByLogin != nil && userByLogin.Login == *data.Login {
+		return nil, errors.New("login already exists")
+	}
 	if data == nil {
 		return nil, errors.New("update data is nil")
 	}
