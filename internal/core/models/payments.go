@@ -15,4 +15,6 @@ type Payments struct {
 	Amount        string    `json:"amount"`
 	TransactionId string    `json:"transactionId"`
 	InnerOrderId  string    `json:"innerOrderId"`
+	UserLogin     string    `json:"userLogin"`
+	PaymentType   string    `json:"paymentType"`
 }

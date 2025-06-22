@@ -114,6 +114,8 @@ func (s *PayService) EndTransaction(data *Notification) {
 			Amount:        data.Object.Amount.Value,
 			InnerOrderId:  data.Object.Metadata.OrderID,
 			TransactionId: data.Object.ID,
+			UserLogin:     userLogin,
+			PaymentType:   subType,
 		}
 		err := s.paymentsRepo.CreateRecord(&payment)
 		if err != nil {
@@ -143,6 +145,8 @@ func (s *PayService) EndTransaction(data *Notification) {
 		Amount:        data.Object.Amount.Value,
 		InnerOrderId:  data.Object.Metadata.OrderID,
 		TransactionId: data.Object.ID,
+		UserLogin:     userLogin,
+		PaymentType:   subType,
 	}
 	err := s.paymentsRepo.CreateRecord(&payment)
 	if err != nil {
