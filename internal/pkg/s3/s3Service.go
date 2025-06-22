@@ -6,6 +6,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"image"
@@ -75,24 +76,147 @@ func NewS3Service(redisClient *redis.Client) *S3Service {
 }
 
 func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
-	cached, err := s.redisClient.Get(ctx, key).Bytes()
-	if err == nil {
-		s.logger.Printf("Cache hit for key: %s", key)
-		return cached, nil
+	s.logger.Printf("[GetFile] Start request for key: %s", key)
+
+	resultChan := make(chan []byte, 1)
+	errChan := make(chan error, 2)
+
+	// Горутина для проверки Redis
+	go func() {
+		start := time.Now()
+		cached, err := s.redisClient.Get(ctx, key).Bytes()
+		elapsed := time.Since(start)
+
+		if err == nil {
+			s.logger.Printf("[Redis] Cache HIT for key: %s (size: %d KB, fetch time: %v)",
+				key, len(cached)/1024, elapsed)
+			resultChan <- cached
+			return
+		}
+
+		if err == redis.Nil {
+			s.logger.Printf("[Redis] Cache MISS for key: %s (check time: %v)", key, elapsed)
+		} else {
+			s.logger.Printf("[Redis] Error fetching key %s: %v (time: %v)", key, err, elapsed)
+		}
+		errChan <- err
+	}()
+
+	// Горутина для загрузки из S3
+	go func() {
+		start := time.Now()
+		file, err := s.downloadFromS3Optimized(ctx, key)
+		elapsed := time.Since(start)
+
+		if err != nil {
+			s.logger.Printf("[S3] Failed to download key %s: %v (time: %v)", key, err, elapsed)
+			errChan <- err
+			return
+		}
+
+		s.logger.Printf("[S3] Successfully downloaded key: %s (size: %d KB, time: %v)",
+			key, len(file)/1024, elapsed)
+
+		// Асинхронное сохранение в кеш
+		go func(data []byte) {
+			cacheStart := time.Now()
+			if err := s.redisClient.Set(ctx, key, data, time.Duration(s.cacheTtl)*time.Second).Err(); err != nil {
+				s.logger.Printf("[Redis] Failed to cache key %s: %v (set time: %v)",
+					key, err, time.Since(cacheStart))
+			} else {
+				s.logger.Printf("[Redis] Successfully cached key: %s (size: %d KB, set time: %v, TTL: %ds)",
+					key, len(data)/1024, time.Since(cacheStart), s.cacheTtl)
+			}
+		}(file)
+
+		resultChan <- file
+	}()
+
+	select {
+	case result := <-resultChan:
+		s.logger.Printf("[GetFile] Returning data for key: %s (source: %s)",
+			key, resultSource(result, key))
+		return result, nil
+
+	case err := <-errChan:
+		if errors.Is(err, context.DeadlineExceeded) {
+			s.logger.Printf("[Fallback] Trying fallback to Redis for key: %s", key)
+			if cached, err := s.redisClient.Get(ctx, key).Bytes(); err == nil {
+				s.logger.Printf("[Fallback] Using stale cache for key: %s", key)
+				return cached, nil
+			}
+		}
+		s.logger.Printf("[GetFile] Final error for key %s: %v", key, err)
+		return nil, fmt.Errorf("failed to get file: %v", err)
+
+	case <-ctx.Done():
+		s.logger.Printf("[GetFile] Context cancelled for key: %s", key)
+		return nil, ctx.Err()
+	}
+}
+
+// Вспомогательная функция для определения источника данных
+func resultSource(data []byte, key string) string {
+	if len(data) > 0 && strings.HasPrefix(string(data), "REDIS_CACHE") {
+		return "CACHE"
+	}
+	return "S3"
+}
+
+func (s *S3Service) downloadFromS3Optimized(ctx context.Context, key string) ([]byte, error) {
+	s.logger.Printf("[S3] Starting download for key: %s", key)
+
+	var httpClient = &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 50,
+			IdleConnTimeout:     90 * time.Second,
+		},
+		Timeout: 5 * time.Second,
 	}
 
-	s.logger.Printf("Cache miss for key: %s, downloading from S3", key)
-
-	file, err := s.downloadFromS3(ctx, key)
+	signed, err := s.signS3Request(ctx, "GET", "/images/"+key, nil, nil)
 	if err != nil {
+		s.logger.Printf("[S3] Signing failed for key %s: %v", key, err)
 		return nil, err
 	}
 
-	if err := s.redisClient.Set(ctx, key, file, time.Duration(s.cacheTtl)*time.Second).Err(); err != nil {
-		s.logger.Printf("Failed to cache file: %v", err)
+	req, err := http.NewRequestWithContext(ctx, signed.method, signed.url, nil)
+	if err != nil {
+		s.logger.Printf("[S3] Request creation failed for key %s: %v", key, err)
+		return nil, err
 	}
 
-	return file, nil
+	for k, v := range signed.headers {
+		req.Header.Set(k, v)
+	}
+
+	start := time.Now()
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		s.logger.Printf("[S3] Request failed for key %s: %v (time: %v)",
+			key, err, time.Since(start))
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		s.logger.Printf("[S3] Non-200 status for key %s: %d (time: %v)",
+			key, resp.StatusCode, time.Since(start))
+		return nil, fmt.Errorf("S3 returned status: %d", resp.StatusCode)
+	}
+
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, resp.Body); err != nil {
+		s.logger.Printf("[S3] Body read failed for key %s: %v (time: %v)",
+			key, err, time.Since(start))
+		return nil, err
+	}
+
+	s.logger.Printf("[S3] Download completed for key: %s (size: %d KB, total time: %v)",
+		key, buf.Len()/1024, time.Since(start))
+
+	return buf.Bytes(), nil
 }
 
 func (s *S3Service) downloadFromS3(ctx context.Context, key string) ([]byte, error) {
