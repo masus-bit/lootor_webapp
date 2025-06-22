@@ -76,6 +76,11 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		response.CanSubscribe = canSubscribe
 	}
 
+	collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(userLogin)
+	sum, _ := s.ciRepo.SumByUserLogin(userLogin)
+
+	response.TotalSum = int(sum)
+	response.CollectionItemsCount = int(collectionItemsCount)
 	e := mapstructure.Decode(dbUser, &response)
 	if e != nil {
 		return nil, e
