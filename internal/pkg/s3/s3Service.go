@@ -6,7 +6,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"image"
@@ -76,81 +75,53 @@ func NewS3Service(redisClient *redis.Client) *S3Service {
 }
 
 func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
-	s.logger.Printf("[GetFile] Start request for key: %s", key)
+	// Создаем производный контекст с отменой
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel() // Важно: отменяем все дочерние операции при выходе
 
 	resultChan := make(chan []byte, 1)
 	errChan := make(chan error, 2)
 
-	// Горутина для проверки Redis
+	// Проверка Redis
 	go func() {
-		start := time.Now()
 		cached, err := s.redisClient.Get(ctx, key).Bytes()
-		elapsed := time.Since(start)
-
 		if err == nil {
-			s.logger.Printf("[Redis] Cache HIT for key: %s (size: %d KB, fetch time: %v)",
-				key, len(cached)/1024, elapsed)
-			resultChan <- cached
+			select {
+			case resultChan <- cached:
+				s.logger.Printf("[Redis] Cache HIT (served): %s", key)
+			case <-ctx.Done():
+			}
 			return
-		}
-
-		if err == redis.Nil {
-			s.logger.Printf("[Redis] Cache MISS for key: %s (check time: %v)", key, elapsed)
-		} else {
-			s.logger.Printf("[Redis] Error fetching key %s: %v (time: %v)", key, err, elapsed)
 		}
 		errChan <- err
 	}()
 
-	// Горутина для загрузки из S3
+	// Загрузка из S3
 	go func() {
-		start := time.Now()
 		file, err := s.downloadFromS3Optimized(ctx, key)
-		elapsed := time.Since(start)
-
 		if err != nil {
-			s.logger.Printf("[S3] Failed to download key %s: %v (time: %v)", key, err, elapsed)
 			errChan <- err
 			return
 		}
 
-		s.logger.Printf("[S3] Successfully downloaded key: %s (size: %d KB, time: %v)",
-			key, len(file)/1024, elapsed)
-
-		// Асинхронное сохранение в кеш
-		go func(data []byte) {
-			cacheStart := time.Now()
-			if err := s.redisClient.Set(ctx, key, data, time.Duration(s.cacheTtl)*time.Second).Err(); err != nil {
-				s.logger.Printf("[Redis] Failed to cache key %s: %v (set time: %v)",
-					key, err, time.Since(cacheStart))
-			} else {
-				s.logger.Printf("[Redis] Successfully cached key: %s (size: %d KB, set time: %v, TTL: %ds)",
-					key, len(data)/1024, time.Since(cacheStart), s.cacheTtl)
-			}
-		}(file)
-
-		resultChan <- file
+		select {
+		case resultChan <- file:
+			// Асинхронно сохраняем в кеш
+			go func() {
+				if err := s.redisClient.Set(context.Background(), key, file, time.Duration(s.cacheTtl)*time.Second).Err(); err != nil {
+					s.logger.Printf("[Redis] Failed to cache: %v", err)
+				}
+			}()
+		case <-ctx.Done():
+		}
 	}()
 
 	select {
 	case result := <-resultChan:
-		s.logger.Printf("[GetFile] Returning data for key: %s (source: %s)",
-			key, resultSource(result, key))
 		return result, nil
-
 	case err := <-errChan:
-		if errors.Is(err, context.DeadlineExceeded) {
-			s.logger.Printf("[Fallback] Trying fallback to Redis for key: %s", key)
-			if cached, err := s.redisClient.Get(ctx, key).Bytes(); err == nil {
-				s.logger.Printf("[Fallback] Using stale cache for key: %s", key)
-				return cached, nil
-			}
-		}
-		s.logger.Printf("[GetFile] Final error for key %s: %v", key, err)
-		return nil, fmt.Errorf("failed to get file: %v", err)
-
+		return nil, err
 	case <-ctx.Done():
-		s.logger.Printf("[GetFile] Context cancelled for key: %s", key)
 		return nil, ctx.Err()
 	}
 }
