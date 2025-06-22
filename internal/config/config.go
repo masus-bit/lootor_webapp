@@ -15,6 +15,7 @@ type DatabaseConfig struct {
 	User     string
 	Password string
 	Database string
+	Schema   string
 }
 
 type ServerConfig struct {
@@ -34,6 +35,7 @@ func Load() (*Config, error) {
 			User:     os.Getenv("POSTGRES_USER"),
 			Password: os.Getenv("POSTGRES_PASSWORD"),
 			Database: os.Getenv("POSTGRES_DB"),
+			Schema:   os.Getenv("POSTGRES_SCHEMA"),
 		},
 	}, nil
 }

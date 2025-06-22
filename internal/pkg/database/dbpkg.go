@@ -21,8 +21,8 @@ func InitDB(cfg *config.DatabaseConfig) (*gorm.DB, error) {
 	var err error
 
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		cfg.Host, cfg.User, cfg.Password, cfg.Database, cfg.Port,
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable search_path=%s",
+		cfg.Host, cfg.User, cfg.Password, cfg.Database, cfg.Port, cfg.Schema,
 	)
 
 	for attempt := 1; attempt <= maxRetries; attempt++ {
