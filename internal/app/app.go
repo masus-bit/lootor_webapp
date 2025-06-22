@@ -44,7 +44,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	e := echo.New()
 
 	e.GET("/public/swagger/*", echoSwagger.WrapHandler)
-
+	e.Server.MaxHeaderBytes = 1 << 20
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{
 			"https://dev.lootor.me",
@@ -85,6 +85,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		Addr:     os.Getenv("REDIS_HOST"),
 		Password: "",
 		DB:       0,
+		PoolSize: 100,
 	})
 	searchService, err := elasticsearch.NewElasticService(getConfigPath())
 	if err != nil {

@@ -75,66 +75,58 @@ func NewS3Service(redisClient *redis.Client) *S3Service {
 }
 
 func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	resultChan := make(chan []byte, 1)
-	errChan := make(chan error, 1)
-
-	// Проверка кеша
-	go func() {
-		cached, err := s.redisClient.Get(ctx, key).Bytes()
-		if err == nil {
-			select {
-			case resultChan <- cached:
-			case <-ctx.Done():
-			}
-			return
-		}
-		if err != redis.Nil {
-			select {
-			case errChan <- err:
-			case <-ctx.Done():
-			}
-		}
+	// Улучшенное логирование
+	startTime := time.Now()
+	s.logger.Printf("[GetFile] Starting request for key: %s", key)
+	defer func() {
+		s.logger.Printf("[GetFile] Completed request for key: %s (duration: %v)", key, time.Since(startTime))
 	}()
 
-	// Загрузка из S3 (только если нет в кеше)
-	go func() {
-		select {
-		case <-ctx.Done():
-			return
-		case <-time.After(50 * time.Millisecond): // Даем время на проверку кеша
-			file, err := s.downloadFromS3Optimized(ctx, key)
-			if err != nil {
-				select {
-				case errChan <- err:
-				case <-ctx.Done():
-				}
-				return
-			}
-
-			select {
-			case resultChan <- file:
-				// Асинхронно сохраняем в кеш
-				go func() {
-					if err := s.redisClient.Set(context.Background(), key, file, time.Duration(s.cacheTtl)*time.Second).Err(); err != nil {
-						s.logger.Printf("[Redis] Failed to cache: %v", err)
-					}
-				}()
-			case <-ctx.Done():
-			}
-		}
-	}()
-
-	select {
-	case result := <-resultChan:
-		return result, nil
-	case err := <-errChan:
-		return nil, err
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	// 1. Проверка кеша с подробным логированием
+	cacheStart := time.Now()
+	cached, err := s.redisClient.Get(ctx, key).Bytes()
+	if err == nil {
+		s.logger.Printf("[GetFile] Cache HIT for key: %s (size: %d bytes, fetch time: %v)",
+			key, len(cached), time.Since(cacheStart))
+		return cached, nil
 	}
+
+	if err != redis.Nil {
+		s.logger.Printf("[GetFile] Cache error for key: %s (error: %v, fetch time: %v)",
+			key, err, time.Since(cacheStart))
+	} else {
+		s.logger.Printf("[GetFile] Cache MISS for key: %s (fetch time: %v)",
+			key, time.Since(cacheStart))
+	}
+
+	// 2. Загрузка из S3
+	s3Start := time.Now()
+	file, err := s.downloadFromS3Optimized(ctx, key)
+	if err != nil {
+		s.logger.Printf("[GetFile] S3 download failed for key: %s (error: %v, duration: %v)",
+			key, err, time.Since(s3Start))
+		return nil, fmt.Errorf("failed to download file: %v", err)
+	}
+
+	s.logger.Printf("[GetFile] S3 download success for key: %s (size: %d bytes, duration: %v)",
+		key, len(file), time.Since(s3Start))
+
+	// 3. Асинхронное сохранение в кеш с обработкой ошибок
+	go func() {
+		cacheSaveStart := time.Now()
+		if err := s.redisClient.Set(context.Background(), key, file, time.Duration(s.cacheTtl)*time.Second).Err(); err != nil {
+			s.logger.Printf("[GetFile] Failed to save to cache for key: %s (error: %v, duration: %v)",
+				key, err, time.Since(cacheSaveStart))
+		} else {
+			s.logger.Printf("[GetFile] Successfully saved to cache for key: %s (size: %d bytes, duration: %v)",
+				key, len(file), time.Since(cacheSaveStart))
+		}
+	}()
+
+	return file, nil
 }
 
 // Вспомогательная функция для определения источника данных
