@@ -142,9 +142,10 @@ func (s *S3Service) downloadFromS3Optimized(ctx context.Context, key string) ([]
 
 	var httpClient = &http.Client{
 		Transport: &http.Transport{
-			MaxIdleConns:        100,
-			MaxIdleConnsPerHost: 50,
-			IdleConnTimeout:     90 * time.Second,
+			MaxIdleConns:        200,
+			MaxIdleConnsPerHost: 100,
+			IdleConnTimeout:     120 * time.Second,
+			TLSHandshakeTimeout: 5 * time.Second,
 		},
 		Timeout: 5 * time.Second,
 	}

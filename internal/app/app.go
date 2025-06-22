@@ -82,10 +82,13 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	}
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     os.Getenv("REDIS_HOST"),
-		Password: "",
-		DB:       0,
-		PoolSize: 100,
+		Addr:         os.Getenv("REDIS_HOST"),
+		Password:     "",
+		DB:           0,
+		PoolSize:     200, // Было 100
+		MinIdleConns: 50,  // Новый параметр
+		ReadTimeout:  500 * time.Millisecond,
+		WriteTimeout: 500 * time.Millisecond,
 	})
 	searchService, err := elasticsearch.NewElasticService(getConfigPath())
 	if err != nil {
