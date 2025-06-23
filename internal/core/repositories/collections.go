@@ -555,7 +555,7 @@ func (r *CollectionsRepository) GetCollectionCountByUserLogin(login string) (int
 
 func (r *CollectionsRepository) DeleteCollection(id string) error {
 	var itemIDs []string
-	err := r.db.Table("lootor.public.collections_collection_items_collection_items").
+	err := r.db.Table("lootor.loot.collections_collection_items_collection_items").
 		Where("collections_id = ?", id).
 		Pluck("collection_items_id", &itemIDs).Error
 	if err != nil {
@@ -566,7 +566,7 @@ func (r *CollectionsRepository) DeleteCollection(id string) error {
 		return err
 	}
 	result := r.db.Exec(
-		"DELETE FROM lootor.public.collections_collection_items_collection_items WHERE collections_id = ?",
+		"DELETE FROM lootor.loot.collections_collection_items_collection_items WHERE collections_id = ?",
 		id,
 	)
 	if result.Error != nil {
