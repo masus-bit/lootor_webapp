@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"github.com/patrickmn/go-cache"
 	"github.com/redis/go-redis/v9"
 	"image"
 	"io"
@@ -15,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/chai2010/webp"
@@ -32,6 +34,10 @@ type S3Service struct {
 	cacheTtl        int
 	redisClient     *redis.Client
 	logger          *log.Logger
+	localCache      *cache.Cache
+	httpClient      *http.Client
+	inflight        sync.Map
+	sem             chan struct{}
 }
 
 type UploadOptions struct {
@@ -71,62 +77,93 @@ func NewS3Service(redisClient *redis.Client) *S3Service {
 		cacheTtl:        36000,
 		redisClient:     redisClient,
 		logger:          logger,
+		localCache:      cache.New(5*time.Minute, 10*time.Minute),
+		httpClient: &http.Client{
+			Transport: &http.Transport{
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 50,
+				IdleConnTimeout:     90 * time.Second,
+			},
+			Timeout: 3 * time.Second,
+		},
+		sem: make(chan struct{}, 100),
 	}
 }
 
 func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	type result struct {
+		data []byte
+		err  error
+	}
+
+	resChan := make(chan result, 1)
+
+	go func() {
+		data, err := s.getFileAsync(ctx, key)
+		resChan <- result{data, err}
+	}()
+
+	select {
+	case res := <-resChan:
+		return res.data, res.err
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+}
+
+func (s *S3Service) getFileAsync(ctx context.Context, key string) ([]byte, error) {
+	// 1. Проверка локального кеша
+	if data, found := s.localCache.Get(key); found {
+		return data.([]byte), nil
+	}
+
+	// 2. Дедупликация запросов
+	val, _ := s.inflight.LoadOrStore(key, new(sync.WaitGroup))
+	wg := val.(*sync.WaitGroup)
+	wg.Add(1)
+	defer wg.Done()
+	defer s.inflight.Delete(key)
+
+	// 3. Проверка Redis
+	data, err := s.redisClient.Get(ctx, key).Bytes()
+	if err == nil {
+		s.localCache.SetDefault(key, data)
+		return data, nil
+	}
+
+	// 4. Загрузка из S3 с ограничением параллелизма
+	s.sem <- struct{}{}
+	defer func() { <-s.sem }()
+
+	s3Data, err := s.downloadFromS3Optimized(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	// 5. Асинхронное сохранение в кеши
+	go s.updateCaches(key, s3Data)
+
+	return s3Data, nil
+}
+
+func (s *S3Service) updateCaches(key string, data []byte) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	// Улучшенное логирование
-	startTime := time.Now()
-	s.logger.Printf("[GetFile] Starting request for key: %s", key)
-	defer func() {
-		s.logger.Printf("[GetFile] Completed request for key: %s (duration: %v)", key, time.Since(startTime))
-	}()
+	var wg sync.WaitGroup
+	wg.Add(2)
 
-	// 1. Проверка кеша с подробным логированием
-	cacheStart := time.Now()
-	cached, err := s.redisClient.Get(ctx, key).Bytes()
-	if err == nil {
-		s.logger.Printf("[GetFile] Cache HIT for key: %s (size: %d bytes, fetch time: %v)",
-			key, len(cached), time.Since(cacheStart))
-		return cached, nil
-	}
-
-	if err != redis.Nil {
-		s.logger.Printf("[GetFile] Cache error for key: %s (error: %v, fetch time: %v)",
-			key, err, time.Since(cacheStart))
-	} else {
-		s.logger.Printf("[GetFile] Cache MISS for key: %s (fetch time: %v)",
-			key, time.Since(cacheStart))
-	}
-
-	// 2. Загрузка из S3
-	s3Start := time.Now()
-	file, err := s.downloadFromS3Optimized(ctx, key)
-	if err != nil {
-		s.logger.Printf("[GetFile] S3 download failed for key: %s (error: %v, duration: %v)",
-			key, err, time.Since(s3Start))
-		return nil, fmt.Errorf("failed to download file: %v", err)
-	}
-
-	s.logger.Printf("[GetFile] S3 download success for key: %s (size: %d bytes, duration: %v)",
-		key, len(file), time.Since(s3Start))
-
-	// 3. Асинхронное сохранение в кеш с обработкой ошибок
 	go func() {
-		cacheSaveStart := time.Now()
-		if err := s.redisClient.Set(context.Background(), key, file, time.Duration(s.cacheTtl)*time.Second).Err(); err != nil {
-			s.logger.Printf("[GetFile] Failed to save to cache for key: %s (error: %v, duration: %v)",
-				key, err, time.Since(cacheSaveStart))
-		} else {
-			s.logger.Printf("[GetFile] Successfully saved to cache for key: %s (size: %d bytes, duration: %v)",
-				key, len(file), time.Since(cacheSaveStart))
-		}
+		defer wg.Done()
+		s.localCache.Set(key, data, cache.DefaultExpiration)
 	}()
 
-	return file, nil
+	go func() {
+		defer wg.Done()
+		s.redisClient.Set(ctx, key, data, time.Duration(s.cacheTtl)*time.Second)
+	}()
+
+	wg.Wait()
 }
 
 // Вспомогательная функция для определения источника данных
@@ -138,27 +175,13 @@ func resultSource(data []byte, key string) string {
 }
 
 func (s *S3Service) downloadFromS3Optimized(ctx context.Context, key string) ([]byte, error) {
-	s.logger.Printf("[S3] Starting download for key: %s", key)
-
-	var httpClient = &http.Client{
-		Transport: &http.Transport{
-			MaxIdleConns:        200,
-			MaxIdleConnsPerHost: 100,
-			IdleConnTimeout:     120 * time.Second,
-			TLSHandshakeTimeout: 5 * time.Second,
-		},
-		Timeout: 5 * time.Second,
-	}
-
 	signed, err := s.signS3Request(ctx, "GET", "/images/"+key, nil, nil)
 	if err != nil {
-		s.logger.Printf("[S3] Signing failed for key %s: %v", key, err)
 		return nil, err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, signed.method, signed.url, nil)
 	if err != nil {
-		s.logger.Printf("[S3] Request creation failed for key %s: %v", key, err)
 		return nil, err
 	}
 
@@ -166,32 +189,17 @@ func (s *S3Service) downloadFromS3Optimized(ctx context.Context, key string) ([]
 		req.Header.Set(k, v)
 	}
 
-	start := time.Now()
-	resp, err := httpClient.Do(req)
+	resp, err := s.httpClient.Do(req)
 	if err != nil {
-		s.logger.Printf("[S3] Request failed for key %s: %v (time: %v)",
-			key, err, time.Since(start))
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		s.logger.Printf("[S3] Non-200 status for key %s: %d (time: %v)",
-			key, resp.StatusCode, time.Since(start))
 		return nil, fmt.Errorf("S3 returned status: %d", resp.StatusCode)
 	}
 
-	var buf bytes.Buffer
-	if _, err := io.Copy(&buf, resp.Body); err != nil {
-		s.logger.Printf("[S3] Body read failed for key %s: %v (time: %v)",
-			key, err, time.Since(start))
-		return nil, err
-	}
-
-	s.logger.Printf("[S3] Download completed for key: %s (size: %d KB, total time: %v)",
-		key, buf.Len()/1024, time.Since(start))
-
-	return buf.Bytes(), nil
+	return io.ReadAll(resp.Body)
 }
 
 func (s *S3Service) downloadFromS3(ctx context.Context, key string) ([]byte, error) {
