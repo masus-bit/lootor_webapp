@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -23,6 +24,7 @@ import (
 	"lootor/internal/pkg/payment"
 	"lootor/internal/pkg/s3"
 	"lootor/internal/pkg/utils"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -32,6 +34,19 @@ import (
 
 type App struct {
 	Echo *echo.Echo
+}
+
+func setupMonitoring(s3Service *s3.S3Service) {
+	http.HandleFunc("/debug/stats", func(w http.ResponseWriter, r *http.Request) {
+		stats := s3Service.GetStats()
+		json.NewEncoder(w).Encode(stats)
+	})
+
+	// Запустите в отдельном порту
+	go func() {
+		log.Println("Monitoring server started on :8081")
+		log.Fatal(http.ListenAndServe(":8081", nil))
+	}()
 }
 
 func getConfigPath() string {
@@ -167,6 +182,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.ReportsRouter(e, jwtService, *reportsService)
 
 	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagRepo, entityRepo).ReindexInternal(context.Background())
+	setupMonitoring(s3Service)
 	c := cron.New()
 	_, err = c.AddFunc("@midnight", func() { userService.CheckExpiredSubscriptions() })
 	//_, err = c.AddFunc("@every 2m", func() { userService.CheckExpiredSubscriptions() })

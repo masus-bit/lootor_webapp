@@ -15,6 +15,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -38,6 +40,16 @@ type S3Service struct {
 	httpClient      *http.Client
 	inflight        sync.Map
 	sem             chan struct{}
+}
+
+type RequestMetrics struct {
+	CacheHit          bool
+	CacheLatency      time.Duration
+	S3Latency         time.Duration
+	RedisLatency      time.Duration
+	TotalLatency      time.Duration
+	ResponseSizeBytes int
+	Error             string
 }
 
 type UploadOptions struct {
@@ -90,6 +102,23 @@ func NewS3Service(redisClient *redis.Client) *S3Service {
 	}
 }
 
+func (s *S3Service) logMetrics(ctx context.Context, key string, metrics *RequestMetrics) {
+	// Логируем в формате, удобном для анализа
+	s.logger.Printf("[METRICS] key=%s cache_hit=%v cache_latency=%dµs redis_latency=%dµs s3_latency=%dµs total=%dµs size=%d error=%q",
+		key,
+		metrics.CacheHit,
+		metrics.CacheLatency.Microseconds(),
+		metrics.RedisLatency.Microseconds(),
+		metrics.S3Latency.Microseconds(),
+		metrics.TotalLatency.Microseconds(),
+		metrics.ResponseSizeBytes,
+		metrics.Error,
+	)
+
+	// Можно добавить отправку в Prometheus/StatsD
+	// prometheusMetric.WithLabelValues(key).Observe(metrics.TotalLatency.Seconds())
+}
+
 func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
 	type result struct {
 		data []byte
@@ -97,10 +126,55 @@ func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
 	}
 
 	resChan := make(chan result, 1)
+	metrics := &RequestMetrics{}
+	startTime := time.Now()
 
 	go func() {
-		data, err := s.getFileAsync(ctx, key)
-		resChan <- result{data, err}
+		defer func() {
+			metrics.TotalLatency = time.Since(startTime)
+			s.logMetrics(ctx, key, metrics)
+		}()
+
+		// 1. Проверка локального кеша
+		if data, found := s.localCache.Get(key); found {
+			metrics.CacheHit = true
+			metrics.ResponseSizeBytes = len(data.([]byte))
+			resChan <- result{data.([]byte), nil}
+			return
+		}
+
+		// 2. Проверка Redis
+		redisStart := time.Now()
+		data, err := s.redisClient.Get(ctx, key).Bytes()
+		metrics.RedisLatency = time.Since(redisStart)
+
+		if err == nil {
+			metrics.CacheHit = true
+			metrics.ResponseSizeBytes = len(data)
+			s.localCache.SetDefault(key, data)
+			resChan <- result{data, nil}
+			return
+		}
+
+		// 3. Загрузка из S3
+		s.sem <- struct{}{} // Ограничение параллелизма
+		defer func() { <-s.sem }()
+
+		s3Start := time.Now()
+		s3Data, err := s.downloadFromS3Optimized(ctx, key)
+		metrics.S3Latency = time.Since(s3Start)
+
+		if err != nil {
+			metrics.Error = err.Error()
+			resChan <- result{nil, err}
+			return
+		}
+
+		metrics.ResponseSizeBytes = len(s3Data)
+		resChan <- result{s3Data, nil}
+
+		// 4. Асинхронное сохранение в кеши
+		go s.updateCaches(key, s3Data)
 	}()
 
 	select {
@@ -175,12 +249,24 @@ func resultSource(data []byte, key string) string {
 }
 
 func (s *S3Service) downloadFromS3Optimized(ctx context.Context, key string) ([]byte, error) {
+	start := time.Now()
+	defer func() {
+		s.logger.Printf("[S3_DOWNLOAD] key=%s duration=%v", key, time.Since(start))
+	}()
+
+	// Добавляем трассировку этапов
+	signStart := time.Now()
 	signed, err := s.signS3Request(ctx, "GET", "/images/"+key, nil, nil)
+	s.logger.Printf("[S3_SIGN] key=%s duration=%v", key, time.Since(signStart))
+
 	if err != nil {
 		return nil, err
 	}
 
+	reqStart := time.Now()
 	req, err := http.NewRequestWithContext(ctx, signed.method, signed.url, nil)
+	s.logger.Printf("[S3_REQ_CREATE] key=%s duration=%v", key, time.Since(reqStart))
+
 	if err != nil {
 		return nil, err
 	}
@@ -189,17 +275,32 @@ func (s *S3Service) downloadFromS3Optimized(ctx context.Context, key string) ([]
 		req.Header.Set(k, v)
 	}
 
+	// Логируем заголовки для диагностики
+	s.logger.Printf("[S3_HEADERS] key=%s headers=%+v", key, signed.headers)
+
+	clientStart := time.Now()
 	resp, err := s.httpClient.Do(req)
+	s.logger.Printf("[S3_CLIENT_DO] key=%s duration=%v", key, time.Since(clientStart))
+
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
+	// Логируем статус ответа
+	s.logger.Printf("[S3_RESPONSE] key=%s status=%d content_length=%s",
+		key, resp.StatusCode, resp.Header.Get("Content-Length"))
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("S3 returned status: %d", resp.StatusCode)
 	}
 
-	return io.ReadAll(resp.Body)
+	readStart := time.Now()
+	data, err := io.ReadAll(resp.Body)
+	s.logger.Printf("[S3_READ_BODY] key=%s duration=%v size=%d",
+		key, time.Since(readStart), len(data))
+
+	return data, err
 }
 
 func (s *S3Service) downloadFromS3(ctx context.Context, key string) ([]byte, error) {
@@ -227,6 +328,55 @@ func (s *S3Service) downloadFromS3(ctx context.Context, key string) ([]byte, err
 	}
 
 	return io.ReadAll(resp.Body)
+}
+
+func (s *S3Service) GetStats() map[string]string {
+	stats := make(map[string]string)
+
+	// Статистика кеша
+	stats["local_cache_items"] = strconv.Itoa(s.localCache.ItemCount())
+
+	// Статистика Redis
+	redisStats, err := s.redisClient.Info(context.Background(), "stats").Result()
+	if err == nil {
+		stats["redis_ops_per_sec"] = extractRedisStat(redisStats, "instantaneous_ops_per_sec")
+		stats["redis_hit_rate"] = extractRedisStat(redisStats, "keyspace_hits") + "/" +
+			extractRedisStat(redisStats, "keyspace_misses")
+	}
+
+	// Статистика HTTP клиента (альтернативный способ)
+	if t, ok := s.httpClient.Transport.(*http.Transport); ok {
+		// Используем reflection как последнее средство
+		idleConns := reflect.ValueOf(t).Elem().FieldByName("idleConn")
+		if idleConns.IsValid() {
+			stats["http_idle_conns"] = strconv.Itoa(idleConns.Len())
+		}
+	}
+
+	return stats
+}
+
+func extractRedisStat(info, key string) string {
+	lines := strings.Split(info, "\n")
+	for _, line := range lines {
+		// Пропускаем комментарии и пустые строки
+		if strings.HasPrefix(line, "#") || len(line) == 0 {
+			continue
+		}
+
+		// Формат строки: "metric_name:value"
+		parts := strings.SplitN(line, ":", 2)
+		if len(parts) != 2 {
+			continue
+		}
+
+		// Удаляем \r в конце строки (для Windows-совместимости)
+		metricName := strings.TrimSpace(parts[0])
+		if metricName == key {
+			return strings.TrimSpace(strings.TrimRight(parts[1], "\r"))
+		}
+	}
+	return "0"
 }
 
 func (s *S3Service) signS3Request(ctx context.Context, method, path string, headers map[string]string, body []byte) (struct {
