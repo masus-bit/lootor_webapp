@@ -32,6 +32,7 @@ type Users struct {
 	PremiumUntil            time.Time       `json:"premiumUntil,omitempty"`
 	PremiumType             string          `json:"premiumType,omitempty"`
 	ReportsCount            int64           `json:"-"`
+	CreatorRating           int             `json:"creatorRating"`
 }
 
 type SignUpRequest struct {
@@ -87,6 +88,7 @@ type UserResponse struct {
 	TotalSum                int             `json:"totalSum" default:"0"`
 	WishListItems           []WishListItems `json:"wishListItems"`
 	IsPremium               bool            `json:"isPremium"`
+	CreatorRating           int             `json:"creatorRating"`
 }
 
 type UserRequestUpdate struct {

@@ -252,6 +252,14 @@ func (r *UsersRepository) ActivatePremium(existsUser *models.Users, updatedUser 
 	return true, nil
 }
 
+func (r *UsersRepository) AddRating(existsUser *models.Users, updatedUser *models.Users) (bool, error) {
+	result := r.db.Model(existsUser).Select("*").Updates(updatedUser)
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return true, nil
+}
+
 func (r *UsersRepository) CheckPremiumStatus(userLogin string) (bool, error) {
 	var user models.Users
 	if err := r.db.Where("login = ?", userLogin).First(&user).Error; err != nil {

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
@@ -75,7 +76,7 @@ func slugify(input string) string {
 	return strings.ToLower(result.String())
 }
 
-func (s *CiService) getEntities(entities []string) []models.Entities {
+func (s *CiService) getEntities(entities []string, userLogin string) []models.Entities {
 	var resultEntities []models.Entities
 	for _, entity := range entities {
 		entityByTranslit, err := s.entityRepo.GetEntityByName(entity)
@@ -87,6 +88,16 @@ func (s *CiService) getEntities(entities []string) []models.Entities {
 			entityByTranslit, err = s.entityRepo.CreateEntity(newEntity)
 			if err != nil {
 				fmt.Errorf("failed to add entity: %w", err)
+			}
+			existsUser, _ := s.userRepo.GetUserByLogin(userLogin)
+			updatedUser := existsUser
+			updatedUser.CreatorRating = existsUser.CreatorRating + 1
+			ok, err := s.userRepo.AddRating(existsUser, updatedUser)
+			if err != nil {
+				fmt.Errorf("can't add rating: %w", err)
+			}
+			if !ok {
+				errors.New("error pizda")
 			}
 			if entityByTranslit == nil {
 				fmt.Errorf("unexpected nil entity after adding")
@@ -127,7 +138,7 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 		itemTypeID = nil
 	}
 
-	entities := s.getEntities(dto.Entities)
+	entities := s.getEntities(dto.Entities, authUserLogin)
 	owner, ownerErr := s.userRepo.GetUserByLogin(authUserLogin)
 	if ownerErr != nil {
 		return nil, ownerErr
@@ -216,7 +227,7 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 	var resultEntities []models.Entities
 
 	if len(dto.Entities) != 0 {
-		resultEntities = s.getEntities(dto.Entities)
+		resultEntities = s.getEntities(dto.Entities, exists.Owner.Login)
 	} else {
 		resultEntities = make([]models.Entities, 0)
 	}
