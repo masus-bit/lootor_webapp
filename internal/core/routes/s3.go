@@ -14,6 +14,7 @@ func S3Router(e *echo.Echo, jwtService *auth.JWTService, s3Service s3.S3Service)
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
 		publicGroup.GET("/images/:key", controller.GetFile)
+		publicGroup.GET("/public/thumbnails/:key", controller.GetThumbnail)
 	}
 
 	securedGroup := e.Group("/secured")

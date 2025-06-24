@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"lootor/internal/pkg/s3"
+	"time"
 
 	"net/http"
 	"strconv"
@@ -114,4 +116,53 @@ func (c *FilesController) Delete(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, result)
+}
+
+// GetThumbnail
+// @Summary получить миниатюру изображения
+// @Tags images
+// @Produce image/webp
+// @Param key path string true "id оригинального изображения"
+// @Param width query int false "ширина"
+// @Param height query int false "высота"
+// @Param quality query int false "качество (1-100)"
+// @Success 200 {file} byte "image"
+// @Router /public/thumbnails/{key} [get]
+func (c *FilesController) GetThumbnail(ctx echo.Context) error {
+	key := ctx.Param("key")
+	if key == "" {
+		return ctx.JSON(http.StatusBadRequest, echo.Map{"error": "key is required"})
+	}
+
+	width, _ := strconv.Atoi(ctx.QueryParam("width"))
+	height, _ := strconv.Atoi(ctx.QueryParam("height"))
+	quality, _ := strconv.Atoi(ctx.QueryParam("quality"))
+
+	if width == 0 && height == 0 {
+		width = 300
+	}
+	if quality == 0 {
+		quality = 85
+	}
+
+	originalKey := "images/" + key
+
+	thumbData, err := c.s3.GenerateThumbnail(
+		ctx.Request().Context(),
+		originalKey,
+		width,
+		height,
+		quality,
+	)
+
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, echo.Map{
+			"error": fmt.Sprintf("thumbnail generation failed: %v", err),
+		})
+	}
+
+	ctx.Response().Header().Set("Cache-Control", "public, max-age=31536000")
+	ctx.Response().Header().Set("Expires", time.Now().AddDate(1, 0, 0).Format(time.RFC1123))
+
+	return ctx.Blob(http.StatusOK, "image/webp", thumbData)
 }

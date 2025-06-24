@@ -52,6 +52,19 @@ type RequestMetrics struct {
 	Error             string
 }
 
+type ThumbnailPreset struct {
+	Name    string
+	Width   int
+	Height  int
+	Quality int
+}
+
+var DefaultThumbnailPresets = []ThumbnailPreset{
+	{"small", 320, 240, 80},
+	{"medium", 640, 480, 85},
+	{"large", 1280, 720, 90},
+}
+
 type UploadOptions struct {
 	Width   int
 	Height  int
@@ -624,6 +637,8 @@ func (s *S3Service) DeleteFiles(ctx context.Context, req DeleteFilesRequest) (De
 		}
 	}
 
+	go s.deleteRelatedThumbnails(context.Background(), req.Keys)
+
 	if len(notFound) == 0 {
 		return DeleteFilesResponse{
 			Success: true,
@@ -635,4 +650,95 @@ func (s *S3Service) DeleteFiles(ctx context.Context, req DeleteFilesRequest) (De
 		Error:    "some files not found",
 		NotFound: notFound,
 	}, nil
+}
+
+func (s *S3Service) GetThumbnailKey(originalKey string, width, height int) string {
+	baseName := filepath.Base(originalKey)
+	return fmt.Sprintf("thumbs/%dx%d/%s", width, height, baseName)
+}
+
+func (s *S3Service) GenerateThumbnail(ctx context.Context, originalKey string, width, height, quality int) ([]byte, error) {
+	thumbKey := s.GetThumbnailKey(originalKey, width, height)
+
+	exists, err := s.FileExists(ctx, thumbKey)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return s.GetFile(ctx, thumbKey)
+	}
+
+	originalData, err := s.GetFile(ctx, originalKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get original: %w", err)
+	}
+
+	img, err := decodeImageWithOrientation(originalData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode image: %w", err)
+	}
+
+	resized := imaging.Resize(img, width, height, imaging.Lanczos)
+
+	var buf bytes.Buffer
+	if err := webp.Encode(&buf, resized, &webp.Options{
+		Quality: float32(quality),
+	}); err != nil {
+		return nil, fmt.Errorf("failed to encode webp: %w", err)
+	}
+
+	thumbData := buf.Bytes()
+
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := s.UploadFile(ctx, thumbData, thumbKey, "image/webp"); err != nil {
+			s.logger.Printf("Failed to save thumbnail: %v", err)
+		} else {
+			s.updateCaches(thumbKey, thumbData)
+		}
+	}()
+
+	return thumbData, nil
+}
+
+func (s *S3Service) FileExists(ctx context.Context, key string) (bool, error) {
+	signed, err := s.signS3Request(ctx, "HEAD", key, nil, nil)
+	if err != nil {
+		return false, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, signed.method, signed.url, nil)
+	if err != nil {
+		return false, err
+	}
+
+	for k, v := range signed.headers {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	return resp.StatusCode == http.StatusOK, nil
+}
+
+func (s *S3Service) deleteRelatedThumbnails(ctx context.Context, keys []string) {
+	for _, key := range keys {
+		// Шаблоны размеров (можно вынести в конфиг)
+		sizes := []struct{ w, h int }{
+			{100, 100}, {300, 300}, {800, 600},
+		}
+
+		for _, size := range sizes {
+			thumbKey := s.GetThumbnailKey(key, size.w, size.h)
+			if err := s.redisClient.Del(ctx, thumbKey).Err(); err != nil {
+				s.logger.Printf("Failed to delete thumbnail cache: %s", thumbKey)
+			}
+		}
+	}
 }
