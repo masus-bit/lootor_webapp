@@ -116,7 +116,6 @@ func NewS3Service(redisClient *redis.Client) *S3Service {
 }
 
 func (s *S3Service) logMetrics(ctx context.Context, key string, metrics *RequestMetrics) {
-	// Логируем в формате, удобном для анализа
 	s.logger.Printf("[METRICS] key=%s cache_hit=%v cache_latency=%dµs redis_latency=%dµs s3_latency=%dµs total=%dµs size=%d error=%q",
 		key,
 		metrics.CacheHit,
@@ -128,8 +127,6 @@ func (s *S3Service) logMetrics(ctx context.Context, key string, metrics *Request
 		metrics.Error,
 	)
 
-	// Можно добавить отправку в Prometheus/StatsD
-	// prometheusMetric.WithLabelValues(key).Observe(metrics.TotalLatency.Seconds())
 }
 
 func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
@@ -148,7 +145,6 @@ func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
 			s.logMetrics(ctx, key, metrics)
 		}()
 
-		// 1. Проверка локального кеша
 		if data, found := s.localCache.Get(key); found {
 			metrics.CacheHit = true
 			metrics.ResponseSizeBytes = len(data.([]byte))
@@ -156,7 +152,6 @@ func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
 			return
 		}
 
-		// 2. Проверка Redis
 		redisStart := time.Now()
 		data, err := s.redisClient.Get(ctx, key).Bytes()
 		metrics.RedisLatency = time.Since(redisStart)
@@ -169,8 +164,7 @@ func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
 			return
 		}
 
-		// 3. Загрузка из S3
-		s.sem <- struct{}{} // Ограничение параллелизма
+		s.sem <- struct{}{}
 		defer func() { <-s.sem }()
 
 		s3Start := time.Now()
@@ -186,7 +180,6 @@ func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
 		metrics.ResponseSizeBytes = len(s3Data)
 		resChan <- result{s3Data, nil}
 
-		// 4. Асинхронное сохранение в кеши
 		go s.updateCaches(key, s3Data)
 	}()
 	source := "local_cache"
@@ -206,26 +199,22 @@ func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
 }
 
 func (s *S3Service) getFileAsync(ctx context.Context, key string) ([]byte, error) {
-	// 1. Проверка локального кеша
 	if data, found := s.localCache.Get(key); found {
 		return data.([]byte), nil
 	}
 
-	// 2. Дедупликация запросов
 	val, _ := s.inflight.LoadOrStore(key, new(sync.WaitGroup))
 	wg := val.(*sync.WaitGroup)
 	wg.Add(1)
 	defer wg.Done()
 	defer s.inflight.Delete(key)
 
-	// 3. Проверка Redis
 	data, err := s.redisClient.Get(ctx, key).Bytes()
 	if err == nil {
 		s.localCache.SetDefault(key, data)
 		return data, nil
 	}
 
-	// 4. Загрузка из S3 с ограничением параллелизма
 	s.sem <- struct{}{}
 	defer func() { <-s.sem }()
 
@@ -234,7 +223,6 @@ func (s *S3Service) getFileAsync(ctx context.Context, key string) ([]byte, error
 		return nil, err
 	}
 
-	// 5. Асинхронное сохранение в кеши
 	go s.updateCaches(key, s3Data)
 
 	return s3Data, nil
@@ -260,21 +248,12 @@ func (s *S3Service) updateCaches(key string, data []byte) {
 	wg.Wait()
 }
 
-// Вспомогательная функция для определения источника данных
-func resultSource(data []byte, key string) string {
-	if len(data) > 0 && strings.HasPrefix(string(data), "REDIS_CACHE") {
-		return "CACHE"
-	}
-	return "S3"
-}
-
 func (s *S3Service) downloadFromS3Optimized(ctx context.Context, key string) ([]byte, error) {
 	start := time.Now()
 	defer func() {
 		s.logger.Printf("[S3_DOWNLOAD] key=%s duration=%v", key, time.Since(start))
 	}()
 
-	// Добавляем трассировку этапов
 	signStart := time.Now()
 	signed, err := s.signS3Request(ctx, "GET", "/images/"+key, nil, nil)
 	s.logger.Printf("[S3_SIGN] key=%s duration=%v", key, time.Since(signStart))
@@ -295,7 +274,6 @@ func (s *S3Service) downloadFromS3Optimized(ctx context.Context, key string) ([]
 		req.Header.Set(k, v)
 	}
 
-	// Логируем заголовки для диагностики
 	s.logger.Printf("[S3_HEADERS] key=%s headers=%+v", key, signed.headers)
 
 	clientStart := time.Now()
@@ -307,7 +285,6 @@ func (s *S3Service) downloadFromS3Optimized(ctx context.Context, key string) ([]
 	}
 	defer resp.Body.Close()
 
-	// Логируем статус ответа
 	s.logger.Printf("[S3_RESPONSE] key=%s status=%d content_length=%s",
 		key, resp.StatusCode, resp.Header.Get("Content-Length"))
 
@@ -353,10 +330,8 @@ func (s *S3Service) downloadFromS3(ctx context.Context, key string) ([]byte, err
 func (s *S3Service) GetStats() map[string]string {
 	stats := make(map[string]string)
 
-	// Статистика кеша
 	stats["local_cache_items"] = strconv.Itoa(s.localCache.ItemCount())
 
-	// Статистика Redis
 	redisStats, err := s.redisClient.Info(context.Background(), "stats").Result()
 	if err == nil {
 		stats["redis_ops_per_sec"] = extractRedisStat(redisStats, "instantaneous_ops_per_sec")
@@ -364,9 +339,7 @@ func (s *S3Service) GetStats() map[string]string {
 			extractRedisStat(redisStats, "keyspace_misses")
 	}
 
-	// Статистика HTTP клиента (альтернативный способ)
 	if t, ok := s.httpClient.Transport.(*http.Transport); ok {
-		// Используем reflection как последнее средство
 		idleConns := reflect.ValueOf(t).Elem().FieldByName("idleConn")
 		if idleConns.IsValid() {
 			stats["http_idle_conns"] = strconv.Itoa(idleConns.Len())
@@ -379,18 +352,15 @@ func (s *S3Service) GetStats() map[string]string {
 func extractRedisStat(info, key string) string {
 	lines := strings.Split(info, "\n")
 	for _, line := range lines {
-		// Пропускаем комментарии и пустые строки
 		if strings.HasPrefix(line, "#") || len(line) == 0 {
 			continue
 		}
 
-		// Формат строки: "metric_name:value"
 		parts := strings.SplitN(line, ":", 2)
 		if len(parts) != 2 {
 			continue
 		}
 
-		// Удаляем \r в конце строки (для Windows-совместимости)
 		metricName := strings.TrimSpace(parts[0])
 		if metricName == key {
 			return strings.TrimSpace(strings.TrimRight(parts[1], "\r"))
@@ -652,30 +622,22 @@ func (s *S3Service) DeleteFiles(ctx context.Context, req DeleteFilesRequest) (De
 	}, nil
 }
 
-func (s *S3Service) GetThumbnailKey(originalKey string, width, height int) string {
-	baseName := filepath.Base(originalKey)
-	return fmt.Sprintf("thumbs/%dx%d/%s", width, height, baseName)
-}
+func (s *S3Service) GenerateThumbnail(ctx context.Context, filename string, width, height, quality int) ([]byte, error) {
+	originalKey := filename
+	thumbKey := fmt.Sprintf("thumbs/%dx%d/%s", width, height, filename)
 
-func (s *S3Service) GenerateThumbnail(ctx context.Context, originalKey string, width, height, quality int) ([]byte, error) {
-	thumbKey := s.GetThumbnailKey(originalKey, width, height)
-
-	exists, err := s.FileExists(ctx, thumbKey)
-	if err != nil {
-		return nil, err
-	}
-	if exists {
-		return s.GetFile(ctx, thumbKey)
+	if data, err := s.GetFile(ctx, thumbKey); err == nil {
+		return data, nil
 	}
 
-	originalData, err := s.GetFile(ctx, originalKey)
+	originalData, err := s.downloadFromS3Optimized(ctx, originalKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get original: %w", err)
+		return nil, fmt.Errorf("original image not found: %w", err)
 	}
 
 	img, err := decodeImageWithOrientation(originalData)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode image: %w", err)
+		return nil, fmt.Errorf("image decode failed: %w", err)
 	}
 
 	resized := imaging.Resize(img, width, height, imaging.Lanczos)
@@ -684,7 +646,7 @@ func (s *S3Service) GenerateThumbnail(ctx context.Context, originalKey string, w
 	if err := webp.Encode(&buf, resized, &webp.Options{
 		Quality: float32(quality),
 	}); err != nil {
-		return nil, fmt.Errorf("failed to encode webp: %w", err)
+		return nil, fmt.Errorf("webp encode failed: %w", err)
 	}
 
 	thumbData := buf.Bytes()
@@ -694,7 +656,7 @@ func (s *S3Service) GenerateThumbnail(ctx context.Context, originalKey string, w
 		defer cancel()
 
 		if err := s.UploadFile(ctx, thumbData, thumbKey, "image/webp"); err != nil {
-			s.logger.Printf("Failed to save thumbnail: %v", err)
+			s.logger.Printf("Failed to save thumbnail %s: %v", thumbKey, err)
 		} else {
 			s.updateCaches(thumbKey, thumbData)
 		}
@@ -729,7 +691,6 @@ func (s *S3Service) FileExists(ctx context.Context, key string) (bool, error) {
 
 func (s *S3Service) deleteRelatedThumbnails(ctx context.Context, keys []string) {
 	for _, key := range keys {
-		// Шаблоны размеров (можно вынести в конфиг)
 		sizes := []struct{ w, h int }{
 			{100, 100}, {300, 300}, {800, 600},
 		}
@@ -741,4 +702,12 @@ func (s *S3Service) deleteRelatedThumbnails(ctx context.Context, keys []string) 
 			}
 		}
 	}
+}
+
+func (s *S3Service) GetOriginalKey(filename string) string {
+	return "images/" + filename
+}
+
+func (s *S3Service) GetThumbnailKey(filename string, width, height int) string {
+	return fmt.Sprintf("thumbs/%dx%d/%s", width, height, filename)
 }

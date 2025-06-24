@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"lootor/internal/pkg/s3"
-	"time"
-
 	"net/http"
 	"strconv"
 )
@@ -122,16 +120,16 @@ func (c *FilesController) Delete(ctx echo.Context) error {
 // @Summary получить миниатюру изображения
 // @Tags images
 // @Produce image/webp
-// @Param key path string true "id оригинального изображения"
+// @Param filename path string true "имя файла"
 // @Param width query int false "ширина"
 // @Param height query int false "высота"
 // @Param quality query int false "качество (1-100)"
 // @Success 200 {file} byte "image"
-// @Router /public/thumbnails/{key} [get]
+// @Router /public/thumbs/{key} [get]
 func (c *FilesController) GetThumbnail(ctx echo.Context) error {
-	key := ctx.Param("key")
-	if key == "" {
-		return ctx.JSON(http.StatusBadRequest, echo.Map{"error": "key is required"})
+	filename := ctx.Param("key")
+	if filename == "" {
+		return ctx.JSON(http.StatusBadRequest, echo.Map{"error": "filename is required"})
 	}
 
 	width, _ := strconv.Atoi(ctx.QueryParam("width"))
@@ -145,11 +143,9 @@ func (c *FilesController) GetThumbnail(ctx echo.Context) error {
 		quality = 85
 	}
 
-	originalKey := "images/" + key
-
 	thumbData, err := c.s3.GenerateThumbnail(
 		ctx.Request().Context(),
-		originalKey,
+		filename,
 		width,
 		height,
 		quality,
@@ -162,7 +158,5 @@ func (c *FilesController) GetThumbnail(ctx echo.Context) error {
 	}
 
 	ctx.Response().Header().Set("Cache-Control", "public, max-age=31536000")
-	ctx.Response().Header().Set("Expires", time.Now().AddDate(1, 0, 0).Format(time.RFC1123))
-
 	return ctx.Blob(http.StatusOK, "image/webp", thumbData)
 }
