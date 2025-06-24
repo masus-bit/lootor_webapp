@@ -134,7 +134,7 @@ func (r *EventsRepository) GetFilteredEvents(
 	query = query.
 		Joins("LEFT JOIN users ON users.login = events.target_user_login").
 		Joins("LEFT JOIN collections ON collections.id = events.target_collection_id").
-		Joins("LEFT JOIN collection_items ON collection_items.id = events.target_collection_item_id").
+		Joins("LEFT JOIN collection_items ON collection_items.id = events.target_item_id").
 		Joins("LEFT JOIN wish_list_items ON wish_list_items.id = events.target_wish_list_item_id").
 		Preload("TargetUserLogin").
 		Preload("TargetCollectionId").
