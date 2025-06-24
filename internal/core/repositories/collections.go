@@ -300,10 +300,10 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 				if order == "desc" {
 					return tx.Offset(intOffset).Limit(intLimit).Order("purchase_price DESC, collection_items.id DESC")
 				}
-				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_price ASC, collection_items.id ASC")
+				return tx.Offset(intOffset).Limit(intLimit).Order("purchase_price ASC")
 
 			default:
-				return tx.Offset(intOffset).Limit(intLimit).Order("created_at DESC, collection_items.id DESC")
+				return tx.Offset(intOffset).Limit(intLimit).Order("created_at DESC")
 			}
 		}).
 		Preload("CollectionItems.Platform").

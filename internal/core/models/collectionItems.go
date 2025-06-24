@@ -47,25 +47,26 @@ func (EntitiesCollectionItemCollectionItem) TableName() string {
 }
 
 type CollectionItemsResponse struct {
-	Id            uuid.UUID  `json:"id"`
-	Name          string     `json:"name"`
-	Description   string     `json:"description"`
-	Images        []string   `json:"images"`
-	PurchaseDate  string     `json:"purchaseDate"`
-	PurchasePrice float64    `json:"purchasePrice"`
-	Sealed        bool       `json:"sealed"`
-	Edition       string     `json:"edition"`
-	CopyNumber    []int64    `json:"copyNumber"`
-	Rating        float64    `json:"rating"`
-	ShippingCost  float64    `json:"shippingCost"`
-	Entities      []Entities `json:"entities"`
-	Platform      *Platforms `json:"platform"`
-	Collection    uuid.UUID  `json:"collection"`
-	Owner         Users      `json:"owner"`
-	ItemType      *ItemTypes `json:"itemType"`
-	CanLike       bool       `json:"canLike"`
-	LikesCount    int64      `json:"likesCount"`
-	IsOwner       bool       `json:"isOwner"`
+	Id                        uuid.UUID  `json:"id"`
+	Name                      string     `json:"name"`
+	Description               string     `json:"description"`
+	Images                    []string   `json:"images"`
+	PurchaseDate              string     `json:"purchaseDate"`
+	PurchasePrice             float64    `json:"purchasePrice"`
+	Sealed                    bool       `json:"sealed"`
+	Edition                   string     `json:"edition"`
+	CopyNumber                []int64    `json:"copyNumber"`
+	Rating                    float64    `json:"rating"`
+	ShippingCost              float64    `json:"shippingCost"`
+	Entities                  []Entities `json:"entities"`
+	Platform                  *Platforms `json:"platform"`
+	Collection                uuid.UUID  `json:"collection"`
+	Owner                     Users      `json:"owner"`
+	ItemType                  *ItemTypes `json:"itemType"`
+	CanLike                   bool       `json:"canLike"`
+	LikesCount                int64      `json:"likesCount"`
+	IsOwner                   bool       `json:"isOwner"`
+	CollectionTransliteration string     `json:"collectionTransliteration"`
 }
 
 type CollectionItemsRequestCreate struct {
