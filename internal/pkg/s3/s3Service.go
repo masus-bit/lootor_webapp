@@ -176,7 +176,14 @@ func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
 		// 4. Асинхронное сохранение в кеши
 		go s.updateCaches(key, s3Data)
 	}()
-
+	source := "local_cache"
+	if !metrics.CacheHit {
+		source = "redis"
+		if metrics.S3Latency > 0 {
+			source = "s3"
+		}
+	}
+	s.logger.Printf("[SOURCE] key=%s source=%s total=%dµs", key, source, metrics.TotalLatency.Microseconds())
 	select {
 	case res := <-resChan:
 		return res.data, res.err

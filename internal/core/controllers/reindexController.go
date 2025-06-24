@@ -150,8 +150,9 @@ func (c *ReindexController) getEntityData() ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, len(entities))
 	for i, entity := range entities {
 		result[i] = map[string]interface{}{
-			"id":   entity.Id.String(),
-			"name": entity.Name,
+			"id":              entity.Id.String(),
+			"name":            entity.Name,
+			"transliteration": entity.Transliteration,
 		}
 	}
 	return result, nil

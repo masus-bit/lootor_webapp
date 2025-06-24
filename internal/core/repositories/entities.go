@@ -24,8 +24,9 @@ func (r *EntitiesRepository) CreateEntity(entity *models.Entities) (*models.Enti
 	}
 
 	doc := map[string]interface{}{
-		"id":   entity.Id.String(),
-		"name": entity.Name,
+		"id":              entity.Id.String(),
+		"name":            entity.Name,
+		"transliteration": entity.Transliteration,
 		// другие поля
 	}
 
