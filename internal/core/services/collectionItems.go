@@ -62,6 +62,8 @@ func slugify(input string) string {
 		switch {
 		case char == ' ':
 			result.WriteString("-")
+		case char == ':':
+			result.WriteString("-")
 		case hasRussian && unicode.Is(unicode.Cyrillic, char):
 			if val, ok := translitMap[char]; ok {
 				result.WriteString(val)
