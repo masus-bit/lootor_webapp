@@ -470,6 +470,7 @@ func processCI(slice []models.CollectionItems, authUser string) ([]models.Collec
 		temp.LikesCount = int64(len(item.Likes))
 		temp.CanLike = true
 		temp.IsOwner = authUser == item.Owner.Login
+		temp.CollectionTransliteration = item.Collections[0].Transliteration
 		if authUser != "" {
 			if authUser == item.Owner.Login {
 				temp.CanLike = true
