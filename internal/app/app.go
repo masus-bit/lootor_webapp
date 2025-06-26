@@ -132,9 +132,11 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	user := os.Getenv("YANDEX_POST_USER")
 	password := os.Getenv("YANDEX_POST_PASSWORD")
 
+	jwtTtl, _ := strconv.Atoi(os.Getenv("JWT_EXPIRESS"))
+
 	jwtService := auth.NewJWTService(
 		os.Getenv("JWT_SECRET"),
-		100*time.Minute,
+		time.Duration(jwtTtl)*time.Millisecond,
 		7*24*time.Hour,
 		*userRepo,
 	)
