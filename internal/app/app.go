@@ -88,7 +88,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		MaxAge:           86400,
 	}))
 
-	// Инициализация БД
+	// db init
 	db, err := database.InitDB(&cfg.Database)
 	if err != nil {
 		if err := database.Reconnect(&cfg.Database); err != nil {
@@ -100,8 +100,8 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		Addr:         os.Getenv("REDIS_HOST"),
 		Password:     "",
 		DB:           0,
-		PoolSize:     200, // Было 100
-		MinIdleConns: 50,  // Новый параметр
+		PoolSize:     200,
+		MinIdleConns: 50,
 		ReadTimeout:  500 * time.Millisecond,
 		WriteTimeout: 500 * time.Millisecond,
 	})
@@ -133,11 +133,12 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	password := os.Getenv("YANDEX_POST_PASSWORD")
 
 	jwtTtl, _ := strconv.Atoi(os.Getenv("JWT_EXPIRESS"))
+	refreshTtl, _ := strconv.Atoi(os.Getenv("JWT_REFRESH_EXPIRES"))
 
 	jwtService := auth.NewJWTService(
 		os.Getenv("JWT_SECRET"),
-		time.Duration(jwtTtl)*time.Millisecond,
-		7*24*time.Hour,
+		time.Duration(jwtTtl)*time.Minute,
+		time.Duration(refreshTtl)*time.Minute,
 		*userRepo,
 	)
 
