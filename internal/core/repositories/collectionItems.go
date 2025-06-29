@@ -24,7 +24,7 @@ func NewCiRepository(db *gorm.DB, es *elasticsearch.ElasticService) *CiRepositor
 }
 
 func (r *CiRepository) CreateCI(ci *models.CollectionItems) (*models.CollectionItems, error) {
-	err := r.db.Create(ci)
+	err := r.db.Create(ci).Preload("Entities")
 	if err.Error != nil {
 		return nil, err.Error
 	}

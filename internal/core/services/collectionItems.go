@@ -140,7 +140,13 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 		itemTypeID = nil
 	}
 
-	entities := s.getEntities(dto.Entities, authUserLogin)
+	var entities []models.Entities
+
+	if len(dto.Entities) == 0 {
+		entities = make([]models.Entities, 0)
+	} else {
+		entities = s.getEntities(dto.Entities, authUserLogin)
+	}
 	owner, ownerErr := s.userRepo.GetUserByLogin(authUserLogin)
 	if ownerErr != nil {
 		return nil, ownerErr
