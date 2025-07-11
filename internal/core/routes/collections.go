@@ -14,6 +14,7 @@ func RegisterCollectionsRoutes(e *echo.Echo, jwtService *auth.JWTService, colSer
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
 		publicGroup.GET("/collections/all", controller.GetByUserLogin)
+		publicGroup.GET("/collections/catalog", controller.GetAll)
 		publicGroup.GET("/collections", controller.GetOneByFewParams)
 		publicGroup.GET("/collections/tag", controller.GetByTag)
 	}

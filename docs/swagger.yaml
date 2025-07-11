@@ -925,6 +925,33 @@ paths:
       summary: получение коллекций по логину
       tags:
       - collections
+  /public/collections/catalog:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: поле сортировки% может быть totalPrice, name, created, collectionItemsCount
+        in: query
+        name: orderBy
+        type: string
+      - description: порядок сортировки asc или desc
+        in: query
+        name: order
+        type: string
+      - description: поиск по именам коллекций
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AllCollectionsDataResponseSwagger'
+      summary: получение коллекций всех
+      tags:
+      - collections
   /public/collections/subscribe:
     get:
       consumes:
@@ -1026,6 +1053,36 @@ paths:
       summary: Поиск по коллекциям, ентити, КИ, тегам, юзерам
       tags:
       - search
+  /public/thumbs/{key}:
+    get:
+      parameters:
+      - description: имя файла
+        in: path
+        name: filename
+        required: true
+        type: string
+      - description: ширина
+        in: query
+        name: width
+        type: integer
+      - description: высота
+        in: query
+        name: height
+        type: integer
+      - description: качество (1-100)
+        in: query
+        name: quality
+        type: integer
+      produces:
+      - image/webp
+      responses:
+        "200":
+          description: image
+          schema:
+            type: file
+      summary: получить миниатюру изображения
+      tags:
+      - images
   /public/user:
     get:
       consumes:

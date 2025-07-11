@@ -122,6 +122,35 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// GetAll
+// @Summary получение коллекций всех
+// @Tags collections
+// @Accept  json
+// @Produce  json
+// @Param orderBy query string false "поле сортировки% может быть totalPrice, name, created, collectionItemsCount"
+// @Param order query string false "порядок сортировки asc или desc"
+// @Param search query string false "поиск по именам коллекций"
+// @Success 201 {object} dto.AllCollectionsDataResponseSwagger
+// @Router /public/collections/catalog [get]
+func (c *CollectionsController) GetAll(ctx echo.Context) error {
+	orderBy := ctx.QueryParam("orderBy")
+	order := ctx.QueryParam("order")
+	search := ctx.QueryParam("search")
+
+	authInfo := ctx.Get("auth_info").(struct {
+		IsAuthenticated bool
+		UserLogin       string
+	})
+	response, err := c.colService.GetAll(authInfo.UserLogin, orderBy, order, search)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+}
+
 // GetOneByFewParams
 // @Summary получение коллекций по id или по логину + транслит
 // @Tags collections

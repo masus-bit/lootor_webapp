@@ -378,6 +378,24 @@ func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string, search 
 	return collections, err
 }
 
+func (r *CollectionsRepository) GetAllWithoutPrivates(search string) ([]models.Collections, error) {
+	var collections []models.Collections
+	query := r.db.
+		Preload("User").
+		Preload("Tags").
+		Where("collections.is_private = ?", false).
+		Where("collections.deleted_at IS NULL").
+		Order("collections.created DESC")
+
+	if search != "" {
+		query = query.Where("name ILIKE ?", "%"+search+"%")
+	}
+
+	err := query.Find(&collections).Error
+
+	return collections, err
+}
+
 func (r *CollectionsRepository) GetByIdWithoutUser(id string) (models.Collections, error) {
 	var collection models.Collections
 	err := r.db.

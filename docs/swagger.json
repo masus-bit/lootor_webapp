@@ -374,6 +374,48 @@
                 }
             }
         },
+        "/public/collections/catalog": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "collections"
+                ],
+                "summary": "получение коллекций всех",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "поле сортировки% может быть totalPrice, name, created, collectionItemsCount",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "порядок сортировки asc или desc",
+                        "name": "order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "поиск по именам коллекций",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AllCollectionsDataResponseSwagger"
+                        }
+                    }
+                }
+            }
+        },
         "/public/collections/subscribe": {
             "get": {
                 "consumes": [
@@ -523,6 +565,52 @@
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/elasticsearch.SearchResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/thumbs/{key}": {
+            "get": {
+                "produces": [
+                    "image/webp"
+                ],
+                "tags": [
+                    "images"
+                ],
+                "summary": "получить миниатюру изображения",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "имя файла",
+                        "name": "filename",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ширина",
+                        "name": "width",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "высота",
+                        "name": "height",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "качество (1-100)",
+                        "name": "quality",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "image",
+                        "schema": {
+                            "type": "file"
                         }
                     }
                 }

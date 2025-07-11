@@ -241,6 +241,51 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 	return &models.AllCollectionsDataResponse{Data: sortedCollections}, nil
 }
 
+func (s *CollectionService) GetAll(authorizedUser string, orderBy string, order string, search string) (*models.AllCollectionsDataResponse, error) {
+	var collections []models.Collections
+	collections, _ = s.repo.GetAllWithoutPrivates(search)
+	var authUser *models.Users
+	var subArray []string
+	if authorizedUser != "" {
+		authUser, _ = s.userRepo.GetUserByLogin(authorizedUser)
+		subArray = authUser.CollectionSubscriptions
+	}
+	result := make([]models.CollectionsResponse, 0)
+
+	collectionIds := make([]uuid.UUID, 0)
+	for _, dbCollection := range collections {
+		collectionIds = append(collectionIds, dbCollection.Id)
+	}
+
+	counts, _ := s.collectionItemRepo.GetCountCIByIDs(collectionIds)
+	totalPrices, _ := s.collectionItemRepo.GetSumsByCollectionIDs(collectionIds)
+	shippingCosts, _ := s.collectionItemRepo.GetShippingCostsByCollectionIDs(collectionIds)
+
+	for _, dbCollection := range collections {
+		var temp models.CollectionsResponse
+		err := mapstructure.Decode(dbCollection, &temp)
+		temp.CollectionItemsCount = counts[dbCollection.Id]
+		temp.TotalPrice = totalPrices[dbCollection.Id]
+		temp.ShippingTotal = shippingCosts[dbCollection.Id]
+		temp.CanSubscribe = !slices.Contains(subArray, dbCollection.Id.String())
+		temp.LikesCount = int64(len(dbCollection.Likes))
+		temp.CanLike = true
+		temp.IsOwner = authorizedUser == temp.User.Login
+		if authorizedUser != "" {
+			temp.CanLike = !slices.Contains(dbCollection.Likes, authorizedUser)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, temp)
+	}
+
+	sortedCollections := utils.GetCollectionOrderBy(orderBy, result, order)
+
+	return &models.AllCollectionsDataResponse{Data: sortedCollections}, nil
+}
+
 func (s *CollectionService) GetOne(authorizerUser string, id string, transliteration string, userLogin string, shareString string, ciLimit string, ciOffset string, orderBy string, order string, search string) (*models.CollectionDataResponse, error) {
 	var dbCollection *models.Collections
 
