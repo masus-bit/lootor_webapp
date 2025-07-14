@@ -392,7 +392,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "поле сортировки% может быть totalPrice, name, created, collectionItemsCount",
+                        "description": "поле сортировки% может быть totalPrice, name, created, collectionItemsCount, likesCount",
                         "name": "orderBy",
                         "in": "query"
                     },

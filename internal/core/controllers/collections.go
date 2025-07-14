@@ -127,7 +127,7 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 // @Tags collections
 // @Accept  json
 // @Produce  json
-// @Param orderBy query string false "поле сортировки% может быть totalPrice, name, created, collectionItemsCount"
+// @Param orderBy query string false "поле сортировки% может быть totalPrice, name, created, collectionItemsCount, likesCount"
 // @Param order query string false "порядок сортировки asc или desc"
 // @Param search query string false "поиск по именам коллекций"
 // @Success 201 {object} dto.AllCollectionsDataResponseSwagger

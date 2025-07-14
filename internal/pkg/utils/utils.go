@@ -72,9 +72,18 @@ func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsR
 			}
 		})
 		break
+	case "likesCount":
+		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
+			if order == "asc" {
+				return cmp.Compare(a.LikesCount, b.LikesCount)
+			} else {
+				return cmp.Compare(b.LikesCount, a.LikesCount)
+			}
+		})
+		break
 	default:
 		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
-			return cmp.Compare(b.CreatedAt.UnixNano(), a.CreatedAt.UnixNano())
+			return cmp.Compare(b.LikesCount, a.LikesCount)
 
 		})
 	}

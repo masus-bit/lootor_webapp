@@ -930,7 +930,8 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: поле сортировки% может быть totalPrice, name, created, collectionItemsCount
+      - description: поле сортировки% может быть totalPrice, name, created, collectionItemsCount,
+          likesCount
         in: query
         name: orderBy
         type: string
