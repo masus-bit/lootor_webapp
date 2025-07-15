@@ -134,3 +134,7 @@ type CollectionItemsDataSortedResponse struct {
 	Total  int64                         `json:"total"`
 	Entity Entities                      `json:"entity"`
 }
+
+type CollectionItemsDataPoor struct {
+	Data []CollectionItems `json:"data"`
+}

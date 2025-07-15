@@ -463,6 +463,15 @@ func (s *CiService) GetByEntityAndType(entity string, itemType string, limit str
 	return collectionItems, dbEntity, totalCount, err
 }
 
+func (s *CiService) GetAll(limit, offset, search string) (*models.CollectionItemsDataPoor, error) {
+	collectionItems, err := s.repo.GetAll(limit, offset, search)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.CollectionItemsDataPoor{Data: collectionItems}, nil
+}
+
 func processCI(slice []models.CollectionItems, authUser string) ([]models.CollectionItemsResponse, error) {
 	var resultCollectionItems []models.CollectionItemsResponse
 	for _, item := range slice {

@@ -552,3 +552,32 @@ func (r *CiRepository) GetByEntityAndType(entity string, itemType string, limit 
 
 	return collectionItems, totalCount, nil
 }
+
+func (r *CiRepository) GetAll(limit, offset, search string) ([]models.CollectionItems, error) {
+	var collectionItems []models.CollectionItems
+
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
+
+	query := r.db.
+		Preload("Collections").
+		Preload("Collections.User").
+		Preload("Owner").
+		Preload("Platform").
+		Preload("Entities").
+		Preload("ItemType").
+		Where("collection_items.deleted_at IS NULL").
+		Limit(intLimit).
+		Offset(intOffset)
+
+	if search != "" {
+		query = query.Where("collection_items.name ILIKE ?", "%"+search+"%")
+	}
+
+	err := query.Find(&collectionItems).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return collectionItems, nil
+}

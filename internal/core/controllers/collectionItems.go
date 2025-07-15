@@ -225,6 +225,31 @@ func (c *CIController) GetByEntity(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// GetAll
+// @Summary получить КИ all
+// @Tags collection items
+// @Accept  json
+// @Produce  json
+// @Param search query string true "search"
+// @Param limit query string true "limit"
+// @Param offset query string true "offset"
+// @Success 201 {object} dto.AllCollectionsDataResponseSwagger
+// @Router /public/collection_item/all [get]
+func (c *CIController) GetAll(ctx echo.Context) error {
+	search := ctx.QueryParam("search")
+	limit := ctx.QueryParam("limit")
+	offset := ctx.QueryParam("offset")
+
+	response, err := c.ciService.GetAll(limit, offset, search)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+}
+
 // GetByEntityAndType
 // @Summary получить КИ по entity и типу
 // @Tags collection items
