@@ -124,6 +124,10 @@ type DataUserResponse struct {
 	Data UserResponse `json:"data"`
 }
 
+type DataUsersResponse struct {
+	Data []UserResponse `json:"data"`
+}
+
 type SignInResponse struct {
 	AccessToken  string `json:"accessToken"`
 	RefreshToken string `json:"refreshToken"`

@@ -7,6 +7,7 @@ import (
 	"log"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
+	"strconv"
 	"time"
 )
 
@@ -46,6 +47,7 @@ func (r *UsersRepository) CreateUser(user *models.Users) error {
 		"avatarUrl": user.AvatarUrl,
 		"vkId":      user.VkId,
 		"tgId":      user.TelegramId,
+		"isPremium": user.IsPremium,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {
@@ -183,6 +185,7 @@ func (r *UsersRepository) UpdateUser(existsUser *models.Users, updated models.Us
 		"avatarUrl": updatedUser.AvatarUrl,
 		"vkId":      updatedUser.VkId,
 		"tgId":      updatedUser.TelegramId,
+		"isPremium": updatedUser.IsPremium,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {
@@ -209,6 +212,7 @@ func (r *UsersRepository) UpdateUserFull(existsUser *models.Users) (*models.User
 		"avatarUrl": updatedUser.AvatarUrl,
 		"vkId":      updatedUser.VkId,
 		"tgId":      updatedUser.TelegramId,
+		"isPremium": updatedUser.IsPremium,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {
@@ -235,6 +239,7 @@ func (r *UsersRepository) UpdateLogin(existsUser string, updated *models.Users) 
 		"avatarUrl": updatedUser.AvatarUrl,
 		"vkId":      updatedUser.VkId,
 		"tgId":      updatedUser.TelegramId,
+		"isPremium": updatedUser.IsPremium,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {
@@ -266,6 +271,24 @@ func (r *UsersRepository) CheckPremiumStatus(userLogin string) (bool, error) {
 		return false, err
 	}
 	return user.IsPremium && user.PremiumUntil.After(time.Now()), nil
+}
+
+func (r *UsersRepository) GetAll(search string, limit, offset string) ([]models.Users, error) {
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
+	var users []models.Users
+	query := r.db.
+		Order("users.login ASC").
+		Limit(intLimit).
+		Offset(intOffset)
+
+	if search != "" {
+		query = query.Where("login ILIKE ?", "%"+search+"%")
+	}
+
+	err := query.Find(&users).Error
+
+	return users, err
 }
 
 func (r *UsersRepository) DeactivatePremium() error {

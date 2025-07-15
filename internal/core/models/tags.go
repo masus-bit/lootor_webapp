@@ -15,3 +15,7 @@ type Tags struct {
 	Name        string        `json:"name"`
 	Collections []Collections `gorm:"many2many:collection_tags_collection;constraint:OnDelete:CASCADE;" json:"collections"`
 }
+
+type TagsDataResponse struct {
+	Data []Tags `json:"data"`
+}

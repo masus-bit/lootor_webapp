@@ -22,6 +22,7 @@ func RegisterRoutes(e *echo.Echo, jwtService *auth.JWTService, userService servi
 		publicGroup.POST("/auth/telegram", controller.TelegramOauth)
 		publicGroup.GET("/auth/reset", controller.ResetPassword)
 		publicGroup.POST("/user/reset", controller.ChangeResetPassword)
+		publicGroup.GET("/user/all", controller.GetAll)
 	}
 
 	securedGroup := e.Group("/secured")

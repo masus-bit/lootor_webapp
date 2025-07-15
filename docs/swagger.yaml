@@ -1104,6 +1104,36 @@ paths:
       summary: получение юзера по логину
       tags:
       - users
+  /public/user/all:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: search
+        in: query
+        name: search
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.DataUserResponseSwagger'
+      summary: получение юзера по логину
+      tags:
+      - users
   /public/user/reset:
     post:
       consumes:
@@ -1391,6 +1421,36 @@ paths:
       summary: Создание entity
       tags:
       - entities
+  /secured/entities/all:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: search
+        in: query
+        name: search
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.EntitiesDataResponseSwagger'
+      summary: все ентити
+      tags:
+      - entities
   /secured/events:
     get:
       consumes:
@@ -1563,9 +1623,19 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: name
+      - description: search string
         in: query
-        name: name
+        name: search
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
         required: true
         type: string
       produces:
@@ -1575,7 +1645,7 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/dto.TagsSwagger'
-      summary: Поиск по тегам
+      summary: все теги
       tags:
       - tags
   /secured/user/password:

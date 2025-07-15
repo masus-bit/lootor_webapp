@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 )
@@ -27,6 +28,17 @@ func (s *EntitiesService) CreateEntities(dto *models.EntitiesCreateRequest) (*mo
 func (s *EntitiesService) SearchEntities(name string) (*models.EntitiesDataResponse, error) {
 	var entities []models.Entities
 	entities, _ = s.eRepo.SearchByEntityName(name)
+
+	return &models.EntitiesDataResponse{Data: entities}, nil
+}
+
+func (s *EntitiesService) GetAll(search, limit, offset string) (*models.EntitiesDataResponse, error) {
+	searchTerm := fmt.Sprintf("%%%s%%", search)
+
+	entities, err := s.eRepo.GetAll(searchTerm, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при поиске entities: %v", err)
+	}
 
 	return &models.EntitiesDataResponse{Data: entities}, nil
 }

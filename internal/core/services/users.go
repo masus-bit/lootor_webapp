@@ -695,3 +695,26 @@ func (s *UserService) CheckExpiredSubscriptions() {
 		fmt.Println(err)
 	}
 }
+
+func (s *UserService) GetAll(search, limit, offset string) (*models.DataUsersResponse, error) {
+	users, err := s.repo.GetAll(search, limit, offset)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result []models.UserResponse
+
+	for _, user := range users {
+		var tempUser models.UserResponse
+		err = mapstructure.Decode(user, &tempUser)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, tempUser)
+	}
+
+	return &models.DataUsersResponse{
+		Data: result,
+	}, nil
+}

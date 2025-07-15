@@ -13,6 +13,7 @@ func TagsRouter(e *echo.Echo, jwtService *auth.JWTService, tagsService services.
 	publicGroup := e.Group("/public")
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
+		publicGroup.GET("/tags/all", controller.GetAll)
 	}
 
 	securedGroup := e.Group("/secured")

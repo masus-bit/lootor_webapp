@@ -57,3 +57,26 @@ func (c *EntitiesController) SearchEntities(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
+
+// GetAll
+// @Summary все ентити
+// @Tags entities
+// @Accept  json
+// @Produce  json
+// @Param search query string true "search"
+// @Param offset query string true "offset"
+// @Param limit query string true "limit"
+// @Success 201 {object} dto.EntitiesDataResponseSwagger
+// @Router /secured/entities/all [get]
+func (c *EntitiesController) GetAll(ctx echo.Context) error {
+	search := ctx.QueryParam("search")
+	limit := ctx.QueryParam("limit")
+	offset := ctx.QueryParam("offset")
+	response, err := c.entitiesService.GetAll(search, limit, offset)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}

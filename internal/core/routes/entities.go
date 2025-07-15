@@ -13,6 +13,7 @@ func EntitiesRouter(e *echo.Echo, jwtService *auth.JWTService, entitiesService s
 	publicGroup := e.Group("/public")
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
+		publicGroup.GET("/entities/all", controller.GetAll)
 	}
 
 	securedGroup := e.Group("/secured")

@@ -6,6 +6,7 @@ import (
 	"log"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
+	"strconv"
 )
 
 type TagsRepository struct {
@@ -63,5 +64,23 @@ func (r *TagsRepository) GetTagByName(name string) (*models.Tags, error) {
 func (r *TagsRepository) FindAllTags() ([]*models.Tags, error) {
 	var tags []*models.Tags
 	err := r.db.Find(&tags).Error
+	return tags, err
+}
+
+func (r *TagsRepository) GetAll(search, limit, offset string) ([]models.Tags, error) {
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
+	var tags []models.Tags
+	query := r.db.
+		Order("tags.name ASC").
+		Limit(intLimit).
+		Offset(intOffset)
+
+	if search != "" {
+		query = query.Where("name ILIKE ?", "%"+search+"%")
+	}
+
+	err := query.Find(&tags).Error
+
 	return tags, err
 }

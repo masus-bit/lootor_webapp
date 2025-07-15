@@ -100,6 +100,31 @@ func (c *UserController) GetByLogin(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// GetAll
+// @Summary получение юзера по логину
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param offset query string true "offset"
+// @Param limit query string true "limit"
+// @Param search query string true "search"
+// @Success 201 {object} dto.DataUserResponseSwagger
+// @Router /public/user/all [get]
+func (c *UserController) GetAll(ctx echo.Context) error {
+	search := ctx.QueryParam("search")
+	limit := ctx.QueryParam("limit")
+	offset := ctx.QueryParam("offset")
+
+	response, err := c.userService.GetAll(search, limit, offset)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+}
+
 // ChangeRating
 // @Summary Лайк/дизлайк
 // @Tags users

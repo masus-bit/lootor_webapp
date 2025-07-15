@@ -26,3 +26,14 @@ func (s *TagsService) SearchTags(name string) ([]*models.Tags, error) {
 
 	return tags, nil
 }
+
+func (s *TagsService) GetAll(search, limit, offset string) (*models.TagsDataResponse, error) {
+	searchTerm := fmt.Sprintf("%%%s%%", search)
+
+	tags, err := s.tagRepo.GetAll(searchTerm, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
+	}
+
+	return &models.TagsDataResponse{Data: tags}, nil
+}

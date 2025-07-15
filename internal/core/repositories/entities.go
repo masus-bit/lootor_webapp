@@ -6,6 +6,7 @@ import (
 	"log"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
+	"strconv"
 )
 
 type EntitiesRepository struct {
@@ -58,6 +59,24 @@ func (r *EntitiesRepository) GetEntityByTranslit(translit string) (*models.Entit
 func (r *EntitiesRepository) GetAllEntities() ([]models.Entities, error) {
 	var entities []models.Entities
 	err := r.db.Find(&entities).Error
+	return entities, err
+}
+
+func (r *EntitiesRepository) GetAll(search, limit, offset string) ([]models.Entities, error) {
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
+	var entities []models.Entities
+	query := r.db.
+		Order("entities.name ASC").
+		Limit(intLimit).
+		Offset(intOffset)
+
+	if search != "" {
+		query = query.Where("name ILIKE ?", "%"+search+"%")
+	}
+
+	err := query.Find(&entities).Error
+
 	return entities, err
 }
 

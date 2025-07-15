@@ -32,3 +32,26 @@ func (c *TagsController) SearchTags(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
+
+// GetAll
+// @Summary все теги
+// @Tags tags
+// @Accept  json
+// @Produce  json
+// @Param search query string true "search string"
+// @Param limit query string true "limit"
+// @Param offset query string true "offset"
+// @Success 201 {object} dto.TagsSwagger
+// @Router /secured/tags [get]
+func (c *TagsController) GetAll(ctx echo.Context) error {
+	search := ctx.QueryParam("search")
+	limit := ctx.QueryParam("limit")
+	offset := ctx.QueryParam("offset")
+	response, err := c.tagsService.GetAll(search, limit, offset)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
