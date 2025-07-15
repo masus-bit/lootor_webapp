@@ -241,9 +241,9 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 	return &models.AllCollectionsDataResponse{Data: sortedCollections}, nil
 }
 
-func (s *CollectionService) GetAll(authorizedUser string, orderBy string, order string, search string) (*models.AllCollectionsDataResponse, error) {
+func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit, offset string) (*models.AllCollectionsDataResponse, error) {
 	var collections []models.Collections
-	collections, _ = s.repo.GetAllWithoutPrivates(search)
+	collections, _ = s.repo.GetAllWithoutPrivates(search, limit, offset)
 	var authUser *models.Users
 	var subArray []string
 	if authorizedUser != "" {

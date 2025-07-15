@@ -973,6 +973,16 @@ paths:
         in: query
         name: search
         type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
       produces:
       - application/json
       responses:

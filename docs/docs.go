@@ -452,6 +452,20 @@ const docTemplate = `{
                         "description": "поиск по именам коллекций",
                         "name": "search",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {

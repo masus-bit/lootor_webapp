@@ -130,18 +130,22 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 // @Param orderBy query string false "поле сортировки% может быть totalPrice, name, created, collectionItemsCount, likesCount"
 // @Param order query string false "порядок сортировки asc или desc"
 // @Param search query string false "поиск по именам коллекций"
+// @Param limit query string true "limit"
+// @Param offset query string true "offset"
 // @Success 201 {object} dto.AllCollectionsDataResponseSwagger
 // @Router /public/collections/catalog [get]
 func (c *CollectionsController) GetAll(ctx echo.Context) error {
 	orderBy := ctx.QueryParam("orderBy")
 	order := ctx.QueryParam("order")
 	search := ctx.QueryParam("search")
+	limit := ctx.QueryParam("limit")
+	offset := ctx.QueryParam("offset")
 
 	authInfo := ctx.Get("auth_info").(struct {
 		IsAuthenticated bool
 		UserLogin       string
 	})
-	response, err := c.colService.GetAll(authInfo.UserLogin, orderBy, order, search)
+	response, err := c.colService.GetAll(authInfo.UserLogin, orderBy, order, search, limit, offset)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),
