@@ -378,10 +378,25 @@ func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string, search 
 	return collections, err
 }
 
-func (r *CollectionsRepository) GetAllWithoutPrivates(search, limit, offset string) ([]models.Collections, error) {
+func (r *CollectionsRepository) GetAllWithoutPrivates(search, limit, offset, sortBy, order string) ([]models.Collections, int64, error) {
 
 	intLimit, _ := strconv.Atoi(limit)
 	intOffset, _ := strconv.Atoi(offset)
+	var totalCount int64
+
+	countQuery := r.db.
+		Model(&models.Collections{}).
+		Where("collections.deleted_at IS NULL").
+		Where("collections.is_private = ?", false)
+
+	if search != "" {
+		countQuery = countQuery.Where("collections.name ILIKE ?", "%"+search+"%")
+	}
+
+	err := countQuery.Count(&totalCount).Error
+	if err != nil {
+		return nil, 0, err
+	}
 
 	var collections []models.Collections
 	query := r.db.
@@ -389,17 +404,70 @@ func (r *CollectionsRepository) GetAllWithoutPrivates(search, limit, offset stri
 		Preload("Tags").
 		Where("collections.is_private = ?", false).
 		Where("collections.deleted_at IS NULL").
-		Order("collections.created DESC").
 		Offset(intOffset).
 		Limit(intLimit)
 
-	if search != "" {
-		query = query.Where("name ILIKE ?", "%"+search+"%")
+	switch sortBy {
+	case "likesCount":
+		if order == "desc" {
+
+			query = query.Order("array_length(collections.likes, 1) DESC NULLS LAST")
+		} else {
+
+			query = query.Order("array_length(collections.likes, 1) ASC NULLS FIRST")
+		}
+	case "name":
+		if order == "desc" {
+			query = query.Order("collections.name DESC")
+		} else {
+			query = query.Order("collections.name ASC")
+		}
+	case "created":
+		if order == "desc" {
+			query = query.Order("collections.created DESC")
+		} else {
+			query = query.Order("collections.created ASC")
+		}
+	case "totalPrice":
+		orderClause := "ASC"
+		if order == "desc" {
+			orderClause = "DESC"
+		}
+		query = query.
+			Joins("LEFT JOIN (SELECT collections_collection_items_collection_items.collections_id as collection_id, " +
+				"COALESCE(SUM(collection_items.purchase_price), 0) as total_price " +
+				"FROM collection_items " +
+				"JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id " +
+				"WHERE collection_items.deleted_at IS NULL " +
+				"GROUP BY collections_collection_items_collection_items.collections_id" +
+				") AS price_sum ON price_sum.collection_id = collections.id").
+			Order("price_sum.total_price " + orderClause)
+	case "collectionItemsCount":
+		orderClause := "ASC"
+		if order == "desc" {
+			orderClause = "DESC"
+		}
+		query = query.
+			Joins("LEFT JOIN (" +
+				"SELECT collections_id, COUNT(*) as items_count " +
+				"FROM collections_collection_items_collection_items " +
+				"JOIN collection_items ON collection_items.id = collections_collection_items_collection_items.collection_items_id " +
+				"WHERE collection_items.deleted_at IS NULL " +
+				"GROUP BY collections_id" +
+				") AS items_count ON items_count.collections_id = collections.id").
+			Order("COALESCE(items_count.items_count, 0) " + orderClause)
+
+	default:
+		query = query.Order("array_length(collections.likes, 1) DESC")
 	}
 
-	err := query.Find(&collections).Error
+	if search != "" {
+		query = query.Where("collections.name ILIKE ?", "%"+search+"%")
+	}
 
-	return collections, err
+	err = query.Find(&collections).Error
+
+	return collections, totalCount, err
 }
 
 func (r *CollectionsRepository) GetByIdWithoutUser(id string) (models.Collections, error) {

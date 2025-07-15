@@ -243,7 +243,7 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 
 func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit, offset string) (*models.AllCollectionsDataResponse, error) {
 	var collections []models.Collections
-	collections, _ = s.repo.GetAllWithoutPrivates(search, limit, offset)
+	collections, total, _ := s.repo.GetAllWithoutPrivates(search, limit, offset, orderBy, order)
 	var authUser *models.Users
 	var subArray []string
 	if authorizedUser != "" {
@@ -281,9 +281,7 @@ func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit
 		result = append(result, temp)
 	}
 
-	sortedCollections := utils.GetCollectionOrderBy(orderBy, result, order)
-
-	return &models.AllCollectionsDataResponse{Data: sortedCollections}, nil
+	return &models.AllCollectionsDataResponse{Data: result, Total: total}, nil
 }
 
 func (s *CollectionService) GetOne(authorizerUser string, id string, transliteration string, userLogin string, shareString string, ciLimit string, ciOffset string, orderBy string, order string, search string) (*models.CollectionDataResponse, error) {
