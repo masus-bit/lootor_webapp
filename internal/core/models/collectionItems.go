@@ -136,5 +136,5 @@ type CollectionItemsDataSortedResponse struct {
 }
 
 type CollectionItemsDataPoor struct {
-	Data []CollectionItems `json:"data"`
+	Data []CollectionItemsResponse `json:"data"`
 }

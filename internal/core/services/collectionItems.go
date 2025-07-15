@@ -468,8 +468,22 @@ func (s *CiService) GetAll(limit, offset, search string) (*models.CollectionItem
 	if err != nil {
 		return nil, err
 	}
+	var collectionItemsAll []models.CollectionItemsResponse
 
-	return &models.CollectionItemsDataPoor{Data: collectionItems}, nil
+	for _, item := range collectionItems {
+		var temp models.CollectionItemsResponse
+		err := mapstructure.Decode(item, &temp)
+		if err != nil {
+			return nil, err
+		}
+		temp.Collection = item.Collections[0].Id
+		temp.Owner = item.Owner
+		temp.LikesCount = int64(len(item.Likes))
+		temp.CollectionTransliteration = item.Collections[0].Transliteration
+		collectionItemsAll = append(collectionItemsAll, temp)
+	}
+
+	return &models.CollectionItemsDataPoor{Data: collectionItemsAll}, nil
 }
 
 func processCI(slice []models.CollectionItems, authUser string) ([]models.CollectionItemsResponse, error) {
