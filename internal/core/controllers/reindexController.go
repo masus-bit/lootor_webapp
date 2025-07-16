@@ -80,6 +80,7 @@ func (c *ReindexController) getUserData() ([]map[string]interface{}, error) {
 			"vkId":      user.VkId,
 			"tgId":      user.TelegramId,
 			"avatarUrl": user.AvatarUrl,
+			"isPremium": user.IsPremium,
 		}
 	}
 	return result, nil
