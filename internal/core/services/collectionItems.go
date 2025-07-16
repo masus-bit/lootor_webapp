@@ -468,6 +468,7 @@ func (s *CiService) GetAll(limit, offset, search string) (*models.CollectionItem
 	if err != nil {
 		return nil, err
 	}
+
 	var collectionItemsAll []models.CollectionItemsResponse
 
 	for _, item := range collectionItems {
@@ -476,10 +477,22 @@ func (s *CiService) GetAll(limit, offset, search string) (*models.CollectionItem
 		if err != nil {
 			return nil, err
 		}
-		temp.Collection = item.Collections[0].Id
+
+		if len(item.Collections) > 0 {
+			temp.Collection = item.Collections[0].Id
+			temp.CollectionTransliteration = item.Collections[0].Transliteration
+		} else {
+			temp.Collection = uuid.Nil
+			temp.CollectionTransliteration = ""
+		}
+
+		if item.Likes != nil {
+			temp.LikesCount = int64(len(item.Likes))
+		} else {
+			temp.LikesCount = 0
+		}
+
 		temp.Owner = item.Owner
-		temp.LikesCount = int64(len(item.Likes))
-		temp.CollectionTransliteration = item.Collections[0].Transliteration
 		collectionItemsAll = append(collectionItemsAll, temp)
 	}
 
