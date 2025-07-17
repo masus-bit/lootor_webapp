@@ -247,6 +247,24 @@ func (r *CiRepository) SumByUserLogin(userLogin string) (float64, error) {
 	return *result.Sum, err
 }
 
+func (r *CiRepository) ShippingSumByUserLogin(userLogin string) (float64, error) {
+	var result struct {
+		Sum *float64 `gorm:"column:sum"`
+	}
+
+	err := r.db.
+		Model(&models.CollectionItems{}).
+		Select("COALESCE(SUM(shipping_cost), 0) as sum").
+		Where("user_login = ?", userLogin).
+		Where("collection_items.deleted_at IS NULL").
+		Scan(&result).Error
+
+	if result.Sum == nil {
+		return 0, err
+	}
+	return *result.Sum, err
+}
+
 func (r *CiRepository) DeleteCI(id string) error {
 	err := r.db.Delete(&models.CollectionItems{}, "id = ?", id).Error
 	if err != nil {

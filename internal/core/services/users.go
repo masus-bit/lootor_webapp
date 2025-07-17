@@ -52,9 +52,11 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 
 		collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(userLogin)
 		sum, _ := s.ciRepo.SumByUserLogin(userLogin)
+		shippingTotal, _ := s.ciRepo.ShippingSumByUserLogin(userLogin)
 
 		response.TotalSum = int(sum)
 		response.CollectionItemsCount = int(collectionItemsCount)
+		response.ShippingTotal = int(shippingTotal)
 
 		e := mapstructure.Decode(dbUser, &response)
 		fmt.Print(dbUser, response)
@@ -78,9 +80,12 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 
 	collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(userLogin)
 	sum, _ := s.ciRepo.SumByUserLogin(userLogin)
+	shippingTotal, _ := s.ciRepo.ShippingSumByUserLogin(userLogin)
 
 	response.TotalSum = int(sum)
 	response.CollectionItemsCount = int(collectionItemsCount)
+	response.ShippingTotal = int(shippingTotal)
+
 	e := mapstructure.Decode(dbUser, &response)
 	if e != nil {
 		return nil, e

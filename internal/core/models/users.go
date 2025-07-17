@@ -89,6 +89,7 @@ type UserResponse struct {
 	WishListItems           []WishListItems `json:"wishListItems"`
 	IsPremium               bool            `json:"isPremium"`
 	CreatorRating           int             `json:"creatorRating"`
+	ShippingTotal           int             `json:"shippingTotal"`
 }
 
 type UserRequestUpdate struct {
