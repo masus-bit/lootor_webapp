@@ -1688,6 +1688,20 @@ paths:
       summary: все теги
       tags:
       - tags
+  /secured/user/delete:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: удаление пользователя
+      tags:
+      - users
   /secured/user/password:
     post:
       consumes:

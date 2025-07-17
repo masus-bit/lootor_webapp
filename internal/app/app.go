@@ -110,7 +110,6 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	userRepo := repositories.NewUsersRepository(db, searchService)
 	ciRepo := repositories.NewCiRepository(db, searchService)
 	colRepo := repositories.NewCollectionsRepository(db, searchService)
 	tagRepo := repositories.NewTagsRepository(db, searchService)
@@ -121,6 +120,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	wlRepo := repositories.NewWLRepository(db)
 	subRepo := repositories.NewSubscriptionRepository(db)
 	paymentsRepo := repositories.NewPaymentsRepository(db)
+	userRepo := repositories.NewUsersRepository(db, searchService, colRepo)
 	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Events{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{}, &models.ItemTypes{}, &models.WishListItems{}, &models.Subscription{}, &models.Payments{})
 	if err != nil {
 		return nil, err

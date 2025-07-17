@@ -33,5 +33,6 @@ func RegisterRoutes(e *echo.Echo, jwtService *auth.JWTService, userService servi
 		securedGroup.GET("/user/subscriptions", controller.Subscribe)
 		securedGroup.POST("/user/update", controller.UpdateUser)
 		securedGroup.POST("/user/update/reg", controller.UpdateLogin)
+		securedGroup.GET("/user/delete", controller.DeleteUser)
 	}
 }

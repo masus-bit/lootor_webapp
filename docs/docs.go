@@ -1545,6 +1545,28 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/user/delete": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "удаление пользователя",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/user/password": {
             "post": {
                 "consumes": [

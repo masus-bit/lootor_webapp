@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"errors"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 	"log"
 	"lootor/internal/core/models"
@@ -670,9 +671,75 @@ func (r *CollectionsRepository) DeleteCollection(id string) error {
 			return err
 		}
 	}
-	if err := r.es.DeleteDocument(context.Background(), "collections", id); err != nil {
+	if err = r.es.DeleteDocument(context.Background(), "collections", id); err != nil {
 		log.Printf("Failed to delete collection from index: %v", err)
 	}
+	return nil
+}
+
+func (r *CollectionsRepository) DeleteCollectionsByUserLogin(login string) error {
+	var itemIDs []string
+	var collectionsIDs []string
+
+	err := r.db.Table("lootor.loot.collections").
+		Where("user_login = ?", login).
+		Pluck("id", &collectionsIDs).Error
+	if err != nil {
+		return err
+	}
+
+	err = r.db.Table("lootor.loot.collections_collection_items_collection_items").
+		Where("collections_id IN (?)", collectionsIDs).
+		Pluck("collection_items_id", &itemIDs).Error
+	if err != nil {
+		return err
+	}
+
+	resultCollections := r.db.Exec(
+		"DELETE FROM lootor.loot.collections_collection_items_collection_items WHERE collections_id = ANY(?)",
+		pq.Array(collectionsIDs),
+	)
+
+	if resultCollections.Error != nil {
+		return resultCollections.Error
+	}
+
+	resultCollectionsTags := r.db.Exec(
+		"DELETE FROM lootor.loot.tags_collections_collections WHERE collections_id = ANY(?)",
+		pq.Array(collectionsIDs),
+	)
+
+	if resultCollectionsTags.Error != nil {
+		return resultCollectionsTags.Error
+	}
+
+	if len(collectionsIDs) > 0 {
+		err = r.db.Delete(&models.Collections{}, "id IN (?)", collectionsIDs).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(itemIDs) > 0 {
+		err = r.db.Delete(&models.CollectionItems{}, "id IN (?)", itemIDs).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, id := range collectionsIDs {
+		if err = r.es.DeleteDocument(context.Background(), "collections", id); err != nil {
+			log.Printf("Failed to delete collection from index: %v", err)
+		}
+	}
+
+	for _, id := range itemIDs {
+		if err = r.es.DeleteDocument(context.Background(), "collection_items", id); err != nil {
+			log.Printf("Failed to delete collection item from index: %v", err)
+		}
+
+	}
+
 	return nil
 }
 

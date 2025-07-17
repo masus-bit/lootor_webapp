@@ -12,12 +12,13 @@ import (
 )
 
 type UsersRepository struct {
-	es *elasticsearch.ElasticService
-	db *gorm.DB
+	es              *elasticsearch.ElasticService
+	db              *gorm.DB
+	collectionsRepo *CollectionsRepository
 }
 
-func NewUsersRepository(db *gorm.DB, es *elasticsearch.ElasticService) *UsersRepository {
-	return &UsersRepository{db: db, es: es}
+func NewUsersRepository(db *gorm.DB, es *elasticsearch.ElasticService, collectionsRepo *CollectionsRepository) *UsersRepository {
+	return &UsersRepository{db: db, es: es, collectionsRepo: collectionsRepo}
 }
 
 func (r *UsersRepository) CreateUser(user *models.Users) error {
@@ -54,6 +55,33 @@ func (r *UsersRepository) CreateUser(user *models.Users) error {
 		log.Printf("Failed to index user: %v", err)
 	}
 
+	return nil
+}
+
+func (r *UsersRepository) DeleteUser(login string) error {
+
+	err := r.collectionsRepo.DeleteCollectionsByUserLogin(login)
+	if err != nil {
+		return err
+	}
+
+	resultEvents := r.db.Exec(
+		"DELETE FROM lootor.loot.events WHERE initiator_login = ?",
+		login,
+	)
+
+	if resultEvents.Error != nil {
+		return resultEvents.Error
+	}
+
+	err = r.db.Delete(&models.Users{}, "login = ?", login).Error
+	if err != nil {
+		return err
+	}
+
+	if err = r.es.DeleteDocument(context.Background(), "users", login); err != nil {
+		log.Printf("Failed to delete user from index: %v", err)
+	}
 	return nil
 }
 

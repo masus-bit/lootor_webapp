@@ -419,3 +419,25 @@ func (c *UserController) UpdateLogin(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
+
+// DeleteUser
+// @Summary удаление пользователя
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Success 201 {object} dto.CommonResponse
+// @Router /secured/user/delete [get]
+func (c *UserController) DeleteUser(ctx echo.Context) error {
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+
+	response, err := c.userService.DeleteUser(authUser)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}

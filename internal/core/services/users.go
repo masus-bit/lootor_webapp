@@ -723,3 +723,13 @@ func (s *UserService) GetAll(search, limit, offset string) (*models.DataUsersRes
 		Data: result,
 	}, nil
 }
+
+func (s *UserService) DeleteUser(login string) (*dto.CommonResponse, error) {
+
+	err := s.repo.DeleteUser(login)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+}
