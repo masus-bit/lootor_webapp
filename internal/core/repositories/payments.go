@@ -21,3 +21,9 @@ func (r *PaymentsRepository) CreateRecord(payment *models.Payments) error {
 
 	return nil
 }
+
+func (r *PaymentsRepository) FindAllPaymentsByLogin(login string) ([]models.Payments, error) {
+	var payments []models.Payments
+	err := r.db.Where("user_login = ?", login).Find(&payments).Error
+	return payments, err
+}

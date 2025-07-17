@@ -153,3 +153,12 @@ func (s *PayService) EndTransaction(data *Notification) {
 		fmt.Println(err)
 	}
 }
+
+func (s *PayService) FindAllPaymentsByLogin(login string) (*models.PaymentsData, error) {
+	payments, err := s.paymentsRepo.FindAllPaymentsByLogin(login)
+
+	if err != nil {
+		return nil, err
+	}
+	return &models.PaymentsData{Data: payments}, nil
+}

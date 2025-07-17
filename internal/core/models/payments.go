@@ -8,7 +8,7 @@ import (
 
 type Payments struct {
 	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
+	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
 	Id            uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
@@ -17,4 +17,8 @@ type Payments struct {
 	InnerOrderId  string    `json:"innerOrderId"`
 	UserLogin     string    `json:"userLogin"`
 	PaymentType   string    `json:"paymentType"`
+}
+
+type PaymentsData struct {
+	Data []Payments `json:"data"`
 }

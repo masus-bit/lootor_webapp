@@ -1447,6 +1447,23 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/payment/info": {
+            "get": {
+                "description": "список платежей",
+                "tags": [
+                    "payment"
+                ],
+                "summary": "Получить список платежей юзера",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaymentsData"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/platforms": {
             "get": {
                 "consumes": [
@@ -2677,6 +2694,46 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.ItemTypes"
+                    }
+                }
+            }
+        },
+        "models.Payments": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "innerOrderId": {
+                    "type": "string"
+                },
+                "paymentType": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userLogin": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PaymentsData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Payments"
                     }
                 }
             }

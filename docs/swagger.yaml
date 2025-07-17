@@ -521,6 +521,32 @@ definitions:
           $ref: '#/definitions/models.ItemTypes'
         type: array
     type: object
+  models.Payments:
+    properties:
+      amount:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      innerOrderId:
+        type: string
+      paymentType:
+        type: string
+      transactionId:
+        type: string
+      updatedAt:
+        type: string
+      userLogin:
+        type: string
+    type: object
+  models.PaymentsData:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Payments'
+        type: array
+    type: object
   models.Platforms:
     properties:
       createdAt:
@@ -1622,6 +1648,17 @@ paths:
           schema:
             $ref: '#/definitions/payment.PayResponseToClientData'
       summary: Создать Платеж
+      tags:
+      - payment
+  /secured/payment/info:
+    get:
+      description: список платежей
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaymentsData'
+      summary: Получить список платежей юзера
       tags:
       - payment
   /secured/platforms:

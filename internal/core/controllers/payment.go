@@ -56,3 +56,24 @@ func (c *PaymentController) ConfirmPayment(ctx echo.Context) error {
 	c.payService.EndTransaction(&request)
 	return nil
 }
+
+// GetUserPayments
+// @Summary Получить список платежей юзера
+// @Description список платежей
+// @Tags payment
+// @Success 200 {object} models.PaymentsData
+// @Router /secured/payment/info [get]
+func (c *PaymentController) GetUserPayments(ctx echo.Context) error {
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+
+	response, err := c.payService.FindAllPaymentsByLogin(authUser)
+
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+	}
+
+	return ctx.JSON(http.StatusOK, &response)
+}
