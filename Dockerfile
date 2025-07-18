@@ -1,6 +1,10 @@
 FROM golang:1.24-alpine
 
 RUN apk add --no-cache \
+    protobuf \
+    protobuf-dev \
+    make \
+    git \
     gcc \
     musl-dev \
     libwebp-dev
