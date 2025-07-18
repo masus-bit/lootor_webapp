@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+import "google/protobuf/struct.proto";
+
+package news;
+
+option go_package = "./gen/go/feed";
+
+service NewsService {
+  rpc CreateNews(CreateNewsRequest) returns (NewsResponse);
+
+  rpc GetNewsById(GetNewsByIdRequest) returns (GetNewsByIdResponse);
+
+  rpc GetAllNews(GetAllNewsRequest) returns (GetAllNewsResponse);
+
+  rpc DeleteNews(DeleteNewsRequest) returns (DeleteNewsResponse);
+
+  rpc UpdateNews(UpdateNewsRequest) returns (UpdateNewsResponse);
+}
+
+message CreateNewsRequest {
+  string date = 1;
+  google.protobuf.Struct content = 2;
+  string type = 3;
+}
+
+message DeleteNewsRequest {
+  string id = 1;
+}
+
+message DeleteNewsResponse {
+  bool success = 1;
+}
+
+message UpdateNewsRequest {
+  string id = 1;
+  string date = 2;
+  google.protobuf.Struct content = 3;
+  string type = 4;
+}
+
+message UpdateNewsResponse {
+  NewsItem data = 1;
+}
+
+message NewsResponse {
+  string id = 1;
+  string type = 2;
+  google.protobuf.Struct content = 3;
+  string date = 4;
+}
+
+message GetNewsByIdRequest {
+  string id = 1;
+}
+
+message GetNewsByIdResponse {
+  NewsItem data = 1;
+}
+
+message GetAllNewsRequest {
+  string offset = 1;
+  string limit = 2;
+}
+
+message GetAllNewsResponse {
+  repeated NewsItem data = 1;
+}
+
+message NewsItem {
+  string id = 1;
+  string date = 2;
+  google.protobuf.Struct content = 3;
+  string type = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}

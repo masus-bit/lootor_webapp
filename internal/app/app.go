@@ -16,6 +16,7 @@ import (
 	"lootor/internal/core/repositories"
 	"lootor/internal/core/routes"
 	"lootor/internal/core/services"
+	"lootor/internal/infrastructure/newsclient"
 	"lootor/internal/pkg/auth"
 	"lootor/internal/pkg/database"
 	"lootor/internal/pkg/elasticsearch"
@@ -110,6 +111,13 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
+	newsAddr := os.Getenv("NEWS_SERVICE_ADDR")
+
+	newsClient, err := newsclient.NewGRPCClient(newsAddr)
+	if err != nil {
+		log.Fatal("failed to create news client:", err)
+	}
+
 	ciRepo := repositories.NewCiRepository(db, searchService)
 	colRepo := repositories.NewCollectionsRepository(db, searchService)
 	tagRepo := repositories.NewTagsRepository(db, searchService)
@@ -158,6 +166,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	paymentService := payment.NewPayService(userRepo, userService, subService, paymentsRepo)
 	captchaService := auth.NewRecaptchaService()
 	reportsService := feedback.NewReportsService(fbService, ciRepo, userRepo, colRepo, wlRepo)
+	feedService := services.NewFeedService(newsClient)
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
@@ -183,6 +192,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.PaymentRouter(e, jwtService, *paymentService)
 	routes.RecaptchaRouter(e, jwtService, *captchaService)
 	routes.ReportsRouter(e, jwtService, *reportsService)
+	routes.FeedRouter(e, jwtService, *feedService)
 
 	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagRepo, entityRepo).ReindexInternal(context.Background())
 	setupMonitoring(s3Service)

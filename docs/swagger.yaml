@@ -282,6 +282,36 @@ definitions:
       targetUserLogin:
         type: string
     type: object
+  dto.FeedDataResponseSwag:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.FeedSwag'
+        type: array
+    type: object
+  dto.FeedRequest:
+    type: object
+  dto.FeedResponseSwag:
+    properties:
+      data:
+        $ref: '#/definitions/dto.FeedSwag'
+    type: object
+  dto.FeedSwag:
+    properties:
+      content:
+        additionalProperties: true
+        type: object
+      createdAt:
+        type: string
+      date:
+        type: string
+      id:
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   dto.ImagesResponse:
     properties:
       keys:
@@ -534,8 +564,6 @@ definitions:
       paymentType:
         type: string
       transactionId:
-        type: string
-      updatedAt:
         type: string
       userLogin:
         type: string
@@ -1531,6 +1559,115 @@ paths:
       summary: получить эвенты по юзеру из токена
       tags:
       - events
+  /secured/feed:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedDataResponseSwag'
+      summary: все новости
+      tags:
+      - feed
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля создания
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.FeedRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: Создание новости
+      tags:
+      - feed
+  /secured/feed/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: удаление новости
+      tags:
+      - feed
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: одна новость
+      tags:
+      - feed
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: поля обновления
+        in: body
+        name: updateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.FeedRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: обновление новости
+      tags:
+      - feed
   /secured/feedback:
     post:
       consumes:
