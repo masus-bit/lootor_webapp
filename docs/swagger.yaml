@@ -291,6 +291,16 @@ definitions:
     type: object
   dto.FeedRequest:
     type: object
+  dto.FeedRequestSwag:
+    properties:
+      content:
+        additionalProperties: true
+        type: object
+      date:
+        type: string
+      type:
+        type: string
+    type: object
   dto.FeedResponseSwag:
     properties:
       data:
@@ -1593,7 +1603,7 @@ paths:
         name: createRequest
         required: true
         schema:
-          $ref: '#/definitions/dto.FeedRequest'
+          $ref: '#/definitions/dto.FeedRequestSwag'
       produces:
       - application/json
       responses:

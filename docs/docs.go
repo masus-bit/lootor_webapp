@@ -1321,7 +1321,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.FeedRequest"
+                            "$ref": "#/definitions/dto.FeedRequestSwag"
                         }
                     }
                 ],
@@ -2514,6 +2514,21 @@ const docTemplate = `{
         },
         "dto.FeedRequest": {
             "type": "object"
+        },
+        "dto.FeedRequestSwag": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "date": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
         },
         "dto.FeedResponseSwag": {
             "type": "object",

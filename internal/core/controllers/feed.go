@@ -20,7 +20,7 @@ func NewFeedController(feedService services.FeedService) *FeedController {
 // @Tags feed
 // @Accept  json
 // @Produce  json
-// @Param createRequest body dto.FeedRequest true "поля создания"
+// @Param createRequest body dto.FeedRequestSwag true "поля создания"
 // @Success 201 {object} dto.FeedResponseSwag
 // @Router /secured/feed [post]
 func (c *FeedController) CreateFeedItem(ctx echo.Context) error {
