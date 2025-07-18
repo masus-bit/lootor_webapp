@@ -86,7 +86,7 @@ func (c *FeedController) GetOne(ctx echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param id path string true "id"
-// @Param updateRequest body dto.FeedRequest true "поля обновления"
+// @Param updateRequest body dto.FeedRequestSwag true "поля обновления"
 // @Success 201 {object} dto.FeedResponseSwag
 // @Router /secured/feed/{id} [put]
 func (c *FeedController) Update(ctx echo.Context) error {

@@ -289,8 +289,6 @@ definitions:
           $ref: '#/definitions/dto.FeedSwag'
         type: array
     type: object
-  dto.FeedRequest:
-    type: object
   dto.FeedRequestSwag:
     properties:
       content:
@@ -1667,7 +1665,7 @@ paths:
         name: updateRequest
         required: true
         schema:
-          $ref: '#/definitions/dto.FeedRequest'
+          $ref: '#/definitions/dto.FeedRequestSwag'
       produces:
       - application/json
       responses:

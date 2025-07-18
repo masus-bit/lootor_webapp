@@ -1390,7 +1390,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.FeedRequest"
+                            "$ref": "#/definitions/dto.FeedRequestSwag"
                         }
                     }
                 ],
@@ -2511,9 +2511,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "dto.FeedRequest": {
-            "type": "object"
         },
         "dto.FeedRequestSwag": {
             "type": "object",
