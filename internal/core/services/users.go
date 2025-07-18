@@ -701,6 +701,13 @@ func (s *UserService) CheckExpiredSubscriptions() {
 	}
 }
 
+func (s *UserService) CheckDeletedUsers() {
+	err := s.repo.DeleteDeletedUsersForever()
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 func (s *UserService) GetAll(search, limit, offset string) (*models.DataUsersResponse, error) {
 	users, err := s.repo.GetAll(search, limit, offset)
 

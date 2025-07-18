@@ -33,6 +33,7 @@ type Users struct {
 	PremiumType             string          `json:"premiumType,omitempty"`
 	ReportsCount            int64           `json:"-"`
 	CreatorRating           int             `json:"creatorRating"`
+	DeletedAt               *time.Time      `json:"-" gorm:"column:deleted_at"`
 }
 
 type SignUpRequest struct {

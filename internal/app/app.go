@@ -202,6 +202,12 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	_, err = c.AddFunc("@midnight", func() { userService.CheckDeletedUsers() })
+	if err != nil {
+		return nil, err
+	}
+
 	c.Start()
 	return &App{Echo: e}, nil
 }

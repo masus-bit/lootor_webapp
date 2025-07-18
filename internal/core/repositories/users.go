@@ -74,7 +74,11 @@ func (r *UsersRepository) DeleteUser(login string) error {
 		return resultEvents.Error
 	}
 
-	err = r.db.Delete(&models.Users{}, "login = ?", login).Error
+	//err = r.db.Delete(&models.Users{}, "login = ?", login).Error
+	now := time.Now()
+	err = r.db.Model(&models.Users{}).
+		Where("login = ?", login).
+		Update("deleted_at", now).Error
 	if err != nil {
 		return err
 	}
@@ -115,7 +119,7 @@ func (r *UsersRepository) GetByLoginWithPassword(login string) (*models.Users, e
 func (r *UsersRepository) GetUserByLogin(login string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("LOWER(login) = LOWER(?)", login).Preload("WishListItems").First(&user).Error
+	err := r.db.Where("LOWER(login) = LOWER(?) AND deleted_at IS NULL", login).Preload("WishListItems").First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -127,7 +131,7 @@ func (r *UsersRepository) GetUserByLogin(login string) (*models.Users, error) {
 func (r *UsersRepository) GetUserByUsername(username string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("user_name = ?", username).Preload("WishListItems").First(&user).Error
+	err := r.db.Where("user_name = ? AND deleted_at IS NULL", username).Preload("WishListItems").First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -139,7 +143,7 @@ func (r *UsersRepository) GetUserByUsername(username string) (*models.Users, err
 func (r *UsersRepository) GetByEmail(email string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("email = ?", email).Preload("WishListItems").First(&user).Error
+	err := r.db.Where("email = ? AND deleted_at IS NULL", email).Preload("WishListItems").First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -151,7 +155,7 @@ func (r *UsersRepository) GetByEmail(email string) (*models.Users, error) {
 func (r *UsersRepository) GetByVerificationToken(token string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("verification_token = ?", token).First(&user).Error
+	err := r.db.Where("verification_token = ? AND deleted_at IS NULL", token).First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -163,7 +167,7 @@ func (r *UsersRepository) GetByVerificationToken(token string) (*models.Users, e
 func (r *UsersRepository) GetByResetToken(token string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("reset_token = ?", token).First(&user).Error
+	err := r.db.Where("reset_token = ? AND deleted_at IS NULL", token).First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -175,7 +179,7 @@ func (r *UsersRepository) GetByResetToken(token string) (*models.Users, error) {
 func (r *UsersRepository) GetByVkId(vkId string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("vk_id = ?", vkId).Preload("WishListItems").First(&user).Error
+	err := r.db.Where("vk_id = ? AND deleted_at IS NULL", vkId).Preload("WishListItems").First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -187,7 +191,7 @@ func (r *UsersRepository) GetByVkId(vkId string) (*models.Users, error) {
 func (r *UsersRepository) GetByTgId(tgId string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("telegram_id = ?", tgId).Preload("WishListItems").First(&user).Error
+	err := r.db.Where("telegram_id = ? AND deleted_at IS NULL", tgId).Preload("WishListItems").First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -311,7 +315,7 @@ func (r *UsersRepository) GetAll(search string, limit, offset string) ([]models.
 		Offset(intOffset)
 
 	if search != "" {
-		query = query.Where("login ILIKE ?", "%"+search+"%")
+		query = query.Where("login ILIKE ? AND deleted_at IS NULL", "%"+search+"%")
 	}
 
 	err := query.Find(&users).Error
@@ -342,6 +346,27 @@ func (r *UsersRepository) DeactivatePremium() error {
 			Updates(map[string]interface{}{"status": "expired"})
 		if subscriptionUpdateResult.Error != nil {
 			return subscriptionUpdateResult.Error
+		}
+	}
+
+	return nil
+}
+
+func (r *UsersRepository) DeleteDeletedUsersForever() error {
+	var deletedLogins []string
+	oneYearAgo := time.Now().AddDate(-1, 0, 0)
+	result := r.db.Model(&models.Users{}).
+		Select("login").
+		Where("deleted_at IS NOT NULL AND deleted_at < ?", oneYearAgo).
+		Pluck("login", &deletedLogins)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if len(deletedLogins) > 0 {
+		err := r.db.Delete(&models.Users{}, "login IN ?", deletedLogins).Error
+		if err != nil {
+			return err
 		}
 	}
 
