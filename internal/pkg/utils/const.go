@@ -20,8 +20,9 @@ const (
 	Admin           = "admin"
 	GodSeymor       = "godSeymor"
 	EgRifYkkurIBita = "eg_rif_ykkur_i_bita"
+	GSeymor         = "gseymor"
 )
 
 func GetAdminLogins() []string {
-	return []string{Seymor, Admin, GodSeymor, EgRifYkkurIBita}
+	return []string{Seymor, Admin, GodSeymor, EgRifYkkurIBita, GSeymor}
 }
