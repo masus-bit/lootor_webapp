@@ -1111,6 +1111,51 @@ paths:
       summary: получить эвенты filtered
       tags:
       - events
+  /public/feed:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedDataResponseSwag'
+      summary: все новости
+      tags:
+      - feed
+  /public/feed/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: одна новость
+      tags:
+      - feed
   /public/images/{key}:
     get:
       parameters:
@@ -1568,30 +1613,6 @@ paths:
       tags:
       - events
   /secured/feed:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: limit
-        in: query
-        name: limit
-        required: true
-        type: string
-      - description: offset
-        in: query
-        name: offset
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.FeedDataResponseSwag'
-      summary: все новости
-      tags:
-      - feed
     post:
       consumes:
       - application/json
@@ -1630,25 +1651,6 @@ paths:
           schema:
             $ref: '#/definitions/dto.CommonResponse'
       summary: удаление новости
-      tags:
-      - feed
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.FeedResponseSwag'
-      summary: одна новость
       tags:
       - feed
     put:

@@ -4,7 +4,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"lootor/internal/core/services"
 	"lootor/internal/pkg/dto"
+	"lootor/internal/pkg/utils"
 	"net/http"
+	"slices"
 )
 
 type FeedController struct {
@@ -30,6 +32,20 @@ func (c *FeedController) CreateFeedItem(ctx echo.Context) error {
 			"error": "Invalid request body",
 		})
 	}
+
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+
+	adminList := utils.GetAdminLogins()
+
+	if !slices.Contains(adminList, authUser) {
+		return ctx.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Unauthorized",
+		})
+	}
+
 	context := ctx.Request().Context()
 	response, err := c.feedService.CreateFeed(context, &request)
 	if err != nil {
@@ -48,7 +64,7 @@ func (c *FeedController) CreateFeedItem(ctx echo.Context) error {
 // @Param limit query string true "limit"
 // @Param offset query string true "offset"
 // @Success 201 {object} dto.FeedDataResponseSwag
-// @Router /secured/feed [get]
+// @Router /public/feed [get]
 func (c *FeedController) GetAll(ctx echo.Context) error {
 	limit := ctx.QueryParam("limit")
 	offset := ctx.QueryParam("offset")
@@ -68,7 +84,7 @@ func (c *FeedController) GetAll(ctx echo.Context) error {
 // @Produce  json
 // @Param id path string true "id"
 // @Success 201 {object} dto.FeedResponseSwag
-// @Router /secured/feed/{id} [get]
+// @Router /public/feed/{id} [get]
 func (c *FeedController) GetOne(ctx echo.Context) error {
 	id := ctx.Param("id")
 	response, err := c.feedService.GetFeed(ctx.Request().Context(), id)
@@ -97,6 +113,20 @@ func (c *FeedController) Update(ctx echo.Context) error {
 			"error": "Invalid request body",
 		})
 	}
+
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+
+	adminList := utils.GetAdminLogins()
+
+	if !slices.Contains(adminList, authUser) {
+		return ctx.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Unauthorized",
+		})
+	}
+
 	response, err := c.feedService.UpdateFeed(ctx.Request().Context(), id, &request)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
@@ -116,6 +146,20 @@ func (c *FeedController) Update(ctx echo.Context) error {
 // @Router /secured/feed/{id} [delete]
 func (c *FeedController) Delete(ctx echo.Context) error {
 	id := ctx.Param("id")
+
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+
+	adminList := utils.GetAdminLogins()
+
+	if !slices.Contains(adminList, authUser) {
+		return ctx.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Unauthorized",
+		})
+	}
+
 	response, err := c.feedService.DeleteFeed(ctx.Request().Context(), id)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
