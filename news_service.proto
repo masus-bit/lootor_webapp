@@ -44,10 +44,7 @@ message UpdateNewsResponse {
 }
 
 message NewsResponse {
-  string id = 1;
-  string type = 2;
-  google.protobuf.Struct content = 3;
-  string date = 4;
+  NewsItem data = 1;
 }
 
 message GetNewsByIdRequest {
@@ -65,6 +62,7 @@ message GetAllNewsRequest {
 
 message GetAllNewsResponse {
   repeated NewsItem data = 1;
+  string total = 2;
 }
 
 message NewsItem {

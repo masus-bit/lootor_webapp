@@ -6,6 +6,8 @@ import (
 	"lootor/internal/infrastructure/newsclient"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/utils"
+	"strconv"
+	"time"
 )
 
 type FeedService struct {
@@ -22,16 +24,22 @@ func (s *FeedService) CreateFeed(ctx context.Context, request *dto.FeedRequest) 
 		return nil, err
 	}
 
-	id, err := uuid.Parse(feed.Id)
+	id, err := uuid.Parse(feed.Data.Id)
 	if err != nil {
 		return nil, err
 	}
-	content := utils.NormalizeContent(feed.Content)
+	content := utils.NormalizeContent(feed.Data.Content)
+
+	createdAtAsTime, _ := time.Parse(time.RFC3339, feed.Data.CreatedAt)
+	updatedAtAsTime, _ := time.Parse(time.RFC3339, feed.Data.UpdatedAt)
+
 	resultFeed := dto.Feed{
-		Id:      id,
-		Type:    feed.Type,
-		Date:    feed.Date,
-		Content: content,
+		Id:        id,
+		Type:      feed.Data.Type,
+		Date:      feed.Data.Date,
+		Content:   content,
+		CreatedAt: createdAtAsTime,
+		UpdatedAt: updatedAtAsTime,
 	}
 
 	return &dto.FeedDataResponse{Data: []dto.Feed{resultFeed}}, nil
@@ -50,11 +58,16 @@ func (s *FeedService) GetFeed(ctx context.Context, id string) (*dto.FeedResponse
 
 	content := utils.NormalizeContent(feed.Data.Content)
 
+	createdAtAsTime, _ := time.Parse(time.RFC3339, feed.Data.CreatedAt)
+	updatedAtAsTime, _ := time.Parse(time.RFC3339, feed.Data.UpdatedAt)
+
 	resultFeed := dto.Feed{
-		Id:      parsedId,
-		Type:    feed.Data.Type,
-		Date:    feed.Data.Date,
-		Content: content,
+		Id:        parsedId,
+		Type:      feed.Data.Type,
+		Date:      feed.Data.Date,
+		Content:   content,
+		CreatedAt: createdAtAsTime,
+		UpdatedAt: updatedAtAsTime,
 	}
 
 	return &dto.FeedResponse{Data: resultFeed}, nil
@@ -74,15 +87,22 @@ func (s *FeedService) GetAllFeed(ctx context.Context, limit, offset string) (*dt
 		}
 		content := utils.NormalizeContent(f.Content)
 
+		createdAtAsTime, _ := time.Parse(time.RFC3339, f.CreatedAt)
+		updatedAtAsTime, _ := time.Parse(time.RFC3339, f.UpdatedAt)
+
 		resultFeed = append(resultFeed, dto.Feed{
-			Id:      parsedId,
-			Type:    f.Type,
-			Date:    f.Date,
-			Content: content,
+			Id:        parsedId,
+			Type:      f.Type,
+			Date:      f.Date,
+			Content:   content,
+			CreatedAt: createdAtAsTime,
+			UpdatedAt: updatedAtAsTime,
 		})
 	}
 
-	return &dto.FeedDataResponse{Data: resultFeed}, nil
+	totalInt, _ := strconv.Atoi(feed.Total)
+
+	return &dto.FeedDataResponse{Data: resultFeed, Total: int64(totalInt)}, nil
 }
 
 func (s *FeedService) DeleteFeed(ctx context.Context, id string) (*dto.CommonResponse, error) {
@@ -105,11 +125,16 @@ func (s *FeedService) UpdateFeed(ctx context.Context, id string, request *dto.Fe
 	}
 	content := utils.NormalizeContent(feed.Data.Content)
 
+	createdAtAsTime, _ := time.Parse(time.RFC3339, feed.Data.CreatedAt)
+	updatedAtAsTime, _ := time.Parse(time.RFC3339, feed.Data.UpdatedAt)
+
 	resultFeed := dto.Feed{
-		Id:      parsedId,
-		Type:    feed.Data.Type,
-		Date:    feed.Data.Date,
-		Content: content,
+		Id:        parsedId,
+		Type:      feed.Data.Type,
+		Date:      feed.Data.Date,
+		Content:   content,
+		CreatedAt: createdAtAsTime,
+		UpdatedAt: updatedAtAsTime,
 	}
 
 	return &dto.FeedResponse{Data: resultFeed}, nil

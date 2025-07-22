@@ -20,7 +20,8 @@ type Feed struct {
 }
 
 type FeedDataResponse struct {
-	Data []Feed `json:"data"`
+	Data  []Feed `json:"data"`
+	Total int64  `json:"total"`
 }
 
 type FeedResponse struct {
