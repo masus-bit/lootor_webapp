@@ -18,7 +18,7 @@ func NewFeedService(feedClient *newsclient.GRPCClient) *FeedService {
 	return &FeedService{feedClient: feedClient}
 }
 
-func (s *FeedService) CreateFeed(ctx context.Context, request *dto.FeedRequest) (*dto.FeedDataResponse, error) {
+func (s *FeedService) CreateFeed(ctx context.Context, request *dto.FeedRequest) (*dto.FeedResponse, error) {
 	feed, err := s.feedClient.CreateNews(ctx, request.Type, request.Date, request.Content)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (s *FeedService) CreateFeed(ctx context.Context, request *dto.FeedRequest) 
 		UpdatedAt: updatedAtAsTime,
 	}
 
-	return &dto.FeedDataResponse{Data: []dto.Feed{resultFeed}}, nil
+	return &dto.FeedResponse{Data: resultFeed}, nil
 }
 
 func (s *FeedService) GetFeed(ctx context.Context, id string) (*dto.FeedResponse, error) {
