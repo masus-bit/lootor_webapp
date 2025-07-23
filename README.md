@@ -1,6 +1,6 @@
 # Lootor
 
-## Установка
+## Локальная установка
 
 
 ```go
@@ -11,6 +11,12 @@ go mod download
 
 ```go
 swag init -g cmd/api/main.go --output docs
+```
+
+## Генерация protobuf для сервиса новостей
+
+```go
+make gen
 ```
 
 ## Запуск
