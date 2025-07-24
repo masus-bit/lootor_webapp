@@ -529,18 +529,25 @@ func (s *UserService) ResetPassword(email string) (*dto.CommonResponse, error) {
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *UserService) ChangeResetPassword(request *models.ChangePasswordReset) (*dto.CommonResponse, error) {
+func (s *UserService) ChangeResetPassword(request *models.ChangePasswordReset) (*models.SignInResponse, error) {
 	existsUser, err := s.repo.GetByResetToken(request.Token)
 	if err != nil {
 		return nil, err
 	}
 	existsUser.PasswordHash, _ = auth.HashPassword(request.Password)
 	existsUser.ResetToken = ""
-	_, err = s.repo.UpdateUser(existsUser, *existsUser)
+	user, err := s.repo.UpdateUser(existsUser, *existsUser)
 	if err != nil {
 		return nil, err
 	}
-	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+	tokens, err := s.jwtService.GenerateTokenPair(user)
+	if err != nil {
+		return nil, fmt.Errorf("token generation error: %w", err)
+	}
+	return &models.SignInResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	}, nil
 }
 
 func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (*models.SignInResponse, error) {
