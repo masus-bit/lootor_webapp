@@ -192,11 +192,11 @@ func (s *UserService) SignIn(dto *models.SignInRequest) (*models.SignInResponse,
 }
 
 func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*models.SignUpResponse, error) {
-	userByMail, _ := s.repo.GetByEmail(dto.Email)
+	userByMail, _ := s.repo.GetByEmailForSignUp(dto.Email)
 	if userByMail != nil {
 		return nil, errors.New("Email должен быть уникальным")
 	}
-	userByLogin, _ := s.repo.GetUserByLogin(dto.Login)
+	userByLogin, _ := s.repo.GetUserByLoginForSignUp(dto.Login)
 	if userByLogin != nil {
 		return nil, errors.New("Логин должен быть уникальным")
 	}

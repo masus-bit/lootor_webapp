@@ -73,6 +73,14 @@ func (r *UsersRepository) DeleteUser(login string) error {
 	if resultEvents.Error != nil {
 		return resultEvents.Error
 	}
+	resultWishListItems := r.db.Exec(
+		"DELETE FROM lootor.loot.wish_list_items WHERE user_login = ?",
+		login,
+	)
+
+	if resultWishListItems.Error != nil {
+		return resultWishListItems.Error
+	}
 
 	//err = r.db.Delete(&models.Users{}, "login = ?", login).Error
 	now := time.Now()
@@ -97,7 +105,7 @@ func (r *UsersRepository) FindAllUsers() ([]models.Users, error) {
 
 func (r *UsersRepository) GetByEmailWithPassword(email string) (*models.Users, error) {
 	var user models.Users
-	err := r.db.Select("*").Where("email = ?", email).First(&user).Error
+	err := r.db.Select("*").Where("email = ? AND deleted_at IS NULL", email).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +115,7 @@ func (r *UsersRepository) GetByEmailWithPassword(email string) (*models.Users, e
 func (r *UsersRepository) GetByLoginWithPassword(login string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Select("*").Where("login = ?", login).First(&user).Error
+	err := r.db.Select("*").Where("login = ? AND deleted_at IS NULL", login).First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -120,6 +128,18 @@ func (r *UsersRepository) GetUserByLogin(login string) (*models.Users, error) {
 	var user models.Users
 
 	err := r.db.Where("LOWER(login) = LOWER(?) AND deleted_at IS NULL", login).Preload("WishListItems").First(&user).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *UsersRepository) GetUserByLoginForSignUp(login string) (*models.Users, error) {
+	var user models.Users
+
+	err := r.db.Where("LOWER(login) = LOWER(?)", login).Preload("WishListItems").First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -144,6 +164,18 @@ func (r *UsersRepository) GetByEmail(email string) (*models.Users, error) {
 	var user models.Users
 
 	err := r.db.Where("email = ? AND deleted_at IS NULL", email).Preload("WishListItems").First(&user).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *UsersRepository) GetByEmailForSignUp(email string) (*models.Users, error) {
+	var user models.Users
+
+	err := r.db.Where("email = ?", email).Preload("WishListItems").First(&user).Error
 
 	if err != nil {
 		return nil, err
