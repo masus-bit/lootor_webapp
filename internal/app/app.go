@@ -22,6 +22,7 @@ import (
 	"lootor/internal/pkg/elasticsearch"
 	"lootor/internal/pkg/feedback"
 	"lootor/internal/pkg/mail"
+	"lootor/internal/pkg/migrator"
 	"lootor/internal/pkg/payment"
 	"lootor/internal/pkg/s3"
 	"lootor/internal/pkg/utils"
@@ -43,7 +44,6 @@ func setupMonitoring(s3Service *s3.S3Service) {
 		json.NewEncoder(w).Encode(stats)
 	})
 
-	// Запустите в отдельном порту
 	go func() {
 		log.Println("Monitoring server started on :8081")
 		log.Fatal(http.ListenAndServe(":8081", nil))
@@ -129,7 +129,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	subRepo := repositories.NewSubscriptionRepository(db)
 	paymentsRepo := repositories.NewPaymentsRepository(db)
 	userRepo := repositories.NewUsersRepository(db, searchService, colRepo)
-	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Events{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{}, &models.ItemTypes{}, &models.WishListItems{}, &models.Subscription{}, &models.Payments{})
+	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Events{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{}, &models.ItemTypes{}, &models.WishListItems{}, &models.Subscription{}, &models.Payments{}, &models.Migrations{})
 	if err != nil {
 		return nil, err
 	}
@@ -196,6 +196,11 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 
 	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagRepo, entityRepo).ReindexInternal(context.Background())
 	setupMonitoring(s3Service)
+
+	if err = migrator.RunMigrations(db); err != nil {
+		log.Fatalf("Migration failed: %v", err)
+	}
+
 	c := cron.New()
 	_, err = c.AddFunc("@midnight", func() { userService.CheckExpiredSubscriptions() })
 	//_, err = c.AddFunc("@every 2m", func() { userService.CheckExpiredSubscriptions() })
