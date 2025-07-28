@@ -117,6 +117,23 @@
               }
             }
           },
+          "profileName": {
+            "type": "text",
+            "fields": {
+              "exact": {
+                "type": "text",
+                "analyzer": "exact_match"
+              },
+              "prefix": {
+                "type": "text",
+                "analyzer": "prefix_search"
+              },
+              "keyword": {
+                "type": "keyword",
+                "normalizer": "lowercase"
+              }
+            }
+          },
           "user_name": {
             "type": "text",
             "fields": {
