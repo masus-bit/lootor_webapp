@@ -34,16 +34,17 @@ type Users struct {
 	ReportsCount            int64           `json:"-"`
 	CreatorRating           int             `json:"creatorRating"`
 	DeletedAt               *time.Time      `json:"-" gorm:"column:deleted_at"`
-	Id                      string          `json:"id"`
+	ProfileName             string          `json:"profileName"`
 }
 
 type SignUpRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8"`
-	Login    string `json:"login" validate:"required"`
-	UserName string `json:"userName" validate:"required"`
-	City     string `json:"city"`
-	Bio      string `json:"bio"`
+	Email       string `json:"email" validate:"required,email"`
+	Password    string `json:"password" validate:"required,min=8"`
+	Login       string `json:"login" validate:"required"`
+	UserName    string `json:"userName" validate:"required"`
+	City        string `json:"city"`
+	Bio         string `json:"bio"`
+	ProfileName string `json:"profileName"`
 }
 
 type SignInRequest struct {
@@ -92,7 +93,7 @@ type UserResponse struct {
 	IsPremium               bool            `json:"isPremium"`
 	CreatorRating           int             `json:"creatorRating"`
 	ShippingTotal           int             `json:"shippingTotal"`
-	Id                      string          `json:"id"`
+	ProfileName             string          `json:"profileName"`
 }
 
 type UserRequestUpdate struct {
@@ -102,6 +103,7 @@ type UserRequestUpdate struct {
 	BackgroundUrl *string `json:"backgroundUrl,omitempty"`
 	City          *string `json:"city,omitempty"`
 	Bio           *string `json:"bio,omitempty"`
+	ProfileName   *string `json:"profileName"`
 }
 
 type UserRequestUpdateFirstTime struct {
@@ -112,6 +114,7 @@ type UserRequestUpdateFirstTime struct {
 	BackgroundUrl *string `json:"backgroundUrl,omitempty"`
 	City          *string `json:"city,omitempty"`
 	Bio           *string `json:"bio,omitempty"`
+	ProfileName   *string `json:"profileName"`
 }
 
 type UserResponseForCollection struct {
@@ -122,7 +125,7 @@ type UserResponseForCollection struct {
 	Email         string         `json:"email"`
 	AvatarUrl     string         `json:"avatarUrl"`
 	Subscriptions pq.StringArray `json:"subscriptions"`
-	Id            string         `json:"id"`
+	ProfileName   string         `json:"profileName"`
 }
 
 type DataUserResponse struct {
@@ -209,3 +212,4 @@ func (u *Users) GetSubscribers() int      { return u.Subscribers }
 func (u *Users) GetBio() string           { return u.Bio }
 func (u *Users) GetCity() string          { return u.City }
 func (u *Users) GetIsPremium() bool       { return u.IsPremium }
+func (u *Users) GetProfileName() string   { return u.ProfileName }

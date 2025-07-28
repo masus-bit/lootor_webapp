@@ -41,14 +41,15 @@ func (r *UsersRepository) CreateUser(user *models.Users) error {
 	}
 
 	doc := map[string]interface{}{
-		"id":        user.Login,
-		"login":     user.Login,
-		"userName":  user.UserName,
-		"email":     user.Email,
-		"avatarUrl": user.AvatarUrl,
-		"vkId":      user.VkId,
-		"tgId":      user.TelegramId,
-		"isPremium": user.IsPremium,
+		"id":          user.Login,
+		"login":       user.Login,
+		"userName":    user.UserName,
+		"email":       user.Email,
+		"avatarUrl":   user.AvatarUrl,
+		"vkId":        user.VkId,
+		"tgId":        user.TelegramId,
+		"isPremium":   user.IsPremium,
+		"profileName": user.ProfileName,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {
@@ -242,14 +243,15 @@ func (r *UsersRepository) UpdateUser(existsUser *models.Users, updated models.Us
 	err := r.db.Where("login = ?", existsUser.Login).Preload("WishListItems").First(&updatedUser).Error
 
 	doc := map[string]interface{}{
-		"id":        updatedUser.Login,
-		"login":     updatedUser.Login,
-		"userName":  updatedUser.UserName,
-		"email":     updatedUser.Email,
-		"avatarUrl": updatedUser.AvatarUrl,
-		"vkId":      updatedUser.VkId,
-		"tgId":      updatedUser.TelegramId,
-		"isPremium": updatedUser.IsPremium,
+		"id":          updatedUser.Login,
+		"login":       updatedUser.Login,
+		"userName":    updatedUser.UserName,
+		"email":       updatedUser.Email,
+		"avatarUrl":   updatedUser.AvatarUrl,
+		"vkId":        updatedUser.VkId,
+		"tgId":        updatedUser.TelegramId,
+		"isPremium":   updatedUser.IsPremium,
+		"profileName": updatedUser.ProfileName,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {
@@ -269,14 +271,15 @@ func (r *UsersRepository) UpdateUserFull(existsUser *models.Users) (*models.User
 	err := r.db.Where("login = ?", existsUser.Login).Preload("WishListItems").First(&updatedUser).Error
 
 	doc := map[string]interface{}{
-		"id":        updatedUser.Login,
-		"login":     updatedUser.Login,
-		"userName":  updatedUser.UserName,
-		"email":     updatedUser.Email,
-		"avatarUrl": updatedUser.AvatarUrl,
-		"vkId":      updatedUser.VkId,
-		"tgId":      updatedUser.TelegramId,
-		"isPremium": updatedUser.IsPremium,
+		"id":          updatedUser.Login,
+		"login":       updatedUser.Login,
+		"userName":    updatedUser.UserName,
+		"email":       updatedUser.Email,
+		"avatarUrl":   updatedUser.AvatarUrl,
+		"vkId":        updatedUser.VkId,
+		"tgId":        updatedUser.TelegramId,
+		"isPremium":   updatedUser.IsPremium,
+		"profileName": updatedUser.ProfileName,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {
@@ -296,14 +299,15 @@ func (r *UsersRepository) UpdateLogin(existsUser string, updated *models.Users) 
 	err := r.db.Where("login = ?", updated.Login).Preload("WishListItems").First(&updatedUser).Error
 
 	doc := map[string]interface{}{
-		"id":        updatedUser.Login,
-		"login":     updatedUser.Login,
-		"userName":  updatedUser.UserName,
-		"email":     updatedUser.Email,
-		"avatarUrl": updatedUser.AvatarUrl,
-		"vkId":      updatedUser.VkId,
-		"tgId":      updatedUser.TelegramId,
-		"isPremium": updatedUser.IsPremium,
+		"id":          updatedUser.Login,
+		"login":       updatedUser.Login,
+		"userName":    updatedUser.UserName,
+		"email":       updatedUser.Email,
+		"avatarUrl":   updatedUser.AvatarUrl,
+		"vkId":        updatedUser.VkId,
+		"tgId":        updatedUser.TelegramId,
+		"isPremium":   updatedUser.IsPremium,
+		"profileName": updatedUser.ProfileName,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "users", doc); err != nil {

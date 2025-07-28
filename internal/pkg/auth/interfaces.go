@@ -15,4 +15,5 @@ type TokenData interface {
 	GetBio() string
 	GetCity() string
 	GetIsPremium() bool
+	GetProfileName() string
 }

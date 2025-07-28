@@ -218,7 +218,7 @@ func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*m
 		VerificationToken: hexString,
 		Bio:               dto.Bio,
 		City:              dto.City,
-		Id:                utils.Slugify(dto.Login),
+		ProfileName:       dto.ProfileName,
 	}
 	err := s.repo.CreateUser(&dbUser)
 
@@ -231,7 +231,7 @@ func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*m
 			fmt.Println("mailService is not initialized")
 			return
 		}
-		err := s.mailService.SendConfirmationEmail(dto.Email, hexString)
+		err = s.mailService.SendConfirmationEmail(dto.Email, hexString)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -356,7 +356,7 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		Created:      time.Now().Format(time.RFC3339),
 		TmpLogin:     true,
 		PasswordHash: passwordHash,
-		Id:           utils.Slugify(userInfo.FirstName + "@" + newId),
+		ProfileName:  userInfo.FirstName,
 	}
 
 	fmt.Println(1)
@@ -480,7 +480,7 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 		Created:      time.Now().Format(time.RFC3339),
 		PasswordHash: passwordHash,
 		TmpLogin:     true,
-		Id:           utils.Slugify(dto.Username + newId),
+		ProfileName:  dto.Username,
 	}
 
 	err = s.repo.CreateUser(&newUser)
@@ -640,7 +640,7 @@ func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, ta
 	existsUser.Bio = *data.Bio
 	existsUser.TmpLogin = false
 	existsUser.VerificationToken = hexString
-	existsUser.Id = utils.Slugify(*data.Login)
+	existsUser.ProfileName = *data.ProfileName
 
 	if *data.Email != "" {
 

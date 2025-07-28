@@ -4,17 +4,21 @@ import (
 	"fmt"
 	"gorm.io/gorm"
 	"lootor/internal/core/models"
-	"lootor/internal/migrations"
 )
 
 type MigrationFunc func(*gorm.DB) error
 
-var migrationList = []struct {
+var migrationList []struct {
 	name string
 	fn   MigrationFunc
-}{
-	{"001_fill_user_ids", migrations.FillUserIds},
 }
+
+//var migrationList = []struct {
+//	name string
+//	fn   MigrationFunc
+//} {
+//	{"create_tables", createTables},
+//}
 
 func RunMigrations(db *gorm.DB) error {
 	if err := db.AutoMigrate(&models.Migrations{}); err != nil {

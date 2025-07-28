@@ -73,14 +73,15 @@ func (c *ReindexController) getUserData() ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, len(users))
 	for i, user := range users {
 		result[i] = map[string]interface{}{
-			"id":        user.Login,
-			"login":     user.Login,
-			"userName":  user.UserName,
-			"email":     user.Email,
-			"vkId":      user.VkId,
-			"tgId":      user.TelegramId,
-			"avatarUrl": user.AvatarUrl,
-			"isPremium": user.IsPremium,
+			"id":          user.Login,
+			"login":       user.Login,
+			"userName":    user.UserName,
+			"email":       user.Email,
+			"vkId":        user.VkId,
+			"tgId":        user.TelegramId,
+			"avatarUrl":   user.AvatarUrl,
+			"isPremium":   user.IsPremium,
+			"profileName": user.ProfileName,
 		}
 	}
 	return result, nil

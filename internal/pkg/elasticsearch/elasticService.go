@@ -318,6 +318,13 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 		}
 	}
 
+	var profileNamePrefixMustNot []map[string]interface{}
+	if queryLen > 3 {
+		profileNamePrefixMustNot = []map[string]interface{}{
+			{"term": map[string]interface{}{"profileName.keyword": lowerQuery}},
+		}
+	}
+
 	return map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
@@ -343,6 +350,29 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 								}},
 							},
 							"must_not": prefixMustNot,
+						},
+					},
+					{
+						"bool": map[string]interface{}{
+							"must": []map[string]interface{}{
+								{"term": map[string]interface{}{"_index": "users"}},
+								{"term": map[string]interface{}{"profileName.keyword": lowerQuery}},
+							},
+							"boost": 2.0,
+						},
+					},
+					{
+						"bool": map[string]interface{}{
+							"must": []map[string]interface{}{
+								{"term": map[string]interface{}{"_index": "users"}},
+								{"prefix": map[string]interface{}{
+									"profileName.keyword": map[string]interface{}{
+										"value":            lowerQuery,
+										"case_insensitive": true,
+									},
+								}},
+							},
+							"must_not": profileNamePrefixMustNot,
 						},
 					},
 					{
