@@ -41,7 +41,7 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 	}
 	var collectionItem *models.CollectionItems
 
-	allUsersItems, err := s.wlRepo.GetAllByUserLogin(userLogin)
+	allUsersItems, _, err := s.wlRepo.GetAllByUserLogin(userLogin)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 
 	for _, wlItem := range newSlice {
 		wlItem.Priority++
-		_, err = s.wlRepo.UpdatePriority(&wlItem)
+		_, _, err = s.wlRepo.UpdatePriority(&wlItem)
 		if err != nil {
 			return nil, err
 		}
@@ -130,7 +130,12 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 }
 
 func (s *WLService) GetAllUserItems(userLogin string) (*models.WishListDataResponse, error) {
-	allWLItems, err := s.wlRepo.GetAllByUserLogin(userLogin)
+	allWLItems, total, err := s.wlRepo.GetAllByUserLogin(userLogin)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.userRepo.GetUserByLogin(userLogin)
 	if err != nil {
 		return nil, err
 	}
@@ -147,12 +152,14 @@ func (s *WLService) GetAllUserItems(userLogin string) (*models.WishListDataRespo
 	}
 
 	return &models.WishListDataResponse{
-		Data: wlItems,
+		Data:        wlItems,
+		Total:       total,
+		ProfileName: user.ProfileName,
 	}, nil
 }
 
 func (s *WLService) UpdatePriority(id string, dto models.WishListItemUpdatePriority, authUser string) (*models.WishListDataResponse, error) {
-	allUsersItems, err := s.wlRepo.GetAllByUserLogin(authUser)
+	allUsersItems, _, err := s.wlRepo.GetAllByUserLogin(authUser)
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +216,7 @@ func (s *WLService) UpdatePriority(id string, dto models.WishListItemUpdatePrior
 	})
 
 	for _, item := range newSlice {
-		_, err = s.wlRepo.UpdatePriority(&item)
+		_, _, err = s.wlRepo.UpdatePriority(&item)
 		if err != nil {
 			return nil, err
 		}

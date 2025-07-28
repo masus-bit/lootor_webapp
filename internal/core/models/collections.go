@@ -79,8 +79,9 @@ type CollectionDataResponse struct {
 }
 
 type AllCollectionsDataResponse struct {
-	Data  []CollectionsResponse `json:"data"`
-	Total int64                 `json:"total"`
+	Data        []CollectionsResponse `json:"data"`
+	Total       int64                 `json:"total"`
+	ProfileName string                `json:"profileName"`
 }
 
 type AllCollectionsDataByTag struct {

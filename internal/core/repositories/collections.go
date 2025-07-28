@@ -341,8 +341,17 @@ func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Co
 	return collections, err
 }
 
-func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string, search string) ([]models.Collections, error) {
+func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string, search string) ([]models.Collections, int64, error) {
 	var collections []models.Collections
+	var totalCount int64
+
+	countQuery := r.db.
+		Model(&models.Collections{}).
+		Where("LOWER(user_login) = LOWER(?)", login).Count(&totalCount).Error
+
+	if countQuery != nil {
+		return nil, 0, countQuery
+	}
 
 	query := r.db.
 		Where("LOWER(user_login) = LOWER(?)", login).
@@ -357,11 +366,21 @@ func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string, 
 
 	err := query.Find(&collections).Error
 
-	return collections, err
+	return collections, totalCount, err
 }
 
-func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string, search string) ([]models.Collections, error) {
+func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string, search string) ([]models.Collections, int64, error) {
 	var collections []models.Collections
+	var totalCount int64
+
+	countQuery := r.db.
+		Model(&models.Collections{}).
+		Where("LOWER(user_login) = LOWER(?)", login).Count(&totalCount).Error
+
+	if countQuery != nil {
+		return nil, 0, countQuery
+	}
+
 	query := r.db.
 		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
@@ -376,7 +395,7 @@ func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string, search 
 
 	err := query.Find(&collections).Error
 
-	return collections, err
+	return collections, totalCount, err
 }
 
 func (r *CollectionsRepository) GetAllWithoutPrivates(search, limit, offset, sortBy, order string) ([]models.Collections, int64, error) {

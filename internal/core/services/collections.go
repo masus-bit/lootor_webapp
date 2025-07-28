@@ -193,11 +193,19 @@ func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonR
 
 func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, orderBy string, order string, search string) (*models.AllCollectionsDataResponse, error) {
 	var collections []models.Collections
+	var total int64
 	if authorizedUser == login {
-		collections, _ = s.repo.GetByUserIdWithoutCollectionItems(login, search)
+
+		collections, total, _ = s.repo.GetByUserIdWithoutCollectionItems(login, search)
 	} else {
-		collections, _ = s.repo.GetByUserIdWithoutPrivates(login, search)
+		collections, total, _ = s.repo.GetByUserIdWithoutPrivates(login, search)
 	}
+
+	user, err := s.userRepo.GetUserByLogin(login)
+	if err != nil {
+		return nil, err
+	}
+
 	var authUser *models.Users
 	var subArray []string
 	if authorizedUser != "" {
@@ -238,7 +246,7 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 
 	sortedCollections := utils.GetCollectionOrderBy(orderBy, result, order)
 
-	return &models.AllCollectionsDataResponse{Data: sortedCollections}, nil
+	return &models.AllCollectionsDataResponse{Data: sortedCollections, Total: total, ProfileName: user.ProfileName}, nil
 }
 
 func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit, offset string) (*models.AllCollectionsDataResponse, error) {

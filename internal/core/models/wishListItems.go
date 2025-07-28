@@ -29,7 +29,9 @@ type WishListItems struct {
 }
 
 type WishListDataResponse struct {
-	Data []WishListItemResponse `json:"data"`
+	Data        []WishListItemResponse `json:"data"`
+	Total       int64                  `json:"total"`
+	ProfileName string                 `json:"profileName"`
 }
 
 type WishListSingleDataResponse struct {
