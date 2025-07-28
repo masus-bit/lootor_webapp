@@ -9,6 +9,8 @@ import (
 	"gorm.io/datatypes"
 	"lootor/internal/core/models"
 	"slices"
+	"strings"
+	"unicode"
 )
 
 func RemoveByValue(slice []string, value string) []string {
@@ -213,4 +215,48 @@ func GormJSONToProtoStruct(jsonData datatypes.JSON) (*structpb.Struct, error) {
 	}
 
 	return structpb.NewStruct(contentMap)
+}
+
+func Slugify(input string) string {
+	translitMap := map[rune]string{
+		'а': "a", 'б': "b", 'в': "v", 'г': "g", 'д': "d", 'е': "e", 'ё': "yo",
+		'ж': "zh", 'з': "z", 'и': "i", 'й': "y", 'к': "k", 'л': "l", 'м': "m",
+		'н': "n", 'о': "o", 'п': "p", 'р': "r", 'с': "s", 'т': "t", 'у': "u",
+		'ф': "f", 'х': "kh", 'ц': "ts", 'ч': "ch", 'ш': "sh", 'щ': "shch",
+		'ъ': "", 'ы': "y", 'ь': "", 'э': "e", 'ю': "yu", 'я': "ya",
+		'А': "a", 'Б': "b", 'В': "v", 'Г': "g", 'Д': "d", 'Е': "e", 'Ё': "yo",
+		'Ж': "zh", 'З': "z", 'И': "i", 'Й': "y", 'К': "k", 'Л': "l", 'М': "m",
+		'Н': "n", 'О': "o", 'П': "p", 'Р': "r", 'С': "s", 'Т': "t", 'У': "u",
+		'Ф': "f", 'Х': "kh", 'Ц': "ts", 'Ч': "ch", 'Ш': "sh", 'Щ': "shch",
+		'Ъ': "", 'Ы': "y", 'Ь': "", 'Э': "e", 'Ю': "yu", 'Я': "ya",
+	}
+
+	var result strings.Builder
+	hasRussian := false
+
+	for _, char := range input {
+		if unicode.Is(unicode.Cyrillic, char) {
+			hasRussian = true
+			break
+		}
+	}
+
+	for _, char := range input {
+		switch {
+		case char == ' ':
+			result.WriteString("-")
+		case char == ':':
+			result.WriteString("-")
+		case hasRussian && unicode.Is(unicode.Cyrillic, char):
+			if val, ok := translitMap[char]; ok {
+				result.WriteString(val)
+			}
+		case unicode.IsUpper(char):
+			result.WriteRune(unicode.ToLower(char))
+		default:
+			result.WriteRune(char)
+		}
+	}
+
+	return strings.ToLower(result.String())
 }

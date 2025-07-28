@@ -14,8 +14,6 @@ import (
 	"lootor/internal/pkg/utils"
 	"reflect"
 	"slices"
-	"strings"
-	"unicode"
 )
 
 type CiService struct {
@@ -33,51 +31,6 @@ func NewCiService(repo *repositories.CiRepository, eventRepo *repositories.Event
 	return &CiService{repo: repo, eventRepo: eventRepo, collectionRepo: collectionRepo, userRepo: userRepo, platformsRepo: platformsRepo, entityRepo: entityRepo, s3Service: s3Service, itemTypeRepo: itemTypeRepo}
 }
 
-func slugify(input string) string {
-	translitMap := map[rune]string{
-		'а': "a", 'б': "b", 'в': "v", 'г': "g", 'д': "d", 'е': "e", 'ё': "yo",
-		'ж': "zh", 'з': "z", 'и': "i", 'й': "y", 'к': "k", 'л': "l", 'м': "m",
-		'н': "n", 'о': "o", 'п': "p", 'р': "r", 'с': "s", 'т': "t", 'у': "u",
-		'ф': "f", 'х': "kh", 'ц': "ts", 'ч': "ch", 'ш': "sh", 'щ': "shch",
-		'ъ': "", 'ы': "y", 'ь': "", 'э': "e", 'ю': "yu", 'я': "ya",
-		'А': "a", 'Б': "b", 'В': "v", 'Г': "g", 'Д': "d", 'Е': "e", 'Ё': "yo",
-		'Ж': "zh", 'З': "z", 'И': "i", 'Й': "y", 'К': "k", 'Л': "l", 'М': "m",
-		'Н': "n", 'О': "o", 'П': "p", 'Р': "r", 'С': "s", 'Т': "t", 'У': "u",
-		'Ф': "f", 'Х': "kh", 'Ц': "ts", 'Ч': "ch", 'Ш': "sh", 'Щ': "shch",
-		'Ъ': "", 'Ы': "y", 'Ь': "", 'Э': "e", 'Ю': "yu", 'Я': "ya",
-	}
-
-	var result strings.Builder
-	hasRussian := false
-
-	// Проверяем, есть ли русские буквы в строке
-	for _, char := range input {
-		if unicode.Is(unicode.Cyrillic, char) {
-			hasRussian = true
-			break
-		}
-	}
-
-	for _, char := range input {
-		switch {
-		case char == ' ':
-			result.WriteString("-")
-		case char == ':':
-			result.WriteString("-")
-		case hasRussian && unicode.Is(unicode.Cyrillic, char):
-			if val, ok := translitMap[char]; ok {
-				result.WriteString(val)
-			}
-		case unicode.IsUpper(char):
-			result.WriteRune(unicode.ToLower(char))
-		default:
-			result.WriteRune(char)
-		}
-	}
-
-	return strings.ToLower(result.String())
-}
-
 func (s *CiService) getEntities(entities []string, userLogin string) []models.Entities {
 	var resultEntities []models.Entities
 	for _, entity := range entities {
@@ -86,7 +39,7 @@ func (s *CiService) getEntities(entities []string, userLogin string) []models.En
 			fmt.Errorf("failed to get entity: %w", err)
 		}
 		if entityByTranslit == nil {
-			newEntity := &models.Entities{Name: entity, Transliteration: slugify(entity)}
+			newEntity := &models.Entities{Name: entity, Transliteration: utils.Slugify(entity)}
 			entityByTranslit, err = s.entityRepo.CreateEntity(newEntity)
 			if err != nil {
 				fmt.Errorf("failed to add entity: %w", err)

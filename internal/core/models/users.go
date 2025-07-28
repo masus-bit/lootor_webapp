@@ -34,6 +34,7 @@ type Users struct {
 	ReportsCount            int64           `json:"-"`
 	CreatorRating           int             `json:"creatorRating"`
 	DeletedAt               *time.Time      `json:"-" gorm:"column:deleted_at"`
+	Id                      string          `json:"id"`
 }
 
 type SignUpRequest struct {
@@ -91,6 +92,7 @@ type UserResponse struct {
 	IsPremium               bool            `json:"isPremium"`
 	CreatorRating           int             `json:"creatorRating"`
 	ShippingTotal           int             `json:"shippingTotal"`
+	Id                      string          `json:"id"`
 }
 
 type UserRequestUpdate struct {
@@ -120,6 +122,7 @@ type UserResponseForCollection struct {
 	Email         string         `json:"email"`
 	AvatarUrl     string         `json:"avatarUrl"`
 	Subscriptions pq.StringArray `json:"subscriptions"`
+	Id            string         `json:"id"`
 }
 
 type DataUserResponse struct {
