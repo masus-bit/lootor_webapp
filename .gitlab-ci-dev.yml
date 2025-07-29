@@ -41,8 +41,6 @@ build:
       --destination "${CI_REGISTRY_IMAGE}:latest"
       --cache=true
       --cache-repo "${CI_REGISTRY_IMAGE}/cache"
-      --verbosity=debug
-
 deploy:
   tags:
     - auc
