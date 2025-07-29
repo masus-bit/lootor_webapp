@@ -10,20 +10,18 @@ stages:
 variables:
   CI_REGISTRY: "registry.gitlab.com"
   CI_REGISTRY_IMAGE: "${CI_REGISTRY}/${CI_PROJECT_PATH}"
-  DOCKER_TLS_CERTDIR: "/certs"
-  DOCKER_BUILDKIT: 1
-  DOCKER_HOST: "tcp://docker:2376"
-  DOCKER_TLS_VERIFY: "1"
+  DOCKER_TLS_CERTDIR: ""
+  GIT_STRATEGY: clone
+  DOCKER_DRIVER: overlay2
 
 build:
   stage: build
   tags:
     - auc
   before_script:
-    - mkdir -p /certs/client
-    - echo "$DOCKER_TLS_CA_CERT" > /certs/client/ca.pem
-    - echo "$DOCKER_TLS_CERT" > /certs/client/cert.pem
-    - echo "$DOCKER_TLS_KEY" > /certs/client/key.pem
+    - apk add --no-cache protobuf protobuf-dev
+    - mkdir -p ~/.docker
+    - echo "127.0.0.1 docker" > /etc/hosts
     - chmod 600 /certs/client/*
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
