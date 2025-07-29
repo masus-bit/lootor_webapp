@@ -33,6 +33,7 @@ build:
     entrypoint: [""]
   variables:
     DOCKER_CONFIG: "/kaniko/.docker"
+    GODEBUG: "http2client=0"
   script:
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
