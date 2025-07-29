@@ -31,6 +31,10 @@ build:
     entrypoint: [""]
   variables:
     DOCKER_CONFIG: "/kaniko/.docker"
+  before_script:
+    - mkdir -p /kaniko/.docker
+    - echo "$DOCKER_AUTH_CONFIG" > /kaniko/.docker/config.json
+    - cat /kaniko/.docker/config.json
   script:
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
