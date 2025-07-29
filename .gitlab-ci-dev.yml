@@ -32,8 +32,6 @@ build:
     entrypoint: [""]
   variables:
     DOCKER_CONFIG: "/kaniko/.docker"
-  dependencies:
-    - .pre
   script:
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
