@@ -44,13 +44,13 @@ deploy:
   tags:
     - auc
   stage: deploy
-  image: docker:24.0
+  image: docker:24.0-dind
   services:
     - name: docker:24.0-dind
       alias: docker
       command: ["--tls=false", "--host", "tcp://0.0.0.0:2375"]
   variables:
-    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
     DOCKER_TLS_VERIFY: "0"
     DOCKER_DRIVER: overlay2
     GODEBUG: "http2client=0"
