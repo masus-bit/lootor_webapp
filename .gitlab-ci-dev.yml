@@ -45,6 +45,11 @@ deploy:
     - auc
   stage: deploy
   image: docker:24.0
+  services:
+    - docker:24.0-dind
+  variables:
+    DOCKER_HOST: "tcp://docker:2376"
+    DOCKER_TLS_VERIFY: "0"
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
