@@ -2908,6 +2908,9 @@
                 "ruName": {
                     "type": "string"
                 },
+                "slug": {
+                    "type": "string"
+                },
                 "updatedAt": {
                     "type": "string"
                 }
@@ -3040,6 +3043,9 @@
                     "type": "string",
                     "minLength": 8
                 },
+                "profileName": {
+                    "type": "string"
+                },
                 "userName": {
                     "type": "string"
                 }
@@ -3071,6 +3077,9 @@
                 "email": {
                     "type": "string"
                 },
+                "profileName": {
+                    "type": "string"
+                },
                 "userName": {
                     "type": "string"
                 }
@@ -3095,6 +3104,9 @@
                     "type": "string"
                 },
                 "login": {
+                    "type": "string"
+                },
+                "profileName": {
                     "type": "string"
                 },
                 "userName": {

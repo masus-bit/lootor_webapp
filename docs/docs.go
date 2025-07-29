@@ -2911,6 +2911,9 @@ const docTemplate = `{
                 "ruName": {
                     "type": "string"
                 },
+                "slug": {
+                    "type": "string"
+                },
                 "updatedAt": {
                     "type": "string"
                 }
@@ -3043,6 +3046,9 @@ const docTemplate = `{
                     "type": "string",
                     "minLength": 8
                 },
+                "profileName": {
+                    "type": "string"
+                },
                 "userName": {
                     "type": "string"
                 }
@@ -3074,6 +3080,9 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "profileName": {
+                    "type": "string"
+                },
                 "userName": {
                     "type": "string"
                 }
@@ -3098,6 +3107,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "login": {
+                    "type": "string"
+                },
+                "profileName": {
                     "type": "string"
                 },
                 "userName": {
