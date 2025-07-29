@@ -164,6 +164,10 @@ func GetReformatedItemType(itemType string) string {
 		return "Books"
 	case "vinyl":
 		return "Vinyl"
+	case "steelbooks":
+		return "Steelbooks"
+	case "collectibleCards":
+		return "Collectible cards"
 	default:
 		return ""
 	}
