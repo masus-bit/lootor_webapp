@@ -1,35 +1,42 @@
-image: docker:19-dind
-services:
-  - docker:19-dind
+stages:
+  - build
+  - deploy
 
 variables:
   DOCKER_TLS_CERTDIR: ""
   GIT_STRATEGY: clone
   DOCKER_DRIVER: overlay2
 
-stages:
-  - build
-  - deploy
-
 build:
   stage: build
   tags:
     - auc
+  image:
+    name: gcr.io/kaniko-project/executor:latest
+    entrypoint: [""]
+  variables:
+    DOCKER_CONFIG: "/kaniko/.docker"
   before_script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"username\":\"$DOCKERHUB_LOGIN\",\"password\":\"$DOCKERHUB_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - apk add --no-cache protobuf protobuf-dev
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
     - echo "127.0.0.1 docker" > /etc/hosts
 
   script:
-    - echo -n $DOCKERHUB_PASSWORD | docker login docker.io --username $DOCKERHUB_LOGIN --password-stdin
-    - docker build -t 5575123963/auc:latest -f Dockerfile .
-    - docker push 5575123963/auc:latest
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "docker.io/5575123963/auc:latest"
+      --cache=true
+      --cache-repo "docker.io/5575123963/auc-cache"
 
 deploy:
   tags:
     - auc
   stage: deploy
+  image: docker:24.0
   script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
