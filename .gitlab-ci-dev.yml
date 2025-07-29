@@ -87,10 +87,9 @@ deploy:
       fi
       
       docker-compose -f docker-compose.backend.yml stop backend
-      docker pull ${CI_REGISTRY_IMAGE}:latest || {
-      echo "ERROR: Pull failed for ${CI_REGISTRY_IMAGE}:latest";
-      docker inspect ${CI_REGISTRY_IMAGE}:latest || true;
-      exit 1;
+      docker login -u "$CI_DEPLOY_USERNAME" -p "$CI_DEPLOY_PASSWORD" registry.gitlab.com || {
+        echo "ERROR: Docker login failed";
+        exit 1;
       }
       docker-compose -f docker-compose.backend.yml up -d backend
       
