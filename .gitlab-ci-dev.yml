@@ -7,7 +7,7 @@ variables:
   GIT_STRATEGY: clone
   DOCKER_DRIVER: overlay2
 
-prepare:
+.pre:
   stage: prepare
   tags:
     - auc
