@@ -33,31 +33,21 @@ build:
     entrypoint: [""]
   variables:
     DOCKER_CONFIG: "/kaniko/.docker"
-    GODEBUG: "http2client=0"
   script:
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:latest"
-      --skip-tls-verify
+      --cache=true
+      --cache-repo "${CI_REGISTRY_IMAGE}/cache"
+      --verbosity=debug
+
 deploy:
   tags:
     - auc
   stage: deploy
-  image: docker:24.0-dind
-  services:
-    - name: docker:24.0-dind
-      alias: docker
-      command: ["--tls=false", "--host", "tcp://0.0.0.0:2375"]
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_TLS_VERIFY: "0"
-    DOCKER_DRIVER: overlay2
-    GODEBUG: "http2client=0"
+  image: docker:24.0
   before_script:
-    - docker info
-    - curl -v http://docker:2375/version
-    - docker version
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
