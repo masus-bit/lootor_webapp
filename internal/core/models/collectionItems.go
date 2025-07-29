@@ -127,6 +127,8 @@ type CollectionItemsSortedResponse struct {
 	CollectibleFigures []CollectionItemsResponse `json:"collectibleFigures"`
 	Books              []CollectionItemsResponse `json:"books"`
 	Vinyl              []CollectionItemsResponse `json:"vinyl"`
+	Steelbooks         []CollectionItemsResponse `json:"steelbooks"`
+	CollectibleCards   []CollectionItemsResponse `json:"collectibleCards"`
 }
 
 type CollectionItemsDataSortedResponse struct {

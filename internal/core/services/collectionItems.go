@@ -399,6 +399,8 @@ func (s *CiService) GetByEntity(entity string, authUserLogin string, limit strin
 	sortedCollectionItems.GamingHardware, _ = processCI(collectionItems.GamingHardware, authUserLogin)
 	sortedCollectionItems.Vinyl, _ = processCI(collectionItems.Vinyl, authUserLogin)
 	sortedCollectionItems.VideoGames, _ = processCI(collectionItems.VideoGames, authUserLogin)
+	sortedCollectionItems.Steelbooks, _ = processCI(collectionItems.Steelbooks, authUserLogin)
+	sortedCollectionItems.CollectibleCards, _ = processCI(collectionItems.CollectibleCards, authUserLogin)
 
 	return &models.CollectionItemsDataSortedResponse{Data: sortedCollectionItems, Total: totalCount, Entity: *dbEntity}, nil
 }

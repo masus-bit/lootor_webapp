@@ -14,6 +14,7 @@ type ItemTypes struct {
 	Id     uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	Name   string    `json:"name"`
 	RuName string    `json:"ruName"`
+	Slug   string    `json:"slug"`
 }
 
 type ItemTypesDataResponse struct {

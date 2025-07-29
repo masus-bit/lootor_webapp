@@ -393,6 +393,8 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (
 	CollectibleFigures []models.CollectionItems `json:"collectibleFigures"`
 	Books              []models.CollectionItems `json:"books"`
 	Vinyl              []models.CollectionItems `json:"vinyl"`
+	Steelbooks         []models.CollectionItems `json:"steelbooks"`
+	CollectibleCards   []models.CollectionItems `json:"collectibleCards"`
 }, int64, error) {
 	type Result struct {
 		Items     []models.CollectionItems
@@ -408,6 +410,8 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (
 		CollectibleFigures []models.CollectionItems `json:"collectibleFigures"`
 		Books              []models.CollectionItems `json:"books"`
 		Vinyl              []models.CollectionItems `json:"vinyl"`
+		Steelbooks         []models.CollectionItems `json:"steelbooks"`
+		CollectibleCards   []models.CollectionItems `json:"collectibleCards"`
 	}
 	var totalCount int64
 	itemTypes := []Result{
@@ -418,8 +422,10 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (
 		{FieldName: "Collectible Figures", UniqueIDs: make(map[uuid.UUID]bool)},
 		{FieldName: "Books", UniqueIDs: make(map[uuid.UUID]bool)},
 		{FieldName: "Vinyl", UniqueIDs: make(map[uuid.UUID]bool)},
+		{FieldName: "Steelbooks", UniqueIDs: make(map[uuid.UUID]bool)},
+		{FieldName: "Collectible Cards", UniqueIDs: make(map[uuid.UUID]bool)},
 	}
-	itemTypeNames := []string{"Video games", "Board games", "Comics", "Gaming hardware", "Collectible figures", "Books", "Vinyl"}
+	itemTypeNames := []string{"Video games", "Board games", "Comics", "Gaming hardware", "Collectible figures", "Books", "Vinyl", "Steelbooks", "Collectible cards"}
 
 	intLimit, _ := strconv.Atoi(limit)
 
@@ -482,6 +488,10 @@ func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (
 			GroupedCollectionItems.Books = uniqueItems
 		case "Vinyl":
 			GroupedCollectionItems.Vinyl = uniqueItems
+		case "Steelbooks":
+			GroupedCollectionItems.Steelbooks = uniqueItems
+		case "Collectible Cards":
+			GroupedCollectionItems.CollectibleCards = uniqueItems
 		}
 	}
 
