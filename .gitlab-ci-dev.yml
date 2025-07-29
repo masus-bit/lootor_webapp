@@ -33,9 +33,6 @@ build:
   stage: build
   tags:
     - auc
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
   variables:
     DOCKER_CONFIG: "/kaniko/.docker"
   script:
