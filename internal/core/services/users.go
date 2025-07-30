@@ -172,7 +172,7 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 	} else {
 		subscriber.Subscriptions = utils.RemoveByValue(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers - 1
-		subscriptionTargetUser.SubscribersLogins = append(subscriptionTargetUser.SubscribersLogins, authUserLogin)
+		subscriptionTargetUser.SubscribersLogins = utils.RemoveByValue(subscriptionTargetUser.SubscribersLogins, strings.ToLower(authUserLogin))
 	}
 	_, err = s.repo.UpdateUser(subscriber, *subscriber)
 	if err != nil {
