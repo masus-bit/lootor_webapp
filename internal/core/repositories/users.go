@@ -408,3 +408,12 @@ func (r *UsersRepository) DeleteDeletedUsersForever() error {
 
 	return nil
 }
+
+func (r *UsersRepository) GetForSubs(users []string) ([]models.SubUsers, error) {
+	var subUsers []models.SubUsers
+	err := r.db.Model(&models.Users{}).
+		Where("login IN ?", users).
+		Select("login", "avatar_url").
+		Find(&subUsers).Error
+	return subUsers, err
+}

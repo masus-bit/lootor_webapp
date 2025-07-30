@@ -23,7 +23,7 @@ type Users struct {
 	BackgroundUrl           string          `json:"backgroundUrl"`
 	VerificationToken       string          `json:"verificationToken"`
 	ResetToken              string          `json:"resetToken"`
-	Subscribers             int             `json:"subscribers"`
+	Subscribers             pq.StringArray  `gorm:"type:text[]" json:"subscribers"`
 	Subscriptions           pq.StringArray  `gorm:"type:text[]" json:"subscriptions"`
 	CollectionSubscriptions pq.StringArray  `gorm:"type:text[]" json:"collectionSubscriptions"`
 	WishListItems           []WishListItems `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
@@ -69,6 +69,11 @@ type ChangePasswordReset struct {
 	Token    string `json:"token" validate:"required"`
 }
 
+type SubUsers struct {
+	Login     string `json:"login"`
+	AvatarUrl string `json:"avatarUrl"`
+}
+
 type UserResponse struct {
 	Login                   string          `json:"login"`
 	UserName                string          `json:"userName"`
@@ -82,8 +87,35 @@ type UserResponse struct {
 	Dislikes                int             `json:"dislikes"`
 	AvatarUrl               string          `json:"avatarUrl"`
 	BackgroundUrl           string          `json:"backgroundUrl"`
-	Subscribers             int             `json:"subscribers"`
-	Subscriptions           pq.StringArray  `json:"subscriptions"`
+	Subscribers             []string        `json:"subscribers"`
+	Subscriptions           []string        `json:"subscriptions"`
+	CollectionSubscriptions pq.StringArray  `json:"collectionSubscriptions"`
+	CanSubscribe            bool            `json:"canSubscribe"`
+	CollectionItemsCount    int             `json:"collectionItemsCount" default:"0"`
+	CollectionsCount        int             `json:"collectionsCount" default:"0"`
+	TotalSum                int             `json:"totalSum" default:"0"`
+	WishListItems           []WishListItems `json:"wishListItems"`
+	IsPremium               bool            `json:"isPremium"`
+	CreatorRating           int             `json:"creatorRating"`
+	ShippingTotal           int             `json:"shippingTotal"`
+	ProfileName             string          `json:"profileName"`
+}
+
+type UserResponseForSingleUser struct {
+	Login                   string          `json:"login"`
+	UserName                string          `json:"userName"`
+	City                    string          `json:"city"`
+	Bio                     string          `json:"bio"`
+	VkId                    string          `json:"vkId"`
+	TelegramId              string          `json:"telegramId"`
+	Email                   string          `json:"email"`
+	Created                 string          `json:"created"`
+	Likes                   int             `json:"likes"`
+	Dislikes                int             `json:"dislikes"`
+	AvatarUrl               string          `json:"avatarUrl"`
+	BackgroundUrl           string          `json:"backgroundUrl"`
+	Subscribers             []SubUsers      `json:"subscribers"`
+	Subscriptions           []SubUsers      `json:"subscriptions"`
 	CollectionSubscriptions pq.StringArray  `json:"collectionSubscriptions"`
 	CanSubscribe            bool            `json:"canSubscribe"`
 	CollectionItemsCount    int             `json:"collectionItemsCount" default:"0"`
@@ -130,6 +162,10 @@ type UserResponseForCollection struct {
 
 type DataUserResponse struct {
 	Data UserResponse `json:"data"`
+}
+
+type DataUserResponseForSingleUser struct {
+	Data UserResponseForSingleUser `json:"data"`
 }
 
 type DataUsersResponse struct {
@@ -208,7 +244,7 @@ func (u *Users) GetLikes() int            { return u.Likes }
 func (u *Users) GetDislikes() int         { return u.Dislikes }
 func (u *Users) GetAvatarUrl() string     { return u.AvatarUrl }
 func (u *Users) GetBackgroundUrl() string { return u.BackgroundUrl }
-func (u *Users) GetSubscribers() int      { return u.Subscribers }
+func (u *Users) GetSubscribers() []string { return u.Subscribers }
 func (u *Users) GetBio() string           { return u.Bio }
 func (u *Users) GetCity() string          { return u.City }
 func (u *Users) GetIsPremium() bool       { return u.IsPremium }

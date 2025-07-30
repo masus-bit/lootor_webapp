@@ -36,7 +36,7 @@ func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTServ
 	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, evRepo: evRepo}
 }
 
-func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*models.DataUserResponse, error) {
+func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*models.DataUserResponseForSingleUser, error) {
 	dbUser, err := s.repo.GetUserByLogin(userLogin)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	if authUser != "" && isAuthenticated {
 		authorizedUser, _ = s.repo.GetUserByLogin(authUser)
 	}
-	var response models.UserResponse
+	var response models.UserResponseForSingleUser
 
 	if userLogin == authUser {
 
@@ -58,12 +58,17 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		response.CollectionItemsCount = int(collectionItemsCount)
 		response.ShippingTotal = int(shippingTotal)
 
+		subscribers, _ := s.repo.GetForSubs(dbUser.Subscribers)
+		response.Subscribers = subscribers
+		subscriptions, _ := s.repo.GetForSubs(dbUser.Subscriptions)
+		response.Subscriptions = subscriptions
+
 		e := mapstructure.Decode(dbUser, &response)
 		fmt.Print(dbUser, response)
 		if e != nil {
 			return nil, e
 		}
-		return &models.DataUserResponse{Data: response}, nil
+		return &models.DataUserResponseForSingleUser{Data: response}, nil
 	}
 
 	var subArray []string
@@ -77,6 +82,10 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		canSubscribe := !slices.Contains(lowerCasedUsers, strings.ToLower(userLogin))
 		response.CanSubscribe = canSubscribe
 	}
+	subscribers, _ := s.repo.GetForSubs(dbUser.Subscribers)
+	response.Subscribers = subscribers
+	subscriptions, _ := s.repo.GetForSubs(dbUser.Subscriptions)
+	response.Subscriptions = subscriptions
 
 	collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(userLogin)
 	sum, _ := s.ciRepo.SumByUserLogin(userLogin)
@@ -91,7 +100,7 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		return nil, e
 	}
 
-	return &models.DataUserResponse{Data: response}, nil
+	return &models.DataUserResponseForSingleUser{Data: response}, nil
 }
 
 func (s *UserService) ChangeRating(isLike bool, login string) (*dto.CommonResponse, error) {
@@ -144,10 +153,10 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 
 	if isSubscribe {
 		subscriber.Subscriptions = append(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
-		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers + 1
+		subscriptionTargetUser.Subscribers = append(subscriptionTargetUser.Subscribers, authUserLogin)
 	} else {
 		subscriber.Subscriptions = utils.RemoveByValue(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
-		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers - 1
+		subscriptionTargetUser.Subscribers = append(subscriptionTargetUser.Subscribers, authUserLogin)
 	}
 	_, err = s.repo.UpdateUser(subscriber, *subscriber)
 	if err != nil {

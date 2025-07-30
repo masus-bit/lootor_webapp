@@ -46,6 +46,8 @@ deploy:
     - deploy
   stage: deploy
   image: docker:24.0
+  variables:
+    GODEBUG: "http2client=0"
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
