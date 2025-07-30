@@ -72,7 +72,7 @@ type ChangePasswordReset struct {
 
 type SubUsers struct {
 	Login     string `json:"login"`
-	AvatarUrl string `json:"avatarUrl"`
+	AvatarUrl string `json:"avatarUrl" gorm:"column:avatar_url"`
 }
 
 type UserResponse struct {
@@ -115,9 +115,9 @@ type UserResponseForSingleUser struct {
 	Dislikes                int             `json:"dislikes"`
 	AvatarUrl               string          `json:"avatarUrl"`
 	BackgroundUrl           string          `json:"backgroundUrl"`
-	SubscribersLogins       []SubUsers      `json:"subscribersLogins"`
+	SubscribersLogins       []SubUsers      `json:"subscribersLogins" mapstructure:"-"`
 	Subscribers             int             `json:"subscribers"`
-	Subscriptions           []SubUsers      `json:"subscriptions"`
+	Subscriptions           []SubUsers      `json:"subscriptions" mapstructure:"-"`
 	CollectionSubscriptions pq.StringArray  `json:"collectionSubscriptions"`
 	CanSubscribe            bool            `json:"canSubscribe"`
 	CollectionItemsCount    int             `json:"collectionItemsCount" default:"0"`

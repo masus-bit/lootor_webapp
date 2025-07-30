@@ -58,13 +58,20 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		response.CollectionItemsCount = int(collectionItemsCount)
 		response.ShippingTotal = int(shippingTotal)
 
-		subscribersLogins, _ := s.repo.GetForSubs(dbUser.SubscribersLogins)
-		response.SubscribersLogins = subscribersLogins
-		subscriptions, _ := s.repo.GetForSubs(dbUser.Subscriptions)
-		response.Subscriptions = subscriptions
-
 		e := mapstructure.Decode(dbUser, &response)
-		fmt.Print(dbUser, response)
+
+		subscribersLogins, err := s.repo.GetForSubs(dbUser.SubscribersLogins)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println(reflect.TypeOf(subscribersLogins), reflect.TypeOf(response.SubscribersLogins))
+		response.SubscribersLogins = subscribersLogins
+		subscriptions, err := s.repo.GetForSubs(dbUser.Subscriptions)
+		if err != nil {
+			return nil, err
+		}
+
+		response.Subscriptions = subscriptions
 		if e != nil {
 			return nil, e
 		}
@@ -82,10 +89,6 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		canSubscribe := !slices.Contains(lowerCasedUsers, strings.ToLower(userLogin))
 		response.CanSubscribe = canSubscribe
 	}
-	subscribersLogins, _ := s.repo.GetForSubs(dbUser.SubscribersLogins)
-	response.SubscribersLogins = subscribersLogins
-	subscriptions, _ := s.repo.GetForSubs(dbUser.Subscriptions)
-	response.Subscriptions = subscriptions
 
 	collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(userLogin)
 	sum, _ := s.ciRepo.SumByUserLogin(userLogin)
@@ -94,11 +97,22 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	response.TotalSum = int(sum)
 	response.CollectionItemsCount = int(collectionItemsCount)
 	response.ShippingTotal = int(shippingTotal)
-
 	e := mapstructure.Decode(dbUser, &response)
 	if e != nil {
 		return nil, e
 	}
+
+	subscribersLogins, err := s.repo.GetForSubs(dbUser.SubscribersLogins)
+	if err != nil {
+		return nil, err
+	}
+
+	response.SubscribersLogins = subscribersLogins
+	subscriptions, err := s.repo.GetForSubs(dbUser.Subscriptions)
+	if err != nil {
+		return nil, err
+	}
+	response.Subscriptions = subscriptions
 
 	return &models.DataUserResponseForSingleUser{Data: response}, nil
 }

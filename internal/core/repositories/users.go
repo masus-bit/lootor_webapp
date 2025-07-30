@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 	"log"
 	"lootor/internal/core/models"
@@ -412,8 +413,9 @@ func (r *UsersRepository) DeleteDeletedUsersForever() error {
 func (r *UsersRepository) GetForSubs(users []string) ([]models.SubUsers, error) {
 	var subUsers []models.SubUsers
 	err := r.db.Model(&models.Users{}).
-		Where("login IN ?", users).
+		Where("login IN (?)", users).
 		Select("login", "avatar_url").
 		Find(&subUsers).Error
+	fmt.Println(subUsers)
 	return subUsers, err
 }
