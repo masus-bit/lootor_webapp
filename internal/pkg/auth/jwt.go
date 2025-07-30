@@ -21,21 +21,21 @@ type TokenPair struct {
 	RefreshToken string `json:"refreshToken"`
 }
 type Claims struct {
-	Login         string   `json:"login"`
-	UserName      string   `json:"userName"`
-	VkId          string   `json:"vkId"`
-	TelegramId    string   `json:"telegramId"`
-	Email         string   `json:"email"`
-	Created       string   `json:"created"`
-	Likes         int      `json:"likes"`
-	Dislikes      int      `json:"dislikes"`
-	AvatarUrl     string   `json:"avatarUrl"`
-	BackgroundUrl string   `json:"backgroundUrl"`
-	Subscribers   []string `json:"subscribers"`
-	Bio           string   `json:"bio"`
-	City          string   `json:"city"`
-	IsPremium     bool     `json:"isPremium"`
-	ProfileName   string   `json:"profileName"`
+	Login         string `json:"login"`
+	UserName      string `json:"userName"`
+	VkId          string `json:"vkId"`
+	TelegramId    string `json:"telegramId"`
+	Email         string `json:"email"`
+	Created       string `json:"created"`
+	Likes         int    `json:"likes"`
+	Dislikes      int    `json:"dislikes"`
+	AvatarUrl     string `json:"avatarUrl"`
+	BackgroundUrl string `json:"backgroundUrl"`
+	Subscribers   int    `json:"subscribers"`
+	Bio           string `json:"bio"`
+	City          string `json:"city"`
+	IsPremium     bool   `json:"isPremium"`
+	ProfileName   string `json:"profileName"`
 	jwt.RegisteredClaims
 }
 
@@ -170,7 +170,7 @@ type tokenData struct {
 	dislikes      int
 	avatarUrl     string
 	backgroundUrl string
-	subscribers   []string
+	subscribers   int
 	bio           string
 	city          string
 	isPremium     bool
@@ -187,7 +187,7 @@ func (t *tokenData) GetLikes() int            { return t.likes }
 func (t *tokenData) GetDislikes() int         { return t.dislikes }
 func (t *tokenData) GetAvatarUrl() string     { return t.avatarUrl }
 func (t *tokenData) GetBackgroundUrl() string { return t.backgroundUrl }
-func (t *tokenData) GetSubscribers() []string { return t.subscribers }
+func (t *tokenData) GetSubscribers() int      { return t.subscribers }
 func (t *tokenData) GetBio() string           { return t.bio }
 func (t *tokenData) GetCity() string          { return t.city }
 func (t *tokenData) GetIsPremium() bool       { return t.isPremium }

@@ -23,7 +23,8 @@ type Users struct {
 	BackgroundUrl           string          `json:"backgroundUrl"`
 	VerificationToken       string          `json:"verificationToken"`
 	ResetToken              string          `json:"resetToken"`
-	Subscribers             pq.StringArray  `gorm:"type:text[]" json:"subscribers"`
+	Subscribers             int             `json:"subscribers"`
+	SubscribersLogins       pq.StringArray  `gorm:"type:text[]" json:"subscribersLogins"`
 	Subscriptions           pq.StringArray  `gorm:"type:text[]" json:"subscriptions"`
 	CollectionSubscriptions pq.StringArray  `gorm:"type:text[]" json:"collectionSubscriptions"`
 	WishListItems           []WishListItems `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
@@ -87,7 +88,7 @@ type UserResponse struct {
 	Dislikes                int             `json:"dislikes"`
 	AvatarUrl               string          `json:"avatarUrl"`
 	BackgroundUrl           string          `json:"backgroundUrl"`
-	Subscribers             []string        `json:"subscribers"`
+	Subscribers             int             `json:"subscribers"`
 	Subscriptions           []string        `json:"subscriptions"`
 	CollectionSubscriptions pq.StringArray  `json:"collectionSubscriptions"`
 	CanSubscribe            bool            `json:"canSubscribe"`
@@ -114,7 +115,8 @@ type UserResponseForSingleUser struct {
 	Dislikes                int             `json:"dislikes"`
 	AvatarUrl               string          `json:"avatarUrl"`
 	BackgroundUrl           string          `json:"backgroundUrl"`
-	Subscribers             []SubUsers      `json:"subscribers"`
+	SubscribersLogins       []SubUsers      `json:"subscribersLogins"`
+	Subscribers             int             `json:"subscribers"`
 	Subscriptions           []SubUsers      `json:"subscriptions"`
 	CollectionSubscriptions pq.StringArray  `json:"collectionSubscriptions"`
 	CanSubscribe            bool            `json:"canSubscribe"`
@@ -244,7 +246,7 @@ func (u *Users) GetLikes() int            { return u.Likes }
 func (u *Users) GetDislikes() int         { return u.Dislikes }
 func (u *Users) GetAvatarUrl() string     { return u.AvatarUrl }
 func (u *Users) GetBackgroundUrl() string { return u.BackgroundUrl }
-func (u *Users) GetSubscribers() []string { return u.Subscribers }
+func (u *Users) GetSubscribers() int      { return u.Subscribers }
 func (u *Users) GetBio() string           { return u.Bio }
 func (u *Users) GetCity() string          { return u.City }
 func (u *Users) GetIsPremium() bool       { return u.IsPremium }

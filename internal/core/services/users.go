@@ -58,8 +58,8 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		response.CollectionItemsCount = int(collectionItemsCount)
 		response.ShippingTotal = int(shippingTotal)
 
-		subscribers, _ := s.repo.GetForSubs(dbUser.Subscribers)
-		response.Subscribers = subscribers
+		subscribersLogins, _ := s.repo.GetForSubs(dbUser.SubscribersLogins)
+		response.SubscribersLogins = subscribersLogins
 		subscriptions, _ := s.repo.GetForSubs(dbUser.Subscriptions)
 		response.Subscriptions = subscriptions
 
@@ -82,8 +82,8 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		canSubscribe := !slices.Contains(lowerCasedUsers, strings.ToLower(userLogin))
 		response.CanSubscribe = canSubscribe
 	}
-	subscribers, _ := s.repo.GetForSubs(dbUser.Subscribers)
-	response.Subscribers = subscribers
+	subscribersLogins, _ := s.repo.GetForSubs(dbUser.SubscribersLogins)
+	response.SubscribersLogins = subscribersLogins
 	subscriptions, _ := s.repo.GetForSubs(dbUser.Subscriptions)
 	response.Subscriptions = subscriptions
 
@@ -153,10 +153,12 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 
 	if isSubscribe {
 		subscriber.Subscriptions = append(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
-		subscriptionTargetUser.Subscribers = append(subscriptionTargetUser.Subscribers, authUserLogin)
+		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers + 1
+		subscriptionTargetUser.SubscribersLogins = append(subscriptionTargetUser.SubscribersLogins, authUserLogin)
 	} else {
 		subscriber.Subscriptions = utils.RemoveByValue(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
-		subscriptionTargetUser.Subscribers = append(subscriptionTargetUser.Subscribers, authUserLogin)
+		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers + 1
+		subscriptionTargetUser.SubscribersLogins = append(subscriptionTargetUser.SubscribersLogins, authUserLogin)
 	}
 	_, err = s.repo.UpdateUser(subscriber, *subscriber)
 	if err != nil {
