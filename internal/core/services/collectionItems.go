@@ -39,7 +39,7 @@ func (s *CiService) getEntities(entities []string, userLogin string) []models.En
 			fmt.Errorf("failed to get entity: %w", err)
 		}
 		if entityByTranslit == nil {
-			newEntity := &models.Entities{Name: entity, Transliteration: utils.Slugify(entity)}
+			newEntity := &models.Entities{Name: entity, Transliteration: utils.Slugify(entity), Author: userLogin}
 			entityByTranslit, err = s.entityRepo.CreateEntity(newEntity)
 			if err != nil {
 				fmt.Errorf("failed to add entity: %w", err)
@@ -245,6 +245,11 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 		resultEntities = make([]models.Entities, 0)
 	}
 
+	err = s.updateCIExp(exists, dto)
+	if err != nil {
+		return nil, err
+	}
+
 	dst := reflect.ValueOf(exists).Elem()
 	src := reflect.ValueOf(dto).Elem()
 
@@ -328,10 +333,6 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
-	}
-	err = s.updateCIExp(exists, dto)
-	if err != nil {
-		return nil, err
 	}
 	return result, nil
 }

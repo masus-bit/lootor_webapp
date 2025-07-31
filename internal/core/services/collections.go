@@ -409,6 +409,11 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 				log.Default().Print(eventError)
 			}
 		}
+
+		err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CollectionSelfLikeExp)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
 		if !exists.IsPrivate {
@@ -419,11 +424,10 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 				}
 			}()
 		}
-	}
-
-	err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CollectionSelfLikeExp)
-	if err != nil {
-		return nil, err
+		err = s.userRepo.DecrementExperience(exists.UserLogin, utils.CollectionSelfLikeExp)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	_, err = s.repo.UpdateCollection(exists, exists)
@@ -449,14 +453,17 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
+		err = s.userRepo.IncrementExperience(dbCollection.UserLogin, utils.CollectionSelfSubExp)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		subscriber.CollectionSubscriptions = utils.RemoveByValue(subscriber.CollectionSubscriptions, targetId)
 		dbCollection.SubscribersCount = dbCollection.SubscribersCount - 1
-	}
-
-	err = s.userRepo.IncrementExperience(dbCollection.UserLogin, utils.CollectionSelfSubExp)
-	if err != nil {
-		return nil, err
+		err = s.userRepo.DecrementExperience(dbCollection.UserLogin, utils.CollectionSelfSubExp)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	_, err = s.userRepo.UpdateUser(subscriber, *subscriber)

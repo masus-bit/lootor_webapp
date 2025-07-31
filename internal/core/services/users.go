@@ -169,10 +169,18 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		subscriber.Subscriptions = append(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers + 1
 		subscriptionTargetUser.SubscribersLogins = append(subscriptionTargetUser.SubscribersLogins, authUserLogin)
+		err = s.repo.IncrementExperience(targetUserLogin, utils.UserSelfSubExp)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		subscriber.Subscriptions = utils.RemoveByValue(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers - 1
 		subscriptionTargetUser.SubscribersLogins = utils.RemoveByValue(subscriptionTargetUser.SubscribersLogins, strings.ToLower(authUserLogin))
+		err = s.repo.DecrementExperience(targetUserLogin, utils.UserSelfSubExp)
+		if err != nil {
+			return nil, err
+		}
 	}
 	_, err = s.repo.UpdateUser(subscriber, *subscriber)
 	if err != nil {
@@ -186,11 +194,6 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 	err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, nil, nil, nil, nil)
 	if err != nil {
 		fmt.Println(err)
-	}
-
-	err = s.repo.IncrementExperience(targetUserLogin, utils.UserSelfSubExp)
-	if err != nil {
-		return nil, err
 	}
 
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
@@ -616,20 +619,6 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 
 	}
 
-	dst := reflect.ValueOf(existsUser).Elem()
-	src := reflect.ValueOf(user).Elem()
-
-	for i := 0; i < src.NumField(); i++ {
-		field := src.Field(i)
-		if !field.IsNil() {
-			fieldName := src.Type().Field(i).Name
-			dstField := dst.FieldByName(fieldName)
-			if dstField.IsValid() {
-				dstField.Set(field.Elem())
-			}
-		}
-	}
-
 	var exp int
 
 	if existsUser.AvatarUrl == "" && *user.AvatarUrl != "" {
@@ -648,6 +637,20 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 
 	if err != nil {
 		return nil, err
+	}
+
+	dst := reflect.ValueOf(existsUser).Elem()
+	src := reflect.ValueOf(user).Elem()
+
+	for i := 0; i < src.NumField(); i++ {
+		field := src.Field(i)
+		if !field.IsNil() {
+			fieldName := src.Type().Field(i).Name
+			dstField := dst.FieldByName(fieldName)
+			if dstField.IsValid() {
+				dstField.Set(field.Elem())
+			}
+		}
 	}
 
 	updatedUser, err := s.repo.UpdateUserFull(existsUser)

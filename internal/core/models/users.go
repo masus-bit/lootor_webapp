@@ -72,8 +72,10 @@ type ChangePasswordReset struct {
 }
 
 type SubUsers struct {
-	Login     string `json:"login"`
-	AvatarUrl string `json:"avatarUrl" gorm:"column:avatar_url"`
+	Login       string `json:"login"`
+	AvatarUrl   string `json:"avatarUrl" gorm:"column:avatar_url"`
+	ProfileName string `json:"profileName" gorm:"column:profile_name"`
+	IsPremium   bool   `json:"isPremium" gorm:"column:is_premium"`
 }
 
 type UserResponse struct {
