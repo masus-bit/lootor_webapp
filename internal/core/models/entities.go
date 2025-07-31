@@ -15,6 +15,7 @@ type Entities struct {
 	Name            string            `json:"name"`
 	CollectionItem  []CollectionItems `gorm:"many2many:entities_collection_item_collection_items;constraint:OnDelete:CASCADE;" json:"collectionItem"`
 	Transliteration string            `json:"transliteration"`
+	Author          string            `json:"author"`
 }
 
 type EntitiesCreateRequest struct {

@@ -36,6 +36,7 @@ type Users struct {
 	CreatorRating           int             `json:"creatorRating"`
 	DeletedAt               *time.Time      `json:"-" gorm:"column:deleted_at"`
 	ProfileName             string          `json:"profileName"`
+	Exp                     int             `json:"exp"`
 }
 
 type SignUpRequest struct {
@@ -100,6 +101,7 @@ type UserResponse struct {
 	CreatorRating           int             `json:"creatorRating"`
 	ShippingTotal           int             `json:"shippingTotal"`
 	ProfileName             string          `json:"profileName"`
+	Exp                     int             `json:"exp"`
 }
 
 type UserResponseForSingleUser struct {
@@ -128,6 +130,7 @@ type UserResponseForSingleUser struct {
 	CreatorRating           int             `json:"creatorRating"`
 	ShippingTotal           int             `json:"shippingTotal"`
 	ProfileName             string          `json:"profileName"`
+	Exp                     int             `json:"exp"`
 }
 
 type UserRequestUpdate struct {

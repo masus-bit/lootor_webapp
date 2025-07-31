@@ -121,6 +121,7 @@ func (s *PayService) EndTransaction(data *Notification) {
 		if err != nil {
 			fmt.Println(err)
 		}
+
 		return
 	} else {
 		if subType == "monthly" {
@@ -152,6 +153,19 @@ func (s *PayService) EndTransaction(data *Notification) {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	if subType == "monthly" {
+		err = s.userRepo.IncrementExperience(userLogin, utils.MonthlyDonateExp)
+		if err != nil {
+			return
+		}
+	} else if subType == "yearly" {
+		err = s.userRepo.IncrementExperience(userLogin, utils.YearlyDonateExp)
+		if err != nil {
+			return
+		}
+	}
+
 }
 
 func (s *PayService) FindAllPaymentsByLogin(login string) (*models.PaymentsData, error) {

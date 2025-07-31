@@ -188,6 +188,11 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		fmt.Println(err)
 	}
 
+	err = s.repo.IncrementExperience(targetUserLogin, utils.UserSelfSubExp)
+	if err != nil {
+		return nil, err
+	}
+
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
@@ -384,6 +389,13 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		ProfileName:  userInfo.FirstName,
 	}
 
+	if userInfo.AvatarUrl != "" {
+		err = s.repo.IncrementExperience(userInfo.FirstName+"@"+newId, utils.AvatarAddExt)
+		if err != nil {
+			return nil, fmt.Errorf("increment experience error: %w", err)
+		}
+	}
+
 	fmt.Println(1)
 
 	err2 := s.repo.CreateUser(&newUser)
@@ -508,6 +520,13 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 		ProfileName:  dto.Username,
 	}
 
+	if dto.PhotoUrl != "" {
+		err = s.repo.IncrementExperience(dto.Username+newId, utils.AvatarAddExt)
+		if err != nil {
+			return nil, fmt.Errorf("increment experience error: %w", err)
+		}
+	}
+
 	err = s.repo.CreateUser(&newUser)
 	if err != nil {
 		return nil, fmt.Errorf("user creation error: %w", err)
@@ -611,6 +630,26 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 		}
 	}
 
+	var exp int
+
+	if existsUser.AvatarUrl == "" && *user.AvatarUrl != "" {
+		exp += utils.AvatarAddExt
+	} else if existsUser.AvatarUrl != "" && *user.AvatarUrl == "" {
+		exp -= utils.AvatarAddExt
+	}
+
+	if existsUser.BackgroundUrl == "" && *user.BackgroundUrl != "" {
+		exp += utils.BannerAddExp
+	} else if existsUser.BackgroundUrl != "" && *user.BackgroundUrl == "" {
+		exp -= utils.BannerAddExp
+	}
+
+	err = s.repo.IncrementExperience(login, exp)
+
+	if err != nil {
+		return nil, err
+	}
+
 	updatedUser, err := s.repo.UpdateUserFull(existsUser)
 	if err != nil {
 		return nil, err
@@ -652,6 +691,26 @@ func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, ta
 	}
 	if existsUser == nil {
 		return nil, errors.New("user with this login not exists")
+	}
+
+	var exp int
+
+	if existsUser.AvatarUrl == "" && *data.AvatarUrl != "" {
+		exp += utils.AvatarAddExt
+	} else if existsUser.AvatarUrl != "" && *data.AvatarUrl == "" {
+		exp -= utils.AvatarAddExt
+	}
+
+	if existsUser.BackgroundUrl == "" && *data.BackgroundUrl != "" {
+		exp += utils.BannerAddExp
+	} else if existsUser.BackgroundUrl != "" && *data.BackgroundUrl == "" {
+		exp -= utils.BannerAddExp
+	}
+
+	err = s.repo.IncrementExperience(targetUserLogin, exp)
+
+	if err != nil {
+		return nil, err
 	}
 
 	hexString, _ := utils.GenerateRandomString(32)

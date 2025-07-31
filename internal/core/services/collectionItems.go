@@ -151,6 +151,32 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 	collectionItemResponse.CanLike = true
 	collectionItemResponse.IsOwner = true
 
+	exp := utils.CIExp
+
+	if len(dto.Entities) != 0 {
+		exp += utils.EntityAttachExp
+	}
+	if dto.PurchaseDate != "" {
+		exp += utils.CIPurchaseDateExp
+	}
+	if dto.PurchasePrice != 0 {
+		exp += utils.CIPurchasePriceExp
+	}
+	if dto.Rating != 0 {
+		exp += utils.CIRatingExp
+	}
+	if len(dto.Images) != 0 {
+		exp += utils.PictureExp
+	}
+	if len(dto.CopyNumber) != 0 {
+		exp += utils.CICopyNumberExp
+	}
+
+	err = s.userRepo.IncrementExperience(authUserLogin, exp)
+	if err != nil {
+		return nil, err
+	}
+
 	return &models.CollectionItemsDataResponse{Data: collectionItemResponse}, nil
 }
 
@@ -169,12 +195,38 @@ func (s *CiService) Delete(id string, ctx context.Context) (*dto.CommonResponse,
 			return nil, err
 		}
 		if len(exists.Images) > 0 {
-			_, err := s.s3Service.DeleteFiles(ctx, s3.DeleteFilesRequest{Keys: exists.Images})
+			_, err = s.s3Service.DeleteFiles(ctx, s3.DeleteFilesRequest{Keys: exists.Images})
 			if err != nil {
 				return nil, err
 			}
 		}
 		result = &dto.CommonResponse{Data: dto.Resp{Success: true}}
+
+		exp := utils.CIExp
+
+		if len(exists.Entities) != 0 {
+			exp += utils.EntityAttachExp
+		}
+		if exists.PurchaseDate != "" {
+			exp += utils.CIPurchaseDateExp
+		}
+		if exists.PurchasePrice != 0 {
+			exp += utils.CIPurchasePriceExp
+		}
+		if exists.Rating != 0 {
+			exp += utils.CIRatingExp
+		}
+		if len(exists.Images) != 0 {
+			exp += utils.PictureExp
+		}
+		if len(exists.CopyNumber) != 0 {
+			exp += utils.CICopyNumberExp
+		}
+
+		err = s.userRepo.DecrementExperience(exists.UserLogin, exp)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
@@ -277,6 +329,10 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 			log.Default().Print(eventError)
 		}
 	}
+	err = s.updateCIExp(exists, dto)
+	if err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 
@@ -361,6 +417,10 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 				log.Default().Print(eventError)
 			}
 		}
+		err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CISelfLikeExp)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
 		if !exists.Collections[0].IsPrivate {
@@ -370,6 +430,10 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 					log.Default().Print(eventError)
 				}
 			}()
+		}
+		err = s.userRepo.DecrementExperience(exists.UserLogin, utils.CISelfLikeExp)
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -479,4 +543,45 @@ func processCI(slice []models.CollectionItems, authUser string) ([]models.Collec
 		resultCollectionItems = append(resultCollectionItems, temp)
 	}
 	return resultCollectionItems, nil
+}
+
+func (s *CiService) updateCIExp(exists *models.CollectionItems, dto *models.CollectionItemsRequestUpdate) error {
+	var exp int
+	if len(exists.Entities) != 0 && len(dto.Entities) == 0 {
+		exp -= utils.EntityAttachExp
+	} else if len(exists.Entities) == 0 && len(dto.Entities) != 0 {
+		exp += utils.EntityAttachExp
+	}
+	if exists.PurchaseDate != "" && *dto.PurchaseDate == "" {
+		exp -= utils.CIPurchaseDateExp
+	} else if exists.PurchaseDate == "" && *dto.PurchaseDate != "" {
+		exp += utils.CIPurchaseDateExp
+	}
+	if exists.PurchasePrice != 0 && *dto.PurchasePrice == 0 {
+		exp -= utils.CIPurchasePriceExp
+	} else if exists.PurchasePrice == 0 && *dto.PurchasePrice != 0 {
+		exp += utils.CIPurchasePriceExp
+	}
+	if exists.Rating != 0 && *dto.Rating == 0 {
+		exp -= utils.CIRatingExp
+	} else if exists.Rating == 0 && *dto.Rating != 0 {
+		exp += utils.CIRatingExp
+	}
+	if len(exists.Images) != 0 && len(dto.Images) == 0 {
+		exp -= utils.PictureExp
+	} else if len(exists.Images) == 0 && len(dto.Images) != 0 {
+		exp += utils.PictureExp
+	}
+	if len(exists.CopyNumber) != 0 && len(dto.CopyNumber) == 0 {
+		exp -= utils.CICopyNumberExp
+	} else if len(exists.CopyNumber) == 0 && len(dto.CopyNumber) != 0 {
+		exp += utils.CICopyNumberExp
+	}
+
+	err := s.userRepo.IncrementExperience(exists.UserLogin, exp)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

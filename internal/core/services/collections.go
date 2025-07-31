@@ -85,6 +85,12 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	if err != nil {
 		return nil, err
 	}
+
+	err = s.userRepo.IncrementExperience(dto.UserLogin, utils.CollectionExp)
+	if err != nil {
+		return nil, err
+	}
+
 	if !dto.IsPrivate {
 		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, nil, &res.Id, nil, nil)
 		if eventError != nil {
@@ -187,6 +193,34 @@ func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonR
 				return nil, err
 			}
 		}
+	}
+
+	exp := len(exists.CollectionItems) + utils.CollectionExp
+
+	cis := exists.CollectionItems
+	for _, ci := range cis {
+		if len(ci.Entities) != 0 {
+			exp += utils.EntityAttachExp
+		}
+		if ci.PurchaseDate != "" {
+			exp += utils.CIPurchaseDateExp
+		}
+		if ci.PurchasePrice != 0 {
+			exp += utils.CIPurchasePriceExp
+		}
+		if ci.Rating != 0 {
+			exp += utils.CIRatingExp
+		}
+		if len(ci.Images) != 0 {
+			exp += utils.PictureExp
+		}
+		if len(ci.CopyNumber) != 0 {
+			exp += utils.CICopyNumberExp
+		}
+	}
+	err := s.userRepo.DecrementExperience(exists.UserLogin, exp)
+	if err != nil {
+		return nil, err
 	}
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, s.repo.DeleteCollection(id)
 }
@@ -387,6 +421,11 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		}
 	}
 
+	err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CollectionSelfLikeExp)
+	if err != nil {
+		return nil, err
+	}
+
 	_, err = s.repo.UpdateCollection(exists, exists)
 	if err != nil {
 		return nil, err
@@ -413,6 +452,11 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 	} else {
 		subscriber.CollectionSubscriptions = utils.RemoveByValue(subscriber.CollectionSubscriptions, targetId)
 		dbCollection.SubscribersCount = dbCollection.SubscribersCount - 1
+	}
+
+	err = s.userRepo.IncrementExperience(dbCollection.UserLogin, utils.CollectionSelfSubExp)
+	if err != nil {
+		return nil, err
 	}
 
 	_, err = s.userRepo.UpdateUser(subscriber, *subscriber)

@@ -23,6 +23,25 @@ const (
 	GSeymor         = "gseymor"
 )
 
+const (
+	CollectionExp         = 50
+	CIExp                 = 1
+	EntityAttachExp       = 1
+	UserSelfSubExp        = 10
+	CollectionSelfSubExp  = 5
+	CollectionSelfLikeExp = 10
+	CISelfLikeExp         = 1
+	CIPurchaseDateExp     = 1
+	CIPurchasePriceExp    = 1
+	CIRatingExp           = 1
+	PictureExp            = 1
+	MonthlyDonateExp      = 100
+	YearlyDonateExp       = 1000
+	AvatarAddExt          = 50
+	BannerAddExp          = 50
+	CICopyNumberExp       = 1
+)
+
 func GetAdminLogins() []string {
 	return []string{Seymor, Admin, GodSeymor, EgRifYkkurIBita, GSeymor}
 }
