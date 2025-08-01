@@ -692,7 +692,10 @@ func (s *S3Service) FileExists(ctx context.Context, key string) (bool, error) {
 func (s *S3Service) deleteRelatedThumbnails(ctx context.Context, keys []string) {
 	for _, key := range keys {
 		sizes := []struct{ w, h int }{
-			{100, 100}, {300, 300}, {800, 600},
+			{100, 0}, {120, 0}, {150, 0}, {180, 0},
+			{200, 0}, {20, 0}, {300, 0}, {30, 0},
+			{36, 0}, {38, 0}, {44, 0}, {470, 0},
+			{50, 0}, {600, 0}, {700, 0}, {80, 0},
 		}
 
 		for _, size := range sizes {
@@ -709,5 +712,5 @@ func (s *S3Service) GetOriginalKey(filename string) string {
 }
 
 func (s *S3Service) GetThumbnailKey(filename string, width, height int) string {
-	return fmt.Sprintf("thumbs/%dx%d/%s", width, height, filename)
+	return fmt.Sprintf("thumbs/%dx0/%s", width, filename)
 }
