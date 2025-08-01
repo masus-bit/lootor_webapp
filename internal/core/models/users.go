@@ -241,18 +241,22 @@ type TelegramOauthRequest struct {
 	Hash      string `json:"hash"`
 }
 
-func (u *Users) GetLogin() string         { return u.Login }
-func (u *Users) GetUserName() string      { return u.UserName }
-func (u *Users) GetVkId() string          { return u.VkId }
-func (u *Users) GetTelegramId() string    { return u.TelegramId }
-func (u *Users) GetEmail() string         { return u.Email }
-func (u *Users) GetCreated() string       { return u.Created }
-func (u *Users) GetLikes() int            { return u.Likes }
-func (u *Users) GetDislikes() int         { return u.Dislikes }
-func (u *Users) GetAvatarUrl() string     { return u.AvatarUrl }
-func (u *Users) GetBackgroundUrl() string { return u.BackgroundUrl }
-func (u *Users) GetSubscribers() int      { return u.Subscribers }
-func (u *Users) GetBio() string           { return u.Bio }
-func (u *Users) GetCity() string          { return u.City }
-func (u *Users) GetIsPremium() bool       { return u.IsPremium }
-func (u *Users) GetProfileName() string   { return u.ProfileName }
+func (u *Users) GetLogin() string               { return u.Login }
+func (u *Users) GetUserName() string            { return u.UserName }
+func (u *Users) GetVkId() string                { return u.VkId }
+func (u *Users) GetTelegramId() string          { return u.TelegramId }
+func (u *Users) GetEmail() string               { return u.Email }
+func (u *Users) GetCreated() string             { return u.Created }
+func (u *Users) GetLikes() int                  { return u.Likes }
+func (u *Users) GetDislikes() int               { return u.Dislikes }
+func (u *Users) GetAvatarUrl() string           { return u.AvatarUrl }
+func (u *Users) GetBackgroundUrl() string       { return u.BackgroundUrl }
+func (u *Users) GetSubscribers() int            { return u.Subscribers }
+func (u *Users) GetBio() string                 { return u.Bio }
+func (u *Users) GetCity() string                { return u.City }
+func (u *Users) GetIsPremium() bool             { return u.IsPremium }
+func (u *Users) GetProfileName() string         { return u.ProfileName }
+func (u *Users) GetSubscribersLogins() []string { return u.SubscribersLogins }
+func (u *Users) GetSubscriptions() []string {
+	return u.Subscriptions
+}

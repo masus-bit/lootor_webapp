@@ -427,5 +427,5 @@ func (r *UsersRepository) IncrementExperience(userLogin string, amount int) erro
 func (r *UsersRepository) DecrementExperience(userLogin string, amount int) error {
 	return r.db.Model(&models.Users{}).
 		Where("login = ?", userLogin).
-		Update("exp", gorm.Expr("COALESCE(exp, 0) - ?", amount)).Error
+		Update("exp", gorm.Expr("GREATEST(COALESCE(exp, 0) - ?, 0)", amount)).Error
 }

@@ -548,26 +548,32 @@ func processCI(slice []models.CollectionItems, authUser string) ([]models.Collec
 
 func (s *CiService) updateCIExp(exists *models.CollectionItems, dto *models.CollectionItemsRequestUpdate) error {
 	var exp int
-	if len(exists.Entities) != 0 && len(dto.Entities) == 0 {
-		exp -= utils.EntityAttachExp
-	} else if len(exists.Entities) == 0 && len(dto.Entities) != 0 {
-		exp += utils.EntityAttachExp
+	if dto.Entities != nil {
+		if len(exists.Entities) != 0 && len(dto.Entities) == 0 {
+			exp -= utils.EntityAttachExp
+		} else if len(exists.Entities) == 0 && len(dto.Entities) != 0 {
+			exp += utils.EntityAttachExp
+		}
 	}
-	if exists.PurchaseDate != "" && *dto.PurchaseDate == "" {
+
+	if exists.PurchaseDate != "" && dto.PurchaseDate == nil {
 		exp -= utils.CIPurchaseDateExp
-	} else if exists.PurchaseDate == "" && *dto.PurchaseDate != "" {
+	} else if exists.PurchaseDate == "" && dto.PurchaseDate != nil {
 		exp += utils.CIPurchaseDateExp
 	}
-	if exists.PurchasePrice != 0 && *dto.PurchasePrice == 0 {
+
+	if exists.PurchasePrice != 0 && dto.PurchasePrice == nil {
 		exp -= utils.CIPurchasePriceExp
-	} else if exists.PurchasePrice == 0 && *dto.PurchasePrice != 0 {
+	} else if exists.PurchasePrice == 0 && dto.PurchasePrice != nil {
 		exp += utils.CIPurchasePriceExp
 	}
-	if exists.Rating != 0 && *dto.Rating == 0 {
+
+	if exists.Rating != 0 && dto.Rating == nil {
 		exp -= utils.CIRatingExp
-	} else if exists.Rating == 0 && *dto.Rating != 0 {
+	} else if exists.Rating == 0 && dto.Rating != nil {
 		exp += utils.CIRatingExp
 	}
+
 	if len(exists.Images) != 0 && len(dto.Images) == 0 {
 		exp -= utils.PictureExp
 	} else if len(exists.Images) == 0 && len(dto.Images) != 0 {

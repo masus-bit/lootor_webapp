@@ -64,7 +64,6 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println(reflect.TypeOf(subscribersLogins), reflect.TypeOf(response.SubscribersLogins))
 		response.SubscribersLogins = subscribersLogins
 		subscriptions, err := s.repo.GetForSubs(dbUser.Subscriptions)
 		if err != nil {
@@ -170,17 +169,14 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers + 1
 		subscriptionTargetUser.SubscribersLogins = append(subscriptionTargetUser.SubscribersLogins, authUserLogin)
 		err = s.repo.IncrementExperience(targetUserLogin, utils.UserSelfSubExp)
-		if err != nil {
-			return nil, err
-		}
+
+		subscriptionTargetUser.Exp += utils.UserSelfSubExp
 	} else {
 		subscriber.Subscriptions = utils.RemoveByValue(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers - 1
 		subscriptionTargetUser.SubscribersLogins = utils.RemoveByValue(subscriptionTargetUser.SubscribersLogins, strings.ToLower(authUserLogin))
-		err = s.repo.DecrementExperience(targetUserLogin, utils.UserSelfSubExp)
-		if err != nil {
-			return nil, err
-		}
+
+		subscriptionTargetUser.Exp -= utils.UserSelfSubExp
 	}
 	_, err = s.repo.UpdateUser(subscriber, *subscriber)
 	if err != nil {
@@ -633,11 +629,7 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 		exp -= utils.BannerAddExp
 	}
 
-	err = s.repo.IncrementExperience(login, exp)
-
-	if err != nil {
-		return nil, err
-	}
+	existsUser.Exp = existsUser.Exp + exp
 
 	dst := reflect.ValueOf(existsUser).Elem()
 	src := reflect.ValueOf(user).Elem()

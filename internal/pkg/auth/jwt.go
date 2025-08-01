@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"time"
 )
@@ -21,21 +22,23 @@ type TokenPair struct {
 	RefreshToken string `json:"refreshToken"`
 }
 type Claims struct {
-	Login         string `json:"login"`
-	UserName      string `json:"userName"`
-	VkId          string `json:"vkId"`
-	TelegramId    string `json:"telegramId"`
-	Email         string `json:"email"`
-	Created       string `json:"created"`
-	Likes         int    `json:"likes"`
-	Dislikes      int    `json:"dislikes"`
-	AvatarUrl     string `json:"avatarUrl"`
-	BackgroundUrl string `json:"backgroundUrl"`
-	Subscribers   int    `json:"subscribers"`
-	Bio           string `json:"bio"`
-	City          string `json:"city"`
-	IsPremium     bool   `json:"isPremium"`
-	ProfileName   string `json:"profileName"`
+	Login             string            `json:"login"`
+	UserName          string            `json:"userName"`
+	VkId              string            `json:"vkId"`
+	TelegramId        string            `json:"telegramId"`
+	Email             string            `json:"email"`
+	Created           string            `json:"created"`
+	Likes             int               `json:"likes"`
+	Dislikes          int               `json:"dislikes"`
+	AvatarUrl         string            `json:"avatarUrl"`
+	BackgroundUrl     string            `json:"backgroundUrl"`
+	Subscribers       int               `json:"subscribers"`
+	Bio               string            `json:"bio"`
+	City              string            `json:"city"`
+	IsPremium         bool              `json:"isPremium"`
+	ProfileName       string            `json:"profileName"`
+	SubscribersLogins []models.SubUsers `json:"subscribersLogins" mapstructure:"-"`
+	Subscriptions     []models.SubUsers `json:"subscriptions" mapstructure:"-"`
 	jwt.RegisteredClaims
 }
 
@@ -49,14 +52,24 @@ func NewJWTService(secret string, accessExp time.Duration, refreshExp time.Durat
 }
 
 func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
+	userData, _ := s.userRepo.GetUserByLogin(user.GetLogin())
+	subscribersLogins, err := s.userRepo.GetForSubs(userData.SubscribersLogins)
+	if err != nil {
+		return nil, err
+	}
+
+	subscriptions, err := s.userRepo.GetForSubs(userData.Subscriptions)
+	if err != nil {
+		return nil, err
+	}
 	// Access token
-	accessToken, err := s.generateToken(user, s.accessTokenExp)
+	accessToken, err := s.generateToken(user, s.accessTokenExp, subscribersLogins, subscriptions)
 	if err != nil {
 		return nil, err
 	}
 
 	// Refresh token
-	refreshToken, err := s.generateToken(user, s.refreshTokenExp)
+	refreshToken, err := s.generateToken(user, s.refreshTokenExp, subscribersLogins, subscriptions)
 	if err != nil {
 		return nil, err
 	}
@@ -67,23 +80,25 @@ func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
 	}, nil
 }
 
-func (s *JWTService) generateToken(user TokenData, exp time.Duration) (string, error) {
+func (s *JWTService) generateToken(user TokenData, exp time.Duration, subLogins, subs []models.SubUsers) (string, error) {
 	claims := Claims{
-		Login:         user.GetLogin(),
-		UserName:      user.GetUserName(),
-		VkId:          user.GetVkId(),
-		TelegramId:    user.GetTelegramId(),
-		Email:         user.GetEmail(),
-		Created:       user.GetCreated(),
-		Likes:         user.GetLikes(),
-		Dislikes:      user.GetDislikes(),
-		AvatarUrl:     user.GetAvatarUrl(),
-		BackgroundUrl: user.GetBackgroundUrl(),
-		Subscribers:   user.GetSubscribers(),
-		Bio:           user.GetBio(),
-		City:          user.GetCity(),
-		IsPremium:     user.GetIsPremium(),
-		ProfileName:   user.GetProfileName(),
+		Login:             user.GetLogin(),
+		UserName:          user.GetUserName(),
+		VkId:              user.GetVkId(),
+		TelegramId:        user.GetTelegramId(),
+		Email:             user.GetEmail(),
+		Created:           user.GetCreated(),
+		Likes:             user.GetLikes(),
+		Dislikes:          user.GetDislikes(),
+		AvatarUrl:         user.GetAvatarUrl(),
+		BackgroundUrl:     user.GetBackgroundUrl(),
+		Subscribers:       user.GetSubscribers(),
+		Bio:               user.GetBio(),
+		City:              user.GetCity(),
+		IsPremium:         user.GetIsPremium(),
+		ProfileName:       user.GetProfileName(),
+		SubscribersLogins: subLogins,
+		Subscriptions:     subs,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(exp)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -160,35 +175,21 @@ func (s *JWTService) RenewTokenPair(refreshToken string) (*TokenPair, error) {
 }
 
 type tokenData struct {
-	login         string
-	userName      string
-	vkId          string
-	telegramId    string
-	email         string
-	created       string
-	likes         int
-	dislikes      int
-	avatarUrl     string
-	backgroundUrl string
-	subscribers   int
-	bio           string
-	city          string
-	isPremium     bool
-	profileName   string
+	login             string
+	userName          string
+	vkId              string
+	telegramId        string
+	email             string
+	created           string
+	likes             int
+	dislikes          int
+	avatarUrl         string
+	backgroundUrl     string
+	subscribers       int
+	bio               string
+	city              string
+	isPremium         bool
+	profileName       string
+	subscribersLogins []models.SubUsers
+	subscriptions     []models.SubUsers
 }
-
-func (t *tokenData) GetLogin() string         { return t.login }
-func (t *tokenData) GetUserName() string      { return t.userName }
-func (t *tokenData) GetVkId() string          { return t.vkId }
-func (t *tokenData) GetTelegramId() string    { return t.telegramId }
-func (t *tokenData) GetEmail() string         { return t.email }
-func (t *tokenData) GetCreated() string       { return t.created }
-func (t *tokenData) GetLikes() int            { return t.likes }
-func (t *tokenData) GetDislikes() int         { return t.dislikes }
-func (t *tokenData) GetAvatarUrl() string     { return t.avatarUrl }
-func (t *tokenData) GetBackgroundUrl() string { return t.backgroundUrl }
-func (t *tokenData) GetSubscribers() int      { return t.subscribers }
-func (t *tokenData) GetBio() string           { return t.bio }
-func (t *tokenData) GetCity() string          { return t.city }
-func (t *tokenData) GetIsPremium() bool       { return t.isPremium }
-func (t *tokenData) GetProfileName() string   { return t.profileName }

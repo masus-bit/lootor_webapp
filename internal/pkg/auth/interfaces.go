@@ -16,4 +16,6 @@ type TokenData interface {
 	GetCity() string
 	GetIsPremium() bool
 	GetProfileName() string
+	GetSubscribersLogins() []string
+	GetSubscriptions() []string
 }

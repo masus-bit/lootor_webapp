@@ -27,9 +27,9 @@ const (
 	CollectionExp         = 50
 	CIExp                 = 1
 	EntityAttachExp       = 1
-	UserSelfSubExp        = 10
-	CollectionSelfSubExp  = 5
-	CollectionSelfLikeExp = 10
+	UserSelfSubExp        = 15
+	CollectionSelfSubExp  = 10
+	CollectionSelfLikeExp = 5
 	CISelfLikeExp         = 1
 	CIPurchaseDateExp     = 1
 	CIPurchasePriceExp    = 1
