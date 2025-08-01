@@ -145,6 +145,7 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 	}
 
 	exists.Tags = processTags
+	exists.IsPrivate = *dto.IsPrivate
 
 	resultCollection, err := s.repo.UpdateCollectionFull(exists)
 	if err != nil {
