@@ -412,7 +412,7 @@ func (r *UsersRepository) DeleteDeletedUsersForever() error {
 func (r *UsersRepository) GetForSubs(users []string) ([]models.SubUsers, error) {
 	var subUsers []models.SubUsers
 	err := r.db.Model(&models.Users{}).
-		Where("login IN (?)", users).
+		Where("LOWER(login) IN LOWER(?)", users).
 		Select("login", "avatar_url", "profile_name", "is_premium").
 		Find(&subUsers).Error
 	return subUsers, err
@@ -420,12 +420,12 @@ func (r *UsersRepository) GetForSubs(users []string) ([]models.SubUsers, error) 
 
 func (r *UsersRepository) IncrementExperience(userLogin string, amount int) error {
 	return r.db.Model(&models.Users{}).
-		Where("login = ?", userLogin).
+		Where("LOWER(login) = LOWER(?)", userLogin).
 		Update("exp", gorm.Expr("COALESCE(exp, 0) + ?", amount)).Error
 }
 
 func (r *UsersRepository) DecrementExperience(userLogin string, amount int) error {
 	return r.db.Model(&models.Users{}).
-		Where("login = ?", userLogin).
+		Where("LOWER(login) = LOWER(?)", userLogin).
 		Update("exp", gorm.Expr("GREATEST(COALESCE(exp, 0) - ?, 0)", amount)).Error
 }
