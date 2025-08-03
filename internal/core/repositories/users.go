@@ -412,7 +412,7 @@ func (r *UsersRepository) DeleteDeletedUsersForever() error {
 func (r *UsersRepository) GetForSubs(users []string) ([]models.SubUsers, error) {
 	var subUsers []models.SubUsers
 	err := r.db.Model(&models.Users{}).
-		Where("LOWER(login) IN LOWER(?)", users).
+		Where("LOWER(login) IN ?", users).
 		Select("login", "avatar_url", "profile_name", "is_premium").
 		Find(&subUsers).Error
 	return subUsers, err
