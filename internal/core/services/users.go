@@ -171,6 +171,10 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		err = s.repo.IncrementExperience(targetUserLogin, utils.UserSelfSubExp)
 
 		subscriptionTargetUser.Exp += utils.UserSelfSubExp
+		err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, &targetUserLogin, nil, nil, nil)
+		if err != nil {
+			fmt.Println(err)
+		}
 	} else {
 		subscriber.Subscriptions = utils.RemoveByValue(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers - 1
@@ -185,11 +189,6 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 	_, err = s.repo.UpdateUser(subscriptionTargetUser, *subscriptionTargetUser)
 	if err != nil {
 		return nil, err
-	}
-
-	err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, &targetUserLogin, nil, nil, nil)
-	if err != nil {
-		fmt.Println(err)
 	}
 
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
