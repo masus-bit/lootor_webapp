@@ -19,15 +19,19 @@ func NewEventsController(eventsService services.EventsService) *EventsController
 // @Tags events
 // @Accept  json
 // @Produce  json
+// @Param limit query string true "limit"
+// @Param offset query string true "offset"
 // @Success 201 {object} dto.EventsDataResponseSwagger
 // @Router /secured/events [get]
 func (c *EventsController) GetEvents(ctx echo.Context) error {
+	limit := ctx.QueryParam("limit")
+	offset := ctx.QueryParam("offset")
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
 		authUser = ""
 	}
 
-	response, err := c.eventsService.GetEvents(authUser)
+	response, err := c.eventsService.GetEvents(authUser, limit, offset)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

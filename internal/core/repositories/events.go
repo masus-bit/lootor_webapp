@@ -53,69 +53,30 @@ func (r *EventsRepository) AddEvent(
 	return r.db.Create(event).Error
 }
 
-func (r *EventsRepository) GetEvents(subscriptions []string) ([]models.Events, error) {
+func (r *EventsRepository) GetEvents(subscriptions []string, limit, offset string) ([]models.Events, int64, error) {
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
+
+	var count int64
+
 	var events []models.Events
 
-	err := r.db.
+	query := r.db.Model(&models.Events{}).
+		Where("LOWER(initiator_login) IN ?", subscriptions).
 		Preload("Initiator").
-		Where("initiator_login IN ?", subscriptions).
-		Order("date DESC").
-		Find(&events).Error
+		Order("date DESC")
 
-	if err != nil {
-		return nil, err
+	query.Count(&count)
+
+	if err := query.Limit(intLimit).Offset(intOffset).Find(&events).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to get events: %w", err)
 	}
 
-	for i := range events {
-		switch events[i].EventTargetType {
-		case "user":
-			if events[i].TargetUserLogin != nil {
-				var user models.SubUsers
-				if err := r.db.Where("login = ?", *events[i].TargetUserLogin).First(&user).Error; err == nil {
-					events[i].TargetUser = &user
-				}
-				events[i].TargetCollection = nil
-				events[i].TargetItem = nil
-				events[i].TargetWishListItem = nil
-			}
-
-		case "collection":
-			if events[i].TargetCollectionID != nil {
-				var collection types.CommonShortType
-				if err := r.db.Preload("User").First(&collection, *events[i].TargetCollectionID).Error; err == nil {
-					events[i].TargetCollection = &collection
-				}
-				events[i].TargetUser = nil
-				events[i].TargetItem = nil
-				events[i].TargetWishListItem = nil
-			}
-
-		case "collectionItem":
-			if events[i].TargetItemID != nil {
-				var item types.CommonShortType
-				if err := r.db.Preload("Owner").First(&item, *events[i].TargetItemID).Error; err == nil {
-					events[i].TargetItem = &item
-				}
-				events[i].TargetUser = nil
-				events[i].TargetCollection = nil
-				events[i].TargetWishListItem = nil
-			}
-
-		case "wishListItem":
-			if events[i].TargetWishListItemID != nil {
-				var wlItem types.CommonShortType
-				if err := r.db.Preload("User").First(&wlItem, *events[i].TargetWishListItemID).Error; err == nil {
-					events[i].TargetWishListItem = &wlItem
-				}
-				events[i].TargetUser = nil
-				events[i].TargetCollection = nil
-				events[i].TargetItem = nil
-			}
-
-		}
+	if err := r.loadEventRelations(&events); err != nil {
+		return nil, 0, fmt.Errorf("failed to load event relations: %w", err)
 	}
 
-	return events, nil
+	return events, count, nil
 }
 
 func (r *EventsRepository) GetFilteredEvents(
@@ -132,7 +93,8 @@ func (r *EventsRepository) GetFilteredEvents(
 	var count int64
 
 	query := r.db.Model(&models.Events{}).
-		Where("initiator_login = ?", userLogin).Preload("Initiator")
+		Where("LOWER(initiator_login) = LOWER(?)", userLogin).Preload("Initiator").
+		Order("date DESC")
 
 	switch {
 	case collectionId != "":
