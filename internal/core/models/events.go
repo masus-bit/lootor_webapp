@@ -27,5 +27,6 @@ type Events struct {
 }
 
 type EventsDataResponse struct {
-	Data []Events `json:"data"`
+	Data  []Events `json:"data"`
+	Total int64    `json:"total"`
 }

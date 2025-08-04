@@ -45,6 +45,8 @@ func (c *EventsController) GetEvents(ctx echo.Context) error {
 // @Param collectionId query string false "collection id"
 // @Param collectionItemId query string false "collection item id"
 // @Param wishListItemId query string false "wish list item id"
+// @Param limit query string true "limit"
+// @Param offset query string true "offset"
 // @Success 201 {object} dto.EventsDataResponseSwagger
 // @Router /public/events/filter [get]
 func (c *EventsController) GetFilteredEvents(ctx echo.Context) error {
@@ -52,8 +54,10 @@ func (c *EventsController) GetFilteredEvents(ctx echo.Context) error {
 	collectionId := ctx.QueryParam("collectionId")
 	collectionItemId := ctx.QueryParam("collectionItemId")
 	wishListItemId := ctx.QueryParam("wishListItemId")
+	limit := ctx.QueryParam("limit")
+	offset := ctx.QueryParam("offset")
 
-	response, err := c.eventsService.GetFilteredEvents(userLogin, collectionId, collectionItemId, wishListItemId)
+	response, err := c.eventsService.GetFilteredEvents(userLogin, collectionId, collectionItemId, wishListItemId, limit, offset)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

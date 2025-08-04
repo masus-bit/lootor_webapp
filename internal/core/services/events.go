@@ -34,10 +34,10 @@ func (s *EventsService) GetEvents(authUserLogin string) (*models.EventsDataRespo
 	return &models.EventsDataResponse{Data: events}, nil
 }
 
-func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionItem, wlId string) (*models.EventsDataResponse, error) {
-	events, err := s.evRepo.GetFilteredEvents(userLogin, collectionId, collectionItem, wlId)
+func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionItem, wlId, limit, offset string) (*models.EventsDataResponse, error) {
+	events, totalCount, err := s.evRepo.GetFilteredEvents(userLogin, collectionId, collectionItem, wlId, limit, offset)
 	if err != nil {
 		return nil, err
 	}
-	return &models.EventsDataResponse{Data: events}, nil
+	return &models.EventsDataResponse{Data: events, Total: totalCount}, nil
 }

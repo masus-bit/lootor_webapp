@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/types"
+	"strconv"
 	"time"
 )
 
@@ -118,12 +119,17 @@ func (r *EventsRepository) GetEvents(subscriptions []string) ([]models.Events, e
 }
 
 func (r *EventsRepository) GetFilteredEvents(
-	userLogin string,
-	collectionId string,
-	collectionItemId string,
-	wlItemId string,
-) ([]models.Events, error) {
+	userLogin,
+	collectionId,
+	collectionItemId,
+	wlItemId, limit, offset string,
+) ([]models.Events, int64, error) {
 	var events []models.Events
+
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
+
+	var count int64
 
 	query := r.db.Model(&models.Events{}).
 		Where("initiator_login = ?", userLogin).Preload("Initiator")
@@ -137,15 +143,17 @@ func (r *EventsRepository) GetFilteredEvents(
 		query = query.Where("target_wish_list_item_id = ?", wlItemId)
 	}
 
-	if err := query.Find(&events).Error; err != nil {
-		return nil, fmt.Errorf("failed to get events: %w", err)
+	query.Count(&count)
+
+	if err := query.Limit(intLimit).Offset(intOffset).Find(&events).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to get events: %w", err)
 	}
 
 	if err := r.loadEventRelations(&events); err != nil {
-		return nil, fmt.Errorf("failed to load event relations: %w", err)
+		return nil, 0, fmt.Errorf("failed to load event relations: %w", err)
 	}
 
-	return events, nil
+	return events, count, nil
 }
 
 func (r *EventsRepository) loadEventRelations(events *[]models.Events) error {
