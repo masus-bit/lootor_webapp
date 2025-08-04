@@ -7,7 +7,8 @@ type CommonShortType struct {
 
 type CommonShortTypeCollection struct {
 	*CommonShortType
-	Owner string `json:"owner"`
+	Owner           string `json:"owner"`
+	Transliteration string `json:"transliteration"`
 }
 
 type CommonShortTypeItem struct {

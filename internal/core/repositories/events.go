@@ -228,7 +228,8 @@ func convertToCollectionResponse(collection models.Collections) *types.CommonSho
 			ID:   collection.Id.String(),
 			Name: collection.Name,
 		},
-		Owner: collection.UserLogin,
+		Owner:           collection.UserLogin,
+		Transliteration: collection.Transliteration,
 	}
 }
 
