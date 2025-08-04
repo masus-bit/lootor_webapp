@@ -6,7 +6,7 @@ import (
 )
 
 type Events struct {
-	Id              uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"Id"`
+	Id              uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	Date            string    `json:"date"`
 	Action          string    `gorm:"type:varchar(100);not null" json:"action"`
 	EventTargetType string    `gorm:"type:varchar(50);not null" json:"eventTargetType"`
