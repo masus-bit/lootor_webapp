@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/google/uuid"
+	"lootor/internal/pkg/types"
 )
 
 type Events struct {
@@ -12,17 +13,17 @@ type Events struct {
 	TargetName      string    `gorm:"type:varchar(255)" json:"targetName"`
 
 	InitiatorLogin string `gorm:"type:varchar(255);not null" json:"initiatorLogin"`
-	Initiator      Users  `gorm:"foreignKey:InitiatorLogin;references:Login" json:"initiator"`
+	Initiator      *Users `gorm:"foreignKey:InitiatorLogin;references:Login" json:"initiator"`
 
 	TargetUserLogin      *string    `gorm:"type:varchar(255)" json:"targetUserLogin"`
-	TargetCollectionID   *uuid.UUID `gorm:"type:uuid" json:"targetCollectionID"`
-	TargetItemID         *uuid.UUID `gorm:"type:uuid" json:"targetItemID"`
-	TargetWishListItemID *uuid.UUID `gorm:"type:uuid" json:"targetWishListItemID"`
+	TargetCollectionID   *uuid.UUID `gorm:"type:uuid" json:"targetCollectionId"`
+	TargetItemID         *uuid.UUID `gorm:"type:uuid" json:"targetItemId"`
+	TargetWishListItemID *uuid.UUID `gorm:"type:uuid" json:"targetWishListItemId"`
 
-	TargetUser         *Users           `gorm:"-" json:"targetUser"`
-	TargetCollection   *Collections     `gorm:"-" json:"targetCollection"`
-	TargetItem         *CollectionItems `gorm:"-" json:"targetItem"`
-	TargetWishListItem *WishListItems   `gorm:"-" json:"targetWishListItem"`
+	TargetUser         *SubUsers              `gorm:"-" json:"targetUser"`
+	TargetCollection   *types.CommonShortType `gorm:"-" json:"targetCollection"`
+	TargetItem         *types.CommonShortType `gorm:"-" json:"targetItem"`
+	TargetWishListItem *types.CommonShortType `gorm:"-" json:"targetWishListItem"`
 }
 
 type EventsDataResponse struct {

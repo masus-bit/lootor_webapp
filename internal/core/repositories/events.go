@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"lootor/internal/core/models"
+	"lootor/internal/pkg/types"
 	"time"
 )
 
@@ -68,7 +69,7 @@ func (r *EventsRepository) GetEvents(subscriptions []string) ([]models.Events, e
 		switch events[i].EventTargetType {
 		case "user":
 			if events[i].TargetUserLogin != nil {
-				var user models.Users
+				var user models.SubUsers
 				if err := r.db.Where("login = ?", *events[i].TargetUserLogin).First(&user).Error; err == nil {
 					events[i].TargetUser = &user
 				}
@@ -79,7 +80,7 @@ func (r *EventsRepository) GetEvents(subscriptions []string) ([]models.Events, e
 
 		case "collection":
 			if events[i].TargetCollectionID != nil {
-				var collection models.Collections
+				var collection types.CommonShortType
 				if err := r.db.Preload("User").First(&collection, *events[i].TargetCollectionID).Error; err == nil {
 					events[i].TargetCollection = &collection
 				}
@@ -90,7 +91,7 @@ func (r *EventsRepository) GetEvents(subscriptions []string) ([]models.Events, e
 
 		case "collectionItem":
 			if events[i].TargetItemID != nil {
-				var item models.CollectionItems
+				var item types.CommonShortType
 				if err := r.db.Preload("Owner").First(&item, *events[i].TargetItemID).Error; err == nil {
 					events[i].TargetItem = &item
 				}
@@ -101,7 +102,7 @@ func (r *EventsRepository) GetEvents(subscriptions []string) ([]models.Events, e
 
 		case "wishListItem":
 			if events[i].TargetWishListItemID != nil {
-				var wlItem models.WishListItems
+				var wlItem types.CommonShortType
 				if err := r.db.Preload("User").First(&wlItem, *events[i].TargetWishListItemID).Error; err == nil {
 					events[i].TargetWishListItem = &wlItem
 				}
@@ -125,25 +126,149 @@ func (r *EventsRepository) GetFilteredEvents(
 	var events []models.Events
 
 	query := r.db.Model(&models.Events{}).
-		Where("initiator_login = ?", userLogin).
-		Or("target_collection_id = ?", collectionId).
-		Or("target_item_id = ?", collectionItemId).
-		Or("target_wish_list_item_id = ?", wlItemId).
-		Order("date DESC")
+		Where("initiator_login = ?", userLogin).Preload("Initiator")
 
-	query = query.
-		Joins("LEFT JOIN users ON users.login = events.target_user_login").
-		Joins("LEFT JOIN collections ON collections.id = events.target_collection_id").
-		Joins("LEFT JOIN collection_items ON collection_items.id = events.target_item_id").
-		Joins("LEFT JOIN wish_list_items ON wish_list_items.id = events.target_wish_list_item_id").
-		Preload("TargetUserLogin").
-		Preload("TargetCollectionId").
-		Preload("TargetCollectionItemId").
-		Preload("TargetWishListItemId")
+	switch {
+	case collectionId != "":
+		query = query.Where("target_collection_id = ?", collectionId)
+	case collectionItemId != "":
+		query = query.Where("target_item_id = ?", collectionItemId)
+	case wlItemId != "":
+		query = query.Where("target_wish_list_item_id = ?", wlItemId)
+	}
 
 	if err := query.Find(&events).Error; err != nil {
 		return nil, fmt.Errorf("failed to get events: %w", err)
 	}
 
+	if err := r.loadEventRelations(&events); err != nil {
+		return nil, fmt.Errorf("failed to load event relations: %w", err)
+	}
+
 	return events, nil
+}
+
+func (r *EventsRepository) loadEventRelations(events *[]models.Events) error {
+	// Сначала загружаем полные модели из БД
+	var (
+		userLogins      []string
+		collectionIDs   []uuid.UUID
+		itemIDs         []uuid.UUID
+		wishListItemIDs []uuid.UUID
+	)
+
+	for _, event := range *events {
+		if event.TargetUserLogin != nil {
+			userLogins = append(userLogins, *event.TargetUserLogin)
+		}
+		if event.TargetCollectionID != nil {
+			collectionIDs = append(collectionIDs, *event.TargetCollectionID)
+		}
+		if event.TargetItemID != nil {
+			itemIDs = append(itemIDs, *event.TargetItemID)
+		}
+		if event.TargetWishListItemID != nil {
+			wishListItemIDs = append(wishListItemIDs, *event.TargetWishListItemID)
+		}
+	}
+
+	// 1. Загружаем полные модели из БД
+	usersMap := make(map[string]models.Users)
+	if len(userLogins) > 0 {
+		var users []models.Users
+		if err := r.db.Where("login IN ?", userLogins).Find(&users).Error; err != nil {
+			return err
+		}
+		for _, user := range users {
+			usersMap[user.Login] = user
+		}
+	}
+
+	collectionsMap := make(map[uuid.UUID]models.Collections)
+	if len(collectionIDs) > 0 {
+		var collections []models.Collections
+		if err := r.db.Where("id IN ?", collectionIDs).Find(&collections).Error; err != nil {
+			return err
+		}
+		for _, collection := range collections {
+			collectionsMap[collection.Id] = collection
+		}
+	}
+
+	itemsMap := make(map[uuid.UUID]models.CollectionItems)
+	if len(itemIDs) > 0 {
+		var items []models.CollectionItems
+		if err := r.db.Where("id IN ?", itemIDs).Find(&items).Error; err != nil {
+			return err
+		}
+		for _, item := range items {
+			itemsMap[item.Id] = item
+		}
+	}
+
+	wishListItemsMap := make(map[uuid.UUID]models.WishListItems)
+	if len(wishListItemIDs) > 0 {
+		var wishListItems []models.WishListItems
+		if err := r.db.Where("id IN ?", wishListItemIDs).Find(&wishListItems).Error; err != nil {
+			return err
+		}
+		for _, item := range wishListItems {
+			wishListItemsMap[item.Id] = item
+		}
+	}
+	// 2. Конвертируем в response-модели
+	for i, event := range *events {
+		if event.TargetUserLogin != nil {
+			if user, ok := usersMap[*event.TargetUserLogin]; ok {
+				(*events)[i].TargetUser = convertToUserResponse(user)
+			}
+		}
+		if event.TargetCollectionID != nil {
+			if collection, ok := collectionsMap[*event.TargetCollectionID]; ok {
+				(*events)[i].TargetCollection = convertToCollectionResponse(collection)
+			}
+		}
+		if event.TargetItemID != nil {
+			if item, ok := itemsMap[*event.TargetItemID]; ok {
+				(*events)[i].TargetItem = convertToItemResponse(item)
+			}
+		}
+		if event.TargetWishListItemID != nil {
+			if item, ok := wishListItemsMap[*event.TargetWishListItemID]; ok {
+				(*events)[i].TargetWishListItem = convertToWishListItemResponse(item)
+			}
+		}
+	}
+
+	return nil
+}
+
+func convertToUserResponse(user models.Users) *models.SubUsers {
+	return &models.SubUsers{
+		Login:       user.Login,
+		AvatarUrl:   user.AvatarUrl,
+		ProfileName: user.ProfileName,
+		IsPremium:   user.IsPremium,
+	}
+}
+
+func convertToCollectionResponse(collection models.Collections) *types.CommonShortType {
+	return &types.CommonShortType{
+		ID:   collection.Id.String(),
+		Name: collection.Name,
+	}
+}
+
+func convertToItemResponse(item models.CollectionItems) *types.CommonShortType {
+	return &types.CommonShortType{
+		ID:   item.Id.String(),
+		Name: item.Name,
+	}
+}
+
+func convertToWishListItemResponse(item models.WishListItems) *types.CommonShortType {
+	return &types.CommonShortType{
+		ID:   item.Id.String(),
+		Name: item.ItemName,
+	}
 }

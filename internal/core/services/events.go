@@ -34,7 +34,7 @@ func (s *EventsService) GetEvents(authUserLogin string) (*models.EventsDataRespo
 	return &models.EventsDataResponse{Data: events}, nil
 }
 
-func (s *EventsService) GetFilteredEvents(userLogin string, collectionId string, collectionItem string, wlId string) (*models.EventsDataResponse, error) {
+func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionItem, wlId string) (*models.EventsDataResponse, error) {
 	events, err := s.evRepo.GetFilteredEvents(userLogin, collectionId, collectionItem, wlId)
 	if err != nil {
 		return nil, err

@@ -167,7 +167,7 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 	if isSubscribe {
 		subscriber.Subscriptions = append(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers + 1
-		subscriptionTargetUser.SubscribersLogins = append(subscriptionTargetUser.SubscribersLogins, authUserLogin)
+		subscriptionTargetUser.SubscribersLogins = append(subscriptionTargetUser.SubscribersLogins, strings.ToLower(authUserLogin))
 		err = s.repo.IncrementExperience(targetUserLogin, utils.UserSelfSubExp)
 
 		subscriptionTargetUser.Exp += utils.UserSelfSubExp
@@ -187,7 +187,7 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		return nil, err
 	}
 
-	err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, nil, nil, nil, nil)
+	err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, &targetUserLogin, nil, nil, nil)
 	if err != nil {
 		fmt.Println(err)
 	}
