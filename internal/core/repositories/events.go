@@ -33,7 +33,7 @@ func (r *EventsRepository) AddEvent(
 		EventTargetType: targetType,
 		TargetName:      targetName,
 		InitiatorLogin:  initiatorLogin,
-		Date:            time.Now().String(),
+		Date:            time.Now().Format(time.RFC3339),
 	}
 	fmt.Println(targetWLID)
 	switch targetType {
