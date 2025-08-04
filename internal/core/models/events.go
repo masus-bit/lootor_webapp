@@ -20,10 +20,10 @@ type Events struct {
 	TargetItemID         *uuid.UUID `gorm:"type:uuid" json:"targetItemId"`
 	TargetWishListItemID *uuid.UUID `gorm:"type:uuid" json:"targetWishListItemId"`
 
-	TargetUser         *SubUsers              `gorm:"-" json:"targetUser"`
-	TargetCollection   *types.CommonShortType `gorm:"-" json:"targetCollection"`
-	TargetItem         *types.CommonShortType `gorm:"-" json:"targetItem"`
-	TargetWishListItem *types.CommonShortType `gorm:"-" json:"targetWishListItem"`
+	TargetUser         *SubUsers                        `gorm:"-" json:"targetUser"`
+	TargetCollection   *types.CommonShortTypeCollection `gorm:"-" json:"targetCollection"`
+	TargetItem         *types.CommonShortTypeItem       `gorm:"-" json:"targetItem"`
+	TargetWishListItem *types.CommonShortType           `gorm:"-" json:"targetWishListItem"`
 }
 
 type EventsDataResponse struct {

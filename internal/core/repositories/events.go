@@ -168,7 +168,7 @@ func (r *EventsRepository) loadEventRelations(events *[]models.Events) error {
 	itemsMap := make(map[uuid.UUID]models.CollectionItems)
 	if len(itemIDs) > 0 {
 		var items []models.CollectionItems
-		if err := r.db.Where("id IN ?", itemIDs).Find(&items).Error; err != nil {
+		if err := r.db.Where("id IN ?", itemIDs).Preload("Collections").Find(&items).Error; err != nil {
 			return err
 		}
 		for _, item := range items {
@@ -222,17 +222,24 @@ func convertToUserResponse(user models.Users) *models.SubUsers {
 	}
 }
 
-func convertToCollectionResponse(collection models.Collections) *types.CommonShortType {
-	return &types.CommonShortType{
-		ID:   collection.Id.String(),
-		Name: collection.Name,
+func convertToCollectionResponse(collection models.Collections) *types.CommonShortTypeCollection {
+	return &types.CommonShortTypeCollection{
+		CommonShortType: &types.CommonShortType{
+			ID:   collection.Id.String(),
+			Name: collection.Name,
+		},
+		Owner: collection.UserLogin,
 	}
 }
 
-func convertToItemResponse(item models.CollectionItems) *types.CommonShortType {
-	return &types.CommonShortType{
-		ID:   item.Id.String(),
-		Name: item.Name,
+func convertToItemResponse(item models.CollectionItems) *types.CommonShortTypeItem {
+	return &types.CommonShortTypeItem{
+		CommonShortType: &types.CommonShortType{
+			ID:   item.Id.String(),
+			Name: item.Name,
+		},
+		Collection: item.Collections[0].Transliteration,
+		Owner:      item.UserLogin,
 	}
 }
 

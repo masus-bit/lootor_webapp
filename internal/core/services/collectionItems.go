@@ -413,7 +413,7 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 	if !isUserLikes {
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.Collections[0].IsPrivate {
-			eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionLike, utils.EventTargetCollectionItem, exists.Name, nil, nil, &exists.Id, nil)
+			eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollectionItem, exists.Name, nil, nil, &exists.Id, nil)
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -424,14 +424,6 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 		}
 	} else {
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
-		if !exists.Collections[0].IsPrivate {
-			go func() {
-				eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionLike, utils.EventTargetCollectionItem, exists.Name, nil, nil, &exists.Id, nil)
-				if eventError != nil {
-					log.Default().Print(eventError)
-				}
-			}()
-		}
 		err = s.userRepo.DecrementExperience(exists.UserLogin, utils.CISelfLikeExp)
 		if err != nil {
 			return nil, err
