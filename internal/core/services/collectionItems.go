@@ -295,7 +295,7 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 	var itemType *models.ItemTypes
 	var itemTypeID *uuid.UUID
 
-	if dto.Platform != nil {
+	if dto.Platform != nil && *dto.Platform != "" {
 		foundPlatform, err := s.platformsRepo.GetPlatformById(*dto.Platform)
 		if err != nil {
 			return nil, fmt.Errorf("error getting platform: %v", err)
@@ -307,7 +307,7 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 		platformID = nil
 	}
 
-	if *dto.ItemType != "" {
+	if dto.ItemType != nil && *dto.ItemType != "" {
 		foundItemType, err := s.itemTypeRepo.GetTypeById(*dto.ItemType)
 		if err != nil {
 			return nil, fmt.Errorf("error getting item type: %v", err)

@@ -13,6 +13,7 @@ type CommonShortTypeCollection struct {
 
 type CommonShortTypeItem struct {
 	*CommonShortType
-	Collection string `json:"collection"`
-	Owner      string `json:"owner"`
+	Collection     string `json:"collection"`
+	Owner          string `json:"owner"`
+	CollectionName string `json:"collectionName"`
 }

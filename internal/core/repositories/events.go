@@ -239,8 +239,9 @@ func convertToItemResponse(item models.CollectionItems) *types.CommonShortTypeIt
 			ID:   item.Id.String(),
 			Name: item.Name,
 		},
-		Collection: item.Collections[0].Transliteration,
-		Owner:      item.UserLogin,
+		Collection:     item.Collections[0].Transliteration,
+		Owner:          item.UserLogin,
+		CollectionName: item.Collections[0].Name,
 	}
 }
 
