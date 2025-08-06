@@ -16,6 +16,7 @@ import (
 	"lootor/internal/core/repositories"
 	"lootor/internal/core/routes"
 	"lootor/internal/core/services"
+	"lootor/internal/infrastructure/commentsclient"
 	"lootor/internal/infrastructure/newsclient"
 	"lootor/internal/pkg/auth"
 	"lootor/internal/pkg/database"
@@ -112,10 +113,19 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	}
 
 	newsAddr := os.Getenv("NEWS_SERVICE_ADDR")
+	commentsAddr := os.Getenv("COMMENTS_SERVICE_ADDR")
 
 	newsClient, err := newsclient.NewGRPCClient(newsAddr)
 	if err != nil {
 		log.Fatal("failed to create news client:", err)
+	}
+	commentsClient, err := commentsclient.NewGRPCCommentsClient(commentsAddr)
+	if err != nil {
+		log.Fatal("failed to create comments client:", err)
+	}
+	likesClient, err := commentsclient.NewGRPCLikesClient(commentsAddr)
+	if err != nil {
+		log.Fatal("failed to create likes client:", err)
 	}
 
 	ciRepo := repositories.NewCiRepository(db, searchService)
@@ -167,6 +177,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	captchaService := auth.NewRecaptchaService()
 	reportsService := feedback.NewReportsService(fbService, ciRepo, userRepo, colRepo, wlRepo)
 	feedService := services.NewFeedService(newsClient)
+	commentsService := services.NewCommentsService(commentsClient, likesClient, userRepo)
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
@@ -193,6 +204,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.RecaptchaRouter(e, jwtService, *captchaService)
 	routes.ReportsRouter(e, jwtService, *reportsService)
 	routes.FeedRouter(e, jwtService, *feedService)
+	routes.CommentsRouter(e, jwtService, *commentsService)
 
 	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagRepo, entityRepo).ReindexInternal(context.Background())
 	setupMonitoring(s3Service)

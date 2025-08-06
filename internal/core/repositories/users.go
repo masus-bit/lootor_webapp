@@ -429,3 +429,15 @@ func (r *UsersRepository) DecrementExperience(userLogin string, amount int) erro
 		Where("LOWER(login) = LOWER(?)", userLogin).
 		Update("exp", gorm.Expr("GREATEST(COALESCE(exp, 0) - ?, 0)", amount)).Error
 }
+
+func (r *UsersRepository) GetUsersByLogins(logins []string) (map[string]*models.Users, error) {
+	users := make(map[string]*models.Users)
+	for _, login := range logins {
+		user, err := r.GetUserByLogin(login)
+		if err != nil {
+			return nil, err
+		}
+		users[login] = user
+	}
+	return users, nil
+}

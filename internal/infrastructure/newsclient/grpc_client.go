@@ -5,12 +5,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"gorm.io/datatypes"
-	"lootor/gen/go/feed"
+	"lootor/gen/go/microservices"
 	"lootor/internal/pkg/utils"
 )
 
 type GRPCClient struct {
-	client feed.NewsServiceClient
+	client microservices.NewsServiceClient
 	conn   *grpc.ClientConn
 }
 
@@ -21,15 +21,15 @@ func NewGRPCClient(addr string) (*GRPCClient, error) {
 	}
 
 	return &GRPCClient{
-		client: feed.NewNewsServiceClient(conn),
+		client: microservices.NewNewsServiceClient(conn),
 		conn:   conn,
 	}, nil
 }
 
-func (c *GRPCClient) CreateNews(ctx context.Context, feedType, date string, content datatypes.JSON) (*feed.NewsResponse, error) {
+func (c *GRPCClient) CreateNews(ctx context.Context, feedType, date string, content datatypes.JSON) (*microservices.NewsResponse, error) {
 	normalizedContent, _ := utils.GormJSONToProtoStruct(content)
 
-	resp, err := c.client.CreateNews(ctx, &feed.CreateNewsRequest{
+	resp, err := c.client.CreateNews(ctx, &microservices.CreateNewsRequest{
 		Content: normalizedContent,
 		Date:    date,
 		Type:    feedType,
@@ -40,25 +40,25 @@ func (c *GRPCClient) CreateNews(ctx context.Context, feedType, date string, cont
 	return resp, nil
 }
 
-func (c *GRPCClient) GetNews(ctx context.Context, id string) (*feed.GetNewsByIdResponse, error) {
-	return c.client.GetNewsById(ctx, &feed.GetNewsByIdRequest{
+func (c *GRPCClient) GetNews(ctx context.Context, id string) (*microservices.GetNewsByIdResponse, error) {
+	return c.client.GetNewsById(ctx, &microservices.GetNewsByIdRequest{
 		Id: id,
 	})
 }
 
-func (c *GRPCClient) GetAllNews(ctx context.Context, limit, offset string) (*feed.GetAllNewsResponse, error) {
-	return c.client.GetAllNews(ctx, &feed.GetAllNewsRequest{Limit: limit, Offset: offset})
+func (c *GRPCClient) GetAllNews(ctx context.Context, limit, offset string) (*microservices.GetAllNewsResponse, error) {
+	return c.client.GetAllNews(ctx, &microservices.GetAllNewsRequest{Limit: limit, Offset: offset})
 }
 
-func (c *GRPCClient) DeleteNews(ctx context.Context, id string) (*feed.DeleteNewsResponse, error) {
-	return c.client.DeleteNews(ctx, &feed.DeleteNewsRequest{
+func (c *GRPCClient) DeleteNews(ctx context.Context, id string) (*microservices.DeleteNewsResponse, error) {
+	return c.client.DeleteNews(ctx, &microservices.DeleteNewsRequest{
 		Id: id,
 	})
 }
 
-func (c *GRPCClient) UpdateNews(ctx context.Context, id, feedType, date string, content datatypes.JSON) (*feed.UpdateNewsResponse, error) {
+func (c *GRPCClient) UpdateNews(ctx context.Context, id, feedType, date string, content datatypes.JSON) (*microservices.UpdateNewsResponse, error) {
 	normalizedContent, _ := utils.GormJSONToProtoStruct(content)
-	return c.client.UpdateNews(ctx, &feed.UpdateNewsRequest{
+	return c.client.UpdateNews(ctx, &microservices.UpdateNewsRequest{
 		Content: normalizedContent,
 		Date:    date,
 		Id:      id,

@@ -119,7 +119,6 @@ func (r *EventsRepository) GetFilteredEvents(
 }
 
 func (r *EventsRepository) loadEventRelations(events *[]models.Events) error {
-	// Сначала загружаем полные модели из БД
 	var (
 		userLogins      []string
 		collectionIDs   []uuid.UUID
@@ -142,7 +141,6 @@ func (r *EventsRepository) loadEventRelations(events *[]models.Events) error {
 		}
 	}
 
-	// 1. Загружаем полные модели из БД
 	usersMap := make(map[string]models.Users)
 	if len(userLogins) > 0 {
 		var users []models.Users
@@ -186,7 +184,6 @@ func (r *EventsRepository) loadEventRelations(events *[]models.Events) error {
 			wishListItemsMap[item.Id] = item
 		}
 	}
-	// 2. Конвертируем в response-модели
 	for i, event := range *events {
 		if event.TargetUserLogin != nil {
 			if user, ok := usersMap[*event.TargetUserLogin]; ok {

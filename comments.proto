@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+import "google/protobuf/struct.proto";
+
+package comments;
+
+option go_package = "./gen/go/microservices";
+
+service CommentsService {
+  rpc CreateComment(CreateCommentRequest) returns (CommentResponse);
+
+  rpc GetAllComments(GetAllCommentsRequest) returns (GetAllCommentsResponse);
+
+  rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse);
+}
+
+message CreateCommentRequest {
+  string date = 1;
+  google.protobuf.Struct content = 2;
+  string author = 3;
+  string target_id = 4;
+  string parent_id = 5;
+}
+
+message DeleteCommentRequest {
+  string id = 1;
+}
+
+message DeleteCommentResponse {
+  bool success = 1;
+}
+
+message CommentsResponse {
+  repeated CommentsItem data = 1;
+  string total = 2;
+}
+
+message CommentResponse {
+  CommentsItem data = 1;
+}
+
+message GetAllCommentsRequest {
+  string target_id = 1;
+  string offset = 2;
+  string limit = 3;
+}
+
+message GetAllCommentsResponse {
+  repeated CommentsItem data = 1;
+  string total = 2;
+}
+
+message Likes {
+  string author = 1;
+  string comment_id = 2;
+  string id = 3;
+}
+
+message ChildrenComments {
+  string id = 1;
+  string date = 2;
+  google.protobuf.Struct content = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  string likes_count = 6;
+  repeated Likes likes = 7;
+  string author = 8;
+  string target_id = 9;
+  string parent_id = 10;
+}
+
+message CommentsItem {
+  string id = 1;
+  string date = 2;
+  google.protobuf.Struct content = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  string likes_count = 6;
+  repeated Likes likes = 7;
+  string answers_total = 8;
+  repeated ChildrenComments children_comments = 9;
+  string author = 10;
+  string target_id = 11;
+  string parent_id = 12;
+}
