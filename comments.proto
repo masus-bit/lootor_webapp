@@ -12,6 +12,8 @@ service CommentsService {
   rpc GetAllComments(GetAllCommentsRequest) returns (GetAllCommentsResponse);
 
   rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse);
+
+  rpc LoadAnswers(AnswersRequest) returns (AnswersResponse);
 }
 
 message CreateCommentRequest {
@@ -62,11 +64,13 @@ message ChildrenComments {
   google.protobuf.Struct content = 3;
   string created_at = 4;
   string updated_at = 5;
-  string likes_count = 6;
+  int64 likes_count = 6;
   repeated Likes likes = 7;
   string author = 8;
   string target_id = 9;
   string parent_id = 10;
+  int64 dislikes_count = 11;
+  repeated Likes dislikes = 12;
 }
 
 message CommentsItem {
@@ -75,11 +79,40 @@ message CommentsItem {
   google.protobuf.Struct content = 3;
   string created_at = 4;
   string updated_at = 5;
-  string likes_count = 6;
+  int64 likes_count = 6;
   repeated Likes likes = 7;
   string answers_total = 8;
   repeated ChildrenComments children_comments = 9;
   string author = 10;
   string target_id = 11;
   string parent_id = 12;
+  int64 dislikes_count = 13;
+  repeated Likes dislikes = 14;
+}
+
+message AnswersResponse {
+  repeated AnswersItem data = 1;
+  string total = 2;
+}
+
+message AnswersRequest {
+  string id = 1;
+  string offset = 2;
+  string limit = 3;
+}
+
+message AnswersItem {
+  string id = 1;
+  string date = 2;
+  google.protobuf.Struct content = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  int64 likes_count = 6;
+  repeated Likes likes = 7;
+  string answers_total = 8;
+  string author = 9;
+  string target_id = 10;
+  string parent_id = 11;
+  int64 dislikes_count = 12;
+  repeated Likes dislikes = 13;
 }

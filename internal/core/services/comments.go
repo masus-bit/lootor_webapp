@@ -2,9 +2,7 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"github.com/google/uuid"
-	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/commentsclient"
@@ -52,21 +50,21 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 		IsPremium:   user.IsPremium,
 	}
 
-	countInt, _ := strconv.Atoi(comment.Data.LikesCount)
-
 	resultComment := dto.CommentDataResponse{
 		Data: dto.CommentsResponse{
 			Comments: &dto.Comments{
-				Id:         id.String(),
-				Date:       comment.Data.Date,
-				TargetId:   comment.Data.TargetId,
-				Author:     userStruct,
-				ParentId:   comment.Data.ParentId,
-				LikesCount: countInt,
-				Content:    content,
-				CreatedAt:  createdAtAsTime,
-				UpdatedAt:  updatedAtAsTime,
-				Likes:      make([]models.SubUsers, 0),
+				Id:            id.String(),
+				Date:          comment.Data.Date,
+				TargetId:      comment.Data.TargetId,
+				Author:        userStruct,
+				ParentId:      comment.Data.ParentId,
+				LikesCount:    int(comment.Data.LikesCount),
+				DislikesCount: int(comment.Data.DislikesCount),
+				Content:       content,
+				CreatedAt:     createdAtAsTime,
+				UpdatedAt:     updatedAtAsTime,
+				Likes:         make([]models.SubUsers, 0),
+				Dislikes:      make([]models.SubUsers, 0),
 			},
 			ChildrenComments: make([]dto.ChildrenComments, 0),
 			AnswersTotal:     0,
@@ -81,7 +79,6 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(comments)
 	var resultComments []dto.CommentsResponse
 	for _, f := range comments.Data {
 		parsedId, err := uuid.Parse(f.Id)
@@ -95,8 +92,6 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 
 		answerTotalInt, _ := strconv.Atoi(f.AnswersTotal)
 
-		countInt, _ := strconv.Atoi(f.LikesCount)
-
 		user, err := s.userRepo.GetUserByLogin(f.Author)
 		if err != nil {
 			return nil, err
@@ -107,7 +102,13 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 			likesStrings = append(likesStrings, l.Author)
 		}
 
+		dislikesStrings := make([]string, 0)
+		for _, l := range f.Dislikes {
+			dislikesStrings = append(dislikesStrings, l.Author)
+		}
+
 		likes, _ := s.userRepo.GetForSubs(likesStrings)
+		dislikes, _ := s.userRepo.GetForSubs(dislikesStrings)
 
 		userStruct := models.SubUsers{
 			Login:       user.Login,
@@ -123,8 +124,6 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 			createdAtAsTimeCh, _ := time.Parse(time.RFC3339, c.CreatedAt)
 			updatedAtAsTimeCh, _ := time.Parse(time.RFC3339, c.UpdatedAt)
 
-			countIntCh, _ := strconv.Atoi(c.LikesCount)
-
 			userCh, err := s.userRepo.GetUserByLogin(c.Author)
 			if err != nil {
 				return nil, err
@@ -135,7 +134,13 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 				likesStringsCh = append(likesStringsCh, l.Author)
 			}
 
+			dislikesStringsCh := make([]string, 0)
+			for _, l := range c.Dislikes {
+				dislikesStringsCh = append(dislikesStringsCh, l.Author)
+			}
+
 			likesCh, _ := s.userRepo.GetForSubs(likesStringsCh)
+			dislikesCh, _ := s.userRepo.GetForSubs(dislikesStringsCh)
 
 			userStructCh := models.SubUsers{
 				Login:       userCh.Login,
@@ -145,32 +150,36 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 			}
 			resultChildrenComments = append(resultChildrenComments, dto.ChildrenComments{
 				Comments: &dto.Comments{
-					Id:         parsedId.String(),
-					Date:       c.Date,
-					TargetId:   c.TargetId,
-					Author:     userStructCh,
-					ParentId:   c.ParentId,
-					LikesCount: countIntCh,
-					Content:    contentChildren,
-					CreatedAt:  createdAtAsTimeCh,
-					UpdatedAt:  updatedAtAsTimeCh,
+					Id:            parsedId.String(),
+					Date:          c.Date,
+					TargetId:      c.TargetId,
+					Author:        userStructCh,
+					ParentId:      c.ParentId,
+					LikesCount:    int(c.LikesCount),
+					DislikesCount: int(c.DislikesCount),
+					Content:       contentChildren,
+					CreatedAt:     createdAtAsTimeCh,
+					UpdatedAt:     updatedAtAsTimeCh,
 				},
-				Likes: likesCh,
+				Likes:    likesCh,
+				Dislikes: dislikesCh,
 			})
 		}
 
 		resultComments = append(resultComments, dto.CommentsResponse{
 			Comments: &dto.Comments{
-				Id:         parsedId.String(),
-				Date:       f.Date,
-				TargetId:   f.TargetId,
-				Author:     userStruct,
-				ParentId:   f.ParentId,
-				LikesCount: countInt,
-				Content:    content,
-				CreatedAt:  createdAtAsTime,
-				UpdatedAt:  updatedAtAsTime,
-				Likes:      likes,
+				Id:            parsedId.String(),
+				Date:          f.Date,
+				TargetId:      f.TargetId,
+				Author:        userStruct,
+				ParentId:      f.ParentId,
+				LikesCount:    int(f.LikesCount),
+				DislikesCount: int(f.DislikesCount),
+				Content:       content,
+				CreatedAt:     createdAtAsTime,
+				UpdatedAt:     updatedAtAsTime,
+				Likes:         likes,
+				Dislikes:      dislikes,
 			},
 			ChildrenComments: resultChildrenComments,
 			AnswersTotal:     int64(answerTotalInt),
@@ -182,157 +191,9 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 	return &dto.CommentsDataResponse{Data: resultComments, Total: int64(totalInt)}, nil
 }
 
-func collectUniqueUserLogins(comments []*microservices.CommentsItem) map[string]bool {
-	uniqueLogins := make(map[string]bool)
-	for _, f := range comments {
-		uniqueLogins[f.Author] = true
-		for _, l := range f.Likes {
-			uniqueLogins[l.Author] = true
-		}
-		for _, c := range f.ChildrenComments {
-			uniqueLogins[c.Author] = true
-			for _, l := range c.Likes {
-				uniqueLogins[l.Author] = true
-			}
-		}
-	}
-	return uniqueLogins
-}
-
-func (s *CommentsService) loadUsersData(logins map[string]bool) (map[string]models.SubUsers, error) {
-	loginsSlice := make([]string, 0, len(logins))
-	for login := range logins {
-		loginsSlice = append(loginsSlice, login)
-	}
-
-	users, err := s.userRepo.GetUsersByLogins(loginsSlice)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get users: %w", err)
-	}
-
-	usersMap := make(map[string]models.SubUsers)
-	for login, user := range users {
-		usersMap[login] = models.SubUsers{
-			Login:       user.Login,
-			AvatarUrl:   user.AvatarUrl,
-			ProfileName: user.ProfileName,
-			IsPremium:   user.IsPremium,
-		}
-	}
-	return usersMap, nil
-}
-
-func (s *CommentsService) convertComments(comments []*microservices.CommentsItem, usersMap map[string]models.SubUsers) ([]dto.CommentsResponse, error) {
-	var result []dto.CommentsResponse
-
-	for _, f := range comments {
-		// Проверка и преобразование ID
-		if f.Id == "" {
-			return nil, fmt.Errorf("empty comment ID")
-		}
-
-		// Получение автора
-		author, ok := usersMap[f.Author]
-		if !ok {
-			return nil, fmt.Errorf("author %s not found", f.Author)
-		}
-
-		// Обработка лайков
-		commentLikes := make([]models.SubUsers, 0, len(f.Likes))
-		for _, l := range f.Likes {
-			if user, exists := usersMap[l.Author]; exists {
-				commentLikes = append(commentLikes, user)
-			}
-		}
-
-		// Обработка дочерних комментариев
-		children, err := s.convertChildComments(f.ChildrenComments, usersMap, f.Id)
-		if err != nil {
-			return nil, err
-		}
-
-		// Формирование ответа
-		createdAt, _ := time.Parse(time.RFC3339, f.CreatedAt)
-		updatedAt, _ := time.Parse(time.RFC3339, f.UpdatedAt)
-		result = append(result, dto.CommentsResponse{
-			Comments: &dto.Comments{
-				Id:         f.Id,
-				Date:       f.Date,
-				TargetId:   f.TargetId,
-				Author:     author,
-				ParentId:   f.ParentId,
-				LikesCount: safeAtoi(f.LikesCount),
-				Content:    utils.NormalizeContent(f.Content),
-				CreatedAt:  createdAt,
-				UpdatedAt:  updatedAt,
-				Likes:      commentLikes,
-			},
-			ChildrenComments: children,
-			AnswersTotal:     safeAtoi64(f.AnswersTotal),
-		})
-	}
-	return result, nil
-}
-
-func (s *CommentsService) convertChildComments(children []*microservices.ChildrenComments, usersMap map[string]models.SubUsers, parentId string) ([]dto.ChildrenComments, error) {
-	var result []dto.ChildrenComments
-
-	for _, c := range children {
-		// Проверка автора
-		author, ok := usersMap[c.Author]
-		if !ok {
-			return nil, fmt.Errorf("child comment author %s not found", c.Author)
-		}
-
-		// Обработка лайков
-		likes := make([]models.SubUsers, 0, len(c.Likes))
-		for _, l := range c.Likes {
-			if user, exists := usersMap[l.Author]; exists {
-				likes = append(likes, user)
-			}
-		}
-		createdAt, _ := time.Parse(time.RFC3339, c.CreatedAt)
-		updatedAt, _ := time.Parse(time.RFC3339, c.UpdatedAt)
-		result = append(result, dto.ChildrenComments{
-			Comments: &dto.Comments{
-				Id:         c.Id,
-				Date:       c.Date,
-				TargetId:   c.TargetId,
-				Author:     author,
-				ParentId:   parentId, // Используем parentId из параметра
-				LikesCount: safeAtoi(c.LikesCount),
-				Content:    utils.NormalizeContent(c.Content),
-				CreatedAt:  createdAt,
-				UpdatedAt:  updatedAt,
-				Likes:      likes,
-			},
-			Likes:      likes,
-			LikesCount: safeAtoi(c.LikesCount),
-		})
-	}
-	return result, nil
-}
-
-// Вспомогательные функции
-func safeAtoi(s string) int {
-	val, _ := strconv.Atoi(s)
-	return val
-}
-
 func safeAtoi64(s string) int64 {
 	val, _ := strconv.ParseInt(s, 10, 64)
 	return val
-}
-
-func safeFormatTime(timeStr string) string {
-	if timeStr == "" {
-		return ""
-	}
-	t, err := time.Parse(time.RFC3339, timeStr)
-	if err != nil {
-		return ""
-	}
-	return t.Format(time.RFC3339)
 }
 
 func (s *CommentsService) DeleteComment(ctx context.Context, id string) (*dto.CommonResponse, error) {
@@ -349,4 +210,79 @@ func (s *CommentsService) LikeComment(ctx context.Context, id, login string, isL
 		return nil, err
 	}
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+}
+
+func (s *CommentsService) DislikeComment(ctx context.Context, id, login string, isLike bool) (*dto.CommonResponse, error) {
+	_, err := s.likesClient.Dislike(ctx, id, login, isLike)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+}
+
+func (s *CommentsService) LoadAnswers(ctx context.Context, id, limit, offset string) (*dto.AnswersDataResponse, error) {
+
+	limitInt, _ := strconv.Atoi(limit)
+	offsetInt, _ := strconv.Atoi(offset)
+
+	request := &dto.AnswersRequest{
+		Id:     id,
+		Limit:  limitInt,
+		Offset: offsetInt,
+	}
+
+	response, err := s.commentsClient.LoadAnswers(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	var result []dto.AnswersItem
+	for _, f := range response.Data {
+
+		createdAt, _ := time.Parse(time.RFC3339, f.CreatedAt)
+		updatedAt, _ := time.Parse(time.RFC3339, f.UpdatedAt)
+
+		user, err := s.userRepo.GetUserByLogin(f.Author)
+		if err != nil {
+			return nil, err
+		}
+
+		likesStrings := make([]string, 0)
+		for _, l := range f.Likes {
+			likesStrings = append(likesStrings, l.Author)
+		}
+
+		dislikesStrings := make([]string, 0)
+		for _, l := range f.Dislikes {
+			dislikesStrings = append(dislikesStrings, l.Author)
+		}
+
+		likes, _ := s.userRepo.GetForSubs(likesStrings)
+		dislikes, _ := s.userRepo.GetForSubs(dislikesStrings)
+
+		userStruct := models.SubUsers{
+			Login:       user.Login,
+			AvatarUrl:   user.AvatarUrl,
+			ProfileName: user.ProfileName,
+			IsPremium:   user.IsPremium,
+		}
+
+		result = append(result, dto.AnswersItem{
+			Comments: &dto.Comments{
+				Id:            f.Id,
+				Date:          f.Date,
+				TargetId:      f.TargetId,
+				Author:        userStruct,
+				ParentId:      f.ParentId,
+				LikesCount:    int(f.LikesCount),
+				DislikesCount: int(f.DislikesCount),
+				Content:       utils.NormalizeContent(f.Content),
+				CreatedAt:     createdAt,
+				UpdatedAt:     updatedAt,
+				Likes:         likes,
+				Dislikes:      dislikes,
+			},
+		})
+	}
+	return &dto.AnswersDataResponse{Data: result, Total: safeAtoi64(response.Total)}, nil
+
 }

@@ -7,6 +7,7 @@ import (
 	"lootor/gen/go/microservices"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/utils"
+	"strconv"
 )
 
 type GRPCCommentsClient struct {
@@ -49,6 +50,14 @@ func (c *GRPCCommentsClient) GetAllComments(ctx context.Context, id, limit, offs
 func (c *GRPCCommentsClient) DeleteComments(ctx context.Context, id string) (*microservices.DeleteCommentResponse, error) {
 	return c.client.DeleteComment(ctx, &microservices.DeleteCommentRequest{
 		Id: id,
+	})
+}
+
+func (c *GRPCCommentsClient) LoadAnswers(ctx context.Context, dto *dto.AnswersRequest) (*microservices.AnswersResponse, error) {
+	return c.client.LoadAnswers(ctx, &microservices.AnswersRequest{
+		Id:     dto.Id,
+		Limit:  strconv.Itoa(dto.Limit),
+		Offset: strconv.Itoa(dto.Offset),
 	})
 }
 

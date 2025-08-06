@@ -1132,6 +1132,36 @@ paths:
       summary: все комменты к сущности
       tags:
       - comments
+  /public/comments/answers:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: parent id
+        in: query
+        name: parentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedDataResponseSwag'
+      summary: дозагрузка ответов
+      tags:
+      - comments
   /public/events/filter:
     get:
       consumes:
@@ -1629,6 +1659,36 @@ paths:
           schema:
             $ref: '#/definitions/dto.CommonResponse'
       summary: удаление коммента
+      tags:
+      - comments
+  /secured/comments/dislike/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: target id
+        in: path
+        name: targetId
+        required: true
+        type: string
+      - description: login
+        in: query
+        name: login
+        required: true
+        type: string
+      - description: isDislike
+        in: query
+        name: isDislike
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: лайк коммента
       tags:
       - comments
   /secured/comments/like/{id}:

@@ -13,14 +13,16 @@ type Comments struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Id         string          `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	Date       string          `json:"date"`
-	TargetId   string          `json:"targetId"`
-	Author     models.SubUsers `json:"author"`
-	ParentId   string          `json:"parentId"`
-	LikesCount int             `json:"likesCount"`
+	Id            string          `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	Date          string          `json:"date"`
+	TargetId      string          `json:"targetId"`
+	Author        models.SubUsers `json:"author"`
+	ParentId      string          `json:"parentId"`
+	LikesCount    int             `json:"likesCount"`
+	DislikesCount int             `json:"dislikesCount"`
 
-	Likes []models.SubUsers `gorm:"foreignKey:CommentId;references:Id;constraint:OnDelete:CASCADE;" json:"likes"`
+	Likes    []models.SubUsers `gorm:"foreignKey:CommentId;references:Id;constraint:OnDelete:CASCADE;" json:"likes"`
+	Dislikes []models.SubUsers `gorm:"foreignKey:CommentId;references:Id;constraint:OnDelete:CASCADE;" json:"dislikes"`
 
 	Content datatypes.JSON `gorm:"type:jsonb" json:"content"`
 }
@@ -32,8 +34,10 @@ type CommentsDataResponse struct {
 
 type ChildrenComments struct {
 	*Comments
-	Likes      []models.SubUsers `json:"likes"`
-	LikesCount int               `json:"likesCount"`
+	Likes         []models.SubUsers `json:"likes"`
+	Dislikes      []models.SubUsers `json:"dislikes"`
+	LikesCount    int               `json:"likesCount"`
+	DislikesCount int               `json:"dislikesCount"`
 }
 
 type CommentsResponse struct {
@@ -73,4 +77,22 @@ type Likes struct {
 	Author    models.SubUsers `json:"author"`
 	CommentId string          `json:"commentId"`
 	Comment   Comments        `gorm:"foreignKey:CommentId;references:Id;constraint:OnDelete:CASCADE;"`
+}
+
+type AnswersItem struct {
+	*Comments
+	Likes         []Likes `json:"likes"`
+	Dislikes      []Likes `json:"dislikes"`
+	LikesCount    int     `json:"likesCount"`
+	DislikesCount int     `json:"dislikesCount"`
+}
+
+type AnswersRequest struct {
+	Id     string `json:"id"`
+	Offset int    `json:"offset"`
+	Limit  int    `json:"limit"`
+}
+type AnswersDataResponse struct {
+	Data  []AnswersItem `json:"data"`
+	Total int64         `json:"total"`
 }

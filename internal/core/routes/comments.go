@@ -22,6 +22,6 @@ func CommentsRouter(e *echo.Echo, jwtService *auth.JWTService, commentsService s
 		securedGroup.POST("/comments", controller.CreateComment)
 		securedGroup.DELETE("/comments/:id", controller.Delete)
 		securedGroup.GET("/comments/like/:id", controller.Like)
-
+		securedGroup.GET("/comments/dislike/:id", controller.Dislike)
 	}
 }

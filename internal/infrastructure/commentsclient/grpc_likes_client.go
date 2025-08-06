@@ -37,6 +37,19 @@ func (c *GRPCLikesClient) Like(ctx context.Context, commentId, author string, is
 	return resp, nil
 }
 
+func (c *GRPCLikesClient) Dislike(ctx context.Context, commentId, author string, isLiked bool) (*microservices.LikeResponse, error) {
+
+	resp, err := c.client.Dislike(ctx, &microservices.DislikeRequest{
+		CommentId:  commentId,
+		Author:     author,
+		IsDisliked: isLiked,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (c *GRPCLikesClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

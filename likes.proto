@@ -6,11 +6,18 @@ option go_package = "./gen/go/microservices";
 
 service LikesService {
   rpc Like(LikeRequest) returns (LikeResponse);
+  rpc Dislike(DislikeRequest) returns (LikeResponse);
 }
 
 message LikeRequest {
   string comment_id = 1;
   bool is_liked = 2;
+  string author = 3;
+}
+
+message DislikeRequest {
+  string comment_id = 1;
+  bool is_disliked = 2;
   string author = 3;
 }
 

@@ -419,7 +419,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
 		if !exists.IsPrivate {
 			go func() {
-				eventError := s.eventRepo.AddEvent(exists.User.Login, utils.EventActionLike, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil, nil)
+				eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil, nil)
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}

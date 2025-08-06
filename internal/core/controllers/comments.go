@@ -64,6 +64,29 @@ func (c *CommentsController) GetAllComments(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// LoadAnswers
+// @Summary дозагрузка ответов
+// @Tags comments
+// @Accept  json
+// @Produce  json
+// @Param limit query string true "limit"
+// @Param offset query string true "offset"
+// @Param parentId query string true "parent id"
+// @Success 201 {object} dto.FeedDataResponseSwag
+// @Router /public/comments/answers [get]
+func (c *CommentsController) LoadAnswers(ctx echo.Context) error {
+	limit := ctx.QueryParam("limit")
+	offset := ctx.QueryParam("offset")
+	id := ctx.QueryParam("parentId")
+	response, err := c.commentService.LoadAnswers(ctx.Request().Context(), id, limit, offset)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
 // Like
 // @Summary лайк коммента
 // @Tags comments
@@ -78,6 +101,29 @@ func (c *CommentsController) Like(ctx echo.Context) error {
 	id := ctx.Param("id")
 	login := ctx.QueryParam("login")
 	isLike := ctx.QueryParam("isLike")
+	response, err := c.commentService.LikeComment(ctx.Request().Context(), id, login, isLike == "true")
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
+// Dislike
+// @Summary лайк коммента
+// @Tags comments
+// @Accept  json
+// @Produce  json
+// @Param targetId path string true "target id"
+// @Param login query string true "login"
+// @Param isDislike query bool true "isDislike"
+// @Success 201 {object} dto.FeedResponseSwag
+// @Router /secured/comments/dislike/{id} [get]
+func (c *CommentsController) Dislike(ctx echo.Context) error {
+	id := ctx.Param("id")
+	login := ctx.QueryParam("login")
+	isLike := ctx.QueryParam("isDislike")
 	response, err := c.commentService.LikeComment(ctx.Request().Context(), id, login, isLike == "true")
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{

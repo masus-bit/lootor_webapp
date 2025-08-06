@@ -561,6 +561,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/comments/answers": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "comments"
+                ],
+                "summary": "дозагрузка ответов",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "parent id",
+                        "name": "parentId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FeedDataResponseSwag"
+                        }
+                    }
+                }
+            }
+        },
         "/public/events/filter": {
             "get": {
                 "consumes": [
@@ -1286,6 +1331,51 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.CommentsRequestSwag"
                         }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FeedResponseSwag"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/comments/dislike/{id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "comments"
+                ],
+                "summary": "лайк коммента",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "target id",
+                        "name": "targetId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "login",
+                        "name": "login",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "isDislike",
+                        "name": "isDislike",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
