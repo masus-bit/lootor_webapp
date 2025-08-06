@@ -213,6 +213,20 @@ definitions:
       userLogin:
         type: string
     type: object
+  dto.CommentsRequestSwag:
+    properties:
+      author:
+        type: string
+      content:
+        additionalProperties: true
+        type: object
+      date:
+        type: string
+      parentId:
+        type: string
+      targetId:
+        type: string
+    type: object
   dto.CommonResponse:
     properties:
       data:
@@ -1088,6 +1102,36 @@ paths:
       summary: подписка на коллекцию
       tags:
       - collections
+  /public/comments:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: target id
+        in: query
+        name: targetId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedDataResponseSwag'
+      summary: все комменты к сущности
+      tags:
+      - comments
   /public/events/filter:
     get:
       consumes:
@@ -1546,6 +1590,77 @@ paths:
       summary: обновление коллекции
       tags:
       - collections
+  /secured/comments:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля создания
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CommentsRequestSwag'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: Создание коммента
+      tags:
+      - comments
+  /secured/comments/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: удаление коммента
+      tags:
+      - comments
+  /secured/comments/like/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: target id
+        in: path
+        name: targetId
+        required: true
+        type: string
+      - description: login
+        in: query
+        name: login
+        required: true
+        type: string
+      - description: isLike
+        in: query
+        name: isLike
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: лайк коммента
+      tags:
+      - comments
   /secured/entities:
     get:
       consumes:
