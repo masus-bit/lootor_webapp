@@ -31,6 +31,17 @@ func (c *CommentsController) CreateComment(ctx echo.Context) error {
 		})
 	}
 
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+
+	if request.Author != authUser {
+		return ctx.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Unauthorized",
+		})
+	}
+
 	context := ctx.Request().Context()
 	response, err := c.commentService.CreateComment(context, &request)
 	if err != nil {
@@ -93,15 +104,19 @@ func (c *CommentsController) LoadAnswers(ctx echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param targetId path string true "target id"
-// @Param login query string true "login"
 // @Param isLike query bool true "isLike"
 // @Success 201 {object} dto.FeedResponseSwag
 // @Router /secured/comments/like/{id} [get]
 func (c *CommentsController) Like(ctx echo.Context) error {
 	id := ctx.Param("id")
-	login := ctx.QueryParam("login")
 	isLike := ctx.QueryParam("isLike")
-	response, err := c.commentService.LikeComment(ctx.Request().Context(), id, login, isLike == "true")
+
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+
+	response, err := c.commentService.LikeComment(ctx.Request().Context(), id, authUser, isLike == "true")
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -111,20 +126,24 @@ func (c *CommentsController) Like(ctx echo.Context) error {
 }
 
 // Dislike
-// @Summary лайк коммента
+// @Summary disлайк коммента
 // @Tags comments
 // @Accept  json
 // @Produce  json
 // @Param targetId path string true "target id"
-// @Param login query string true "login"
 // @Param isDislike query bool true "isDislike"
 // @Success 201 {object} dto.FeedResponseSwag
 // @Router /secured/comments/dislike/{id} [get]
 func (c *CommentsController) Dislike(ctx echo.Context) error {
 	id := ctx.Param("id")
-	login := ctx.QueryParam("login")
 	isLike := ctx.QueryParam("isDislike")
-	response, err := c.commentService.LikeComment(ctx.Request().Context(), id, login, isLike == "true")
+
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+
+	response, err := c.commentService.LikeComment(ctx.Request().Context(), id, authUser, isLike == "true")
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

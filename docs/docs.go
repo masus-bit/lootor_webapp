@@ -1354,20 +1354,13 @@ const docTemplate = `{
                 "tags": [
                     "comments"
                 ],
-                "summary": "лайк коммента",
+                "summary": "disлайк коммента",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "target id",
                         "name": "targetId",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "login",
-                        "name": "login",
-                        "in": "query",
                         "required": true
                     },
                     {
@@ -1406,13 +1399,6 @@ const docTemplate = `{
                         "description": "target id",
                         "name": "targetId",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "login",
-                        "name": "login",
-                        "in": "query",
                         "required": true
                     },
                     {

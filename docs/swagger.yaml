@@ -1671,11 +1671,6 @@ paths:
         name: targetId
         required: true
         type: string
-      - description: login
-        in: query
-        name: login
-        required: true
-        type: string
       - description: isDislike
         in: query
         name: isDislike
@@ -1688,7 +1683,7 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/dto.FeedResponseSwag'
-      summary: лайк коммента
+      summary: disлайк коммента
       tags:
       - comments
   /secured/comments/like/{id}:
@@ -1699,11 +1694,6 @@ paths:
       - description: target id
         in: path
         name: targetId
-        required: true
-        type: string
-      - description: login
-        in: query
-        name: login
         required: true
         type: string
       - description: isLike
