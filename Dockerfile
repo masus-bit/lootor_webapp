@@ -29,7 +29,7 @@ RUN protoc \
     --go_opt=paths=source_relative \
     --go-grpc_out=./gen/go/microservices \
     --go-grpc_opt=paths=source_relative \
-    ./news_service.proto ./comments.proto ./likes.proto
+    ./news_service.proto ./comments.proto ./likes.proto ./notifications.proto
 
 COPY . .
 
