@@ -1,0 +1,83 @@
+package dto
+
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+	"time"
+)
+
+type Notifications struct {
+	CreatedAt string         `json:"createdAt"`
+	UpdatedAt string         `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+
+	Id          string     `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	UserLogin   string     `json:"userLogin"`
+	Type        string     `json:"type"`
+	SenderLogin string     `json:"senderLogin"`
+	TargetId    string     `json:"targetId"`
+	IsRead      bool       `json:"isRead"`
+	Date        string     `json:"date"`
+	TargetUser  User       `json:"targetUser"`
+	SenderUser  User       `json:"senderUser"`
+	TargetItem  TargetItem `json:"targetItem"`
+	Action      string     `json:"action"`
+}
+
+type NotificationsReadRequest struct {
+	Ids []string `json:"ids"`
+}
+
+type NotificationsRequest struct {
+	Login       string     `json:"login"`
+	TargetId    string     `json:"targetId"`
+	Type        string     `json:"type"`
+	SenderLogin string     `json:"senderLogin"`
+	Date        string     `json:"date"`
+	TargetUser  User       `json:"targetUser"`
+	SenderUser  User       `json:"senderUser"`
+	TargetItem  TargetItem `json:"targetItem"`
+	Action      string     `json:"action"`
+}
+
+type NotificationsRestRequest struct {
+	Login       string     `json:"login"`
+	TargetId    string     `json:"targetId"`
+	Type        string     `json:"type"`
+	SenderLogin string     `json:"senderLogin"`
+	Date        string     `json:"date"`
+	TargetUser  User       `json:"targetUser"`
+	SenderUser  User       `json:"senderUser"`
+	TargetItem  TargetItem `json:"targetItem"`
+	Action      string     `json:"action"`
+}
+type User struct {
+	Login       string `json:"login"`
+	IsPremium   bool   `json:"isPremium"`
+	AvatarUrl   string `json:"avatarUrl"`
+	ProfileName string `json:"profileName"`
+}
+
+type TargetItem struct {
+	Id              string `json:"id"`
+	Name            string `json:"name"`
+	Transliteration string `json:"transliteration"`
+}
+type NotificationsResponse struct {
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+
+	Id          uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	UserLogin   string    `json:"userLogin"`
+	Type        string    `json:"type"`
+	SenderLogin string    `json:"senderLogin"`
+	TargetId    string    `json:"targetId"`
+	IsRead      bool      `json:"isRead"`
+	Date        string    `json:"date"`
+	Action      string    `json:"action"`
+}
+
+type NotificationsDataResponse struct {
+	Data []Notifications `json:"data"`
+}

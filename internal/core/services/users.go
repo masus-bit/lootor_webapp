@@ -24,16 +24,17 @@ import (
 )
 
 type UserService struct {
-	repo        *repositories.UsersRepository
-	jwtService  *auth.JWTService
-	ciRepo      *repositories.CiRepository
-	mailService *mail.MailService
-	evRepo      *repositories.EventsRepository
+	repo                 *repositories.UsersRepository
+	jwtService           *auth.JWTService
+	ciRepo               *repositories.CiRepository
+	mailService          *mail.MailService
+	evRepo               *repositories.EventsRepository
+	notificationsService *NotificationsService
 }
 
-func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService, evRepo *repositories.EventsRepository) *UserService {
+func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService, evRepo *repositories.EventsRepository, notificationsService *NotificationsService) *UserService {
 	_ = godotenv.Load()
-	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, evRepo: evRepo}
+	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, evRepo: evRepo, notificationsService: notificationsService}
 }
 
 func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*models.DataUserResponseForSingleUser, error) {
@@ -174,6 +175,17 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, &targetUserLogin, nil, nil, nil)
 		if err != nil {
 			fmt.Println(err)
+		}
+		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
+			Login:       targetUserLogin,
+			TargetId:    targetUserLogin,
+			SenderLogin: authUserLogin,
+			Type:        utils.NotificationTypeUser,
+			Action:      utils.NotificationActionSubscribe,
+			Date:        time.Now().Format(time.RFC3339),
+		})
+		if err != nil {
+			return nil, err
 		}
 	} else {
 		subscriber.Subscriptions = utils.RemoveByValue(subscriber.Subscriptions, strings.ToLower(targetUserLogin))

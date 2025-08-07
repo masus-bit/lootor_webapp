@@ -18,16 +18,17 @@ import (
 )
 
 type CollectionService struct {
-	repo               *repositories.CollectionsRepository
-	tagsRepo           *repositories.TagsRepository
-	userRepo           *repositories.UsersRepository
-	eventRepo          *repositories.EventsRepository
-	collectionItemRepo *repositories.CiRepository
-	s3Service          *s3.S3Service
+	repo                 *repositories.CollectionsRepository
+	tagsRepo             *repositories.TagsRepository
+	userRepo             *repositories.UsersRepository
+	eventRepo            *repositories.EventsRepository
+	collectionItemRepo   *repositories.CiRepository
+	s3Service            *s3.S3Service
+	notificationsService *NotificationsService
 }
 
-func NewCollectionService(repo *repositories.CollectionsRepository, tagsRepo *repositories.TagsRepository, userRepo *repositories.UsersRepository, eventRepo *repositories.EventsRepository, collectionItemRepo *repositories.CiRepository, seService *s3.S3Service) *CollectionService {
-	return &CollectionService{repo: repo, tagsRepo: tagsRepo, userRepo: userRepo, eventRepo: eventRepo, collectionItemRepo: collectionItemRepo, s3Service: seService}
+func NewCollectionService(repo *repositories.CollectionsRepository, tagsRepo *repositories.TagsRepository, userRepo *repositories.UsersRepository, eventRepo *repositories.EventsRepository, collectionItemRepo *repositories.CiRepository, seService *s3.S3Service, notificationsService *NotificationsService) *CollectionService {
+	return &CollectionService{repo: repo, tagsRepo: tagsRepo, userRepo: userRepo, eventRepo: eventRepo, collectionItemRepo: collectionItemRepo, s3Service: seService, notificationsService: notificationsService}
 }
 
 func (s *CollectionService) processTags(tags []string) ([]models.Tags, error) {
@@ -405,13 +406,24 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 	if !isUserLikes {
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.IsPrivate {
-			eventError := s.eventRepo.AddEvent(exists.User.Login, utils.EventActionLike, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil, nil)
+			eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil, nil)
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
 		}
 
 		err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CollectionSelfLikeExp)
+		if err != nil {
+			return nil, err
+		}
+		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
+			Login:       exists.UserLogin,
+			TargetId:    id,
+			SenderLogin: userLogin,
+			Type:        utils.NotificationTypeCollection,
+			Action:      utils.NotificationActionLike,
+			Date:        time.Now().Format(time.RFC3339),
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -455,6 +467,17 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 			log.Default().Print(eventError)
 		}
 		err = s.userRepo.IncrementExperience(dbCollection.UserLogin, utils.CollectionSelfSubExp)
+		if err != nil {
+			return nil, err
+		}
+		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
+			Login:       dbCollection.UserLogin,
+			TargetId:    targetId,
+			SenderLogin: userLogin,
+			Type:        utils.NotificationTypeCollection,
+			Action:      utils.NotificationActionSubscribe,
+			Date:        time.Now().Format(time.RFC3339),
+		})
 		if err != nil {
 			return nil, err
 		}

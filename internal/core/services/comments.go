@@ -13,14 +13,17 @@ import (
 )
 
 type CommentsService struct {
-	commentsClient *commentsclient.GRPCCommentsClient
-	likesClient    *commentsclient.GRPCLikesClient
-	userRepo       *repositories.UsersRepository
+	commentsClient       *commentsclient.GRPCCommentsClient
+	likesClient          *commentsclient.GRPCLikesClient
+	userRepo             *repositories.UsersRepository
+	notificationsService *NotificationsService
+	collectionRepo       *repositories.CollectionsRepository
+	ciRepo               *repositories.CiRepository
 }
 
-func NewCommentsService(commentsClient *commentsclient.GRPCCommentsClient, likesClient *commentsclient.GRPCLikesClient, userRepo *repositories.UsersRepository) *CommentsService {
+func NewCommentsService(commentsClient *commentsclient.GRPCCommentsClient, likesClient *commentsclient.GRPCLikesClient, userRepo *repositories.UsersRepository, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository) *CommentsService {
 	return &CommentsService{
-		commentsClient: commentsClient, likesClient: likesClient, userRepo: userRepo}
+		commentsClient: commentsClient, likesClient: likesClient, userRepo: userRepo, notificationsService: notificationsService, collectionRepo: collectionRepo, ciRepo: ciRepo}
 }
 
 func (s *CommentsService) CreateComment(ctx context.Context, request *dto.CommentsRequest) (*dto.CommentDataResponse, error) {
@@ -69,6 +72,31 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 			ChildrenComments: make([]dto.ChildrenComments, 0),
 			AnswersTotal:     0,
 		},
+	}
+
+	var targetUserLogin string
+
+	collection, _ := s.collectionRepo.GetByIdWithoutCollectionItems(comment.Data.TargetId)
+
+	if collection != nil {
+		targetUserLogin = collection.UserLogin
+	}
+
+	ci, _ := s.ciRepo.GetCIByID(comment.Data.TargetId)
+
+	if ci != nil {
+		targetUserLogin = ci.UserLogin
+	}
+	err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
+		Login:       targetUserLogin,
+		TargetId:    resultComment.Data.Id,
+		SenderLogin: user.Login,
+		Type:        utils.NotificationTypeComment,
+		Action:      utils.NotificationActionComment,
+		Date:        time.Now().Format(time.RFC3339),
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return &resultComment, nil

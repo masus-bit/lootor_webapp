@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package notifications;
+
+option go_package = "./gen/go/microservices";
+
+service NotificationsService {
+  rpc CreateNotification(CreateNotificationRequest) returns (NotificationResponse);
+
+  rpc GetAllNotifications(GetAllNotificationsRequest) returns (GetAllNotificationsResponse);
+
+  rpc ReadNotifications(ReadRequest) returns (ReadResponse);
+}
+
+message CreateNotificationRequest {
+  string date = 1;
+  string user_login = 2;
+  string target_id = 3;
+  string type = 4;
+  string sender_login = 5;
+  User target_user = 6;
+  User sender_user = 7;
+  TargetItem target = 8;
+  string action = 9;
+}
+
+message NotificationResponse {
+  bool success = 1;
+}
+
+message GetAllNotificationsRequest {
+  string user_login = 1;
+  string offset = 2;
+  string limit = 3;
+}
+
+message ReadRequest {
+  repeated string ids = 1;
+  bool is_read = 2;
+}
+
+message ReadResponse {
+  bool success = 1;
+}
+
+message GetAllNotificationsResponse {
+  repeated NotificationsItem data = 1;
+}
+
+message User {
+  optional string login = 1;
+  optional bool is_premium = 2;
+  optional string avatar_url = 3;
+  optional string profile_name = 4;
+}
+
+message TargetItem {
+  optional string id = 1;
+  optional string name = 2;
+  optional string transliteration = 3;
+}
+
+message NotificationsItem {
+  string id = 1;
+  string date = 2;
+  string user_login = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  string target_id = 6;
+  string type = 7;
+  string sender_login = 8;
+  bool is_read = 9;
+  User target_user = 10;
+  User sender_user = 11;
+  TargetItem target = 12;
+  string action = 13;
+}

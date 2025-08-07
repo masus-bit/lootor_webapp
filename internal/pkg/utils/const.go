@@ -16,6 +16,19 @@ const (
 )
 
 const (
+	NotificationTypeCollection     = "collection"
+	NotificationTypeUser           = "user"
+	NotificationTypeCollectionItem = "collectionItem"
+	NotificationTypeComment        = "comment"
+)
+
+const (
+	NotificationActionSubscribe = "subscribe"
+	NotificationActionLike      = "like"
+	NotificationActionComment   = "comment"
+)
+
+const (
 	Seymor          = "seymor"
 	Admin           = "admin"
 	GodSeymor       = "godSeymor"

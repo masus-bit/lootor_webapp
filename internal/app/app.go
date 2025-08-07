@@ -18,6 +18,7 @@ import (
 	"lootor/internal/core/services"
 	"lootor/internal/infrastructure/commentsclient"
 	"lootor/internal/infrastructure/newsclient"
+	"lootor/internal/infrastructure/notificationsclient"
 	"lootor/internal/pkg/auth"
 	"lootor/internal/pkg/database"
 	"lootor/internal/pkg/elasticsearch"
@@ -127,6 +128,10 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	if err != nil {
 		log.Fatal("failed to create likes client:", err)
 	}
+	notificationsClient, err := notificationsclient.NewGRPCNotificationsClient(os.Getenv("NOTIFICATIONS_SERVICE_ADDR"))
+	if err != nil {
+		log.Fatal("failed to create notifications client:", err)
+	}
 
 	ciRepo := repositories.NewCiRepository(db, searchService)
 	colRepo := repositories.NewCollectionsRepository(db, searchService)
@@ -159,12 +164,12 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		time.Duration(refreshTtl)*time.Minute,
 		*userRepo,
 	)
-
+	notificationsService := services.NewNotificationsService(notificationsClient, userRepo, colRepo, ciRepo)
 	s3Service := s3.NewS3Service(redisClient)
 	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootor.me>`)
-	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsRepo)
-	ciService := services.NewCiService(ciRepo, eventsRepo, colRepo, userRepo, platformRepo, entityRepo, s3Service, itemTypesRepo)
-	colService := services.NewCollectionService(colRepo, tagRepo, userRepo, eventsRepo, ciRepo, s3Service)
+	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsRepo, notificationsService)
+	ciService := services.NewCiService(ciRepo, eventsRepo, colRepo, userRepo, platformRepo, entityRepo, s3Service, itemTypesRepo, notificationsService)
+	colService := services.NewCollectionService(colRepo, tagRepo, userRepo, eventsRepo, ciRepo, s3Service, notificationsService)
 	entitiesService := services.NewEntitiesService(entityRepo)
 	platformsService := services.NewPlatformsService(platformRepo)
 	itemTypesService := services.NewItemTypesService(itemTypesRepo)
@@ -177,7 +182,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	captchaService := auth.NewRecaptchaService()
 	reportsService := feedback.NewReportsService(fbService, ciRepo, userRepo, colRepo, wlRepo)
 	feedService := services.NewFeedService(newsClient)
-	commentsService := services.NewCommentsService(commentsClient, likesClient, userRepo)
+	commentsService := services.NewCommentsService(commentsClient, likesClient, userRepo, notificationsService, colRepo, ciRepo)
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
@@ -205,6 +210,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.ReportsRouter(e, jwtService, *reportsService)
 	routes.FeedRouter(e, jwtService, *feedService)
 	routes.CommentsRouter(e, jwtService, *commentsService)
+	routes.NotificationsRouter(e, jwtService, *notificationsService)
 
 	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagRepo, entityRepo).ReindexInternal(context.Background())
 	setupMonitoring(s3Service)

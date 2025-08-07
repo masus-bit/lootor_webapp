@@ -767,6 +767,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/notifications/read": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "прочитать уведомления",
+                "parameters": [
+                    {
+                        "description": "поля создания",
+                        "name": "createRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.FeedRequestSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.NotificationsReadRequest"
+                        }
+                    }
+                }
+            }
+        },
         "/public/search": {
             "get": {
                 "consumes": [
@@ -1845,6 +1878,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/notifications": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "получить уведомления для юзера",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FeedResponseSwag"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/payment": {
             "get": {
                 "description": "создание платежа",
@@ -2860,6 +2931,17 @@ const docTemplate = `{
             "properties": {
                 "isLike": {
                     "type": "boolean"
+                }
+            }
+        },
+        "dto.NotificationsReadRequest": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

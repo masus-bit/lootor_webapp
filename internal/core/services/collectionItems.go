@@ -14,21 +14,23 @@ import (
 	"lootor/internal/pkg/utils"
 	"reflect"
 	"slices"
+	"time"
 )
 
 type CiService struct {
-	repo           *repositories.CiRepository
-	eventRepo      *repositories.EventsRepository
-	collectionRepo *repositories.CollectionsRepository
-	userRepo       *repositories.UsersRepository
-	platformsRepo  *repositories.PlatformsRepository
-	entityRepo     *repositories.EntitiesRepository
-	s3Service      *s3.S3Service
-	itemTypeRepo   *repositories.ItemTypesRepository
+	repo                 *repositories.CiRepository
+	eventRepo            *repositories.EventsRepository
+	collectionRepo       *repositories.CollectionsRepository
+	userRepo             *repositories.UsersRepository
+	platformsRepo        *repositories.PlatformsRepository
+	entityRepo           *repositories.EntitiesRepository
+	s3Service            *s3.S3Service
+	itemTypeRepo         *repositories.ItemTypesRepository
+	notificationsService *NotificationsService
 }
 
-func NewCiService(repo *repositories.CiRepository, eventRepo *repositories.EventsRepository, collectionRepo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, platformsRepo *repositories.PlatformsRepository, entityRepo *repositories.EntitiesRepository, s3Service *s3.S3Service, itemTypeRepo *repositories.ItemTypesRepository) *CiService {
-	return &CiService{repo: repo, eventRepo: eventRepo, collectionRepo: collectionRepo, userRepo: userRepo, platformsRepo: platformsRepo, entityRepo: entityRepo, s3Service: s3Service, itemTypeRepo: itemTypeRepo}
+func NewCiService(repo *repositories.CiRepository, eventRepo *repositories.EventsRepository, collectionRepo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, platformsRepo *repositories.PlatformsRepository, entityRepo *repositories.EntitiesRepository, s3Service *s3.S3Service, itemTypeRepo *repositories.ItemTypesRepository, notificationsService *NotificationsService) *CiService {
+	return &CiService{repo: repo, eventRepo: eventRepo, collectionRepo: collectionRepo, userRepo: userRepo, platformsRepo: platformsRepo, entityRepo: entityRepo, s3Service: s3Service, itemTypeRepo: itemTypeRepo, notificationsService: notificationsService}
 }
 
 func (s *CiService) getEntities(entities []string, userLogin string) []models.Entities {
@@ -419,6 +421,17 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 			}
 		}
 		err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CISelfLikeExp)
+		if err != nil {
+			return nil, err
+		}
+		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
+			Login:       exists.UserLogin,
+			TargetId:    id,
+			SenderLogin: userLogin,
+			Type:        utils.NotificationTypeCollectionItem,
+			Action:      utils.NotificationActionLike,
+			Date:        time.Now().Format(time.RFC3339),
+		})
 		if err != nil {
 			return nil, err
 		}

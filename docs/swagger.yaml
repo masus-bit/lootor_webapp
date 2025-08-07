@@ -346,6 +346,13 @@ definitions:
       isLike:
         type: boolean
     type: object
+  dto.NotificationsReadRequest:
+    properties:
+      ids:
+        items:
+          type: string
+        type: array
+    type: object
   dto.Resp:
     properties:
       success:
@@ -1268,6 +1275,27 @@ paths:
       summary: получить изображение
       tags:
       - images
+  /public/notifications/read:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля создания
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.FeedRequestSwag'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.NotificationsReadRequest'
+      summary: прочитать уведомления
+      tags:
+      - notifications
   /public/search:
     get:
       consumes:
@@ -1969,6 +1997,31 @@ paths:
       summary: получить список типов КИ
       tags:
       - itemTypes
+  /secured/notifications:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: получить уведомления для юзера
+      tags:
+      - notifications
   /secured/payment:
     get:
       description: создание платежа
