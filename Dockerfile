@@ -14,10 +14,10 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY news_service.proto ./
-COPY comments.proto ./
-COPY likes.proto ./
-COPY notifications.proto ./
+COPY protobuf/news_service.proto ./
+COPY protobuf/comments.proto ./
+COPY protobuf/likes.proto ./
+COPY protobuf/notifications.proto ./
 
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
