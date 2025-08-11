@@ -40,8 +40,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 
 	createdAtAsTime, _ := time.Parse(time.RFC3339, comment.Data.CreatedAt)
 	updatedAtAsTime, _ := time.Parse(time.RFC3339, comment.Data.UpdatedAt)
-
-	user, err := s.userRepo.GetUserByLogin(comment.Data.Author)
+	user, err := s.userRepo.GetUserByLogin(request.Author)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +57,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 			Comments: &dto.Comments{
 				Id:            id.String(),
 				Date:          comment.Data.Date,
-				TargetId:      comment.Data.TargetId,
+				TargetId:      request.TargetId,
 				Author:        userStruct,
 				ParentId:      comment.Data.ParentId,
 				LikesCount:    int(comment.Data.LikesCount),
@@ -76,15 +75,15 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 
 	var targetUserLogin string
 
-	collection, _ := s.collectionRepo.GetByIdWithoutCollectionItems(comment.Data.TargetId)
+	collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetId)
 
-	if collection != nil {
+	if err == nil {
 		targetUserLogin = collection.UserLogin
 	}
 
-	ci, _ := s.ciRepo.GetCIByID(comment.Data.TargetId)
+	ci, err := s.ciRepo.GetCIByID(request.TargetId)
 
-	if ci != nil {
+	if err == nil {
 		targetUserLogin = ci.UserLogin
 	}
 	err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
