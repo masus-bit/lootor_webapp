@@ -14,6 +14,7 @@ import (
 	"lootor/internal/pkg/utils"
 	"reflect"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -390,8 +391,15 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	finalCollection.CanLike = true
 	finalCollection.IsOwner = authorizerUser == userLogin
 	if authUser != nil {
-
+		subArray = authUser.Subscriptions
+		var lowerCasedUsers []string
+		for _, userInArray := range subArray {
+			lowerCasedUsers = append(lowerCasedUsers, strings.ToLower(userInArray))
+		}
+		canSubscribe := !slices.Contains(lowerCasedUsers, strings.ToLower(userLogin))
+		finalCollection.User.CanSubscribe = canSubscribe
 		finalCollection.CanLike = !slices.Contains(dbCollection.Likes, authUser.Login)
+
 	}
 	return &models.CollectionDataResponse{Data: finalCollection}, nil
 
