@@ -71,6 +71,7 @@ message ChildrenComments {
   string parent_id = 10;
   int64 dislikes_count = 11;
   repeated Likes dislikes = 12;
+  string deleted_at = 13;
 }
 
 message CommentsItem {
@@ -88,6 +89,7 @@ message CommentsItem {
   string parent_id = 12;
   int64 dislikes_count = 13;
   repeated Likes dislikes = 14;
+  string deleted_at = 15;
 }
 
 message AnswersResponse {
@@ -115,4 +117,5 @@ message AnswersItem {
   string parent_id = 11;
   int64 dislikes_count = 12;
   repeated Likes dislikes = 13;
+  string deleted_at = 14;
 }

@@ -9,9 +9,9 @@ import (
 )
 
 type Comments struct {
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	DeletedAt time.Time `json:"deletedAt" gorm:"index"`
 
 	Id            string          `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	Date          string          `json:"date"`

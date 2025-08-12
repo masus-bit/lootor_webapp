@@ -116,6 +116,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 
 		createdAtAsTime, _ := time.Parse(time.RFC3339, f.CreatedAt)
 		updatedAtAsTime, _ := time.Parse(time.RFC3339, f.UpdatedAt)
+		deletedAtAsTime, _ := time.Parse(time.RFC3339, f.DeletedAt)
 
 		answerTotalInt, _ := strconv.Atoi(f.AnswersTotal)
 
@@ -150,6 +151,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 
 			createdAtAsTimeCh, _ := time.Parse(time.RFC3339, c.CreatedAt)
 			updatedAtAsTimeCh, _ := time.Parse(time.RFC3339, c.UpdatedAt)
+			deletedAtAsTimeCh, _ := time.Parse(time.RFC3339, c.DeletedAt)
 
 			userCh, err := s.userRepo.GetUserByLogin(c.Author)
 			if err != nil {
@@ -187,6 +189,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 					Content:       contentChildren,
 					CreatedAt:     createdAtAsTimeCh,
 					UpdatedAt:     updatedAtAsTimeCh,
+					DeletedAt:     deletedAtAsTimeCh,
 				},
 				Likes:    likesCh,
 				Dislikes: dislikesCh,
@@ -207,6 +210,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 				UpdatedAt:     updatedAtAsTime,
 				Likes:         likes,
 				Dislikes:      dislikes,
+				DeletedAt:     deletedAtAsTime,
 			},
 			ChildrenComments: resultChildrenComments,
 			AnswersTotal:     int64(answerTotalInt),
