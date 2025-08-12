@@ -88,7 +88,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 	}
 	err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
 		Login:       targetUserLogin,
-		TargetId:    resultComment.Data.Id,
+		TargetId:    request.TargetId,
 		SenderLogin: user.Login,
 		Type:        utils.NotificationTypeComment,
 		Action:      utils.NotificationActionComment,
