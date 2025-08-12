@@ -143,7 +143,7 @@ func (c *CommentsController) Dislike(ctx echo.Context) error {
 		authUser = ""
 	}
 
-	response, err := c.commentService.LikeComment(ctx.Request().Context(), id, authUser, isLike == "true")
+	response, err := c.commentService.DislikeComment(ctx.Request().Context(), id, authUser, isLike == "true")
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
