@@ -179,7 +179,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 				Comments: &dto.Comments{
 					Id:            parsedId.String(),
 					Date:          c.Date,
-					TargetId:      c.TargetId,
+					TargetId:      targetId,
 					Author:        userStructCh,
 					ParentId:      c.ParentId,
 					LikesCount:    int(c.LikesCount),
@@ -197,7 +197,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 			Comments: &dto.Comments{
 				Id:            parsedId.String(),
 				Date:          f.Date,
-				TargetId:      f.TargetId,
+				TargetId:      targetId,
 				Author:        userStruct,
 				ParentId:      f.ParentId,
 				LikesCount:    int(f.LikesCount),
