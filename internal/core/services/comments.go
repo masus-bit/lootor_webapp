@@ -126,6 +126,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 		deletedAtStr := ""
 		if !deletedAtAsTime.IsZero() {
 			deletedAtStr = deletedAtAsTime.Format(time.RFC3339)
+			content = nil
 		}
 		answerTotalInt, _ := strconv.Atoi(f.AnswersTotal)
 
@@ -164,6 +165,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 			deletedAtStrCh := ""
 			if !deletedAtAsTimeCh.IsZero() {
 				deletedAtStrCh = deletedAtAsTimeCh.Format(time.RFC3339)
+				contentChildren = nil
 			}
 
 			userCh, err := s.userRepo.GetUserByLogin(c.Author)
