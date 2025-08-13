@@ -179,7 +179,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 			}
 			resultChildrenComments = append(resultChildrenComments, dto.ChildrenComments{
 				Comments: &dto.Comments{
-					Id:            parsedId.String(),
+					Id:            c.Id,
 					Date:          c.Date,
 					TargetId:      targetId,
 					Author:        userStructCh,
