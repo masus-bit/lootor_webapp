@@ -109,7 +109,7 @@ func (r *EventsRepository) GetFilteredEvents(
 
 	query.Count(&count)
 
-	if err := query.Limit(intLimit).Offset(intOffset).Find(&events).Order("date DESC").Error; err != nil {
+	if err := query.Order("date DESC").Limit(intLimit).Offset(intOffset).Find(&events).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to get events: %w", err)
 	}
 	if err := r.loadEventRelations(&events); err != nil {
