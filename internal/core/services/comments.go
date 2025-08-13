@@ -40,6 +40,11 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 
 	createdAtAsTime, _ := time.Parse(time.RFC3339, comment.Data.CreatedAt)
 	updatedAtAsTime, _ := time.Parse(time.RFC3339, comment.Data.UpdatedAt)
+	deletedAtAsTime, _ := time.Parse(time.RFC3339, comment.Data.DeletedAt)
+	deletedAtStr := ""
+	if !deletedAtAsTime.IsZero() {
+		deletedAtStr = deletedAtAsTime.Format(time.RFC3339)
+	}
 	user, err := s.userRepo.GetUserByLogin(request.Author)
 	if err != nil {
 		return nil, err
@@ -67,6 +72,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 				UpdatedAt:     updatedAtAsTime,
 				Likes:         make([]models.SubUsers, 0),
 				Dislikes:      make([]models.SubUsers, 0),
+				DeletedAt:     deletedAtStr,
 			},
 			ChildrenComments: make([]dto.ChildrenComments, 0),
 			AnswersTotal:     0,
@@ -117,7 +123,10 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 		createdAtAsTime, _ := time.Parse(time.RFC3339, f.CreatedAt)
 		updatedAtAsTime, _ := time.Parse(time.RFC3339, f.UpdatedAt)
 		deletedAtAsTime, _ := time.Parse(time.RFC3339, f.DeletedAt)
-
+		deletedAtStr := ""
+		if !deletedAtAsTime.IsZero() {
+			deletedAtStr = deletedAtAsTime.Format(time.RFC3339)
+		}
 		answerTotalInt, _ := strconv.Atoi(f.AnswersTotal)
 
 		user, err := s.userRepo.GetUserByLogin(f.Author)
@@ -152,6 +161,10 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 			createdAtAsTimeCh, _ := time.Parse(time.RFC3339, c.CreatedAt)
 			updatedAtAsTimeCh, _ := time.Parse(time.RFC3339, c.UpdatedAt)
 			deletedAtAsTimeCh, _ := time.Parse(time.RFC3339, c.DeletedAt)
+			deletedAtStrCh := ""
+			if !deletedAtAsTimeCh.IsZero() {
+				deletedAtStrCh = deletedAtAsTimeCh.Format(time.RFC3339)
+			}
 
 			userCh, err := s.userRepo.GetUserByLogin(c.Author)
 			if err != nil {
@@ -189,7 +202,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 					Content:       contentChildren,
 					CreatedAt:     createdAtAsTimeCh,
 					UpdatedAt:     updatedAtAsTimeCh,
-					DeletedAt:     deletedAtAsTimeCh,
+					DeletedAt:     deletedAtStrCh,
 				},
 				Likes:    likesCh,
 				Dislikes: dislikesCh,
@@ -210,7 +223,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 				UpdatedAt:     updatedAtAsTime,
 				Likes:         likes,
 				Dislikes:      dislikes,
-				DeletedAt:     deletedAtAsTime,
+				DeletedAt:     deletedAtStr,
 			},
 			ChildrenComments: resultChildrenComments,
 			AnswersTotal:     int64(answerTotalInt),
@@ -316,4 +329,11 @@ func (s *CommentsService) LoadAnswers(ctx context.Context, id, limit, offset str
 	}
 	return &dto.AnswersDataResponse{Data: result, Total: safeAtoi64(response.Total)}, nil
 
+}
+
+func formatTimeOrEmpty(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.Format(time.RFC3339)
 }
