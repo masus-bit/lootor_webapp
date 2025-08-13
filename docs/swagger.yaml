@@ -1275,27 +1275,6 @@ paths:
       summary: получить изображение
       tags:
       - images
-  /public/notifications/read:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: поля создания
-        in: body
-        name: createRequest
-        required: true
-        schema:
-          $ref: '#/definitions/dto.FeedRequestSwag'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.NotificationsReadRequest'
-      summary: прочитать уведомления
-      tags:
-      - notifications
   /public/search:
     get:
       consumes:
@@ -2020,6 +1999,27 @@ paths:
           schema:
             $ref: '#/definitions/dto.FeedResponseSwag'
       summary: получить уведомления для юзера
+      tags:
+      - notifications
+  /secured/notifications/read:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля создания
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.FeedRequestSwag'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.NotificationsReadRequest'
+      summary: прочитать уведомления
       tags:
       - notifications
   /secured/payment:

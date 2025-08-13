@@ -50,7 +50,7 @@ func (c *NotificationsController) GetAllByLogin(ctx echo.Context) error {
 // @Produce  json
 // @Param createRequest body dto.FeedRequestSwag true "поля создания"
 // @Success 201 {object} dto.NotificationsReadRequest
-// @Router /public/notifications/read [post]
+// @Router /secured/notifications/read [post]
 func (c *NotificationsController) ReadNotifications(ctx echo.Context) error {
 	var request dto.NotificationsReadRequest
 	if err := ctx.Bind(&request); err != nil {

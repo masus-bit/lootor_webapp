@@ -172,7 +172,6 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 			if err != nil {
 				return nil, err
 			}
-
 			likesStringsCh := make([]string, 0)
 			for _, l := range c.Likes {
 				likesStringsCh = append(likesStringsCh, l.Author)
@@ -194,20 +193,20 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 			}
 			resultChildrenComments = append(resultChildrenComments, dto.ChildrenComments{
 				Comments: &dto.Comments{
-					Id:            c.Id,
-					Date:          c.Date,
-					TargetId:      targetId,
-					Author:        userStructCh,
-					ParentId:      c.ParentId,
-					LikesCount:    int(c.LikesCount),
-					DislikesCount: int(c.DislikesCount),
-					Content:       contentChildren,
-					CreatedAt:     createdAtAsTimeCh,
-					UpdatedAt:     updatedAtAsTimeCh,
-					DeletedAt:     deletedAtStrCh,
+					Id:        c.Id,
+					Date:      c.Date,
+					TargetId:  targetId,
+					Author:    userStructCh,
+					ParentId:  c.ParentId,
+					Content:   contentChildren,
+					CreatedAt: createdAtAsTimeCh,
+					UpdatedAt: updatedAtAsTimeCh,
+					DeletedAt: deletedAtStrCh,
 				},
-				Likes:    likesCh,
-				Dislikes: dislikesCh,
+				Likes:         likesCh,
+				Dislikes:      dislikesCh,
+				LikesCount:    int(c.LikesCount),
+				DislikesCount: int(c.DislikesCount),
 			})
 		}
 

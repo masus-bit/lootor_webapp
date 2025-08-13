@@ -767,39 +767,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/public/notifications/read": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "notifications"
-                ],
-                "summary": "прочитать уведомления",
-                "parameters": [
-                    {
-                        "description": "поля создания",
-                        "name": "createRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.FeedRequestSwag"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.NotificationsReadRequest"
-                        }
-                    }
-                }
-            }
-        },
         "/public/search": {
             "get": {
                 "consumes": [
@@ -1911,6 +1878,39 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/dto.FeedResponseSwag"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/notifications/read": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "прочитать уведомления",
+                "parameters": [
+                    {
+                        "description": "поля создания",
+                        "name": "createRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.FeedRequestSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.NotificationsReadRequest"
                         }
                     }
                 }
