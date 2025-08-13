@@ -93,12 +93,14 @@ func (r *EventsRepository) GetFilteredEvents(
 	var count int64
 
 	query := r.db.Model(&models.Events{}).
-		Where("LOWER(initiator_login) = LOWER(?)", userLogin).Preload("Initiator").
-		Order("date DESC")
+		Where("LOWER(initiator_login) = LOWER(?)", userLogin).Preload("Initiator")
 
 	switch {
 	case collectionId != "":
-		query = query.Where("target_collection_id = ?", collectionId)
+		collectionItemsIds := r.db.Table("collections_collection_items_collection_items").Where("collections_id = ?", collectionId).Select("collection_items_id")
+		query = query.Where("target_collection_id = ?", collectionId).
+			Or("target_item_id IN (?)", collectionItemsIds)
+
 	case collectionItemId != "":
 		query = query.Where("target_item_id = ?", collectionItemId)
 	case wlItemId != "":
@@ -107,10 +109,9 @@ func (r *EventsRepository) GetFilteredEvents(
 
 	query.Count(&count)
 
-	if err := query.Limit(intLimit).Offset(intOffset).Find(&events).Error; err != nil {
+	if err := query.Limit(intLimit).Offset(intOffset).Find(&events).Order("date DESC").Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to get events: %w", err)
 	}
-
 	if err := r.loadEventRelations(&events); err != nil {
 		return nil, 0, fmt.Errorf("failed to load event relations: %w", err)
 	}
