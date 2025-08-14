@@ -190,9 +190,6 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 			})
 
 		}()
-		if err != nil {
-			return nil, err
-		}
 	} else {
 		subscriber.Subscriptions = utils.RemoveByValue(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers - 1

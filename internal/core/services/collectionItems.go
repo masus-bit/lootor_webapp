@@ -434,9 +434,6 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 				Date:        time.Now().Format(time.RFC3339),
 			})
 		}()
-		if err != nil {
-			return nil, err
-		}
 	} else {
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
 		err = s.userRepo.DecrementExperience(exists.UserLogin, utils.CISelfLikeExp)

@@ -433,9 +433,6 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 				Date:        time.Now().Format(time.RFC3339),
 			})
 		}()
-		if err != nil {
-			return nil, err
-		}
 	} else {
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
 		if !exists.IsPrivate {
@@ -489,9 +486,6 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 				Date:        time.Now().Format(time.RFC3339),
 			})
 		}()
-		if err != nil {
-			return nil, err
-		}
 	} else {
 		subscriber.CollectionSubscriptions = utils.RemoveByValue(subscriber.CollectionSubscriptions, targetId)
 		dbCollection.SubscribersCount = dbCollection.SubscribersCount - 1

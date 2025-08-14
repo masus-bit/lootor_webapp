@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
@@ -102,9 +103,6 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 			Date:        time.Now().Format(time.RFC3339),
 		})
 	}()
-	if err != nil {
-		return nil, err
-	}
 
 	err = s.userRepo.IncrementExperience(request.Author, 1)
 	if err != nil {
@@ -260,6 +258,7 @@ func (s *CommentsService) LikeComment(ctx context.Context, id, login string, isL
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(ok)
 	if isLike {
 		err = s.userRepo.IncrementSocialScore(ok.GetTargetUser(), 1)
 		if err != nil {
