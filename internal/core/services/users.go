@@ -172,18 +172,24 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		err = s.repo.IncrementExperience(targetUserLogin, utils.UserSelfSubExp)
 
 		subscriptionTargetUser.Exp += utils.UserSelfSubExp
-		err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, &targetUserLogin, nil, nil, nil)
-		if err != nil {
-			fmt.Println(err)
-		}
-		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
-			Login:       targetUserLogin,
-			TargetId:    targetUserLogin,
-			SenderLogin: authUserLogin,
-			Type:        utils.NotificationTypeUser,
-			Action:      utils.NotificationActionSubscribe,
-			Date:        time.Now().Format(time.RFC3339),
-		})
+
+		go func() {
+			err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, &targetUserLogin, nil, nil, nil)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}()
+		go func() {
+			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
+				Login:       targetUserLogin,
+				TargetId:    targetUserLogin,
+				SenderLogin: authUserLogin,
+				Type:        utils.NotificationTypeUser,
+				Action:      utils.NotificationActionSubscribe,
+				Date:        time.Now().Format(time.RFC3339),
+			})
+
+		}()
 		if err != nil {
 			return nil, err
 		}

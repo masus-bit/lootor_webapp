@@ -23,4 +23,5 @@ message DislikeRequest {
 
 message LikeResponse {
   bool success = 1;
+  string target_user = 2;
 }

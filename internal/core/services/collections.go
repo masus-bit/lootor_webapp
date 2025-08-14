@@ -423,14 +423,16 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		if err != nil {
 			return nil, err
 		}
-		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
-			Login:       exists.UserLogin,
-			TargetId:    id,
-			SenderLogin: userLogin,
-			Type:        utils.NotificationTypeCollection,
-			Action:      utils.NotificationActionLike,
-			Date:        time.Now().Format(time.RFC3339),
-		})
+		go func() {
+			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
+				Login:       exists.UserLogin,
+				TargetId:    id,
+				SenderLogin: userLogin,
+				Type:        utils.NotificationTypeCollection,
+				Action:      utils.NotificationActionLike,
+				Date:        time.Now().Format(time.RFC3339),
+			})
+		}()
 		if err != nil {
 			return nil, err
 		}
@@ -477,14 +479,16 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 		if err != nil {
 			return nil, err
 		}
-		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
-			Login:       dbCollection.UserLogin,
-			TargetId:    targetId,
-			SenderLogin: userLogin,
-			Type:        utils.NotificationTypeCollection,
-			Action:      utils.NotificationActionSubscribe,
-			Date:        time.Now().Format(time.RFC3339),
-		})
+		go func() {
+			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
+				Login:       dbCollection.UserLogin,
+				TargetId:    targetId,
+				SenderLogin: userLogin,
+				Type:        utils.NotificationTypeCollection,
+				Action:      utils.NotificationActionSubscribe,
+				Date:        time.Now().Format(time.RFC3339),
+			})
+		}()
 		if err != nil {
 			return nil, err
 		}

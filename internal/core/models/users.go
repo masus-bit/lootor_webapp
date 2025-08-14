@@ -33,10 +33,12 @@ type Users struct {
 	PremiumUntil            time.Time       `json:"premiumUntil,omitempty"`
 	PremiumType             string          `json:"premiumType,omitempty"`
 	ReportsCount            int64           `json:"-"`
-	CreatorRating           int             `json:"creatorRating"`
 	DeletedAt               *time.Time      `json:"-" gorm:"column:deleted_at"`
 	ProfileName             string          `json:"profileName"`
-	Exp                     int             `json:"exp"`
+
+	CreatorRating int `json:"creatorRating"`
+	Exp           int `json:"exp"`
+	SocialScore   int `json:"socialScore"`
 }
 
 type SignUpRequest struct {
@@ -104,6 +106,7 @@ type UserResponse struct {
 	ShippingTotal           int             `json:"shippingTotal"`
 	ProfileName             string          `json:"profileName"`
 	Exp                     int             `json:"exp"`
+	SocialScore             int             `json:"socialScore"`
 }
 
 type UserResponseForSingleUser struct {
@@ -133,6 +136,7 @@ type UserResponseForSingleUser struct {
 	ShippingTotal           int             `json:"shippingTotal"`
 	ProfileName             string          `json:"profileName"`
 	Exp                     int             `json:"exp"`
+	SocialScore             int             `json:"socialScore"`
 }
 
 type UserRequestUpdate struct {

@@ -92,14 +92,21 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 	if err == nil {
 		targetUserLogin = ci.UserLogin
 	}
-	err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
-		Login:       targetUserLogin,
-		TargetId:    request.TargetId,
-		SenderLogin: user.Login,
-		Type:        utils.NotificationTypeComment,
-		Action:      utils.NotificationActionComment,
-		Date:        time.Now().Format(time.RFC3339),
-	})
+	go func() {
+		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
+			Login:       targetUserLogin,
+			TargetId:    request.TargetId,
+			SenderLogin: user.Login,
+			Type:        utils.NotificationTypeComment,
+			Action:      utils.NotificationActionComment,
+			Date:        time.Now().Format(time.RFC3339),
+		})
+	}()
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.userRepo.IncrementExperience(request.Author, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -249,17 +256,39 @@ func (s *CommentsService) DeleteComment(ctx context.Context, id string) (*dto.Co
 }
 
 func (s *CommentsService) LikeComment(ctx context.Context, id, login string, isLike bool) (*dto.CommonResponse, error) {
-	_, err := s.likesClient.Like(ctx, id, login, isLike)
+	ok, err := s.likesClient.Like(ctx, id, login, isLike)
 	if err != nil {
 		return nil, err
+	}
+	if isLike {
+		err = s.userRepo.IncrementSocialScore(ok.GetTargetUser(), 1)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err = s.userRepo.DecrementSocialScore(ok.GetTargetUser(), 1)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
 func (s *CommentsService) DislikeComment(ctx context.Context, id, login string, isLike bool) (*dto.CommonResponse, error) {
-	_, err := s.likesClient.Dislike(ctx, id, login, isLike)
+	ok, err := s.likesClient.Dislike(ctx, id, login, isLike)
 	if err != nil {
 		return nil, err
+	}
+	if isLike {
+		err = s.userRepo.DecrementSocialScore(ok.GetTargetUser(), 1)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err = s.userRepo.IncrementSocialScore(ok.GetTargetUser(), 1)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }

@@ -424,14 +424,16 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 		if err != nil {
 			return nil, err
 		}
-		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
-			Login:       exists.UserLogin,
-			TargetId:    id,
-			SenderLogin: userLogin,
-			Type:        utils.NotificationTypeCollectionItem,
-			Action:      utils.NotificationActionLike,
-			Date:        time.Now().Format(time.RFC3339),
-		})
+		go func() {
+			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
+				Login:       exists.UserLogin,
+				TargetId:    id,
+				SenderLogin: userLogin,
+				Type:        utils.NotificationTypeCollectionItem,
+				Action:      utils.NotificationActionLike,
+				Date:        time.Now().Format(time.RFC3339),
+			})
+		}()
 		if err != nil {
 			return nil, err
 		}

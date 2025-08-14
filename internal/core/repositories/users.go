@@ -430,6 +430,18 @@ func (r *UsersRepository) DecrementExperience(userLogin string, amount int) erro
 		Update("exp", gorm.Expr("GREATEST(COALESCE(exp, 0) - ?, 0)", amount)).Error
 }
 
+func (r *UsersRepository) IncrementSocialScore(userLogin string, amount int) error {
+	return r.db.Model(&models.Users{}).
+		Where("LOWER(login) = LOWER(?)", userLogin).
+		Update("social_score", gorm.Expr("COALESCE(social_score, 0) + ?", amount)).Error
+}
+
+func (r *UsersRepository) DecrementSocialScore(userLogin string, amount int) error {
+	return r.db.Model(&models.Users{}).
+		Where("LOWER(login) = LOWER(?)", userLogin).
+		Update("social_score", gorm.Expr("COALESCE(social_score, 0) - ?", amount)).Error
+}
+
 func (r *UsersRepository) GetUsersByLogins(logins []string) (map[string]*models.Users, error) {
 	users := make(map[string]*models.Users)
 	for _, login := range logins {
