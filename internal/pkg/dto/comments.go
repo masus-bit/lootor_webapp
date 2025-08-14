@@ -81,10 +81,10 @@ type Likes struct {
 
 type AnswersItem struct {
 	*Comments
-	Likes         []Likes `json:"likes"`
-	Dislikes      []Likes `json:"dislikes"`
-	LikesCount    int     `json:"likesCount"`
-	DislikesCount int     `json:"dislikesCount"`
+	Likes         []models.SubUsers `json:"likes"`
+	Dislikes      []models.SubUsers `json:"dislikes"`
+	LikesCount    int               `json:"likesCount"`
+	DislikesCount int               `json:"dislikesCount"`
 }
 
 type AnswersRequest struct {

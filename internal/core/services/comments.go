@@ -312,19 +312,19 @@ func (s *CommentsService) LoadAnswers(ctx context.Context, id, limit, offset str
 
 		result = append(result, dto.AnswersItem{
 			Comments: &dto.Comments{
-				Id:            f.Id,
-				Date:          f.Date,
-				TargetId:      f.TargetId,
-				Author:        userStruct,
-				ParentId:      f.ParentId,
-				LikesCount:    int(f.LikesCount),
-				DislikesCount: int(f.DislikesCount),
-				Content:       utils.NormalizeContent(f.Content),
-				CreatedAt:     createdAt,
-				UpdatedAt:     updatedAt,
-				Likes:         likes,
-				Dislikes:      dislikes,
+				Id:        f.Id,
+				Date:      f.Date,
+				TargetId:  f.TargetId,
+				Author:    userStruct,
+				ParentId:  f.ParentId,
+				Content:   utils.NormalizeContent(f.Content),
+				CreatedAt: createdAt,
+				UpdatedAt: updatedAt,
 			},
+			LikesCount:    int(f.LikesCount),
+			DislikesCount: int(f.DislikesCount),
+			Likes:         likes,
+			Dislikes:      dislikes,
 		})
 	}
 	return &dto.AnswersDataResponse{Data: result, Total: safeAtoi64(response.Total)}, nil
