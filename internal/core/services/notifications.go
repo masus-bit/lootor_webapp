@@ -126,6 +126,8 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 				Transliteration: ci.Transliteration,
 			}
 			resultNotifications = append(resultNotifications, tempItem)
+		default:
+			resultNotifications = append(resultNotifications, tempItem)
 		}
 	}
 
