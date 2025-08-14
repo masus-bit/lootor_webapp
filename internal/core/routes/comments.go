@@ -14,6 +14,7 @@ func CommentsRouter(e *echo.Echo, jwtService *auth.JWTService, commentsService s
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
 		publicGroup.GET("/comments", controller.GetAllComments)
+		publicGroup.GET("/comments/answers", controller.LoadAnswers)
 	}
 
 	securedGroup := e.Group("/secured")

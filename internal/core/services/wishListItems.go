@@ -240,7 +240,6 @@ func (s *WLService) Update(id string, req models.WishListUpdateRequest, login st
 
 	existsItem, err := s.wlRepo.GetById(id)
 
-	fmt.Println(existsItem)
 	if err != nil {
 		return nil, err
 	}

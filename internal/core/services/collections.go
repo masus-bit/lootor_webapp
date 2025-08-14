@@ -60,7 +60,6 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(existsCollection)
 	if existsCollection != nil {
 		return nil, errors.New("collection с таким именем уже существует")
 	}

@@ -406,23 +406,18 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		}
 	}
 
-	fmt.Println(1)
-
 	err2 := s.repo.CreateUser(&newUser)
 	if err2 != nil {
 		return nil, fmt.Errorf("db error: %w", err)
 	}
-	fmt.Println(2)
 	user, err := s.repo.GetByVkId(newUser.VkId)
 	if err != nil {
 		return nil, fmt.Errorf("db error: %w", err)
 	}
-	fmt.Println(3)
 	tokens, err := s.jwtService.GenerateTokenPair(user)
 	if err != nil {
 		return nil, fmt.Errorf("token generation error: %w", err)
 	}
-	fmt.Println(4)
 	return &models.SignInResponseWithTmpLogin{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,

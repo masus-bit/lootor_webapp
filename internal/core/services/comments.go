@@ -158,7 +158,6 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 		var resultChildrenComments []dto.ChildrenComments
 		for _, c := range f.ChildrenComments {
 			contentChildren := utils.NormalizeContent(c.Content)
-
 			createdAtAsTimeCh, _ := time.Parse(time.RFC3339, c.CreatedAt)
 			updatedAtAsTimeCh, _ := time.Parse(time.RFC3339, c.UpdatedAt)
 			deletedAtAsTimeCh, _ := time.Parse(time.RFC3339, c.DeletedAt)

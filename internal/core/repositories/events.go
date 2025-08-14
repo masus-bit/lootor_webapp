@@ -35,7 +35,6 @@ func (r *EventsRepository) AddEvent(
 		InitiatorLogin:  initiatorLogin,
 		Date:            time.Now().Format(time.RFC3339),
 	}
-	fmt.Println(targetWLID)
 	switch targetType {
 	case "user":
 		event.TargetUserLogin = targetUserLogin

@@ -39,7 +39,6 @@ func DefineShareString(authorizedUser string, id string, collection *models.Coll
 }
 
 func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsResponse, order string) []models.CollectionsResponse {
-	fmt.Println(orderByInput)
 	switch orderByInput {
 	case "name":
 		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
