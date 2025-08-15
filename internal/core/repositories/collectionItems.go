@@ -609,3 +609,9 @@ func (r *CiRepository) GetAll(limit, offset, search string) ([]models.Collection
 
 	return collectionItems, nil
 }
+
+func (r *CiRepository) IncrementCommentsCount(id string, amount int) error {
+	return r.db.Model(&models.CollectionItems{}).
+		Where("id = ?", id).
+		Update("comments_count", gorm.Expr("COALESCE(comments_count, 0) + ?", amount)).Error
+}

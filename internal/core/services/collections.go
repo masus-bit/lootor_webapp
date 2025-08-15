@@ -391,6 +391,12 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	finalCollection.IsOwner = authorizerUser == userLogin
 	if authUser != nil {
 		subArray = authUser.Subscriptions
+		subsExtended, _ := s.userRepo.GetForSubs(subArray)
+		subscribersArray := authUser.SubscribersLogins
+		subscribersExtended, _ := s.userRepo.GetForSubs(subscribersArray)
+		finalCollection.User.SubscriptionsExtended = subsExtended
+		finalCollection.User.SubscribersExtended = subscribersExtended
+
 		var lowerCasedUsers []string
 		for _, userInArray := range subArray {
 			lowerCasedUsers = append(lowerCasedUsers, strings.ToLower(userInArray))

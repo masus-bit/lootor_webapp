@@ -95,6 +95,9 @@ type UserResponse struct {
 	BackgroundUrl           string          `json:"backgroundUrl"`
 	Subscribers             int             `json:"subscribers"`
 	Subscriptions           []string        `json:"subscriptions"`
+	SubscribersLogins       []string        `json:"subscribersLogins"`
+	SubscriptionsExtended   []SubUsers      `json:"subscriptionsExtended" mapstructure:"-"`
+	SubscribersExtended     []SubUsers      `json:"subscribersExtended" mapstructure:"-"`
 	CollectionSubscriptions pq.StringArray  `json:"collectionSubscriptions"`
 	CanSubscribe            bool            `json:"canSubscribe"`
 	CollectionItemsCount    int             `json:"collectionItemsCount" default:"0"`

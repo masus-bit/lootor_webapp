@@ -772,3 +772,9 @@ func (r *CollectionsRepository) GetUniqueByName(name string, login string) (*mod
 
 	return &collection, nil
 }
+
+func (r *CollectionsRepository) IncrementCommentsCount(id string, amount int) error {
+	return r.db.Model(&models.Collections{}).
+		Where("id = ?", id).
+		Update("comments_count", gorm.Expr("COALESCE(comments_count, 0) + ?", amount)).Error
+}

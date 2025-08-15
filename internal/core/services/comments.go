@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"github.com/google/uuid"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
@@ -86,12 +85,20 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 
 	if err == nil {
 		targetUserLogin = collection.UserLogin
+		err = s.collectionRepo.IncrementCommentsCount(request.TargetId, 1)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	ci, err := s.ciRepo.GetCIByID(request.TargetId)
 
 	if err == nil {
 		targetUserLogin = ci.UserLogin
+		err = s.ciRepo.IncrementCommentsCount(request.TargetId, 1)
+		if err != nil {
+			return nil, err
+		}
 	}
 	go func() {
 		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
@@ -258,7 +265,6 @@ func (s *CommentsService) LikeComment(ctx context.Context, id, login string, isL
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(ok)
 	if isLike {
 		err = s.userRepo.IncrementSocialScore(ok.GetTargetUser(), 1)
 		if err != nil {

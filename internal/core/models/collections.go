@@ -40,6 +40,7 @@ type Collections struct {
 	Tags             []Tags            `gorm:"many2many:tags_collections_collections;constraint:OnDelete:CASCADE;" json:"tags"`
 	UserLogin        string            `gorm:"type:varchar(255);index"`
 	ReportsCount     int64             `json:"-"`
+	CommentsCount    int64             `json:"commentsCount"`
 }
 
 func (CollectionsCollectionItemsCollectionItems) TableName() string {
@@ -72,6 +73,7 @@ type CollectionsResponse struct {
 	CreatedAt            time.Time                 `json:"createdAt"`
 	CanLike              bool                      `json:"canLike"`
 	IsOwner              bool                      `json:"isOwner"`
+	CommentsCount        int64                     `json:"commentsCount"`
 }
 
 type CollectionDataResponse struct {

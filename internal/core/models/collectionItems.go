@@ -40,6 +40,7 @@ type CollectionItems struct {
 	PlatformID      *uuid.UUID    `gorm:"type:uuid;index"`
 	ItemTypeID      *uuid.UUID    `gorm:"type:uuid;index"`
 	ReportsCount    int64         `json:"-"`
+	CommentsCount   int64         `json:"commentsCount"`
 }
 
 func (EntitiesCollectionItemCollectionItem) TableName() string {
@@ -67,6 +68,7 @@ type CollectionItemsResponse struct {
 	LikesCount                int64      `json:"likesCount"`
 	IsOwner                   bool       `json:"isOwner"`
 	CollectionTransliteration string     `json:"collectionTransliteration"`
+	CommentsCount             int64      `json:"commentsCount"`
 }
 
 type CollectionItemsRequestCreate struct {
