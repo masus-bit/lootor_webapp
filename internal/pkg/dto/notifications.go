@@ -20,7 +20,7 @@ type Notifications struct {
 	Date        string     `json:"date"`
 	TargetUser  User       `json:"targetUser"`
 	SenderUser  User       `json:"senderUser"`
-	TargetItem  TargetItem `json:"targetItem"`
+	Target      TargetItem `json:"target"`
 	Action      string     `json:"action"`
 }
 
@@ -62,6 +62,7 @@ type TargetItem struct {
 	Id              string `json:"id"`
 	Name            string `json:"name"`
 	Transliteration string `json:"transliteration"`
+	TargetType      string `json:"targetType"`
 }
 type NotificationsResponse struct {
 	CreatedAt time.Time      `json:"createdAt"`

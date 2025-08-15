@@ -34,10 +34,12 @@ func (c *GRPCNotificationsClient) AddNotification(ctx context.Context, dto *dto.
 		Type:        dto.Type,
 		SenderLogin: dto.SenderLogin,
 		Action:      dto.Action,
+		TargetType:  dto.TargetItem.TargetType,
 		Target: &microservices.TargetItem{
 			Id:              &dto.TargetItem.Id,
 			Name:            &dto.TargetItem.Name,
 			Transliteration: &dto.TargetItem.Transliteration,
+			TargetType:      &dto.TargetItem.TargetType,
 		},
 		TargetUser: &microservices.User{
 			Login:       &dto.TargetUser.Login,

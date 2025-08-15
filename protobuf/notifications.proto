@@ -22,6 +22,7 @@ message CreateNotificationRequest {
   User sender_user = 7;
   TargetItem target = 8;
   string action = 9;
+  string target_type = 10;
 }
 
 message NotificationResponse {
@@ -58,6 +59,7 @@ message TargetItem {
   optional string id = 1;
   optional string name = 2;
   optional string transliteration = 3;
+  optional string target_type = 4;
 }
 
 message NotificationsItem {

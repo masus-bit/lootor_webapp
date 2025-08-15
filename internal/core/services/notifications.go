@@ -23,19 +23,22 @@ func (s *NotificationsService) SendNotification(ctx context.Context, request *dt
 	targetUser, _ := s.userRepo.GetUserByLogin(request.Login)
 	senderUser, _ := s.userRepo.GetUserByLogin(request.SenderLogin)
 	var targetReq dto.TargetItem
-	if request.Type == "collection" {
-		collection, _ := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetId)
+	collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetId)
+	if err == nil {
 		targetReq = dto.TargetItem{
 			Id:              collection.Id.String(),
 			Name:            collection.Name,
 			Transliteration: collection.Transliteration,
+			TargetType:      "collection",
 		}
-	} else if request.Type == "collectionItem" {
-		ci, _ := s.ciRepo.GetCIByID(request.TargetId)
+	}
+	ci, err := s.ciRepo.GetCIByID(request.TargetId)
+	if err == nil {
 		targetReq = dto.TargetItem{
 			Id:              ci.Id.String(),
 			Name:            ci.Name,
 			Transliteration: ci.Transliteration,
+			TargetType:      "collectionItem",
 		}
 	}
 	targetUserReq := dto.User{
@@ -68,7 +71,7 @@ func (s *NotificationsService) SendNotification(ctx context.Context, request *dt
 		Action:      request.Action,
 	}
 
-	_, err := s.notificationsClient.AddNotification(ctx, &finalRequest)
+	_, err = s.notificationsClient.AddNotification(ctx, &finalRequest)
 	if err != nil {
 		return err
 	}
@@ -109,26 +112,25 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 				ProfileName: initUser.ProfileName,
 			},
 		}
-		switch n.Type {
-		case "collection":
-			collection, _ := s.collectionRepo.GetByIdWithoutCollectionItems(n.TargetId)
-			tempItem.TargetItem = dto.TargetItem{
+		collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(n.TargetId)
+		if err == nil {
+			tempItem.Target = dto.TargetItem{
 				Id:              collection.Id.String(),
 				Name:            collection.Name,
 				Transliteration: collection.Transliteration,
+				TargetType:      "collection",
 			}
-			resultNotifications = append(resultNotifications, tempItem)
-		case "collectionItem":
-			ci, _ := s.ciRepo.GetCIByID(n.TargetId)
-			tempItem.TargetItem = dto.TargetItem{
+		}
+		ci, err := s.ciRepo.GetCIByID(n.TargetId)
+		if err == nil {
+			tempItem.Target = dto.TargetItem{
 				Id:              ci.Id.String(),
 				Name:            ci.Name,
 				Transliteration: ci.Transliteration,
+				TargetType:      "collectionItem",
 			}
-			resultNotifications = append(resultNotifications, tempItem)
-		default:
-			resultNotifications = append(resultNotifications, tempItem)
 		}
+		resultNotifications = append(resultNotifications, tempItem)
 	}
 
 	return &dto.NotificationsDataResponse{Data: resultNotifications}, nil
