@@ -84,7 +84,11 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 	collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetId)
 
 	if err == nil {
-		targetUserLogin = collection.UserLogin
+		if request.TargetUserLogin != nil {
+			targetUserLogin = *request.TargetUserLogin
+		} else {
+			targetUserLogin = collection.UserLogin
+		}
 		err = s.collectionRepo.IncrementCommentsCount(request.TargetId, 1)
 		if err != nil {
 			return nil, err
@@ -94,7 +98,11 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 	ci, err := s.ciRepo.GetCIByID(request.TargetId)
 
 	if err == nil {
-		targetUserLogin = ci.UserLogin
+		if request.TargetUserLogin != nil {
+			targetUserLogin = *request.TargetUserLogin
+		} else {
+			targetUserLogin = ci.UserLogin
+		}
 		err = s.ciRepo.IncrementCommentsCount(request.TargetId, 1)
 		if err != nil {
 			return nil, err

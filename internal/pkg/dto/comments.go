@@ -47,10 +47,11 @@ type CommentsResponse struct {
 }
 
 type CommentsRequest struct {
-	Date     string  `json:"date"`
-	TargetId string  `json:"targetId"`
-	Author   string  `json:"author"`
-	ParentId *string `json:"parentId"`
+	Date            string  `json:"date"`
+	TargetId        string  `json:"targetId"`
+	Author          string  `json:"author"`
+	ParentId        *string `json:"parentId"`
+	TargetUserLogin *string `json:"targetUserLogin"`
 
 	Content datatypes.JSON `json:"content"`
 }
