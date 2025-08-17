@@ -37,7 +37,7 @@ func (s *NotificationsService) SendNotification(ctx context.Context, request *dt
 		targetReq = dto.TargetItem{
 			Id:              ci.Id.String(),
 			Name:            ci.Name,
-			Transliteration: ci.Transliteration,
+			Transliteration: ci.Collections[0].Transliteration,
 			TargetType:      "collectionItem",
 		}
 	}
