@@ -126,7 +126,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			tempItem.Target = dto.TargetItem{
 				Id:              ci.Id.String(),
 				Name:            ci.Name,
-				Transliteration: ci.Transliteration,
+				Transliteration: ci.Collections[0].Transliteration,
 				TargetType:      "collectionItem",
 			}
 		}
