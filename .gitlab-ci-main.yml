@@ -69,11 +69,8 @@ deploy:
       docker network rm lootor_network || true
       docker network create lootor_network || true
       
-      docker-compose -f docker-compose.backend.yml down
-      
-      docker-compose -f docker-compose.backend.yml pull
-      
-      docker-compose -f docker-compose.backend.yml up -d auc redis elasticsearch news
+      docker-compose -f docker-compose.backend.yml stop backend1 backend2 backend3 backend4 nginx      
+      docker-compose -f docker-compose.backend.yml pull || true
       
       for i in {1..10}; do
         if docker exec lootor_auc pg_isready -U auc -d lootor; then
