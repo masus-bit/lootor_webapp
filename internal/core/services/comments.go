@@ -80,6 +80,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 	}
 
 	var targetUserLogin string
+	var ownerLogin string
 
 	collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetId)
 
@@ -93,6 +94,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 		if err != nil {
 			return nil, err
 		}
+		ownerLogin = collection.UserLogin
 	}
 
 	ci, err := s.ciRepo.GetCIByID(request.TargetId)
@@ -107,6 +109,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 		if err != nil {
 			return nil, err
 		}
+		ownerLogin = ci.UserLogin
 	}
 	go func() {
 		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
@@ -116,6 +119,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 			Type:        utils.NotificationTypeComment,
 			Action:      utils.NotificationActionComment,
 			Date:        time.Now().Format(time.RFC3339),
+			OwnerLogin:  ownerLogin,
 		})
 	}()
 

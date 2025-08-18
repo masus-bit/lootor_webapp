@@ -53,6 +53,12 @@ func (c *GRPCNotificationsClient) AddNotification(ctx context.Context, dto *dto.
 			AvatarUrl:   &dto.SenderUser.AvatarUrl,
 			ProfileName: &dto.SenderUser.ProfileName,
 		},
+		Owner: &microservices.User{
+			Login:       &dto.Owner.Login,
+			IsPremium:   &dto.Owner.IsPremium,
+			AvatarUrl:   &dto.Owner.AvatarUrl,
+			ProfileName: &dto.Owner.ProfileName,
+		},
 	})
 	if err != nil {
 		return nil, err

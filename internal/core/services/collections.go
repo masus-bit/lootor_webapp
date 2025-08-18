@@ -437,6 +437,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 				Type:        utils.NotificationTypeCollection,
 				Action:      utils.NotificationActionLike,
 				Date:        time.Now().Format(time.RFC3339),
+				OwnerLogin:  exists.UserLogin,
 			})
 		}()
 	} else {
@@ -490,6 +491,7 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 				Type:        utils.NotificationTypeCollection,
 				Action:      utils.NotificationActionSubscribe,
 				Date:        time.Now().Format(time.RFC3339),
+				OwnerLogin:  dbCollection.UserLogin,
 			})
 		}()
 	} else {

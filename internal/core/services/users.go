@@ -187,6 +187,7 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 				Type:        utils.NotificationTypeUser,
 				Action:      utils.NotificationActionSubscribe,
 				Date:        time.Now().Format(time.RFC3339),
+				OwnerLogin:  targetUserLogin,
 			})
 
 		}()

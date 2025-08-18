@@ -432,6 +432,7 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 				Type:        utils.NotificationTypeCollectionItem,
 				Action:      utils.NotificationActionLike,
 				Date:        time.Now().Format(time.RFC3339),
+				OwnerLogin:  exists.UserLogin,
 			})
 		}()
 	} else {

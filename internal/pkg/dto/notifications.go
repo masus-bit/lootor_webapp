@@ -22,6 +22,7 @@ type Notifications struct {
 	SenderUser  User       `json:"senderUser"`
 	Target      TargetItem `json:"target"`
 	Action      string     `json:"action"`
+	Owner       User       `json:"owner"`
 }
 
 type NotificationsReadRequest struct {
@@ -36,6 +37,8 @@ type NotificationsRequest struct {
 	Date        string     `json:"date"`
 	TargetUser  User       `json:"targetUser"`
 	SenderUser  User       `json:"senderUser"`
+	Owner       User       `json:"owner"`
+	OwnerLogin  string     `json:"ownerLogin"`
 	TargetItem  TargetItem `json:"targetItem"`
 	Action      string     `json:"action"`
 }
@@ -73,6 +76,7 @@ type NotificationsResponse struct {
 	UserLogin   string    `json:"userLogin"`
 	Type        string    `json:"type"`
 	SenderLogin string    `json:"senderLogin"`
+	OwnerLogin  string    `json:"ownerLogin"`
 	TargetId    string    `json:"targetId"`
 	IsRead      bool      `json:"isRead"`
 	Date        string    `json:"date"`

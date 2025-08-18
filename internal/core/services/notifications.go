@@ -22,6 +22,7 @@ func NewNotificationsService(notificationsClient *notificationsclient.GRPCNotifi
 func (s *NotificationsService) SendNotification(ctx context.Context, request *dto.NotificationsRequest) error {
 	targetUser, _ := s.userRepo.GetUserByLogin(request.Login)
 	senderUser, _ := s.userRepo.GetUserByLogin(request.SenderLogin)
+	owner, _ := s.userRepo.GetUserByLogin(request.OwnerLogin)
 	var targetReq dto.TargetItem
 	collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetId)
 	if err == nil {
@@ -55,9 +56,17 @@ func (s *NotificationsService) SendNotification(ctx context.Context, request *dt
 		ProfileName: senderUser.ProfileName,
 	}
 
+	ownerUserReq := dto.User{
+		Login:       owner.Login,
+		IsPremium:   owner.IsPremium,
+		AvatarUrl:   owner.AvatarUrl,
+		ProfileName: owner.ProfileName,
+	}
+
 	request.TargetUser = targetUserReq
 	request.SenderUser = senderUserReq
 	request.TargetItem = targetReq
+	request.Owner = ownerUserReq
 
 	finalRequest := dto.NotificationsRequest{
 		Login:       request.Login,
@@ -69,6 +78,7 @@ func (s *NotificationsService) SendNotification(ctx context.Context, request *dt
 		SenderUser:  request.SenderUser,
 		TargetItem:  request.TargetItem,
 		Action:      request.Action,
+		Owner:       request.Owner,
 	}
 
 	_, err = s.notificationsClient.AddNotification(ctx, &finalRequest)
@@ -114,20 +124,34 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		}
 		collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(n.TargetId)
 		if err == nil {
+			owner, _ := s.userRepo.GetUserByLogin(collection.UserLogin)
 			tempItem.Target = dto.TargetItem{
 				Id:              collection.Id.String(),
 				Name:            collection.Name,
 				Transliteration: collection.Transliteration,
 				TargetType:      "collection",
 			}
+			tempItem.Owner = dto.User{
+				Login:       owner.Login,
+				IsPremium:   owner.IsPremium,
+				AvatarUrl:   owner.AvatarUrl,
+				ProfileName: owner.ProfileName,
+			}
 		}
 		ci, err := s.ciRepo.GetCIByID(n.TargetId)
 		if err == nil {
+			owner, _ := s.userRepo.GetUserByLogin(ci.UserLogin)
 			tempItem.Target = dto.TargetItem{
 				Id:              ci.Id.String(),
 				Name:            ci.Name,
 				Transliteration: ci.Collections[0].Transliteration,
 				TargetType:      "collectionItem",
+			}
+			tempItem.Owner = dto.User{
+				Login:       owner.Login,
+				IsPremium:   owner.IsPremium,
+				AvatarUrl:   owner.AvatarUrl,
+				ProfileName: owner.ProfileName,
 			}
 		}
 		resultNotifications = append(resultNotifications, tempItem)
