@@ -81,34 +81,45 @@ deploy:
       
       docker-compose -f docker-compose.backend.yml up -d backend1 backend2 backend3 backend4
       
-      for i in {1..10}; do
-        if docker exec lootor_backend1 curl -f http://localhost:5111/health; then
+      for i in {1..15}; do
+        if docker exec lootor_backend1 curl -sf http://localhost:5111/health >/dev/null; then
+          echo "Backend1 is healthy"
           break
         fi
         sleep 3
+        [ $i -eq 15 ] && echo "Backend1 not healthy after 45s" && exit 1
       done
       
+      # Запуск Nginx с расширенными проверками
       for attempt in {1..5}; do
         echo "Attempt $attempt to start nginx"
         docker-compose -f docker-compose.backend.yml up -d nginx
-        sleep 10  
+        sleep 5
       
-        if docker ps --filter "name=lootor_nginx" --format "{{.Status}}" | grep -q "Up"; then
-          echo "Nginx is up and running"
-          break
-        else
-          echo "Nginx failed to start, retrying..."
-          docker-compose -f docker-compose.backend.yml stop nginx || true
+        # Проверка, что контейнер запущен и слушает порты
+        if docker ps --filter "name=lootor_nginx" --format "{{.Status}}" | grep -q "(healthy\|Up)"; then
+          if docker exec lootor_nginx nginx -t; then
+            echo "Nginx is up and running"
+            break
+          else
+            echo "Nginx configuration test failed"
+          fi
         fi
+      
+        echo "Nginx failed to start, retrying..."
+        docker-compose -f docker-compose.backend.yml stop nginx || true
+        sleep 5
+        [ $attempt -eq 5 ] && echo "Nginx failed to start after 5 attempts" && exit 1
       done
       
+      # Финальные проверки
       docker-compose -f docker-compose.backend.yml ps
-      docker logs lootor_backend1 --tail 50
-      docker logs lootor_auc --tail 20
-      docker logs lootor_nginx --tail 20 || true
+      docker inspect lootor_nginx --format '{{.State.Health.Status}}'
+      docker logs lootor_nginx --tail 20
+      
+      # Очистка
       docker image prune -f
-      docker builder prune --all --force
-      docker image prune -a --force
-      docker volume prune --force
-      exit
+      docker builder prune -af
+      docker volume prune -f
+      exit 0
       EOF
