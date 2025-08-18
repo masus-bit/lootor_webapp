@@ -111,12 +111,21 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 		}
 		ownerLogin = ci.UserLogin
 	}
+
+	var typeComment string
+
+	if *request.ParentId != "" {
+		typeComment = utils.NotificationTypeAnswer
+	} else {
+		typeComment = utils.NotificationTypeComment
+	}
+
 	go func() {
 		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
 			Login:       targetUserLogin,
 			TargetId:    request.TargetId,
 			SenderLogin: user.Login,
-			Type:        utils.NotificationTypeComment,
+			Type:        typeComment,
 			Action:      utils.NotificationActionComment,
 			Date:        time.Now().Format(time.RFC3339),
 			OwnerLogin:  ownerLogin,

@@ -20,6 +20,7 @@ const (
 	NotificationTypeUser           = "user"
 	NotificationTypeCollectionItem = "collectionItem"
 	NotificationTypeComment        = "comment"
+	NotificationTypeAnswer         = "answer"
 )
 
 const (
