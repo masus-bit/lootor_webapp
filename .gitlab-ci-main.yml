@@ -91,7 +91,7 @@ deploy:
       for attempt in {1..5}; do
         echo "Attempt $attempt to start nginx"
         docker-compose -f docker-compose.backend.yml up -d nginx
-        sleep 10  # Даем время на старт
+        sleep 10  
       
         if docker ps --filter "name=lootor_nginx" --format "{{.Status}}" | grep -q "Up"; then
           echo "Nginx is up and running"
