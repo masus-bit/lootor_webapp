@@ -84,7 +84,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 	collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetId)
 
 	if err == nil {
-		if request.TargetUserLogin != nil {
+		if *request.TargetUserLogin != "" {
 			targetUserLogin = *request.TargetUserLogin
 		} else {
 			targetUserLogin = collection.UserLogin
@@ -98,7 +98,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 	ci, err := s.ciRepo.GetCIByID(request.TargetId)
 
 	if err == nil {
-		if request.TargetUserLogin != nil {
+		if *request.TargetUserLogin != "" {
 			targetUserLogin = *request.TargetUserLogin
 		} else {
 			targetUserLogin = ci.UserLogin
