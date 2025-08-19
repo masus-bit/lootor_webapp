@@ -893,7 +893,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "получение юзера по логину",
+                "summary": "получение юзеров",
                 "parameters": [
                     {
                         "type": "string",
@@ -913,6 +913,13 @@ const docTemplate = `{
                         "type": "string",
                         "description": "search",
                         "name": "search",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "order",
+                        "name": "order",
                         "in": "query",
                         "required": true
                     }

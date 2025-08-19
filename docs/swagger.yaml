@@ -1370,6 +1370,11 @@ paths:
         name: search
         required: true
         type: string
+      - description: order
+        in: query
+        name: order
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -1377,7 +1382,7 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/dto.DataUserResponseSwagger'
-      summary: получение юзера по логину
+      summary: получение юзеров
       tags:
       - users
   /public/user/reset:
