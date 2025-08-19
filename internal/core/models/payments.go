@@ -22,3 +22,8 @@ type Payments struct {
 type PaymentsData struct {
 	Data []Payments `json:"data"`
 }
+
+type PaymentsTotalDonations struct {
+	UserLogin      string
+	TotalDonations string
+}

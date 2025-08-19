@@ -110,6 +110,7 @@ type UserResponse struct {
 	ProfileName             string          `json:"profileName"`
 	Exp                     int             `json:"exp"`
 	SocialScore             int             `json:"socialScore"`
+	TotalDonations          string          `json:"totalDonations"`
 }
 
 type UserResponseForSingleUser struct {
@@ -183,7 +184,8 @@ type DataUserResponseForSingleUser struct {
 }
 
 type DataUsersResponse struct {
-	Data []UserResponse `json:"data"`
+	Data  []UserResponse `json:"data"`
+	Total int64          `json:"total"`
 }
 
 type SignInResponse struct {

@@ -7,6 +7,7 @@ import (
 	"log"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
+	"lootor/internal/pkg/utils"
 	"strconv"
 	"time"
 )
@@ -341,22 +342,55 @@ func (r *UsersRepository) CheckPremiumStatus(userLogin string) (bool, error) {
 	return user.IsPremium && user.PremiumUntil.After(time.Now()), nil
 }
 
-func (r *UsersRepository) GetAll(search string, limit, offset string) ([]models.Users, error) {
+func (r *UsersRepository) GetAll(search, limit, offset, order string) ([]models.Users, int64, map[string]string, error) {
 	intLimit, _ := strconv.Atoi(limit)
 	intOffset, _ := strconv.Atoi(offset)
 	var users []models.Users
-	query := r.db.
-		Order("users.login ASC").
-		Limit(intLimit).
-		Offset(intOffset)
+	var payments []models.PaymentsTotalDonations
+	var totalCount int64
+	orderString := utils.UsersOrder(order)
+	userDonateMap := map[string]string{}
 
-	if search != "" {
-		query = query.Where("login ILIKE ? AND deleted_at IS NULL", "%"+search+"%")
+	subQuery := r.db.Table("payments").
+		Select("user_login, SUM(CAST(NULLIF(amount, '') AS NUMERIC)) as total_donations").
+		Group("user_login")
+
+	err := subQuery.Find(&payments).Error
+	if err != nil {
+		return nil, 0, userDonateMap, err
+	}
+	for _, payment := range payments {
+		userDonateMap[payment.UserLogin] = payment.TotalDonations
 	}
 
-	err := query.Find(&users).Error
+	query := r.db
 
-	return users, err
+	if order == "donate" {
+		query = query.Select("users.*, COALESCE(p.total_donations, 0) as total_donations").
+			Joins("LEFT JOIN (?) as p ON users.login = p.user_login", subQuery).Order("total_donations DESC")
+	} else {
+		query = query.Model(&models.Users{}).Order("COALESCE(users." + orderString + ", 0) DESC")
+	}
+	query = query.Limit(intLimit).Offset(intOffset)
+
+	if search != "" {
+		query = query.Where("users.login ILIKE ? AND users.deleted_at IS NULL", "%"+search+"%")
+	} else {
+		query = query.Where("users.deleted_at IS NULL")
+	}
+
+	err = query.Find(&users).Error
+	if err != nil {
+		return nil, 0, userDonateMap, err
+	}
+
+	countQuery := r.db.Model(&models.Users{}).Where("deleted_at IS NULL")
+	if search != "" {
+		countQuery = countQuery.Where("login ILIKE ?", "%"+search+"%")
+	}
+	err = countQuery.Count(&totalCount).Error
+
+	return users, totalCount, userDonateMap, err
 }
 
 func (r *UsersRepository) DeactivatePremium() error {

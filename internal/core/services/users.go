@@ -808,8 +808,8 @@ func (s *UserService) CheckDeletedUsers() {
 	}
 }
 
-func (s *UserService) GetAll(search, limit, offset string) (*models.DataUsersResponse, error) {
-	users, err := s.repo.GetAll(search, limit, offset)
+func (s *UserService) GetAll(search, limit, offset, order string) (*models.DataUsersResponse, error) {
+	users, total, donateMap, err := s.repo.GetAll(search, limit, offset, order)
 
 	if err != nil {
 		return nil, err
@@ -823,11 +823,13 @@ func (s *UserService) GetAll(search, limit, offset string) (*models.DataUsersRes
 		if err != nil {
 			return nil, err
 		}
+		tempUser.TotalDonations = donateMap[user.Login]
 		result = append(result, tempUser)
 	}
 
 	return &models.DataUsersResponse{
-		Data: result,
+		Data:  result,
+		Total: total,
 	}, nil
 }
 

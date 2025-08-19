@@ -263,3 +263,18 @@ func Slugify(input string) string {
 
 	return strings.ToLower(result.String())
 }
+
+func UsersOrder(order string) string {
+	var finalOrder string
+
+	switch order {
+	case "socialScore":
+		finalOrder = "social_score"
+	case "creatorRating":
+		finalOrder = "creator_rating"
+	default:
+		finalOrder = order
+	}
+
+	return finalOrder
+}
