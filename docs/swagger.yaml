@@ -353,6 +353,8 @@ definitions:
           type: string
         type: array
     type: object
+  dto.PostUpdateRequest:
+    type: object
   dto.Resp:
     properties:
       success:
@@ -1275,6 +1277,86 @@ paths:
       summary: получить изображение
       tags:
       - images
+  /public/posts:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: login
+        in: query
+        name: login
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedDataResponseSwag'
+      summary: получить посты юзера
+      tags:
+      - posts
+  /public/posts/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: получить пост по id
+      tags:
+      - posts
+  /public/posts/all:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: order
+        in: query
+        name: order
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedDataResponseSwag'
+      summary: все посты с пагинацией
+      tags:
+      - posts
   /public/search:
     get:
       consumes:
@@ -2074,6 +2156,90 @@ paths:
       summary: получить список платформ
       tags:
       - platforms
+  /secured/posts:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      summary: Создание post
+      tags:
+      - posts
+  /secured/posts/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: удаление posta
+      tags:
+      - posts
+  /secured/posts/react/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: reaction
+        in: query
+        name: reaction
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: поставить реакцию
+      tags:
+      - posts
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля
+        in: body
+        name: updateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PostUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: обновить контент поста
+      tags:
+      - posts
+  /secured/posts/react/delete/{id}:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: убрать реакцию
+      tags:
+      - posts
   /secured/reports:
     get:
       consumes:

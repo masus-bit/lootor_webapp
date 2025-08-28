@@ -12,6 +12,7 @@ type NotificationsService struct {
 	userRepo            *repositories.UsersRepository
 	collectionRepo      *repositories.CollectionsRepository
 	ciRepo              *repositories.CiRepository
+	postsService        *PostsService
 }
 
 func NewNotificationsService(notificationsClient *notificationsclient.GRPCNotificationsClient, userRepo *repositories.UsersRepository, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository) *NotificationsService {
@@ -42,6 +43,17 @@ func (s *NotificationsService) SendNotification(ctx context.Context, request *dt
 			TargetType:      "collectionItem",
 		}
 	}
+	post, err := s.postsService.GetPostById(ctx, request.TargetId, request.Login)
+	if err == nil {
+		targetReq = dto.TargetItem{
+			Id:              post.Data.Id,
+			Name:            "",
+			Transliteration: "",
+			TargetType:      "post",
+		}
+
+	}
+
 	targetUserReq := dto.User{
 		Login:       targetUser.Login,
 		IsPremium:   targetUser.IsPremium,

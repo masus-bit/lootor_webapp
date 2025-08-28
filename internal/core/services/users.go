@@ -19,6 +19,7 @@ import (
 	"reflect"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -30,11 +31,12 @@ type UserService struct {
 	mailService          *mail.MailService
 	evRepo               *repositories.EventsRepository
 	notificationsService *NotificationsService
+	collectionRepo       *repositories.CollectionsRepository
 }
 
-func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService, evRepo *repositories.EventsRepository, notificationsService *NotificationsService) *UserService {
+func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService, evRepo *repositories.EventsRepository, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository) *UserService {
 	_ = godotenv.Load()
-	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, evRepo: evRepo, notificationsService: notificationsService}
+	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, evRepo: evRepo, notificationsService: notificationsService, collectionRepo: collectionRepo}
 }
 
 func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*models.DataUserResponseForSingleUser, error) {
@@ -50,14 +52,17 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	var response models.UserResponseForSingleUser
 
 	if userLogin == authUser {
-
+		totalDonations, _ := s.repo.GetDonationsTotal(userLogin)
 		collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(userLogin)
+		collectionsCount, _ := s.collectionRepo.GetCollectionsCount(userLogin)
 		sum, _ := s.ciRepo.SumByUserLogin(userLogin)
 		shippingTotal, _ := s.ciRepo.ShippingSumByUserLogin(userLogin)
-
+		donationsString := strconv.FormatFloat(totalDonations, 'f', -1, 64)
 		response.TotalSum = int(sum)
 		response.CollectionItemsCount = int(collectionItemsCount)
+		response.CollectionsCount = int(collectionsCount)
 		response.ShippingTotal = int(shippingTotal)
+		response.TotalDonations = donationsString
 
 		e := mapstructure.Decode(dbUser, &response)
 
@@ -91,12 +96,17 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	}
 
 	collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(userLogin)
+	collectionsCount, _ := s.collectionRepo.GetCollectionsCount(userLogin)
 	sum, _ := s.ciRepo.SumByUserLogin(userLogin)
 	shippingTotal, _ := s.ciRepo.ShippingSumByUserLogin(userLogin)
+	totalDonations, _ := s.repo.GetDonationsTotal(userLogin)
+	donationsString := strconv.FormatFloat(totalDonations, 'f', -1, 64)
 
 	response.TotalSum = int(sum)
 	response.CollectionItemsCount = int(collectionItemsCount)
+	response.CollectionsCount = int(collectionsCount)
 	response.ShippingTotal = int(shippingTotal)
+	response.TotalDonations = donationsString
 	e := mapstructure.Decode(dbUser, &response)
 	if e != nil {
 		return nil, e
@@ -824,6 +834,15 @@ func (s *UserService) GetAll(search, limit, offset, order string) (*models.DataU
 			return nil, err
 		}
 		tempUser.TotalDonations = donateMap[user.Login]
+		collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(user.Login)
+		collectionsCount, _ := s.collectionRepo.GetCollectionsCount(user.Login)
+		sum, _ := s.ciRepo.SumByUserLogin(user.Login)
+		shippingTotal, _ := s.ciRepo.ShippingSumByUserLogin(user.Login)
+
+		tempUser.TotalSum = int(sum)
+		tempUser.CollectionItemsCount = int(collectionItemsCount)
+		tempUser.CollectionsCount = int(collectionsCount)
+		tempUser.ShippingTotal = int(shippingTotal)
 		result = append(result, tempUser)
 	}
 

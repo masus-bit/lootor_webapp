@@ -487,3 +487,21 @@ func (r *UsersRepository) GetUsersByLogins(logins []string) (map[string]*models.
 	}
 	return users, nil
 }
+
+func (r *UsersRepository) GetDonationsTotal(userLogin string) (float64, error) {
+	var result struct {
+		Sum *float64 `gorm:"column:sum"`
+	}
+
+	err := r.db.
+		Model(&models.Payments{}).
+		Select("COALESCE(SUM(amount), 0) as sum").
+		Where("user_login = ?", userLogin).
+		Where("deleted_at IS NULL").
+		Scan(&result).Error
+
+	if result.Sum == nil {
+		return 0, err
+	}
+	return *result.Sum, err
+}

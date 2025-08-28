@@ -778,3 +778,14 @@ func (r *CollectionsRepository) IncrementCommentsCount(id string, amount int) er
 		Where("id = ?", id).
 		Update("comments_count", gorm.Expr("COALESCE(comments_count, 0) + ?", amount)).Error
 }
+
+func (r *CollectionsRepository) GetCollectionsCount(login string) (int64, error) {
+	var count int64
+	err := r.db.
+		Model(&models.Collections{}).
+		Where("LOWER(user_login) = LOWER(?)", login).
+		Where("deleted_at IS NULL").
+		Count(&count).Error
+
+	return count, err
+}

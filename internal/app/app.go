@@ -19,6 +19,7 @@ import (
 	"lootor/internal/infrastructure/commentsclient"
 	"lootor/internal/infrastructure/newsclient"
 	"lootor/internal/infrastructure/notificationsclient"
+	"lootor/internal/infrastructure/postsclient"
 	"lootor/internal/pkg/auth"
 	"lootor/internal/pkg/database"
 	"lootor/internal/pkg/elasticsearch"
@@ -132,6 +133,10 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	if err != nil {
 		log.Fatal("failed to create notifications client:", err)
 	}
+	postsClient, err := postsclient.NewGRPCPostsClient(os.Getenv("POSTS_SERVICE_ADDR"))
+	if err != nil {
+		log.Fatal("failed to create posts client:", err)
+	}
 
 	ciRepo := repositories.NewCiRepository(db, searchService)
 	colRepo := repositories.NewCollectionsRepository(db, searchService)
@@ -167,7 +172,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	notificationsService := services.NewNotificationsService(notificationsClient, userRepo, colRepo, ciRepo)
 	s3Service := s3.NewS3Service(redisClient)
 	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootor.me>`)
-	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsRepo, notificationsService)
+	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsRepo, notificationsService, colRepo)
 	ciService := services.NewCiService(ciRepo, eventsRepo, colRepo, userRepo, platformRepo, entityRepo, s3Service, itemTypesRepo, notificationsService)
 	colService := services.NewCollectionService(colRepo, tagRepo, userRepo, eventsRepo, ciRepo, s3Service, notificationsService)
 	entitiesService := services.NewEntitiesService(entityRepo)
@@ -183,6 +188,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	reportsService := feedback.NewReportsService(fbService, ciRepo, userRepo, colRepo, wlRepo)
 	feedService := services.NewFeedService(newsClient)
 	commentsService := services.NewCommentsService(commentsClient, likesClient, userRepo, notificationsService, colRepo, ciRepo)
+	postsService := services.NewPostsService(postsClient, userRepo)
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
@@ -211,6 +217,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.FeedRouter(e, jwtService, *feedService)
 	routes.CommentsRouter(e, jwtService, *commentsService)
 	routes.NotificationsRouter(e, jwtService, *notificationsService)
+	routes.PostsRouter(e, jwtService, *postsService)
 
 	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagRepo, entityRepo).ReindexInternal(context.Background())
 	setupMonitoring(s3Service)

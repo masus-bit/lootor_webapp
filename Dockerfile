@@ -18,6 +18,7 @@ COPY protobuf/news_service.proto ./
 COPY protobuf/comments.proto ./
 COPY protobuf/likes.proto ./
 COPY protobuf/notifications.proto ./
+COPY protobuf/posts.proto.proto ./
 
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
@@ -29,7 +30,7 @@ RUN protoc \
     --go_opt=paths=source_relative \
     --go-grpc_out=./gen/go/microservices \
     --go-grpc_opt=paths=source_relative \
-    ./news_service.proto ./comments.proto ./likes.proto ./notifications.proto
+    ./news_service.proto ./comments.proto ./likes.proto ./notifications.proto ./posts.proto
 
 COPY . .
 

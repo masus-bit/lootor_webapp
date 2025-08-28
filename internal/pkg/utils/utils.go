@@ -270,8 +270,6 @@ func UsersOrder(order string) string {
 	switch order {
 	case "socialScore":
 		finalOrder = "social_score"
-	case "creatorRating":
-		finalOrder = "creator_rating"
 	default:
 		finalOrder = order
 	}

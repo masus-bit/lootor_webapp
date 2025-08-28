@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
@@ -47,15 +46,12 @@ func (s *CiService) getEntities(entities []string, userLogin string) []models.En
 				fmt.Errorf("failed to add entity: %w", err)
 			}
 			existsUser, _ := s.userRepo.GetUserByLogin(userLogin)
-			updatedUser := existsUser
-			updatedUser.CreatorRating = existsUser.CreatorRating + 1
-			ok, err := s.userRepo.AddRating(existsUser, updatedUser)
+			err = s.userRepo.IncrementExperience(existsUser.Login, utils.EntityExp)
+			err = s.userRepo.IncrementSocialScore(userLogin, 1)
 			if err != nil {
 				fmt.Errorf("can't add rating: %w", err)
 			}
-			if !ok {
-				errors.New("error pizda")
-			}
+
 			if entityByTranslit == nil {
 				fmt.Errorf("unexpected nil entity after adding")
 			}

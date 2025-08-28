@@ -36,9 +36,8 @@ type Users struct {
 	DeletedAt               *time.Time      `json:"-" gorm:"column:deleted_at"`
 	ProfileName             string          `json:"profileName"`
 
-	CreatorRating int `json:"creatorRating"`
-	Exp           int `json:"exp"`
-	SocialScore   int `json:"socialScore"`
+	Exp         int `json:"exp"`
+	SocialScore int `json:"socialScore"`
 }
 
 type SignUpRequest struct {
@@ -105,7 +104,6 @@ type UserResponse struct {
 	TotalSum                int             `json:"totalSum" default:"0"`
 	WishListItems           []WishListItems `json:"wishListItems"`
 	IsPremium               bool            `json:"isPremium"`
-	CreatorRating           int             `json:"creatorRating"`
 	ShippingTotal           int             `json:"shippingTotal"`
 	ProfileName             string          `json:"profileName"`
 	Exp                     int             `json:"exp"`
@@ -136,11 +134,11 @@ type UserResponseForSingleUser struct {
 	TotalSum                int             `json:"totalSum" default:"0"`
 	WishListItems           []WishListItems `json:"wishListItems"`
 	IsPremium               bool            `json:"isPremium"`
-	CreatorRating           int             `json:"creatorRating"`
 	ShippingTotal           int             `json:"shippingTotal"`
 	ProfileName             string          `json:"profileName"`
 	Exp                     int             `json:"exp"`
 	SocialScore             int             `json:"socialScore"`
+	TotalDonations          string          `json:"totalDonations"`
 }
 
 type UserRequestUpdate struct {

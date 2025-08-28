@@ -54,6 +54,9 @@ const (
 	AvatarAddExt          = 50
 	BannerAddExp          = 50
 	CICopyNumberExp       = 1
+	EntityExp             = 2
+	PostCreateExp         = 10
+	PostReactExt          = 1
 )
 
 func GetAdminLogins() []string {
