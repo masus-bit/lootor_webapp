@@ -15,9 +15,9 @@ type NotificationsService struct {
 	postsService        *PostsService
 }
 
-func NewNotificationsService(notificationsClient *notificationsclient.GRPCNotificationsClient, userRepo *repositories.UsersRepository, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository) *NotificationsService {
+func NewNotificationsService(notificationsClient *notificationsclient.GRPCNotificationsClient, userRepo *repositories.UsersRepository, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository, postService *PostsService) *NotificationsService {
 	return &NotificationsService{
-		notificationsClient: notificationsClient, userRepo: userRepo, collectionRepo: collectionRepo, ciRepo: ciRepo}
+		notificationsClient: notificationsClient, userRepo: userRepo, collectionRepo: collectionRepo, ciRepo: ciRepo, postsService: postService}
 }
 
 func (s *NotificationsService) SendNotification(ctx context.Context, request *dto.NotificationsRequest) error {

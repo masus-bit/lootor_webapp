@@ -495,7 +495,7 @@ func (r *UsersRepository) GetDonationsTotal(userLogin string) (float64, error) {
 
 	err := r.db.
 		Model(&models.Payments{}).
-		Select("COALESCE(SUM(amount), 0) as sum").
+		Select("COALESCE(SUM(CAST(amount AS NUMERIC)), 0) as sum").
 		Where("user_login = ?", userLogin).
 		Where("deleted_at IS NULL").
 		Scan(&result).Error
