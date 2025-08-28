@@ -18,7 +18,7 @@ COPY protobuf/news_service.proto ./
 COPY protobuf/comments.proto ./
 COPY protobuf/likes.proto ./
 COPY protobuf/notifications.proto ./
-COPY protobuf/posts.proto.proto ./
+COPY protobuf/posts.proto ./
 
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
