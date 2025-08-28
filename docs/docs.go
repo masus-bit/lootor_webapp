@@ -2182,7 +2182,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/secured/posts/{id}": {
             "put": {
                 "consumes": [
                     "application/json"
@@ -2213,9 +2215,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/secured/posts/{id}": {
+            },
             "delete": {
                 "consumes": [
                     "application/json"

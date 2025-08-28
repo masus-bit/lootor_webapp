@@ -212,7 +212,7 @@ func (c *PostsController) Delete(ctx echo.Context) error {
 // @Produce  json
 // @Param updateRequest body dto.PostUpdateRequest true "поля"
 // @Success 201 {object} dto.FeedResponseSwag
-// @Router /secured/posts/react/{id} [put]
+// @Router /secured/posts/{id} [put]
 func (c *PostsController) UpdatePost(ctx echo.Context) error {
 	var request dto.PostUpdateRequest
 	if err := ctx.Bind(&request); err != nil {

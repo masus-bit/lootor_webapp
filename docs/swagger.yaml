@@ -2186,26 +2186,6 @@ paths:
       summary: удаление posta
       tags:
       - posts
-  /secured/posts/react/{id}:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: reaction
-        in: query
-        name: reaction
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.FeedResponseSwag'
-      summary: поставить реакцию
-      tags:
-      - posts
     put:
       consumes:
       - application/json
@@ -2224,6 +2204,26 @@ paths:
           schema:
             $ref: '#/definitions/dto.FeedResponseSwag'
       summary: обновить контент поста
+      tags:
+      - posts
+  /secured/posts/react/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: reaction
+        in: query
+        name: reaction
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: поставить реакцию
       tags:
       - posts
   /secured/posts/react/delete/{id}:

@@ -2179,7 +2179,9 @@
                         }
                     }
                 }
-            },
+            }
+        },
+        "/secured/posts/{id}": {
             "put": {
                 "consumes": [
                     "application/json"
@@ -2210,9 +2212,7 @@
                         }
                     }
                 }
-            }
-        },
-        "/secured/posts/{id}": {
+            },
             "delete": {
                 "consumes": [
                     "application/json"
