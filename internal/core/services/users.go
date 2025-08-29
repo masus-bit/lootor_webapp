@@ -21,6 +21,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -165,21 +166,33 @@ func (s *UserService) ChangePassword(password string, login string, authUserLogi
 }
 
 func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, isSubscribe bool) (*dto.CommonResponse, error) {
-	subscriber, err := s.repo.GetUserByLogin(authUserLogin)
-	if err != nil {
-		return nil, err
-	}
+	var subscriber *models.Users
+	var subscriptionTargetUser *models.Users
+	var wg sync.WaitGroup
+	var err1, err2 error
 
-	subscriptionTargetUser, err := s.repo.GetUserByLogin(targetUserLogin)
-	if err != nil {
-		return nil, err
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		subscriber, err1 = s.repo.GetUserByLogin(authUserLogin)
+	}()
+	go func() {
+		defer wg.Done()
+		subscriptionTargetUser, err2 = s.repo.GetUserByLogin(targetUserLogin)
+	}()
+	wg.Wait()
+	if err1 != nil {
+		return nil, err1
+	}
+	if err2 != nil {
+		return nil, err2
 	}
 
 	if isSubscribe {
 		subscriber.Subscriptions = append(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers + 1
 		subscriptionTargetUser.SubscribersLogins = append(subscriptionTargetUser.SubscribersLogins, strings.ToLower(authUserLogin))
-		err = s.repo.IncrementExperience(targetUserLogin, utils.UserSelfSubExp)
+		err := s.repo.IncrementExperience(targetUserLogin, utils.UserSelfSubExp)
 
 		subscriptionTargetUser.Exp += utils.UserSelfSubExp
 
@@ -208,13 +221,21 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 
 		subscriptionTargetUser.Exp -= utils.UserSelfSubExp
 	}
-	_, err = s.repo.UpdateUser(subscriber, *subscriber)
-	if err != nil {
-		return nil, err
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		_, err1 = s.repo.UpdateUser(subscriber, *subscriber)
+	}()
+	go func() {
+		defer wg.Done()
+		_, err2 = s.repo.UpdateUser(subscriptionTargetUser, *subscriptionTargetUser)
+	}()
+	wg.Wait()
+	if err1 != nil {
+		return nil, err1
 	}
-	_, err = s.repo.UpdateUser(subscriptionTargetUser, *subscriptionTargetUser)
-	if err != nil {
-		return nil, err
+	if err2 != nil {
+		return nil, err2
 	}
 
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil

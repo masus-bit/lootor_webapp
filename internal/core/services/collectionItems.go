@@ -411,10 +411,12 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 	if !isUserLikes {
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.Collections[0].IsPrivate {
-			eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollectionItem, exists.Name, nil, nil, &exists.Id, nil)
-			if eventError != nil {
-				log.Default().Print(eventError)
-			}
+			go func() {
+				eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollectionItem, exists.Name, nil, nil, &exists.Id, nil)
+				if eventError != nil {
+					log.Default().Print(eventError)
+				}
+			}()
 		}
 		err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CISelfLikeExp)
 		if err != nil {

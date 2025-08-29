@@ -15,6 +15,7 @@ import (
 	"reflect"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -419,10 +420,12 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 	if !isUserLikes {
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.IsPrivate {
-			eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil, nil)
-			if eventError != nil {
-				log.Default().Print(eventError)
-			}
+			go func() {
+				eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil, nil)
+				if eventError != nil {
+					log.Default().Print(eventError)
+				}
+			}()
 		}
 
 		err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CollectionSelfLikeExp)
@@ -464,27 +467,42 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 }
 
 func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubscribe bool) (*dto.CommonResponse, error) {
-	subscriber, err := s.userRepo.GetUserByLogin(userLogin)
-	if err != nil {
-		return nil, err
+	var subscriber *models.Users
+	var dbCollection *models.Collections
+	var err1, err2 error
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		subscriber, err1 = s.userRepo.GetUserByLogin(userLogin)
+	}()
+	go func() {
+		defer wg.Done()
+		dbCollection, err2 = s.repo.GetCollectionByIdWithoutLimits(targetId)
+	}()
+	wg.Wait()
+	if err1 != nil {
+		return nil, err1
 	}
-	dbCollection, err := s.repo.GetCollectionByIdWithoutLimits(targetId)
-	if err != nil {
-		return nil, err
+	if err2 != nil {
+		return nil, err2
 	}
 	if isSubscribe {
 		subscriber.CollectionSubscriptions = append(subscriber.CollectionSubscriptions, targetId)
 		dbCollection.SubscribersCount = dbCollection.SubscribersCount + 1
-		eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionSubscribe, utils.EventTargetCollection, dbCollection.Name, nil, &dbCollection.Id, nil, nil)
-		if eventError != nil {
-			log.Default().Print(eventError)
-		}
-		err = s.userRepo.IncrementExperience(dbCollection.UserLogin, utils.CollectionSelfSubExp)
+		go func() {
+			eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionSubscribe, utils.EventTargetCollection, dbCollection.Name, nil, &dbCollection.Id, nil, nil)
+			if eventError != nil {
+				log.Default().Print(eventError)
+			}
+		}()
+		err := s.userRepo.IncrementExperience(dbCollection.UserLogin, utils.CollectionSelfSubExp)
 		if err != nil {
 			return nil, err
 		}
 		go func() {
-			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
+			_ = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
 				Login:       dbCollection.UserLogin,
 				TargetId:    targetId,
 				SenderLogin: userLogin,
@@ -497,19 +515,26 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 	} else {
 		subscriber.CollectionSubscriptions = utils.RemoveByValue(subscriber.CollectionSubscriptions, targetId)
 		dbCollection.SubscribersCount = dbCollection.SubscribersCount - 1
-		err = s.userRepo.DecrementExperience(dbCollection.UserLogin, utils.CollectionSelfSubExp)
+		err := s.userRepo.DecrementExperience(dbCollection.UserLogin, utils.CollectionSelfSubExp)
 		if err != nil {
 			return nil, err
 		}
 	}
-
-	_, err = s.userRepo.UpdateUser(subscriber, *subscriber)
-	if err != nil {
-		return nil, err
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		_, err1 = s.userRepo.UpdateUser(subscriber, *subscriber)
+	}()
+	go func() {
+		defer wg.Done()
+		_, err2 = s.repo.UpdateCollection(dbCollection, dbCollection)
+	}()
+	wg.Wait()
+	if err1 != nil {
+		return nil, err1
 	}
-	_, err = s.repo.UpdateCollection(dbCollection, dbCollection)
-	if err != nil {
-		return nil, err
+	if err2 != nil {
+		return nil, err2
 	}
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 
