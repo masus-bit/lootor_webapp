@@ -44,13 +44,14 @@ func (c *GRPCPostsClient) GetAllPosts(ctx context.Context, order, limit, offset 
 	return c.client.GetAllPosts(ctx, &microservices.GetAllPostsRequest{Limit: limit, Offset: offset, Order: order, IsPremium: authUserIsPremium, AuthUserLogin: authUser})
 }
 
-func (c *GRPCPostsClient) GetPostsByUser(ctx context.Context, limit, offset, login string, authUserIsPremium bool, authUser string) (*microservices.GetAllPostsResponse, error) {
+func (c *GRPCPostsClient) GetPostsByUser(ctx context.Context, limit, offset, login string, authUserIsPremium bool, authUser string, isDraft bool) (*microservices.GetAllPostsResponse, error) {
 	return c.client.GetPostsByUser(ctx, &microservices.GetPostsByUserRequest{
 		Login:         login,
 		Offset:        offset,
 		Limit:         limit,
 		IsPremium:     authUserIsPremium,
 		AuthUserLogin: authUser,
+		IsDraft:       isDraft,
 	})
 }
 

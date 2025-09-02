@@ -86,7 +86,7 @@ func (s *PostsService) GetAllPosts(ctx context.Context, order, limit, offset, au
 
 }
 
-func (s *PostsService) GetPostsByUser(ctx context.Context, login, limit, offset, authUser string) (*dto.PostsDataResponse, error) {
+func (s *PostsService) GetPostsByUser(ctx context.Context, login, limit, offset, authUser string, isDraft bool) (*dto.PostsDataResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	var authUserIsPremium bool
 	if err != nil {
@@ -94,7 +94,7 @@ func (s *PostsService) GetPostsByUser(ctx context.Context, login, limit, offset,
 	} else {
 		authUserIsPremium = user.IsPremium
 	}
-	posts, err := s.postsClient.GetPostsByUser(ctx, limit, offset, login, authUserIsPremium, authUser)
+	posts, err := s.postsClient.GetPostsByUser(ctx, limit, offset, login, authUserIsPremium, authUser, isDraft)
 	if err != nil {
 		return nil, err
 	}

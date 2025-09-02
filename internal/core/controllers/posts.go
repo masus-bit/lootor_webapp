@@ -85,17 +85,25 @@ func (c *PostsController) GetAllPosts(ctx echo.Context) error {
 // @Param limit query string true "limit"
 // @Param offset query string true "offset"
 // @Param login query string true "login"
+// @Param isDraft query string true "is draft"
 // @Success 201 {object} dto.FeedDataResponseSwag
 // @Router /public/posts [get]
 func (c *PostsController) GetPostsByUser(ctx echo.Context) error {
 	limit := ctx.QueryParam("limit")
 	offset := ctx.QueryParam("offset")
 	login := ctx.QueryParam("login")
+	isDraft := ctx.QueryParam("isDraft")
 	authInfo := ctx.Get("auth_info").(struct {
 		IsAuthenticated bool
 		UserLogin       string
 	})
-	response, err := c.postService.GetPostsByUser(ctx.Request().Context(), login, limit, offset, authInfo.UserLogin)
+	if isDraft == "true" && authInfo.UserLogin != login {
+		return ctx.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Unauthorized. You can only get your own draft posts.",
+		})
+
+	}
+	response, err := c.postService.GetPostsByUser(ctx.Request().Context(), login, limit, offset, authInfo.UserLogin, isDraft == "true")
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

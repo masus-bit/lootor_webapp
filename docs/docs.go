@@ -800,6 +800,13 @@ const docTemplate = `{
                         "name": "login",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "is draft",
+                        "name": "isDraft",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {

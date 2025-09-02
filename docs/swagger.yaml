@@ -1297,6 +1297,11 @@ paths:
         name: login
         required: true
         type: string
+      - description: is draft
+        in: query
+        name: isDraft
+        required: true
+        type: string
       produces:
       - application/json
       responses:
