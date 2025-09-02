@@ -69,7 +69,7 @@ deploy:
       docker network rm lootor_network || true
       docker network create lootor_network || true
       
-      docker-compose -f docker-compose.backend.yml stop backend1 backend2 backend3 backend4 nginx      
+      docker-compose -f docker-compose.backend.yml stop backend1 backend2 backend3 backend4      
       docker-compose -f docker-compose.backend.yml pull || true
       
       for i in {1..10}; do
@@ -79,23 +79,8 @@ deploy:
         sleep 3
       done
       
-      for attempt in {1..5}; do
-        echo "Attempt $attempt to start nginx"
-        docker-compose -f docker-compose.backend.yml up -d nginx
-        sleep 10  # Даем время на старт
-      
-        if docker ps --filter "name=lootor_nginx" --format "{{.Status}}" | grep -q "Up"; then
-          echo "Nginx is up and running"
-          break
-        else
-          echo "Nginx failed to start, retrying..."
-          docker-compose -f docker-compose.backend.yml stop nginx || true
-        fi
-      done
-      
       docker-compose -f docker-compose.backend.yml ps
       docker logs lootor_backend1 --tail 50
-      docker logs lootor_nginx --tail 20 || true
       docker image prune -f
       docker builder prune --all --force
       docker image prune -a --force
