@@ -47,9 +47,14 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 
 	result := dto.PostDataResponse{
 		Data: dto.Posts{
-			Id:             post.Data.Id,
-			Date:           post.Data.Date,
-			Author:         user.Login,
+			Id:   post.Data.Id,
+			Date: post.Data.Date,
+			Author: models.SubUsers{
+				Login:       user.Login,
+				AvatarUrl:   user.AvatarUrl,
+				ProfileName: user.ProfileName,
+				IsPremium:   user.IsPremium,
+			},
 			Content:        content,
 			HeartCount:     0,
 			FireCount:      0,
@@ -63,6 +68,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 			ClownCount:     0,
 			TotalReactions: 0,
 			Reactions:      &dto.ReactResponse{},
+			IsDraft:        post.Data.IsDraft,
 		},
 	}
 
@@ -149,9 +155,14 @@ func (s *PostsService) GetPostById(ctx context.Context, id, authUser string) (*d
 	}
 
 	result := dto.Posts{
-		Id:             post.Data.Id,
-		Date:           post.Data.Date,
-		Author:         post.Data.Author,
+		Id:   post.Data.Id,
+		Date: post.Data.Date,
+		Author: models.SubUsers{
+			Login:       user.Login,
+			AvatarUrl:   user.AvatarUrl,
+			ProfileName: user.ProfileName,
+			IsPremium:   user.IsPremium,
+		},
 		Content:        normalizedContent,
 		HeartCount:     int(post.Data.HeartCount),
 		FireCount:      int(post.Data.FireCount),
@@ -213,10 +224,19 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 	if err != nil {
 		return nil, err
 	}
+	user, err := s.userRepo.GetUserByLogin(post.Data.Author)
+	if err != nil {
+		return nil, err
+	}
 	resultPost := dto.Posts{
-		Id:             post.Data.Id,
-		Date:           post.Data.Date,
-		Author:         post.Data.Author,
+		Id:   post.Data.Id,
+		Date: post.Data.Date,
+		Author: models.SubUsers{
+			Login:       user.Login,
+			AvatarUrl:   user.AvatarUrl,
+			ProfileName: user.ProfileName,
+			IsPremium:   user.IsPremium,
+		},
 		Content:        utils.NormalizeContent(post.Data.Content),
 		HeartCount:     int(post.Data.HeartCount),
 		FireCount:      int(post.Data.FireCount),
@@ -231,6 +251,7 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 		TotalReactions: int(post.Data.TotalReactions),
 		Reactions:      &dto.ReactResponse{},
 		Reacted:        post.Data.Reacted,
+		IsDraft:        post.Data.IsDraft,
 	}
 	return &dto.PostDataResponse{Data: resultPost}, nil
 }
@@ -251,9 +272,14 @@ func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*d
 		}
 		fmt.Println(p.GetTearsCount())
 		result = append(result, dto.Posts{
-			Id:             p.GetId(),
-			Date:           p.GetDate(),
-			Author:         user.Login,
+			Id:   p.GetId(),
+			Date: p.GetDate(),
+			Author: models.SubUsers{
+				Login:       user.Login,
+				AvatarUrl:   user.AvatarUrl,
+				ProfileName: user.ProfileName,
+				IsPremium:   user.IsPremium,
+			},
 			Content:        content,
 			HeartCount:     int(p.GetHeartCount()),
 			FireCount:      int(p.GetFireCount()),

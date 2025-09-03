@@ -218,11 +218,13 @@ func (c *PostsController) Delete(ctx echo.Context) error {
 // @Router /secured/posts/{id} [put]
 func (c *PostsController) UpdatePost(ctx echo.Context) error {
 	var request dto.PostUpdateRequest
+	id := ctx.Param("id")
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",
 		})
 	}
+	request.Id = id
 	response, err := c.postService.UpdatePost(ctx.Request().Context(), &request)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{

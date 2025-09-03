@@ -37,22 +37,22 @@ type PostRequest struct {
 }
 
 type Posts struct {
-	Id             string `json:"id"`
-	Date           string `json:"date"`
-	Author         string `json:"author"`
-	HeartCount     int    `json:"heartCount"`
-	FireCount      int    `json:"fireCount"`
-	GlassesCount   int    `json:"glassesCount"`
-	LaughCount     int    `json:"laughCount"`
-	TearsCount     int    `json:"tearsCount"`
-	PokerFaceCount int    `json:"pokerFaceCount"`
-	EyesCount      int    `json:"eyesCount"`
-	AngryCount     int    `json:"angryCount"`
-	ShitCount      int    `json:"shitCount"`
-	ClownCount     int    `json:"clownCount"`
-	Reacted        string `json:"reacted"`
-	TotalReactions int    `gorm:"->;type:int generated always as (heart_count + fire_count + glasses_count + laugh_count + tears_count + poker_face_count + eyes_count + angry_count + shit_count + clown_count) stored" json:"totalReactions"`
-	IsDraft        bool   `json:"isDraft"`
+	Id             string          `json:"id"`
+	Date           string          `json:"date"`
+	Author         models.SubUsers `json:"author"`
+	HeartCount     int             `json:"heartCount"`
+	FireCount      int             `json:"fireCount"`
+	GlassesCount   int             `json:"glassesCount"`
+	LaughCount     int             `json:"laughCount"`
+	TearsCount     int             `json:"tearsCount"`
+	PokerFaceCount int             `json:"pokerFaceCount"`
+	EyesCount      int             `json:"eyesCount"`
+	AngryCount     int             `json:"angryCount"`
+	ShitCount      int             `json:"shitCount"`
+	ClownCount     int             `json:"clownCount"`
+	Reacted        string          `json:"reacted"`
+	TotalReactions int             `gorm:"->;type:int generated always as (heart_count + fire_count + glasses_count + laugh_count + tears_count + poker_face_count + eyes_count + angry_count + shit_count + clown_count) stored" json:"totalReactions"`
+	IsDraft        bool            `json:"isDraft"`
 
 	Content datatypes.JSON `gorm:"type:jsonb" json:"content"`
 

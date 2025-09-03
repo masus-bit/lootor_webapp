@@ -25,6 +25,6 @@ func PostsRouter(e *echo.Echo, jwtService *auth.JWTService, postsService service
 		securedGroup.DELETE("/posts/:id", controller.Delete)
 		securedGroup.GET("/posts/react/:id", controller.React)
 		securedGroup.GET("/posts/react/delete/:id", controller.DeleteReact)
-		securedGroup.PUT("/posts/:id", controller.DeleteReact)
+		securedGroup.PUT("/posts/:id", controller.UpdatePost)
 	}
 }
