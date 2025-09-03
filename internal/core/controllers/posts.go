@@ -33,12 +33,7 @@ func (c *PostsController) CreatePost(ctx echo.Context) error {
 	if !ok {
 		authUser = ""
 	}
-
-	if request.Author != authUser {
-		return ctx.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "Unauthorized",
-		})
-	}
+	request.Author = authUser
 
 	context := ctx.Request().Context()
 	response, err := c.postService.CreatePost(context, &request)
