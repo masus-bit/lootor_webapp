@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"github.com/google/uuid"
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
@@ -270,7 +269,6 @@ func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*d
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println(p.GetTearsCount())
 		result = append(result, dto.Posts{
 			Id:   p.GetId(),
 			Date: p.GetDate(),
@@ -320,6 +318,26 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*dto.ReactRes
 			fullReactUsers[u.Login] = u
 		}
 
+		reactionMapping := []struct {
+			field *[]dto.React
+			key   string
+		}{
+			{&reactionsResult.Fire, "fire"},
+			{&reactionsResult.Heart, "heart"},
+			{&reactionsResult.Glasses, "glasses"},
+			{&reactionsResult.Laugh, "laugh"},
+			{&reactionsResult.Tears, "tears"},
+			{&reactionsResult.PokerFace, "pokerFace"},
+			{&reactionsResult.Eyes, "eyes"},
+			{&reactionsResult.Angry, "angry"},
+			{&reactionsResult.Shit, "shit"},
+			{&reactionsResult.Clown, "clown"},
+		}
+
+		for _, mapping := range reactionMapping {
+			*mapping.field = []dto.React{}
+		}
+
 		for _, r := range post.GetReactions() {
 			reactUUID, err := uuid.Parse(r.Id)
 			if err != nil {
@@ -332,16 +350,11 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*dto.ReactRes
 			})
 		}
 
-		reactionsResult.Fire = reacts["fire"]
-		reactionsResult.Heart = reacts["heart"]
-		reactionsResult.Glasses = reacts["glasses"]
-		reactionsResult.Laugh = reacts["laugh"]
-		reactionsResult.Tears = reacts["tears"]
-		reactionsResult.PokerFace = reacts["pokerFace"]
-		reactionsResult.Eyes = reacts["eyes"]
-		reactionsResult.Angry = reacts["angry"]
-		reactionsResult.Shit = reacts["shit"]
-		reactionsResult.Clown = reacts["clown"]
+		for _, mapping := range reactionMapping {
+			if slice, exists := reacts[mapping.key]; exists && len(slice) > 0 {
+				*mapping.field = slice
+			}
+		}
 	}
 
 	return &reactionsResult, nil
