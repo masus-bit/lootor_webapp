@@ -15,15 +15,16 @@ import (
 type CommentsService struct {
 	commentsClient       *commentsclient.GRPCCommentsClient
 	likesClient          *commentsclient.GRPCLikesClient
+	postsService         PostsService
 	userRepo             *repositories.UsersRepository
 	notificationsService *NotificationsService
 	collectionRepo       *repositories.CollectionsRepository
 	ciRepo               *repositories.CiRepository
 }
 
-func NewCommentsService(commentsClient *commentsclient.GRPCCommentsClient, likesClient *commentsclient.GRPCLikesClient, userRepo *repositories.UsersRepository, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository) *CommentsService {
+func NewCommentsService(commentsClient *commentsclient.GRPCCommentsClient, likesClient *commentsclient.GRPCLikesClient, userRepo *repositories.UsersRepository, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository, postService *PostsService) *CommentsService {
 	return &CommentsService{
-		commentsClient: commentsClient, likesClient: likesClient, userRepo: userRepo, notificationsService: notificationsService, collectionRepo: collectionRepo, ciRepo: ciRepo}
+		commentsClient: commentsClient, likesClient: likesClient, userRepo: userRepo, notificationsService: notificationsService, collectionRepo: collectionRepo, ciRepo: ciRepo, postsService: *postService}
 }
 
 func (s *CommentsService) CreateComment(ctx context.Context, request *dto.CommentsRequest) (*dto.CommentDataResponse, error) {
@@ -81,6 +82,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 
 	var targetUserLogin string
 	var ownerLogin string
+	var targetReq *dto.TargetItem
 
 	collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetId)
 
@@ -95,6 +97,13 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 			return nil, err
 		}
 		ownerLogin = collection.UserLogin
+
+		targetReq = &dto.TargetItem{
+			Id:              collection.Id.String(),
+			Name:            collection.Name,
+			Transliteration: collection.Transliteration,
+			TargetType:      "collection",
+		}
 	}
 
 	ci, err := s.ciRepo.GetCIByID(request.TargetId)
@@ -110,6 +119,35 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 			return nil, err
 		}
 		ownerLogin = ci.UserLogin
+
+		targetReq = &dto.TargetItem{
+			Id:              ci.Id.String(),
+			Name:            ci.Name,
+			Transliteration: ci.Collections[0].Transliteration,
+			TargetType:      "collectionItem",
+		}
+	}
+
+	post, err := s.postsService.GetPostById(ctx, request.TargetId, request.Author)
+
+	if err == nil {
+		if *request.TargetUserLogin != "" {
+			targetUserLogin = *request.TargetUserLogin
+		} else {
+			targetUserLogin = post.Data.Author.Login
+		}
+		_, err = s.postsService.IncrementCommentsCount(ctx, request.TargetId)
+		if err != nil {
+			return nil, err
+		}
+		ownerLogin = post.Data.Author.Login
+
+		targetReq = &dto.TargetItem{
+			Id:              post.Data.Id,
+			Name:            "",
+			Transliteration: "",
+			TargetType:      "post",
+		}
 	}
 
 	var typeComment string
@@ -129,7 +167,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 			Action:      utils.NotificationActionComment,
 			Date:        time.Now().Format(time.RFC3339),
 			OwnerLogin:  ownerLogin,
-		})
+		}, targetReq)
 	}()
 
 	err = s.userRepo.IncrementExperience(request.Author, 1)

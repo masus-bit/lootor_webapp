@@ -78,4 +78,5 @@ message NotificationsItem {
   TargetItem target = 12;
   string action = 13;
   User owner = 14;
+  string target_type = 15;
 }

@@ -341,6 +341,13 @@ definitions:
           type: string
         type: array
     type: object
+  dto.IncrementRequest:
+    properties:
+      postIds:
+        items:
+          type: string
+        type: array
+    type: object
   dto.LikeUserSwagger:
     properties:
       isLike:
@@ -2243,6 +2250,27 @@ paths:
           schema:
             $ref: '#/definitions/dto.FeedResponseSwag'
       summary: убрать реакцию
+      tags:
+      - posts
+  /secured/posts/views:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля
+        in: body
+        name: updateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.IncrementRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: просмотры
       tags:
       - posts
   /secured/reports:

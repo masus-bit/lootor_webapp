@@ -68,6 +68,8 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 			TotalReactions: 0,
 			Reactions:      &dto.ReactResponse{},
 			IsDraft:        post.Data.IsDraft,
+			Views:          0,
+			CommentsCount:  0,
 		},
 	}
 
@@ -153,32 +155,9 @@ func (s *PostsService) GetPostById(ctx context.Context, id, authUser string) (*d
 		}
 	}
 
-	result := dto.Posts{
-		Id:   post.Data.Id,
-		Date: post.Data.Date,
-		Author: models.SubUsers{
-			Login:       user.Login,
-			AvatarUrl:   user.AvatarUrl,
-			ProfileName: user.ProfileName,
-			IsPremium:   user.IsPremium,
-		},
-		Content:        normalizedContent,
-		HeartCount:     int(post.Data.HeartCount),
-		FireCount:      int(post.Data.FireCount),
-		GlassesCount:   int(post.Data.GlassesCount),
-		LaughCount:     int(post.Data.LaughCount),
-		TearsCount:     int(post.Data.TearsCount),
-		PokerFaceCount: int(post.Data.PokerFaceCount),
-		EyesCount:      int(post.Data.EyesCount),
-		AngryCount:     int(post.Data.AngryCount),
-		ShitCount:      int(post.Data.ShitCount),
-		ClownCount:     int(post.Data.ClownCount),
-		TotalReactions: int(post.Data.TotalReactions),
-		Reactions:      reacts,
-		Reacted:        post.Data.Reacted,
-	}
+	result := s.fillPost(post.Data, normalizedContent, reacts, user)
 
-	return &dto.PostDataResponse{Data: result}, nil
+	return &dto.PostDataResponse{Data: *result}, nil
 }
 
 func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.CommonResponse, error) {
@@ -227,32 +206,24 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 	if err != nil {
 		return nil, err
 	}
-	resultPost := dto.Posts{
-		Id:   post.Data.Id,
-		Date: post.Data.Date,
-		Author: models.SubUsers{
-			Login:       user.Login,
-			AvatarUrl:   user.AvatarUrl,
-			ProfileName: user.ProfileName,
-			IsPremium:   user.IsPremium,
-		},
-		Content:        utils.NormalizeContent(post.Data.Content),
-		HeartCount:     int(post.Data.HeartCount),
-		FireCount:      int(post.Data.FireCount),
-		GlassesCount:   int(post.Data.GlassesCount),
-		LaughCount:     int(post.Data.LaughCount),
-		TearsCount:     int(post.Data.TearsCount),
-		PokerFaceCount: int(post.Data.PokerFaceCount),
-		EyesCount:      int(post.Data.EyesCount),
-		AngryCount:     int(post.Data.AngryCount),
-		ShitCount:      int(post.Data.ShitCount),
-		ClownCount:     int(post.Data.ClownCount),
-		TotalReactions: int(post.Data.TotalReactions),
-		Reactions:      &dto.ReactResponse{},
-		Reacted:        post.Data.Reacted,
-		IsDraft:        post.Data.IsDraft,
+	resultPost := s.fillPost(post.Data, utils.NormalizeContent(post.Data.Content), nil, user)
+	return &dto.PostDataResponse{Data: *resultPost}, nil
+}
+
+func (s *PostsService) IncrementViews(ctx context.Context, req *dto.IncrementRequest) (*dto.CommonResponse, error) {
+	resp, err := s.postsClient.IncrementViews(ctx, req)
+	if err != nil {
+		return nil, err
 	}
-	return &dto.PostDataResponse{Data: resultPost}, nil
+	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
+}
+
+func (s *PostsService) IncrementCommentsCount(ctx context.Context, id string) (*dto.CommonResponse, error) {
+	resp, err := s.postsClient.IncrementCommentsCount(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
 }
 
 func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*dto.PostsDataResponse, error) {
@@ -269,30 +240,7 @@ func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*d
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, dto.Posts{
-			Id:   p.GetId(),
-			Date: p.GetDate(),
-			Author: models.SubUsers{
-				Login:       user.Login,
-				AvatarUrl:   user.AvatarUrl,
-				ProfileName: user.ProfileName,
-				IsPremium:   user.IsPremium,
-			},
-			Content:        content,
-			HeartCount:     int(p.GetHeartCount()),
-			FireCount:      int(p.GetFireCount()),
-			GlassesCount:   int(p.GetGlassesCount()),
-			LaughCount:     int(p.GetLaughCount()),
-			TearsCount:     int(p.GetTearsCount()),
-			PokerFaceCount: int(p.GetPokerFaceCount()),
-			EyesCount:      int(p.GetEyesCount()),
-			AngryCount:     int(p.GetAngryCount()),
-			ShitCount:      int(p.GetShitCount()),
-			ClownCount:     int(p.GetClownCount()),
-			TotalReactions: int(p.GetTotalReactions()),
-			Reactions:      reacts,
-			Reacted:        p.GetReacted(),
-		})
+		result = append(result, *s.fillPost(p, content, reacts, user))
 	}
 
 	totalInt, _ := strconv.Atoi(posts.Total)
@@ -358,4 +306,34 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*dto.ReactRes
 	}
 
 	return &reactionsResult, nil
+}
+
+func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, reacts *dto.ReactResponse, user *models.Users) *dto.Posts {
+	return &dto.Posts{
+		Id:   p.GetId(),
+		Date: p.GetDate(),
+		Author: models.SubUsers{
+			Login:       user.Login,
+			AvatarUrl:   user.AvatarUrl,
+			ProfileName: user.ProfileName,
+			IsPremium:   user.IsPremium,
+		},
+		Content:        content,
+		HeartCount:     int(p.GetHeartCount()),
+		FireCount:      int(p.GetFireCount()),
+		GlassesCount:   int(p.GetGlassesCount()),
+		LaughCount:     int(p.GetLaughCount()),
+		TearsCount:     int(p.GetTearsCount()),
+		PokerFaceCount: int(p.GetPokerFaceCount()),
+		EyesCount:      int(p.GetEyesCount()),
+		AngryCount:     int(p.GetAngryCount()),
+		ShitCount:      int(p.GetShitCount()),
+		ClownCount:     int(p.GetClownCount()),
+		TotalReactions: int(p.GetTotalReactions()),
+		Reactions:      reacts,
+		Reacted:        p.GetReacted(),
+		Views:          int(p.Views),
+		CommentsCount:  int(p.CommentsCount),
+	}
+
 }

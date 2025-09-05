@@ -99,6 +99,16 @@ func (c *GRPCPostsClient) GetPostById(ctx context.Context, id string, authUserIs
 	})
 }
 
+func (c *GRPCPostsClient) IncrementViews(ctx context.Context, req *dto.IncrementRequest) (*microservices.ViewsResponse, error) {
+	return c.client.IncrementViews(ctx, &microservices.ViewsRequest{
+		PostIds: req.PostIds,
+	})
+}
+
+func (c *GRPCPostsClient) IncrementCommentsCount(ctx context.Context, id string) (*microservices.CommentsCountResponse, error) {
+	return c.client.IncrementCommentsCount(ctx, &microservices.CommentsCountRequest{PostId: id})
+}
+
 func (c *GRPCPostsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

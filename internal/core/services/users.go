@@ -202,6 +202,13 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 				fmt.Println(err)
 			}
 		}()
+		var target dto.TargetItem
+		target = dto.TargetItem{
+			Id:              targetUserLogin,
+			Name:            subscriptionTargetUser.ProfileName,
+			Transliteration: "",
+			TargetType:      "user",
+		}
 		go func() {
 			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
 				Login:       targetUserLogin,
@@ -211,7 +218,7 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 				Action:      utils.NotificationActionSubscribe,
 				Date:        time.Now().Format(time.RFC3339),
 				OwnerLogin:  targetUserLogin,
-			})
+			}, &target)
 
 		}()
 	} else {

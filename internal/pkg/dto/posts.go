@@ -53,6 +53,8 @@ type Posts struct {
 	Reacted        string          `json:"reacted"`
 	TotalReactions int             `gorm:"->;type:int generated always as (heart_count + fire_count + glasses_count + laugh_count + tears_count + poker_face_count + eyes_count + angry_count + shit_count + clown_count) stored" json:"totalReactions"`
 	IsDraft        bool            `json:"isDraft"`
+	Views          int             `json:"views"`
+	CommentsCount  int             `json:"commentsCount"`
 
 	Content datatypes.JSON `gorm:"type:jsonb" json:"content"`
 
@@ -104,4 +106,8 @@ type ReactResponse struct {
 	Angry     []React `json:"angry"`
 	Shit      []React `json:"shit"`
 	Clown     []React `json:"clown"`
+}
+
+type IncrementRequest struct {
+	PostIds []string `json:"postIds"`
 }

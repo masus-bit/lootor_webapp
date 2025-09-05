@@ -432,6 +432,12 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		if err != nil {
 			return nil, err
 		}
+		target := &dto.TargetItem{
+			Id:              id,
+			Name:            exists.Name,
+			Transliteration: exists.Transliteration,
+			TargetType:      "collection",
+		}
 		go func() {
 			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
 				Login:       exists.UserLogin,
@@ -441,7 +447,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 				Action:      utils.NotificationActionLike,
 				Date:        time.Now().Format(time.RFC3339),
 				OwnerLogin:  exists.UserLogin,
-			})
+			}, target)
 		}()
 	} else {
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
@@ -501,6 +507,12 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 		if err != nil {
 			return nil, err
 		}
+		target := &dto.TargetItem{
+			Id:              targetId,
+			Name:            dbCollection.Name,
+			Transliteration: dbCollection.Transliteration,
+			TargetType:      "collection",
+		}
 		go func() {
 			_ = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
 				Login:       dbCollection.UserLogin,
@@ -510,7 +522,7 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 				Action:      utils.NotificationActionSubscribe,
 				Date:        time.Now().Format(time.RFC3339),
 				OwnerLogin:  dbCollection.UserLogin,
-			})
+			}, target)
 		}()
 	} else {
 		subscriber.CollectionSubscriptions = utils.RemoveByValue(subscriber.CollectionSubscriptions, targetId)

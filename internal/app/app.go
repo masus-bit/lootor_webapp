@@ -188,7 +188,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	captchaService := auth.NewRecaptchaService()
 	reportsService := feedback.NewReportsService(fbService, ciRepo, userRepo, colRepo, wlRepo)
 	feedService := services.NewFeedService(newsClient)
-	commentsService := services.NewCommentsService(commentsClient, likesClient, userRepo, notificationsService, colRepo, ciRepo)
+	commentsService := services.NewCommentsService(commentsClient, likesClient, userRepo, notificationsService, colRepo, ciRepo, postsService)
 
 	eventsService := services.NewEventsService(eventsRepo, userRepo)
 

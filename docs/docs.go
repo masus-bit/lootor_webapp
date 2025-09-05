@@ -2191,6 +2191,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/posts/views": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "просмотры",
+                "parameters": [
+                    {
+                        "description": "поля",
+                        "name": "updateRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.IncrementRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FeedResponseSwag"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/posts/{id}": {
             "put": {
                 "consumes": [
@@ -3184,6 +3217,17 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "keys": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.IncrementRequest": {
+            "type": "object",
+            "properties": {
+                "postIds": {
                     "type": "array",
                     "items": {
                         "type": "string"

@@ -233,3 +233,27 @@ func (c *PostsController) UpdatePost(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
+
+// IncrementViews
+// @Summary просмотры
+// @Tags posts
+// @Accept  json
+// @Produce  json
+// @Param updateRequest body dto.IncrementRequest true "поля"
+// @Success 201 {object} dto.FeedResponseSwag
+// @Router /secured/posts/views [post]
+func (c *PostsController) IncrementViews(ctx echo.Context) error {
+	var request dto.IncrementRequest
+	if err := ctx.Bind(&request); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body",
+		})
+	}
+	response, err := c.postService.IncrementViews(ctx.Request().Context(), &request)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
