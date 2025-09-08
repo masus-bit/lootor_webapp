@@ -164,10 +164,12 @@ func (c *PostsController) React(ctx echo.Context) error {
 // @Tags posts
 // @Accept  json
 // @Produce  json
+// @Param reaction query string true "reaction"
 // @Success 201 {object} dto.FeedResponseSwag
 // @Router /secured/posts/react/delete/{id} [get]
 func (c *PostsController) DeleteReact(ctx echo.Context) error {
 	id := ctx.Param("id")
+	reaction := ctx.QueryParam("reaction")
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
 		authUser = ""
@@ -175,6 +177,7 @@ func (c *PostsController) DeleteReact(ctx echo.Context) error {
 	request := dto.ReactRequest{
 		PostId:    id,
 		UserLogin: authUser,
+		Reaction:  reaction,
 	}
 	response, err := c.postService.Unreact(ctx.Request().Context(), &request)
 	if err != nil {
