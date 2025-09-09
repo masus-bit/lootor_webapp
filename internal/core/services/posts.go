@@ -42,6 +42,10 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 		if err != nil {
 			return
 		}
+		err = s.userRepo.IncrementPostCount(user.Login)
+		if err != nil {
+			return
+		}
 	}()
 
 	result := dto.PostDataResponse{
@@ -125,6 +129,10 @@ func (s *PostsService) DeletePost(ctx context.Context, id, authUser string) (*dt
 			return
 		}
 		err = s.userRepo.DecrementSocialScore(user.Login, 5)
+		if err != nil {
+			return
+		}
+		err = s.userRepo.DecrementPostCount(user.Login)
 		if err != nil {
 			return
 		}

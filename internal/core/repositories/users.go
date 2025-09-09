@@ -505,3 +505,15 @@ func (r *UsersRepository) GetDonationsTotal(userLogin string) (float64, error) {
 	}
 	return *result.Sum, err
 }
+
+func (r *UsersRepository) IncrementPostCount(userLogin string) error {
+	return r.db.Model(&models.Users{}).
+		Where("LOWER(login) = LOWER(?)", userLogin).
+		Update("post_count", gorm.Expr("COALESCE(post_count, 0) + ?", 1)).Error
+}
+
+func (r *UsersRepository) DecrementPostCount(userLogin string) error {
+	return r.db.Model(&models.Users{}).
+		Where("LOWER(login) = LOWER(?)", userLogin).
+		Update("post_count", gorm.Expr("GREATEST(COALESCE(post_count, 0) - ?, 0)", 1)).Error
+}

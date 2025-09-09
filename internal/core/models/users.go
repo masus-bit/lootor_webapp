@@ -35,6 +35,7 @@ type Users struct {
 	ReportsCount            int64           `json:"-"`
 	DeletedAt               *time.Time      `json:"-" gorm:"column:deleted_at"`
 	ProfileName             string          `json:"profileName"`
+	PostCount               int             `json:"postCount"`
 
 	Exp         int `json:"exp"`
 	SocialScore int `json:"socialScore"`
@@ -109,6 +110,7 @@ type UserResponse struct {
 	Exp                     int             `json:"exp"`
 	SocialScore             int             `json:"socialScore"`
 	TotalDonations          string          `json:"totalDonations"`
+	PostCount               int             `json:"postCount"`
 }
 
 type UserResponseForSingleUser struct {
@@ -139,6 +141,7 @@ type UserResponseForSingleUser struct {
 	Exp                     int             `json:"exp"`
 	SocialScore             int             `json:"socialScore"`
 	TotalDonations          string          `json:"totalDonations"`
+	PostCount               int             `json:"postCount"`
 }
 
 type UserRequestUpdate struct {
