@@ -33,11 +33,12 @@ type UserService struct {
 	evRepo               *repositories.EventsRepository
 	notificationsService *NotificationsService
 	collectionRepo       *repositories.CollectionsRepository
+	postsService         *PostsService
 }
 
-func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService, evRepo *repositories.EventsRepository, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository) *UserService {
+func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService, evRepo *repositories.EventsRepository, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, postsService *PostsService) *UserService {
 	_ = godotenv.Load()
-	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, evRepo: evRepo, notificationsService: notificationsService, collectionRepo: collectionRepo}
+	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, evRepo: evRepo, notificationsService: notificationsService, collectionRepo: collectionRepo, postsService: postsService}
 }
 
 func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*models.DataUserResponseForSingleUser, error) {
@@ -51,6 +52,7 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		authorizedUser, _ = s.repo.GetUserByLogin(authUser)
 	}
 	var response models.UserResponseForSingleUser
+	postsCount := s.postsService.GetCount(context.Background(), userLogin)
 
 	if userLogin == authUser {
 		totalDonations, _ := s.repo.GetDonationsTotal(userLogin)
@@ -64,6 +66,7 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		response.CollectionsCount = int(collectionsCount)
 		response.ShippingTotal = int(shippingTotal)
 		response.TotalDonations = donationsString
+		response.PostCount = int(postsCount)
 
 		e := mapstructure.Decode(dbUser, &response)
 
@@ -108,6 +111,7 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	response.CollectionsCount = int(collectionsCount)
 	response.ShippingTotal = int(shippingTotal)
 	response.TotalDonations = donationsString
+	response.PostCount = int(postsCount)
 	e := mapstructure.Decode(dbUser, &response)
 	if e != nil {
 		return nil, e

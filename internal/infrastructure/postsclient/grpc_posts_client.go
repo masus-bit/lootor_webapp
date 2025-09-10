@@ -109,6 +109,10 @@ func (c *GRPCPostsClient) IncrementCommentsCount(ctx context.Context, id string)
 	return c.client.IncrementCommentsCount(ctx, &microservices.CommentsCountRequest{PostId: id})
 }
 
+func (c *GRPCPostsClient) GetCount(ctx context.Context, userLogin string) (*microservices.CountResponse, error) {
+	return c.client.GetCountByUser(ctx, &microservices.CountRequest{UserLogin: userLogin})
+}
+
 func (c *GRPCPostsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

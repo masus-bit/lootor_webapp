@@ -239,6 +239,14 @@ func (s *PostsService) IncrementCommentsCount(ctx context.Context, id string) (*
 	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
 }
 
+func (s *PostsService) GetCount(ctx context.Context, userLogin string) int64 {
+	count, err := s.postsClient.GetCount(ctx, userLogin)
+	if err != nil {
+		return 0
+	}
+	return count.GetCount()
+}
+
 func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*dto.PostsDataResponse, error) {
 	var result []dto.Posts
 	for _, p := range posts.Data {

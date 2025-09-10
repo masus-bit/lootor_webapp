@@ -14,6 +14,7 @@ var migrationList = []struct {
 	fn   MigrationFunc
 }{
 	{"001_drop_user_creator_rating", migrations.DropUserCreatorRating},
+	{"002_drop_posts_count", migrations.DropPostsCount},
 }
 
 func RunMigrations(db *gorm.DB) error {
