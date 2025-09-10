@@ -163,7 +163,12 @@ func (s *PostsService) GetPostById(ctx context.Context, id, authUser string) (*d
 		}
 	}
 
-	result := s.fillPost(post.Data, normalizedContent, reacts, user)
+	author, err := s.userRepo.GetUserByLogin(post.Data.GetAuthor())
+	if err != nil {
+		return nil, err
+	}
+
+	result := s.fillPost(post.Data, normalizedContent, reacts, author)
 
 	return &dto.PostDataResponse{Data: *result}, nil
 }
