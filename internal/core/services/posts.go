@@ -347,6 +347,7 @@ func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, react
 		Reacted:        p.GetReacted(),
 		Views:          int(p.Views),
 		CommentsCount:  int(p.CommentsCount),
+		IsDraft:        p.IsDraft,
 	}
 
 }
