@@ -113,7 +113,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 				owner, _ := s.userRepo.GetUserByLogin(post.Data.GetAuthor())
 				tempItem.Target = dto.TargetItem{
 					Id:              post.Data.Id,
-					Name:            "",
+					Name:            post.Data.Title,
 					Transliteration: "",
 					TargetType:      "post",
 				}
