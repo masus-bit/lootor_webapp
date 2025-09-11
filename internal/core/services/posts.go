@@ -128,11 +128,11 @@ func (s *PostsService) GetPostsByUser(ctx context.Context, login, limit, offset,
 }
 
 func (s *PostsService) DeletePost(ctx context.Context, id, authUser string) (*dto.CommonResponse, error) {
-	result, err := s.postsClient.DeletePost(ctx, id)
+	exists, err := s.postsClient.GetPostById(ctx, id, false)
 	if err != nil {
 		return nil, err
 	}
-	exists, err := s.postsClient.GetPostById(ctx, id, false)
+	result, err := s.postsClient.DeletePost(ctx, id)
 	if err != nil {
 		return nil, err
 	}
