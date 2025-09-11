@@ -23,10 +23,7 @@ func (r *EventsRepository) AddEvent(
 	action string,
 	targetType string,
 	targetName string,
-	targetUserLogin *string,
-	targetCollectionID *uuid.UUID,
-	targetItemID *uuid.UUID,
-	targetWLID *uuid.UUID,
+	params *models.EventsParams,
 ) error {
 	event := &models.Events{
 		Action:          action,
@@ -37,13 +34,15 @@ func (r *EventsRepository) AddEvent(
 	}
 	switch targetType {
 	case "user":
-		event.TargetUserLogin = targetUserLogin
+		event.TargetUserLogin = &params.TargetUserLogin
 	case "collection":
-		event.TargetCollectionID = targetCollectionID
+		event.TargetCollectionID = &params.TargetCollectionID
 	case "collectionItem":
-		event.TargetItemID = targetItemID
+		event.TargetItemID = &params.TargetItemID
 	case "wishListItem":
-		event.TargetWishListItemID = targetWLID
+		event.TargetWishListItemID = &params.TargetWLID
+	case "post":
+		event.TargetPostId = params.TargetPostID
 
 	default:
 		return fmt.Errorf("unknown target type: %s", targetType)

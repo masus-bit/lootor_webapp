@@ -201,7 +201,7 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		subscriptionTargetUser.Exp += utils.UserSelfSubExp
 
 		go func() {
-			err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, &targetUserLogin, nil, nil, nil)
+			err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, &models.EventsParams{TargetUserLogin: targetUserLogin})
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -229,7 +229,9 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		subscriber.Subscriptions = utils.RemoveByValue(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers - 1
 		subscriptionTargetUser.SubscribersLogins = utils.RemoveByValue(subscriptionTargetUser.SubscribersLogins, strings.ToLower(authUserLogin))
-
+		go func() {
+			_ = s.notificationsService.DeleteNotification(context.Background(), targetUserLogin, authUserLogin)
+		}()
 		subscriptionTargetUser.Exp -= utils.UserSelfSubExp
 	}
 	wg.Add(2)

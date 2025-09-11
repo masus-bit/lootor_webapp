@@ -19,14 +19,24 @@ type Events struct {
 	TargetCollectionID   *uuid.UUID `gorm:"type:uuid" json:"targetCollectionId"`
 	TargetItemID         *uuid.UUID `gorm:"type:uuid" json:"targetItemId"`
 	TargetWishListItemID *uuid.UUID `gorm:"type:uuid" json:"targetWishListItemId"`
+	TargetPostId         string     `json:"targetPostId"`
 
 	TargetUser         *SubUsers                        `gorm:"-" json:"targetUser"`
 	TargetCollection   *types.CommonShortTypeCollection `gorm:"-" json:"targetCollection"`
 	TargetItem         *types.CommonShortTypeItem       `gorm:"-" json:"targetItem"`
 	TargetWishListItem *types.CommonShortType           `gorm:"-" json:"targetWishListItem"`
+	TargetPost         *types.CommonShortTypePost       `gorm:"-" json:"targetPost"`
 }
 
 type EventsDataResponse struct {
 	Data  []Events `json:"data"`
 	Total int64    `json:"total"`
+}
+
+type EventsParams struct {
+	TargetUserLogin    string
+	TargetCollectionID uuid.UUID
+	TargetItemID       uuid.UUID
+	TargetWLID         uuid.UUID
+	TargetPostID       string
 }

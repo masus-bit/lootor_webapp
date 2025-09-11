@@ -108,10 +108,7 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 		utils.EventActionCreate,
 		utils.EventTargetWL,
 		name,
-		nil,
-		nil,
-		nil,
-		&wlItem.Id)
+		&models.EventsParams{TargetWLID: wlItem.Id})
 
 	if err != nil {
 		return nil, err

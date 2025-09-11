@@ -133,7 +133,7 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 		return nil, err
 	}
 	if !collection.IsPrivate {
-		eventError := s.eventRepo.AddEvent(authUserLogin, utils.EventActionCreate, utils.EventTargetCollectionItem, dto.Name, nil, nil, &collectionItem.Id, nil)
+		eventError := s.eventRepo.AddEvent(authUserLogin, utils.EventActionCreate, utils.EventTargetCollectionItem, dto.Name, &models.EventsParams{TargetItemID: collectionItem.Id})
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
@@ -183,7 +183,7 @@ func (s *CiService) Delete(id string, ctx context.Context) (*dto.CommonResponse,
 	var result *dto.CommonResponse
 	if exists != nil {
 		if !exists.Collections[0].IsPrivate {
-			eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionDelete, utils.EventTargetCollectionItem, exists.Name, nil, nil, &exists.Id, nil)
+			eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionDelete, utils.EventTargetCollectionItem, exists.Name, &models.EventsParams{TargetItemID: exists.Id})
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -327,7 +327,7 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 	}
 
 	if !exists.Collections[0].IsPrivate {
-		eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionUpdate, utils.EventTargetCollectionItem, exists.Name, nil, nil, &exists.Id, nil)
+		eventError := s.eventRepo.AddEvent(exists.Owner.Login, utils.EventActionUpdate, utils.EventTargetCollectionItem, exists.Name, &models.EventsParams{TargetItemID: exists.Id})
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
@@ -412,7 +412,7 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.Collections[0].IsPrivate {
 			go func() {
-				eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollectionItem, exists.Name, nil, nil, &exists.Id, nil)
+				eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollectionItem, exists.Name, &models.EventsParams{TargetItemID: exists.Id})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -442,6 +442,9 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 	} else {
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
 		err = s.userRepo.DecrementExperience(exists.UserLogin, utils.CISelfLikeExp)
+		go func() {
+			_ = s.notificationsService.DeleteNotification(context.Background(), id, userLogin)
+		}()
 		if err != nil {
 			return nil, err
 		}

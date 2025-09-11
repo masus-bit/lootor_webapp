@@ -17,3 +17,8 @@ type CommonShortTypeItem struct {
 	Owner          string `json:"owner"`
 	CollectionName string `json:"collectionName"`
 }
+
+type CommonShortTypePost struct {
+	*CommonShortType
+	Author string `json:"author"`
+}

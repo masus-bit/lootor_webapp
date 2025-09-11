@@ -4,6 +4,7 @@ import (
 	"context"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/notificationsclient"
+	"lootor/internal/infrastructure/postsclient"
 	"lootor/internal/pkg/dto"
 )
 
@@ -12,12 +13,12 @@ type NotificationsService struct {
 	userRepo            *repositories.UsersRepository
 	collectionRepo      *repositories.CollectionsRepository
 	ciRepo              *repositories.CiRepository
-	postsService        *PostsService
+	postsClient         *postsclient.GRPCPostsClient
 }
 
-func NewNotificationsService(notificationsClient *notificationsclient.GRPCNotificationsClient, userRepo *repositories.UsersRepository, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository, postService *PostsService) *NotificationsService {
+func NewNotificationsService(notificationsClient *notificationsclient.GRPCNotificationsClient, userRepo *repositories.UsersRepository, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository, postsClient *postsclient.GRPCPostsClient) *NotificationsService {
 	return &NotificationsService{
-		notificationsClient: notificationsClient, userRepo: userRepo, collectionRepo: collectionRepo, ciRepo: ciRepo, postsService: postService}
+		notificationsClient: notificationsClient, userRepo: userRepo, collectionRepo: collectionRepo, ciRepo: ciRepo, postsClient: postsClient}
 }
 
 func (s *NotificationsService) SendNotification(ctx context.Context, request *dto.NotificationsRequest, targetReq *dto.TargetItem) error {
@@ -107,9 +108,9 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		}
 		switch n.TargetType {
 		case "post":
-			post, err := s.postsService.GetPostById(ctx, n.TargetId, login)
+			post, err := s.postsClient.GetPostById(ctx, n.TargetId, false)
 			if err == nil {
-				owner, _ := s.userRepo.GetUserByLogin(post.Data.Author.Login)
+				owner, _ := s.userRepo.GetUserByLogin(post.Data.GetAuthor())
 				tempItem.Target = dto.TargetItem{
 					Id:              post.Data.Id,
 					Name:            "",
@@ -171,4 +172,12 @@ func (s *NotificationsService) ReadNotification(ctx context.Context, ids []strin
 		return nil, err
 	}
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+}
+
+func (s *NotificationsService) DeleteNotification(ctx context.Context, targetId, senderLogin string) error {
+	_, err := s.notificationsClient.DeleteNotification(ctx, targetId, senderLogin)
+	if err != nil {
+		return err
+	}
+	return nil
 }

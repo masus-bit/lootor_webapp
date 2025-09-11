@@ -10,6 +10,16 @@ service NotificationsService {
   rpc GetAllNotifications(GetAllNotificationsRequest) returns (GetAllNotificationsResponse);
 
   rpc ReadNotifications(ReadRequest) returns (ReadResponse);
+
+  rpc RemoveNotification(DeleteNotificationRequest) returns (DeleteNotificationResponse);
+}
+
+message DeleteNotificationRequest {
+  string target_id = 1;
+  string user_login = 2;}
+
+message DeleteNotificationResponse {
+  bool success = 1;
 }
 
 message CreateNotificationRequest {

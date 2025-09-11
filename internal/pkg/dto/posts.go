@@ -27,6 +27,7 @@ type PostUpdateRequest struct {
 	Id      string
 	Content datatypes.JSON `json:"content"`
 	IsDraft bool           `json:"isDraft"`
+	Title   string         `json:"title"`
 }
 
 type PostRequest struct {
@@ -34,6 +35,7 @@ type PostRequest struct {
 	Author  string         `json:"author"`
 	Content datatypes.JSON `json:"content"`
 	IsDraft bool           `json:"isDraft"`
+	Title   string         `json:"title"`
 }
 
 type Posts struct {
@@ -55,6 +57,7 @@ type Posts struct {
 	IsDraft        bool            `json:"isDraft"`
 	Views          int             `json:"views"`
 	CommentsCount  int             `json:"commentsCount"`
+	Title          string          `json:"title"`
 
 	Content datatypes.JSON `gorm:"type:jsonb" json:"content"`
 

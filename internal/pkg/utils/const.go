@@ -5,6 +5,7 @@ const (
 	EventTargetUser           = "user"
 	EventTargetCollectionItem = "collectionItem"
 	EventTargetWL             = "wishListItem"
+	EventTargetPost           = "post"
 )
 
 const (
@@ -19,6 +20,7 @@ const (
 	NotificationTypeCollection     = "collection"
 	NotificationTypeUser           = "user"
 	NotificationTypeCollectionItem = "collectionItem"
+	NotificationTypePost           = "post"
 	NotificationTypeComment        = "comment"
 	NotificationTypeAnswer         = "answer"
 )
@@ -27,6 +29,7 @@ const (
 	NotificationActionSubscribe = "subscribe"
 	NotificationActionLike      = "like"
 	NotificationActionComment   = "comment"
+	NotificationActionReact     = "react"
 )
 
 const (

@@ -94,7 +94,7 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	}
 
 	if !dto.IsPrivate {
-		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, nil, &res.Id, nil, nil)
+		eventError := s.eventRepo.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, &models.EventsParams{TargetCollectionID: res.Id})
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
@@ -160,10 +160,7 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 			utils.EventActionUpdate,
 			utils.EventTargetCollection,
 			*dto.Name,
-			nil,
-			&resultCollection.Id,
-			nil,
-			nil,
+			&models.EventsParams{TargetCollectionID: resultCollection.Id},
 		)
 		if eventError != nil {
 			log.Default().Print(eventError)
@@ -185,7 +182,7 @@ func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonR
 	exists, _ := s.repo.GetCollectionByIdWithoutLimits(id)
 	if !exists.IsPrivate {
 		go func() {
-			eventError := s.eventRepo.AddEvent(exists.User.Login, utils.EventActionDelete, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil, nil)
+			eventError := s.eventRepo.AddEvent(exists.User.Login, utils.EventActionDelete, utils.EventTargetCollection, exists.Name, &models.EventsParams{TargetCollectionID: exists.Id})
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -421,7 +418,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.IsPrivate {
 			go func() {
-				eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil, nil)
+				eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollection, exists.Name, &models.EventsParams{TargetCollectionID: exists.Id})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -453,7 +450,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
 		if !exists.IsPrivate {
 			go func() {
-				eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollection, exists.Name, nil, &exists.Id, nil, nil)
+				eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollection, exists.Name, &models.EventsParams{TargetCollectionID: exists.Id})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -463,6 +460,9 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		if err != nil {
 			return nil, err
 		}
+		go func() {
+			_ = s.notificationsService.DeleteNotification(context.Background(), id, userLogin)
+		}()
 	}
 
 	_, err = s.repo.UpdateCollection(exists, exists)
@@ -498,7 +498,7 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 		subscriber.CollectionSubscriptions = append(subscriber.CollectionSubscriptions, targetId)
 		dbCollection.SubscribersCount = dbCollection.SubscribersCount + 1
 		go func() {
-			eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionSubscribe, utils.EventTargetCollection, dbCollection.Name, nil, &dbCollection.Id, nil, nil)
+			eventError := s.eventRepo.AddEvent(userLogin, utils.EventActionSubscribe, utils.EventTargetCollection, dbCollection.Name, &models.EventsParams{TargetCollectionID: dbCollection.Id})
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -531,6 +531,9 @@ func (s *CollectionService) Subscribe(targetId string, userLogin string, isSubsc
 		if err != nil {
 			return nil, err
 		}
+		go func() {
+			_ = s.notificationsService.DeleteNotification(context.Background(), targetId, userLogin)
+		}()
 	}
 	wg.Add(2)
 	go func() {

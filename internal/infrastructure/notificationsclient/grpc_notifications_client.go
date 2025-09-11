@@ -77,6 +77,17 @@ func (c *GRPCNotificationsClient) ReadNotifications(ctx context.Context, ids []s
 	})
 }
 
+func (c *GRPCNotificationsClient) DeleteNotification(ctx context.Context, targetId, senderLogin string) (*microservices.DeleteNotificationResponse, error) {
+	notification, err := c.client.RemoveNotification(ctx, &microservices.DeleteNotificationRequest{
+		TargetId:  targetId,
+		UserLogin: senderLogin,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return notification, nil
+}
+
 func (c *GRPCNotificationsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

@@ -169,8 +169,8 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		time.Duration(refreshTtl)*time.Minute,
 		*userRepo,
 	)
-	postsService := services.NewPostsService(postsClient, userRepo)
-	notificationsService := services.NewNotificationsService(notificationsClient, userRepo, colRepo, ciRepo, postsService)
+	notificationsService := services.NewNotificationsService(notificationsClient, userRepo, colRepo, ciRepo, postsClient)
+	postsService := services.NewPostsService(postsClient, userRepo, eventsRepo, notificationsService)
 	s3Service := s3.NewS3Service(redisClient)
 	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootor.me>`)
 	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsRepo, notificationsService, colRepo, postsService)

@@ -2,7 +2,9 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
+	"log"
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
@@ -10,16 +12,19 @@ import (
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/utils"
 	"strconv"
+	"time"
 )
 
 type PostsService struct {
-	postsClient *postsclient.GRPCPostsClient
-	userRepo    *repositories.UsersRepository
+	postsClient          *postsclient.GRPCPostsClient
+	userRepo             *repositories.UsersRepository
+	eventsRepo           *repositories.EventsRepository
+	notificationsService *NotificationsService
 }
 
-func NewPostsService(postsClient *postsclient.GRPCPostsClient, userRepo *repositories.UsersRepository) *PostsService {
+func NewPostsService(postsClient *postsclient.GRPCPostsClient, userRepo *repositories.UsersRepository, eventsRepo *repositories.EventsRepository, notificationsService *NotificationsService) *PostsService {
 	return &PostsService{
-		postsClient: postsClient, userRepo: userRepo}
+		postsClient: postsClient, userRepo: userRepo, eventsRepo: eventsRepo, notificationsService: notificationsService}
 }
 
 func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest) (*dto.PostDataResponse, error) {
@@ -45,6 +50,12 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 			err = s.userRepo.IncrementPostCount(user.Login)
 			if err != nil {
 				return
+			}
+		}()
+		go func() {
+			err = s.eventsRepo.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, request.Title, &models.EventsParams{TargetPostID: post.Data.Id})
+			if err != nil {
+				fmt.Sprintf("failed to add event: %v", err)
 			}
 		}()
 	}
@@ -75,6 +86,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 			IsDraft:        post.Data.IsDraft,
 			Views:          0,
 			CommentsCount:  0,
+			Title:          post.Data.Title,
 		},
 	}
 
@@ -120,9 +132,21 @@ func (s *PostsService) DeletePost(ctx context.Context, id, authUser string) (*dt
 	if err != nil {
 		return nil, err
 	}
+	exists, err := s.postsClient.GetPostById(ctx, id, false)
+	if err != nil {
+		return nil, err
+	}
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	if err != nil {
 		return nil, err
+	}
+	if !exists.Data.IsDraft {
+		go func() {
+			eventError := s.eventsRepo.AddEvent(user.Login, utils.EventActionDelete, utils.EventTargetPost, result.Title, &models.EventsParams{TargetPostID: id})
+			if eventError != nil {
+				log.Default().Print(eventError)
+			}
+		}()
 	}
 	go func() {
 		err = s.userRepo.DecrementExperience(user.Login, int(utils.PostCreateExp+result.ReactCount))
@@ -179,6 +203,10 @@ func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.C
 	if err != nil {
 		return nil, err
 	}
+	post, err := s.postsClient.GetPostById(ctx, req.PostId, false)
+	if err != nil {
+		return nil, err
+	}
 	go func() {
 		err = s.userRepo.IncrementExperience(resp.UserLogin, utils.PostReactExt)
 		if err != nil {
@@ -189,6 +217,23 @@ func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.C
 			return
 		}
 	}()
+	target := &dto.TargetItem{
+		Id:              req.PostId,
+		Name:            post.GetData().GetTitle(),
+		Transliteration: "",
+		TargetType:      "post",
+	}
+	go func() {
+		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
+			Login:       post.GetData().GetAuthor(),
+			TargetId:    req.PostId,
+			SenderLogin: req.UserLogin,
+			Type:        utils.NotificationTypePost,
+			Action:      utils.NotificationActionReact,
+			Date:        time.Now().Format(time.RFC3339),
+			OwnerLogin:  post.GetData().GetAuthor(),
+		}, target)
+	}()
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 
 }
@@ -198,15 +243,14 @@ func (s *PostsService) Unreact(ctx context.Context, req *dto.ReactRequest) (*dto
 	if err != nil {
 		return nil, err
 	}
+	backContext := context.Background()
 	go func() {
-		err = s.userRepo.DecrementExperience(resp.UserLogin, utils.PostReactExt)
-		if err != nil {
-			return
-		}
-		err = s.userRepo.DecrementSocialScore(resp.UserLogin, 1)
-		if err != nil {
-			return
-		}
+		_ = s.userRepo.DecrementExperience(resp.UserLogin, utils.PostReactExt)
+
+		_ = s.userRepo.DecrementSocialScore(resp.UserLogin, 1)
+
+		_ = s.notificationsService.DeleteNotification(backContext, req.PostId, req.UserLogin)
+
 	}()
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
@@ -237,6 +281,12 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 			err = s.userRepo.IncrementPostCount(user.Login)
 			if err != nil {
 				return
+			}
+		}()
+		go func() {
+			err = s.eventsRepo.AddEvent(user.Login, utils.EventActionUpdate, utils.EventTargetPost, req.Title, &models.EventsParams{TargetPostID: req.Id})
+			if err != nil {
+				fmt.Sprintf("failed to add event: %v", err)
 			}
 		}()
 	}
@@ -378,6 +428,7 @@ func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, react
 		Views:          int(p.Views),
 		CommentsCount:  int(p.CommentsCount),
 		IsDraft:        p.IsDraft,
+		Title:          p.Title,
 	}
 
 }

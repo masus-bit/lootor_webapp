@@ -34,6 +34,7 @@ func (c *GRPCPostsClient) CreatePost(ctx context.Context, dto *dto.PostRequest) 
 		Date:    dto.Date,
 		Author:  dto.Author,
 		IsDraft: dto.IsDraft,
+		Title:   dto.Title,
 	})
 	if err != nil {
 		return nil, err
@@ -85,6 +86,7 @@ func (c *GRPCPostsClient) UpdatePost(ctx context.Context, dto *dto.PostUpdateReq
 		Id:      dto.Id,
 		Content: normalizedContent,
 		IsDraft: dto.IsDraft,
+		Title:   dto.Title,
 	})
 	if err != nil {
 		return nil, err
