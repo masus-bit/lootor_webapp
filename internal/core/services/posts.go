@@ -32,21 +32,22 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 	if err != nil {
 		return nil, err
 	}
-
-	go func() {
-		err = s.userRepo.IncrementExperience(user.Login, utils.PostCreateExp)
-		if err != nil {
-			return
-		}
-		err = s.userRepo.IncrementSocialScore(user.Login, 5)
-		if err != nil {
-			return
-		}
-		err = s.userRepo.IncrementPostCount(user.Login)
-		if err != nil {
-			return
-		}
-	}()
+	if !request.IsDraft {
+		go func() {
+			err = s.userRepo.IncrementExperience(user.Login, utils.PostCreateExp)
+			if err != nil {
+				return
+			}
+			err = s.userRepo.IncrementSocialScore(user.Login, 5)
+			if err != nil {
+				return
+			}
+			err = s.userRepo.IncrementPostCount(user.Login)
+			if err != nil {
+				return
+			}
+		}()
+	}
 
 	result := dto.PostDataResponse{
 		Data: dto.Posts{
@@ -115,7 +116,7 @@ func (s *PostsService) GetPostsByUser(ctx context.Context, login, limit, offset,
 }
 
 func (s *PostsService) DeletePost(ctx context.Context, id, authUser string) (*dto.CommonResponse, error) {
-	_, err := s.postsClient.DeletePost(ctx, id)
+	result, err := s.postsClient.DeletePost(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +125,7 @@ func (s *PostsService) DeletePost(ctx context.Context, id, authUser string) (*dt
 		return nil, err
 	}
 	go func() {
-		err = s.userRepo.DecrementExperience(user.Login, utils.PostCreateExp)
+		err = s.userRepo.DecrementExperience(user.Login, int(utils.PostCreateExp+result.ReactCount))
 		if err != nil {
 			return
 		}
@@ -219,6 +220,27 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 	if err != nil {
 		return nil, err
 	}
+	existPost, err := s.postsClient.GetPostById(ctx, req.Id, user.IsPremium)
+	if err != nil {
+		return nil, err
+	}
+	if existPost.Data.IsDraft && !req.IsDraft {
+		go func() {
+			err = s.userRepo.IncrementExperience(user.Login, utils.PostCreateExp)
+			if err != nil {
+				return
+			}
+			err = s.userRepo.IncrementSocialScore(user.Login, 5)
+			if err != nil {
+				return
+			}
+			err = s.userRepo.IncrementPostCount(user.Login)
+			if err != nil {
+				return
+			}
+		}()
+	}
+
 	resultPost := s.fillPost(post.Data, utils.NormalizeContent(post.Data.Content), nil, user)
 	return &dto.PostDataResponse{Data: *resultPost}, nil
 }
