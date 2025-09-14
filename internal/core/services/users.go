@@ -88,7 +88,7 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	}
 
 	var subArray []string
-
+	response.CanSubscribe = true
 	if authorizedUser != nil {
 		subArray = authorizedUser.Subscriptions
 		var lowerCasedUsers []string
