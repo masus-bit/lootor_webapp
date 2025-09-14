@@ -256,6 +256,10 @@ func (s *PostsService) Unreact(ctx context.Context, req *dto.ReactRequest) (*dto
 }
 
 func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateRequest) (*dto.PostDataResponse, error) {
+	existPost, err := s.postsClient.GetPostById(ctx, req.Id, false)
+	if err != nil {
+		return nil, err
+	}
 	post, err := s.postsClient.UpdatePost(ctx, req)
 	if err != nil {
 		return nil, err
@@ -264,10 +268,7 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 	if err != nil {
 		return nil, err
 	}
-	existPost, err := s.postsClient.GetPostById(ctx, req.Id, user.IsPremium)
-	if err != nil {
-		return nil, err
-	}
+
 	if existPost.Data.IsDraft && !req.IsDraft {
 		go func() {
 			err = s.userRepo.IncrementExperience(user.Login, utils.PostCreateExp)
@@ -283,6 +284,13 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 				return
 			}
 		}()
+		go func() {
+			err = s.eventsRepo.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, req.Title, &models.EventsParams{TargetPostID: req.Id})
+			if err != nil {
+				fmt.Sprintf("failed to add event: %v", err)
+			}
+		}()
+	} else if !existPost.Data.IsDraft && !req.IsDraft {
 		go func() {
 			err = s.eventsRepo.AddEvent(user.Login, utils.EventActionUpdate, utils.EventTargetPost, req.Title, &models.EventsParams{TargetPostID: req.Id})
 			if err != nil {
