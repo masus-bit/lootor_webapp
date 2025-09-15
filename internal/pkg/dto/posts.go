@@ -11,7 +11,7 @@ import (
 type ReactRequest struct {
 	Reaction  string `json:"reaction"`
 	UserLogin string `json:"userLogin"`
-	PostId    string `json:"postId"`
+	PostId    uint64 `json:"postId"`
 }
 
 type PostsDataResponse struct {
@@ -24,10 +24,11 @@ type PostDataResponse struct {
 }
 
 type PostUpdateRequest struct {
-	Id      string
-	Content datatypes.JSON `json:"content"`
-	IsDraft bool           `json:"isDraft"`
-	Title   string         `json:"title"`
+	Id       uint64
+	Content  datatypes.JSON `json:"content"`
+	IsDraft  bool           `json:"isDraft"`
+	Title    string         `json:"title"`
+	Translit string         `json:"translit"`
 }
 
 type PostRequest struct {
@@ -39,7 +40,7 @@ type PostRequest struct {
 }
 
 type Posts struct {
-	Id             string          `json:"id"`
+	Id             uint64          `gorm:"primaryKey;autoIncrement" json:"id"`
 	Date           string          `json:"date"`
 	Author         models.SubUsers `json:"author"`
 	HeartCount     int             `json:"heartCount"`
@@ -58,6 +59,7 @@ type Posts struct {
 	Views          int             `json:"views"`
 	CommentsCount  int             `json:"commentsCount"`
 	Title          string          `json:"title"`
+	Translit       string          `json:"translit"`
 
 	Content datatypes.JSON `gorm:"type:jsonb" json:"content"`
 
@@ -85,7 +87,7 @@ type PostReactions struct {
 	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"index"`
 
 	Id        uuid.UUID    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	PostId    string       `gorm:"not null;uniqueIndex:idx_user_post" json:"postId"`
+	PostId    uint64       `gorm:"not null;uniqueIndex:idx_user_post" json:"postId"`
 	UserLogin string       `gorm:"not null;uniqueIndex:idx_user_post" json:"userLogin"`
 	Reaction  ReactionType `json:"reaction"`
 
@@ -112,5 +114,5 @@ type ReactResponse struct {
 }
 
 type IncrementRequest struct {
-	PostIds []string `json:"postIds"`
+	PostIds []uint64 `json:"postIds"`
 }

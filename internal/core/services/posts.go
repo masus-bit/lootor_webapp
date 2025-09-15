@@ -60,6 +60,10 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 		}()
 	}
 
+	strUint := strconv.FormatUint(post.Data.Id, 10)
+
+	translit := utils.Slugify(post.Data.Title) + "_" + strUint
+
 	result := dto.PostDataResponse{
 		Data: dto.Posts{
 			Id:   post.Data.Id,
@@ -87,6 +91,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 			Views:          0,
 			CommentsCount:  0,
 			Title:          post.Data.Title,
+			Translit:       translit,
 		},
 	}
 
@@ -127,7 +132,7 @@ func (s *PostsService) GetPostsByUser(ctx context.Context, login, limit, offset,
 
 }
 
-func (s *PostsService) DeletePost(ctx context.Context, id, authUser string) (*dto.CommonResponse, error) {
+func (s *PostsService) DeletePost(ctx context.Context, id uint64, authUser string) (*dto.CommonResponse, error) {
 	exists, err := s.postsClient.GetPostById(ctx, id, false)
 	if err != nil {
 		return nil, err
@@ -166,7 +171,7 @@ func (s *PostsService) DeletePost(ctx context.Context, id, authUser string) (*dt
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *PostsService) GetPostById(ctx context.Context, id, authUser string) (*dto.PostDataResponse, error) {
+func (s *PostsService) GetPostById(ctx context.Context, id uint64, authUser string) (*dto.PostDataResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	var authUserIsPremium bool
 	if err != nil {
@@ -218,7 +223,7 @@ func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.C
 		}
 	}()
 	target := &dto.TargetItem{
-		Id:              req.PostId,
+		Id:              strconv.FormatUint(req.PostId, 10),
 		Name:            post.GetData().GetTitle(),
 		Transliteration: "",
 		TargetType:      "post",
@@ -226,7 +231,7 @@ func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.C
 	go func() {
 		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
 			Login:       post.GetData().GetAuthor(),
-			TargetId:    req.PostId,
+			TargetId:    strconv.FormatUint(req.PostId, 10),
 			SenderLogin: req.UserLogin,
 			Type:        utils.NotificationTypePost,
 			Action:      utils.NotificationActionReact,
@@ -249,7 +254,7 @@ func (s *PostsService) Unreact(ctx context.Context, req *dto.ReactRequest) (*dto
 
 		_ = s.userRepo.DecrementSocialScore(resp.UserLogin, 1)
 
-		_ = s.notificationsService.DeleteNotification(backContext, req.PostId, req.UserLogin)
+		_ = s.notificationsService.DeleteNotification(backContext, strconv.FormatUint(req.PostId, 10), req.UserLogin)
 
 	}()
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
@@ -259,6 +264,11 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 	existPost, err := s.postsClient.GetPostById(ctx, req.Id, false)
 	if err != nil {
 		return nil, err
+	}
+	if existPost.Data.Title != req.Title {
+		strUint := strconv.FormatUint(req.Id, 10)
+		translit := utils.Slugify(req.Title) + "_" + strUint
+		req.Translit = translit
 	}
 	post, err := s.postsClient.UpdatePost(ctx, req)
 	if err != nil {
@@ -311,7 +321,7 @@ func (s *PostsService) IncrementViews(ctx context.Context, req *dto.IncrementReq
 	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
 }
 
-func (s *PostsService) IncrementCommentsCount(ctx context.Context, id string) (*dto.CommonResponse, error) {
+func (s *PostsService) IncrementCommentsCount(ctx context.Context, id uint64) (*dto.CommonResponse, error) {
 	resp, err := s.postsClient.IncrementCommentsCount(ctx, id)
 	if err != nil {
 		return nil, err
@@ -437,6 +447,7 @@ func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, react
 		CommentsCount:  int(p.CommentsCount),
 		IsDraft:        p.IsDraft,
 		Title:          p.Title,
+		Translit:       p.Translit,
 	}
 
 }

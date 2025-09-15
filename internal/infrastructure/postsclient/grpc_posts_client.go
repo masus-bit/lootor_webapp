@@ -57,7 +57,7 @@ func (c *GRPCPostsClient) GetPostsByUser(ctx context.Context, limit, offset, log
 	})
 }
 
-func (c *GRPCPostsClient) DeletePost(ctx context.Context, id string) (*microservices.DeletePostResponse, error) {
+func (c *GRPCPostsClient) DeletePost(ctx context.Context, id uint64) (*microservices.DeletePostResponse, error) {
 	return c.client.DeletePost(ctx, &microservices.DeletePostRequest{
 		Id: id,
 	})
@@ -83,10 +83,11 @@ func (c *GRPCPostsClient) UpdatePost(ctx context.Context, dto *dto.PostUpdateReq
 	normalizedContent, _ := utils.GormJSONToProtoStruct(dto.Content)
 
 	resp, err := c.client.UpdatePost(ctx, &microservices.UpdatePostRequest{
-		Id:      dto.Id,
-		Content: normalizedContent,
-		IsDraft: dto.IsDraft,
-		Title:   dto.Title,
+		Id:       dto.Id,
+		Content:  normalizedContent,
+		IsDraft:  dto.IsDraft,
+		Title:    dto.Title,
+		Translit: dto.Translit,
 	})
 	if err != nil {
 		return nil, err
@@ -94,7 +95,7 @@ func (c *GRPCPostsClient) UpdatePost(ctx context.Context, dto *dto.PostUpdateReq
 	return resp, nil
 }
 
-func (c *GRPCPostsClient) GetPostById(ctx context.Context, id string, authUserIsPremium bool) (*microservices.PostResponse, error) {
+func (c *GRPCPostsClient) GetPostById(ctx context.Context, id uint64, authUserIsPremium bool) (*microservices.PostResponse, error) {
 	return c.client.GetPost(ctx, &microservices.PostRequest{
 		Id:        id,
 		IsPremium: authUserIsPremium,
@@ -107,7 +108,7 @@ func (c *GRPCPostsClient) IncrementViews(ctx context.Context, req *dto.Increment
 	})
 }
 
-func (c *GRPCPostsClient) IncrementCommentsCount(ctx context.Context, id string) (*microservices.CommentsCountResponse, error) {
+func (c *GRPCPostsClient) IncrementCommentsCount(ctx context.Context, id uint64) (*microservices.CommentsCountResponse, error) {
 	return c.client.IncrementCommentsCount(ctx, &microservices.CommentsCountRequest{PostId: id})
 }
 

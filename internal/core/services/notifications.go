@@ -6,6 +6,7 @@ import (
 	"lootor/internal/infrastructure/notificationsclient"
 	"lootor/internal/infrastructure/postsclient"
 	"lootor/internal/pkg/dto"
+	"strconv"
 )
 
 type NotificationsService struct {
@@ -108,11 +109,12 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		}
 		switch n.TargetType {
 		case "post":
-			post, err := s.postsClient.GetPostById(ctx, n.TargetId, false)
+			tId, _ := strconv.ParseUint(n.TargetId, 10, 64)
+			post, err := s.postsClient.GetPostById(ctx, tId, false)
 			if err == nil {
 				owner, _ := s.userRepo.GetUserByLogin(post.Data.GetAuthor())
 				tempItem.Target = dto.TargetItem{
-					Id:              post.Data.Id,
+					Id:              strconv.FormatUint(post.Data.Id, 10),
 					Name:            post.Data.Title,
 					Transliteration: "",
 					TargetType:      "post",

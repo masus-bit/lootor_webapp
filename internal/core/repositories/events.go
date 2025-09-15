@@ -42,7 +42,7 @@ func (r *EventsRepository) AddEvent(
 	case "wishListItem":
 		event.TargetWishListItemID = &params.TargetWLID
 	case "post":
-		event.TargetPostId = params.TargetPostID
+		event.TargetPostId = strconv.FormatUint(params.TargetPostID, 10)
 
 	default:
 		return fmt.Errorf("unknown target type: %s", targetType)

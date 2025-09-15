@@ -128,7 +128,9 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 		}
 	}
 
-	post, err := s.postsService.GetPostById(ctx, request.TargetId, request.Author)
+	targetId, _ := strconv.ParseUint(request.TargetId, 10, 64)
+
+	post, err := s.postsService.GetPostById(ctx, targetId, request.Author)
 
 	if err == nil {
 		if *request.TargetUserLogin != "" {
@@ -136,14 +138,14 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 		} else {
 			targetUserLogin = post.Data.Author.Login
 		}
-		_, err = s.postsService.IncrementCommentsCount(ctx, request.TargetId)
+		_, err = s.postsService.IncrementCommentsCount(ctx, targetId)
 		if err != nil {
 			return nil, err
 		}
 		ownerLogin = post.Data.Author.Login
 
 		targetReq = &dto.TargetItem{
-			Id:              post.Data.Id,
+			Id:              strconv.FormatUint(post.Data.Id, 10),
 			Name:            "",
 			Transliteration: "",
 			TargetType:      "post",
