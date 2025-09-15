@@ -116,3 +116,7 @@ type ReactResponse struct {
 type IncrementRequest struct {
 	PostIds []uint64 `json:"postIds"`
 }
+
+type IncrementRequestInput struct {
+	PostIds []string `json:"postIds"`
+}

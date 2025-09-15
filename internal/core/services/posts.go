@@ -313,8 +313,13 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 	return &dto.PostDataResponse{Data: *resultPost}, nil
 }
 
-func (s *PostsService) IncrementViews(ctx context.Context, req *dto.IncrementRequest) (*dto.CommonResponse, error) {
-	resp, err := s.postsClient.IncrementViews(ctx, req)
+func (s *PostsService) IncrementViews(ctx context.Context, req *dto.IncrementRequestInput) (*dto.CommonResponse, error) {
+	var uintIds []uint64
+	for _, id := range req.PostIds {
+		idInt, _ := strconv.ParseUint(id, 10, 64)
+		uintIds = append(uintIds, idInt)
+	}
+	resp, err := s.postsClient.IncrementViews(ctx, &dto.IncrementRequest{PostIds: uintIds})
 	if err != nil {
 		return nil, err
 	}
