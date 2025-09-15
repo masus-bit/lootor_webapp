@@ -203,6 +203,38 @@ func (s *PostsService) GetPostById(ctx context.Context, id uint64, authUser stri
 	return &dto.PostDataResponse{Data: *result}, nil
 }
 
+func (s *PostsService) GetPostByTranslit(ctx context.Context, translit string, authUser string) (*dto.PostDataResponse, error) {
+	user, err := s.userRepo.GetUserByLogin(authUser)
+	var authUserIsPremium bool
+	if err != nil {
+		authUserIsPremium = false
+	} else {
+		authUserIsPremium = user.IsPremium
+	}
+	post, err := s.postsClient.GetPostByTranslit(ctx, translit, authUserIsPremium)
+	if err != nil {
+		return nil, err
+	}
+
+	normalizedContent := utils.NormalizeContent(post.Data.Content)
+	var reacts *dto.ReactResponse
+	if len(post.Data.GetReactions()) != 0 {
+		reacts, err = s.formatReacts(post.Data)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	author, err := s.userRepo.GetUserByLogin(post.Data.GetAuthor())
+	if err != nil {
+		return nil, err
+	}
+
+	result := s.fillPost(post.Data, normalizedContent, reacts, author)
+
+	return &dto.PostDataResponse{Data: *result}, nil
+}
+
 func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.CommonResponse, error) {
 	resp, err := s.postsClient.ReactPost(ctx, req)
 	if err != nil {

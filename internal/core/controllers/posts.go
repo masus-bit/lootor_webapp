@@ -132,6 +132,29 @@ func (c *PostsController) GetPostById(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// GetPostByTranslit
+// @Summary получить пост по id
+// @Tags posts
+// @Accept  json
+// @Produce  json
+// @Param translit path string true "translit"
+// @Success 201 {object} dto.FeedResponseSwag
+// @Router /public/posts/translit/{id} [get]
+func (c *PostsController) GetPostByTranslit(ctx echo.Context) error {
+	translit := ctx.Param("translit")
+	authInfo := ctx.Get("auth_info").(struct {
+		IsAuthenticated bool
+		UserLogin       string
+	})
+	response, err := c.postService.GetPostByTranslit(ctx.Request().Context(), translit, authInfo.UserLogin)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
 // React
 // @Summary поставить реакцию
 // @Tags posts
@@ -256,7 +279,7 @@ func (c *PostsController) UpdatePost(ctx echo.Context) error {
 // @Success 201 {object} dto.FeedResponseSwag
 // @Router /secured/posts/views [post]
 func (c *PostsController) IncrementViews(ctx echo.Context) error {
-	var request dto.IncrementRequest
+	var request dto.IncrementRequestInput
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",

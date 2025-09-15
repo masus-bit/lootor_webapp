@@ -864,6 +864,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/posts/translit/{id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "получить пост по id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "translit",
+                        "name": "translit",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FeedResponseSwag"
+                        }
+                    }
+                }
+            }
+        },
         "/public/posts/{id}": {
             "get": {
                 "consumes": [
@@ -2150,6 +2181,15 @@ const docTemplate = `{
                     "posts"
                 ],
                 "summary": "убрать реакцию",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "reaction",
+                        "name": "reaction",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -3230,7 +3270,7 @@ const docTemplate = `{
                 "postIds": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "type": "integer"
                     }
                 }
             }

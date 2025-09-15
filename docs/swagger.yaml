@@ -345,7 +345,7 @@ definitions:
     properties:
       postIds:
         items:
-          type: string
+          type: integer
         type: array
     type: object
   dto.LikeUserSwagger:
@@ -1369,6 +1369,26 @@ paths:
       summary: все посты с пагинацией
       tags:
       - posts
+  /public/posts/translit/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: translit
+        in: path
+        name: translit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FeedResponseSwag'
+      summary: получить пост по id
+      tags:
+      - posts
   /public/search:
     get:
       consumes:
@@ -2242,6 +2262,12 @@ paths:
     get:
       consumes:
       - application/json
+      parameters:
+      - description: reaction
+        in: query
+        name: reaction
+        required: true
+        type: string
       produces:
       - application/json
       responses:

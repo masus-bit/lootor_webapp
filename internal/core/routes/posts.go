@@ -14,6 +14,7 @@ func PostsRouter(e *echo.Echo, jwtService *auth.JWTService, postsService service
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
 		publicGroup.GET("/posts/:id", controller.GetPostById)
+		publicGroup.GET("/posts/translit/:id", controller.GetPostByTranslit)
 		publicGroup.GET("/posts/all", controller.GetAllPosts)
 		publicGroup.GET("/posts", controller.GetPostsByUser)
 		publicGroup.POST("/posts/views", controller.IncrementViews)

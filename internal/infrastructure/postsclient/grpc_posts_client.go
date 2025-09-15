@@ -102,6 +102,13 @@ func (c *GRPCPostsClient) GetPostById(ctx context.Context, id uint64, authUserIs
 	})
 }
 
+func (c *GRPCPostsClient) GetPostByTranslit(ctx context.Context, translit string, authUserIsPremium bool) (*microservices.PostResponse, error) {
+	return c.client.GetPostByTranslit(ctx, &microservices.PostRequestByTranslit{
+		Translit:  translit,
+		IsPremium: authUserIsPremium,
+	})
+}
+
 func (c *GRPCPostsClient) IncrementViews(ctx context.Context, req *dto.IncrementRequest) (*microservices.ViewsResponse, error) {
 	return c.client.IncrementViews(ctx, &microservices.ViewsRequest{
 		PostIds: req.PostIds,
