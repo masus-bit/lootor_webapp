@@ -141,7 +141,7 @@ func (c *PostsController) GetPostById(ctx echo.Context) error {
 // @Success 201 {object} dto.FeedResponseSwag
 // @Router /public/posts/translit/{id} [get]
 func (c *PostsController) GetPostByTranslit(ctx echo.Context) error {
-	translit := ctx.Param("translit")
+	translit := ctx.Param("id")
 	authInfo := ctx.Get("auth_info").(struct {
 		IsAuthenticated bool
 		UserLogin       string
