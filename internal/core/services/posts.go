@@ -59,10 +59,22 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 			}
 		}()
 	}
-
 	strUint := strconv.FormatUint(post.Data.Id, 10)
 
 	translit := utils.Slugify(post.Data.Title) + "_" + strUint
+
+	go func() {
+		_, err = s.postsClient.UpdatePost(ctx, &dto.PostUpdateRequest{
+			Id:       post.Data.Id,
+			Translit: translit,
+			Title:    post.Data.Title,
+			IsDraft:  post.Data.IsDraft,
+			Content:  content,
+		})
+		if err != nil {
+			return
+		}
+	}()
 
 	result := dto.PostDataResponse{
 		Data: dto.Posts{
@@ -297,10 +309,12 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 	if err != nil {
 		return nil, err
 	}
-	if existPost.Data.Title != req.Title {
+	if req.Title != "" && existPost.Data.Title != req.Title {
 		strUint := strconv.FormatUint(req.Id, 10)
 		translit := utils.Slugify(req.Title) + "_" + strUint
 		req.Translit = translit
+	} else if existPost.Data.Title == req.Title {
+		req.Translit = existPost.Data.Translit
 	}
 	post, err := s.postsClient.UpdatePost(ctx, req)
 	if err != nil {
