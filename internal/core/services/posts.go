@@ -263,7 +263,7 @@ func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.C
 	target := &dto.TargetItem{
 		Id:              strconv.FormatUint(req.PostId, 10),
 		Name:            post.GetData().GetTitle(),
-		Transliteration: "",
+		Transliteration: post.GetData().GetTranslit(),
 		TargetType:      "post",
 	}
 	go func() {

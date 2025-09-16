@@ -145,9 +145,9 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 		ownerLogin = post.Data.Author.Login
 
 		targetReq = &dto.TargetItem{
-			Id:              strconv.FormatUint(post.Data.Id, 10),
-			Name:            "",
-			Transliteration: "",
+			Id:              post.Data.Translit,
+			Name:            post.Data.Title,
+			Transliteration: post.Data.Translit,
 			TargetType:      "post",
 		}
 	}
