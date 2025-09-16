@@ -116,7 +116,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 				tempItem.Target = dto.TargetItem{
 					Id:              strconv.FormatUint(post.Data.Id, 10),
 					Name:            post.Data.Title,
-					Transliteration: "",
+					Transliteration: post.Data.Translit,
 					TargetType:      "post",
 				}
 				tempItem.Owner = dto.User{
