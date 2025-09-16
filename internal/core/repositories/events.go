@@ -159,7 +159,7 @@ func (r *EventsRepository) loadEventRelations(events *[]models.Events) error {
 	collectionsMap := make(map[uuid.UUID]models.Collections)
 	if len(collectionIDs) > 0 {
 		var collections []models.Collections
-		if err := r.db.Where("id IN ?", collectionIDs).Find(&collections).Error; err != nil {
+		if err := r.db.Where("id IN ? AND deleted_at IS NULL", collectionIDs).Find(&collections).Error; err != nil {
 			return err
 		}
 		for _, collection := range collections {
@@ -170,7 +170,7 @@ func (r *EventsRepository) loadEventRelations(events *[]models.Events) error {
 	itemsMap := make(map[uuid.UUID]models.CollectionItems)
 	if len(itemIDs) > 0 {
 		var items []models.CollectionItems
-		if err := r.db.Where("id IN ?", itemIDs).Preload("Collections").Find(&items).Error; err != nil {
+		if err := r.db.Where("id IN ? AND deleted_at IS NULL", itemIDs).Preload("Collections").Find(&items).Error; err != nil {
 			return err
 		}
 		for _, item := range items {
@@ -192,7 +192,7 @@ func (r *EventsRepository) loadEventRelations(events *[]models.Events) error {
 	postsMap := make(map[string]dto.EventPosts)
 	if len(postIDs) > 0 {
 		var posts []dto.EventPosts
-		if err := r.db.Table("lootor.loot_posts.posts").Where("translit IN ?", postIDs).Find(&posts).Error; err != nil {
+		if err := r.db.Table("lootor.loot_posts.posts").Where("translit IN ? AND deleted_at IS NULL", postIDs).Find(&posts).Error; err != nil {
 			return err
 		}
 		for _, item := range posts {
