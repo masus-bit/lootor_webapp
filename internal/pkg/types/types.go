@@ -20,5 +20,6 @@ type CommonShortTypeItem struct {
 
 type CommonShortTypePost struct {
 	*CommonShortType
-	Author string `json:"author"`
+	Author          string `json:"author"`
+	Transliteration string `json:"transliteration"`
 }

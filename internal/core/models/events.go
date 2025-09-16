@@ -38,5 +38,5 @@ type EventsParams struct {
 	TargetCollectionID uuid.UUID
 	TargetItemID       uuid.UUID
 	TargetWLID         uuid.UUID
-	TargetPostID       uint64
+	TargetPostID       string
 }

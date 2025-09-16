@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"lootor/internal/core/models"
+	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/types"
 	"strconv"
 	"time"
@@ -42,7 +43,7 @@ func (r *EventsRepository) AddEvent(
 	case "wishListItem":
 		event.TargetWishListItemID = &params.TargetWLID
 	case "post":
-		event.TargetPostId = strconv.FormatUint(params.TargetPostID, 10)
+		event.TargetPostId = params.TargetPostID
 
 	default:
 		return fmt.Errorf("unknown target type: %s", targetType)
@@ -123,6 +124,7 @@ func (r *EventsRepository) loadEventRelations(events *[]models.Events) error {
 		collectionIDs   []uuid.UUID
 		itemIDs         []uuid.UUID
 		wishListItemIDs []uuid.UUID
+		postIDs         []string
 	)
 
 	for _, event := range *events {
@@ -137,6 +139,9 @@ func (r *EventsRepository) loadEventRelations(events *[]models.Events) error {
 		}
 		if event.TargetWishListItemID != nil {
 			wishListItemIDs = append(wishListItemIDs, *event.TargetWishListItemID)
+		}
+		if event.TargetPostId != "" {
+			postIDs = append(postIDs, event.TargetPostId)
 		}
 	}
 
@@ -183,6 +188,18 @@ func (r *EventsRepository) loadEventRelations(events *[]models.Events) error {
 			wishListItemsMap[item.Id] = item
 		}
 	}
+
+	postsMap := make(map[string]dto.EventPosts)
+	if len(postIDs) > 0 {
+		var posts []dto.EventPosts
+		if err := r.db.Table("lootor.loot_posts.posts").Where("translit IN ?", postIDs).Find(&posts).Error; err != nil {
+			return err
+		}
+		for _, item := range posts {
+			postsMap[item.Translit] = item
+		}
+	}
+
 	for i, event := range *events {
 		if event.TargetUserLogin != nil {
 			if user, ok := usersMap[*event.TargetUserLogin]; ok {
@@ -202,6 +219,11 @@ func (r *EventsRepository) loadEventRelations(events *[]models.Events) error {
 		if event.TargetWishListItemID != nil {
 			if item, ok := wishListItemsMap[*event.TargetWishListItemID]; ok {
 				(*events)[i].TargetWishListItem = convertToWishListItemResponse(item)
+			}
+		}
+		if event.TargetPostId != "" {
+			if post, ok := postsMap[event.TargetPostId]; ok {
+				(*events)[i].TargetPost = convertToPostResponse(post)
 			}
 		}
 	}
@@ -245,5 +267,16 @@ func convertToWishListItemResponse(item models.WishListItems) *types.CommonShort
 	return &types.CommonShortType{
 		ID:   item.Id.String(),
 		Name: item.ItemName,
+	}
+}
+
+func convertToPostResponse(post dto.EventPosts) *types.CommonShortTypePost {
+	return &types.CommonShortTypePost{
+		CommonShortType: &types.CommonShortType{
+			ID:   post.Translit,
+			Name: post.Title,
+		},
+		Author:          post.Author,
+		Transliteration: post.Translit,
 	}
 }

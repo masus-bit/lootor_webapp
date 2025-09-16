@@ -37,6 +37,9 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 	if err != nil {
 		return nil, err
 	}
+	strUint := strconv.FormatUint(post.Data.Id, 10)
+
+	translit := utils.Slugify(post.Data.Title) + "_" + strUint
 	if !request.IsDraft {
 		go func() {
 			err = s.userRepo.IncrementExperience(user.Login, utils.PostCreateExp)
@@ -53,29 +56,20 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 			}
 		}()
 		go func() {
-			err = s.eventsRepo.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, request.Title, &models.EventsParams{TargetPostID: post.Data.Id})
+			err = s.eventsRepo.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, request.Title, &models.EventsParams{TargetPostID: translit})
 			if err != nil {
 				fmt.Sprintf("failed to add event: %v", err)
 			}
 		}()
 	}
-	strUint := strconv.FormatUint(post.Data.Id, 10)
 
-	translit := utils.Slugify(post.Data.Title) + "_" + strUint
-
-	go func() {
-		_, err = s.postsClient.UpdatePost(ctx, &dto.PostUpdateRequest{
-			Id:       post.Data.Id,
-			Translit: translit,
-			Title:    post.Data.Title,
-			IsDraft:  post.Data.IsDraft,
-			Content:  content,
-		})
-		if err != nil {
-			return
-		}
-	}()
-
+	_, _ = s.postsClient.UpdatePost(ctx, &dto.PostUpdateRequest{
+		Id:       post.Data.Id,
+		Translit: translit,
+		Title:    post.Data.Title,
+		IsDraft:  post.Data.IsDraft,
+		Content:  content,
+	})
 	result := dto.PostDataResponse{
 		Data: dto.Posts{
 			Id:   post.Data.Id,
@@ -159,7 +153,7 @@ func (s *PostsService) DeletePost(ctx context.Context, id uint64, authUser strin
 	}
 	if !exists.Data.IsDraft {
 		go func() {
-			eventError := s.eventsRepo.AddEvent(user.Login, utils.EventActionDelete, utils.EventTargetPost, result.Title, &models.EventsParams{TargetPostID: id})
+			eventError := s.eventsRepo.AddEvent(user.Login, utils.EventActionDelete, utils.EventTargetPost, result.Title, &models.EventsParams{TargetPostID: exists.Data.Translit})
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -341,14 +335,14 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 			}
 		}()
 		go func() {
-			err = s.eventsRepo.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, req.Title, &models.EventsParams{TargetPostID: req.Id})
+			err = s.eventsRepo.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, req.Title, &models.EventsParams{TargetPostID: existPost.Data.Translit})
 			if err != nil {
 				fmt.Sprintf("failed to add event: %v", err)
 			}
 		}()
 	} else if !existPost.Data.IsDraft && !req.IsDraft {
 		go func() {
-			err = s.eventsRepo.AddEvent(user.Login, utils.EventActionUpdate, utils.EventTargetPost, req.Title, &models.EventsParams{TargetPostID: req.Id})
+			err = s.eventsRepo.AddEvent(user.Login, utils.EventActionUpdate, utils.EventTargetPost, req.Title, &models.EventsParams{TargetPostID: existPost.Data.Translit})
 			if err != nil {
 				fmt.Sprintf("failed to add event: %v", err)
 			}
