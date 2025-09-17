@@ -96,3 +96,16 @@ func (r *WLRepository) UpdateItem(item *models.WishListItems) (*models.WishListI
 
 	return &updated, err
 }
+
+func (r *WLRepository) GetWLByIdsMap(ids []string) (map[string]models.WishListItems, error) {
+	var items []models.WishListItems
+	err := r.db.Where("id IN (?)", ids).Find(&items).Error
+	if err != nil {
+		return nil, err
+	}
+	itemsMap := make(map[string]models.WishListItems)
+	for _, item := range items {
+		itemsMap[item.Id.String()] = item
+	}
+	return itemsMap, nil
+}

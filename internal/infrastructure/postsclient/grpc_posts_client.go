@@ -123,6 +123,10 @@ func (c *GRPCPostsClient) GetCount(ctx context.Context, userLogin string) (*micr
 	return c.client.GetCountByUser(ctx, &microservices.CountRequest{UserLogin: userLogin})
 }
 
+func (c *GRPCPostsClient) GetPostsByIds(ctx context.Context, ids []string) (*microservices.GetPostsByIdsMapResponse, error) {
+	return c.client.GetPostsByIds(ctx, &microservices.GetPostsByIdsMapRequest{PostIds: ids})
+}
+
 func (c *GRPCPostsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package events;
+
+option go_package = "./gen/go/microservices";
+
+service EventsService {
+  rpc GetEvents(GetEventsRequest) returns (GetEventsResponse);
+  rpc GetFilteredEvents(GetFilteredEventsRequest) returns (GetEventsResponse);
+  rpc AddEvent(AddEventRequest) returns (AddEventResponse);
+}
+
+message AddEventResponse {
+  bool success = 1;
+}
+
+message Params {
+  string target_user_login = 1;
+  string target_collection_id = 2;
+  string target_item_id = 3;
+  string target_wish_list_item_id = 4;
+  string target_post_id = 5;
+}
+
+message AddEventRequest {
+  string action = 1;
+  string target_type = 2;
+  string target_name = 3;
+  string initiator_login = 4;
+  Params params = 5;
+}
+
+message GetEventsRequest {
+  repeated string subscriptions = 1;
+  string limit = 2;
+  string offset = 3;
+}
+
+message GetFilteredEventsRequest {
+  string user_login = 1;
+  string collection_id = 2;
+  string collection_item_id = 3;
+  string wish_list_item_id = 4;
+  string limit = 5;
+  string offset = 6;
+}
+message GetEventsResponse {
+  repeated EventsItem items = 1;
+  int64 total = 2;
+}
+
+message EventsItem {
+  string id = 1;
+  string date = 2;
+  string action = 3;
+  string event_target_type = 4;
+  string target_name = 5;
+  string initiator_login = 6;
+  string target_user_login = 7;
+  string target_collection_id = 8;
+  string target_item_id = 9;
+  string target_wish_list_item_id = 10;
+  string target_post_id = 12;
+}

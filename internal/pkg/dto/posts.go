@@ -144,3 +144,13 @@ type IncrementRequest struct {
 type IncrementRequestInput struct {
 	PostIds []string `json:"postIds"`
 }
+
+type ShortPost struct {
+	Id       string `json:"id"`
+	Author   string `json:"author"`
+	Title    string `json:"title"`
+	Translit string `json:"translit"`
+}
+type MapPosts struct {
+	Posts map[string]ShortPost `json:"posts"`
+}

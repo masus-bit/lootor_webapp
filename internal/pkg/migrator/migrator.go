@@ -15,6 +15,7 @@ var migrationList = []struct {
 }{
 	{"001_drop_user_creator_rating", migrations.DropUserCreatorRating},
 	{"002_change_post_id_to_uint", migrations.ChangePostIdToUint64AutoIncrement},
+	{"003_move_events", migrations.MoveEvents},
 }
 
 func RunMigrations(db *gorm.DB) error {

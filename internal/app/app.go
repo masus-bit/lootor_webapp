@@ -17,6 +17,7 @@ import (
 	"lootor/internal/core/routes"
 	"lootor/internal/core/services"
 	"lootor/internal/infrastructure/commentsclient"
+	"lootor/internal/infrastructure/eventsclient"
 	"lootor/internal/infrastructure/newsclient"
 	"lootor/internal/infrastructure/notificationsclient"
 	"lootor/internal/infrastructure/postsclient"
@@ -137,19 +138,22 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	if err != nil {
 		log.Fatal("failed to create posts client:", err)
 	}
+	eventsClient, err := eventsclient.NewGRPCClient(os.Getenv("EVENTS_SERVICE_ADDR"))
+	if err != nil {
+		log.Fatal("failed to create events client:", err)
+	}
 
 	ciRepo := repositories.NewCiRepository(db, searchService)
 	colRepo := repositories.NewCollectionsRepository(db, searchService)
 	tagRepo := repositories.NewTagsRepository(db, searchService)
 	platformRepo := repositories.NewPlatformsRepository(db)
 	entityRepo := repositories.NewEntitiesRepository(db, searchService)
-	eventsRepo := repositories.NewEventsRepository(db)
 	itemTypesRepo := repositories.NewItemTypesRepository(db)
 	wlRepo := repositories.NewWLRepository(db)
 	subRepo := repositories.NewSubscriptionRepository(db)
 	paymentsRepo := repositories.NewPaymentsRepository(db)
 	userRepo := repositories.NewUsersRepository(db, searchService, colRepo)
-	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Events{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{}, &models.ItemTypes{}, &models.WishListItems{}, &models.Subscription{}, &models.Payments{}, &models.Migrations{})
+	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{}, &models.ItemTypes{}, &models.WishListItems{}, &models.Subscription{}, &models.Payments{}, &models.Migrations{})
 	if err != nil {
 		return nil, err
 	}
@@ -170,18 +174,20 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		*userRepo,
 	)
 	notificationsService := services.NewNotificationsService(notificationsClient, userRepo, colRepo, ciRepo, postsClient)
-	postsService := services.NewPostsService(postsClient, userRepo, eventsRepo, notificationsService)
+	eventsService := services.NewEventsService(userRepo, eventsClient, colRepo, ciRepo, postsClient, wlRepo)
+	postsService := services.NewPostsService(postsClient, userRepo, eventsService, notificationsService)
+
 	s3Service := s3.NewS3Service(redisClient)
 	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootor.me>`)
-	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsRepo, notificationsService, colRepo, postsService)
-	ciService := services.NewCiService(ciRepo, eventsRepo, colRepo, userRepo, platformRepo, entityRepo, s3Service, itemTypesRepo, notificationsService)
-	colService := services.NewCollectionService(colRepo, tagRepo, userRepo, eventsRepo, ciRepo, s3Service, notificationsService)
+	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsService, notificationsService, colRepo, postsService)
+	ciService := services.NewCiService(ciRepo, eventsService, colRepo, userRepo, platformRepo, entityRepo, s3Service, itemTypesRepo, notificationsService)
+	colService := services.NewCollectionService(colRepo, tagRepo, userRepo, eventsService, ciRepo, s3Service, notificationsService)
 	entitiesService := services.NewEntitiesService(entityRepo)
 	platformsService := services.NewPlatformsService(platformRepo)
 	itemTypesService := services.NewItemTypesService(itemTypesRepo)
 	tagsService := services.NewTagsService(tagRepo)
 	fbService := feedback.NewFeedbackService()
-	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsRepo)
+	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsService)
 	enrichedCIService := utils.NewEnrichedCIService(ciService)
 	subService := services.NewSubscriptionService(subRepo)
 	paymentService := payment.NewPayService(userRepo, userService, subService, paymentsRepo)
@@ -189,8 +195,6 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	reportsService := feedback.NewReportsService(fbService, ciRepo, userRepo, colRepo, wlRepo)
 	feedService := services.NewFeedService(newsClient)
 	commentsService := services.NewCommentsService(commentsClient, likesClient, userRepo, notificationsService, colRepo, ciRepo, postsService)
-
-	eventsService := services.NewEventsService(eventsRepo, userRepo)
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())

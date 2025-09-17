@@ -615,3 +615,16 @@ func (r *CiRepository) IncrementCommentsCount(id string, amount int) error {
 		Where("id = ?", id).
 		Update("comments_count", gorm.Expr("COALESCE(comments_count, 0) + ?", amount)).Error
 }
+
+func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string) (map[string]models.CollectionItems, error) {
+	var collectionItems []models.CollectionItems
+	err := r.db.Where("id IN (?)", ids).Preload("Collections").Preload("Owner").Find(&collectionItems).Error
+	if err != nil {
+		return nil, err
+	}
+	collectionItemsMap := make(map[string]models.CollectionItems, len(collectionItems))
+	for _, collectionItem := range collectionItems {
+		collectionItemsMap[collectionItem.Id.String()] = collectionItem
+	}
+	return collectionItemsMap, nil
+}

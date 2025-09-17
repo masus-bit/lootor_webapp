@@ -789,3 +789,16 @@ func (r *CollectionsRepository) GetCollectionsCount(login string) (int64, error)
 
 	return count, err
 }
+
+func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string) (map[string]models.Collections, error) {
+	var collections []models.Collections
+	err := r.db.Where("id IN (?)", ids).Find(&collections).Error
+	if err != nil {
+		return nil, err
+	}
+	collectionsMap := make(map[string]models.Collections, len(collections))
+	for _, collection := range collections {
+		collectionsMap[collection.Id.String()] = collection
+	}
+	return collectionsMap, nil
+}

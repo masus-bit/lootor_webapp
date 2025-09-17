@@ -30,15 +30,15 @@ type UserService struct {
 	jwtService           *auth.JWTService
 	ciRepo               *repositories.CiRepository
 	mailService          *mail.MailService
-	evRepo               *repositories.EventsRepository
+	eventsService        *EventsService
 	notificationsService *NotificationsService
 	collectionRepo       *repositories.CollectionsRepository
 	postsService         *PostsService
 }
 
-func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService, evRepo *repositories.EventsRepository, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, postsService *PostsService) *UserService {
+func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService, eventsService *EventsService, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, postsService *PostsService) *UserService {
 	_ = godotenv.Load()
-	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, evRepo: evRepo, notificationsService: notificationsService, collectionRepo: collectionRepo, postsService: postsService}
+	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, eventsService: eventsService, notificationsService: notificationsService, collectionRepo: collectionRepo, postsService: postsService}
 }
 
 func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*models.DataUserResponseForSingleUser, error) {
@@ -201,7 +201,7 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		subscriptionTargetUser.Exp += utils.UserSelfSubExp
 
 		go func() {
-			err = s.evRepo.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, &models.EventsParams{TargetUserLogin: targetUserLogin})
+			err = s.eventsService.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, &models.EventsParams{TargetUserLogin: targetUserLogin})
 			if err != nil {
 				fmt.Println(err)
 			}

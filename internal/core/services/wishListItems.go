@@ -14,23 +14,23 @@ import (
 )
 
 type WLService struct {
-	wlRepo    *repositories.WLRepository
-	userRepo  *repositories.UsersRepository
-	ciRepo    *repositories.CiRepository
-	eventRepo *repositories.EventsRepository
+	wlRepo        *repositories.WLRepository
+	userRepo      *repositories.UsersRepository
+	ciRepo        *repositories.CiRepository
+	eventsService *EventsService
 }
 
 func NewWLService(
 	wlRepo *repositories.WLRepository,
 	userRepo *repositories.UsersRepository,
 	ciRepo *repositories.CiRepository,
-	eventRepo *repositories.EventsRepository,
+	eventsService *EventsService,
 ) *WLService {
 	return &WLService{
-		wlRepo:    wlRepo,
-		userRepo:  userRepo,
-		ciRepo:    ciRepo,
-		eventRepo: eventRepo,
+		wlRepo:        wlRepo,
+		userRepo:      userRepo,
+		ciRepo:        ciRepo,
+		eventsService: eventsService,
 	}
 }
 
@@ -103,7 +103,7 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 	if err != nil {
 		return nil, err
 	}
-	err = s.eventRepo.AddEvent(
+	err = s.eventsService.AddEvent(
 		userLogin,
 		utils.EventActionCreate,
 		utils.EventTargetWL,

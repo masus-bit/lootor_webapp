@@ -452,6 +452,19 @@ func (r *UsersRepository) GetForSubs(users []string) ([]models.SubUsers, error) 
 	return subUsers, err
 }
 
+func (r *UsersRepository) GetForSubsMap(users []string) (map[string]models.SubUsers, error) {
+	var subUsers []models.SubUsers
+	err := r.db.Model(&models.Users{}).
+		Where("LOWER(login) IN ?", users).
+		Select("login", "avatar_url", "profile_name", "is_premium").
+		Find(&subUsers).Error
+	subUsersMap := make(map[string]models.SubUsers)
+	for _, subUser := range subUsers {
+		subUsersMap[subUser.Login] = subUser
+	}
+	return subUsersMap, err
+}
+
 func (r *UsersRepository) IncrementExperience(userLogin string, amount int) error {
 	return r.db.Model(&models.Users{}).
 		Where("LOWER(login) = LOWER(?)", userLogin).

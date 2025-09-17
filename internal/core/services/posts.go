@@ -18,13 +18,13 @@ import (
 type PostsService struct {
 	postsClient          *postsclient.GRPCPostsClient
 	userRepo             *repositories.UsersRepository
-	eventsRepo           *repositories.EventsRepository
+	eventsService        *EventsService
 	notificationsService *NotificationsService
 }
 
-func NewPostsService(postsClient *postsclient.GRPCPostsClient, userRepo *repositories.UsersRepository, eventsRepo *repositories.EventsRepository, notificationsService *NotificationsService) *PostsService {
+func NewPostsService(postsClient *postsclient.GRPCPostsClient, userRepo *repositories.UsersRepository, eventsService *EventsService, notificationsService *NotificationsService) *PostsService {
 	return &PostsService{
-		postsClient: postsClient, userRepo: userRepo, eventsRepo: eventsRepo, notificationsService: notificationsService}
+		postsClient: postsClient, userRepo: userRepo, eventsService: eventsService, notificationsService: notificationsService}
 }
 
 func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest) (*dto.PostDataResponse, error) {
@@ -56,7 +56,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 			}
 		}()
 		go func() {
-			err = s.eventsRepo.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, request.Title, &models.EventsParams{TargetPostID: translit})
+			err = s.eventsService.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, request.Title, &models.EventsParams{TargetPostID: translit})
 			if err != nil {
 				fmt.Sprintf("failed to add event: %v", err)
 			}
@@ -153,7 +153,7 @@ func (s *PostsService) DeletePost(ctx context.Context, id uint64, authUser strin
 	}
 	if !exists.Data.IsDraft {
 		go func() {
-			eventError := s.eventsRepo.AddEvent(user.Login, utils.EventActionDelete, utils.EventTargetPost, result.Title, &models.EventsParams{TargetPostID: exists.Data.Translit})
+			eventError := s.eventsService.AddEvent(user.Login, utils.EventActionDelete, utils.EventTargetPost, result.Title, &models.EventsParams{TargetPostID: exists.Data.Translit})
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -335,14 +335,14 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 			}
 		}()
 		go func() {
-			err = s.eventsRepo.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, req.Title, &models.EventsParams{TargetPostID: existPost.Data.Translit})
+			err = s.eventsService.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, req.Title, &models.EventsParams{TargetPostID: existPost.Data.Translit})
 			if err != nil {
 				fmt.Sprintf("failed to add event: %v", err)
 			}
 		}()
 	} else if !existPost.Data.IsDraft && !req.IsDraft {
 		go func() {
-			err = s.eventsRepo.AddEvent(user.Login, utils.EventActionUpdate, utils.EventTargetPost, req.Title, &models.EventsParams{TargetPostID: existPost.Data.Translit})
+			err = s.eventsService.AddEvent(user.Login, utils.EventActionUpdate, utils.EventTargetPost, req.Title, &models.EventsParams{TargetPostID: existPost.Data.Translit})
 			if err != nil {
 				fmt.Sprintf("failed to add event: %v", err)
 			}
@@ -380,6 +380,24 @@ func (s *PostsService) GetCount(ctx context.Context, userLogin string) int64 {
 		return 0
 	}
 	return count.GetCount()
+}
+
+func (s *PostsService) GetPostsByIds(ids []string) (*dto.MapPosts, error) {
+	resp, err := s.postsClient.GetPostsByIds(context.Background(), ids)
+	if err != nil {
+		return nil, err
+	}
+	var posts dto.MapPosts
+	for key, p := range resp.Data {
+		posts.Posts[key] = dto.ShortPost{
+			Id:       p.Id,
+			Author:   p.Author,
+			Title:    p.Title,
+			Translit: p.Translit,
+		}
+
+	}
+	return &posts, nil
 }
 
 func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*dto.PostsDataResponse, error) {
