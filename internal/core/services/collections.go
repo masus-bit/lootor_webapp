@@ -193,6 +193,10 @@ func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonR
 				return nil, err
 			}
 		}
+		go func() {
+			_ = s.notificationsService.DeleteAllNotificationsByTargetId(context.Background(), id)
+		}()
+
 	}
 
 	exp := len(exists.CollectionItems) + utils.CollectionExp

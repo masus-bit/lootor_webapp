@@ -183,3 +183,11 @@ func (s *NotificationsService) DeleteNotification(ctx context.Context, targetId,
 	}
 	return nil
 }
+
+func (s *NotificationsService) DeleteAllNotificationsByTargetId(ctx context.Context, targetId string) error {
+	_, err := s.notificationsClient.DeleteAllNotificationsByTargetId(ctx, targetId)
+	if err != nil {
+		return err
+	}
+	return nil
+}

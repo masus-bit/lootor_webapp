@@ -158,6 +158,9 @@ func (s *PostsService) DeletePost(ctx context.Context, id uint64, authUser strin
 				log.Default().Print(eventError)
 			}
 		}()
+		go func() {
+			_ = s.notificationsService.DeleteAllNotificationsByTargetId(context.Background(), strconv.FormatUint(id, 10))
+		}()
 	}
 	go func() {
 		err = s.userRepo.DecrementExperience(user.Login, int(utils.PostCreateExp+result.ReactCount))

@@ -12,11 +12,18 @@ service NotificationsService {
   rpc ReadNotifications(ReadRequest) returns (ReadResponse);
 
   rpc RemoveNotification(DeleteNotificationRequest) returns (DeleteNotificationResponse);
+
+  rpc RemoveAllNotificationsByTargetId(DeleteNotificationRequest) returns (DeleteNotificationResponse);
 }
 
 message DeleteNotificationRequest {
   string target_id = 1;
-  string user_login = 2;}
+  string user_login = 2;
+}
+
+message DeleteNotificationByTargetRequest {
+  string target_id = 1;
+}
 
 message DeleteNotificationResponse {
   bool success = 1;

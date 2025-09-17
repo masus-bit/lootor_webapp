@@ -187,6 +187,9 @@ func (s *CiService) Delete(id string, ctx context.Context) (*dto.CommonResponse,
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
+			go func() {
+				_ = s.notificationsService.DeleteAllNotificationsByTargetId(context.Background(), id)
+			}()
 		}
 		err := s.repo.DeleteCI(id)
 		if err != nil {
