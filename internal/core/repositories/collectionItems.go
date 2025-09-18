@@ -11,6 +11,7 @@ import (
 	"lootor/internal/pkg/elasticsearch"
 	"lootor/internal/pkg/utils"
 	"reflect"
+	"slices"
 	"strconv"
 	"time"
 )
@@ -617,7 +618,7 @@ func (r *CiRepository) IncrementCommentsCount(id string, amount int) error {
 		Update("comments_count", gorm.Expr("COALESCE(comments_count, 0) + ?", amount)).Error
 }
 
-func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string) (map[string]models.CollectionItemsResponse, error) {
+func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin string) (map[string]models.CollectionItemsResponse, error) {
 	var collectionItems []models.CollectionItems
 	err := r.db.Where("id IN (?)", ids).
 		Preload("Collections").
@@ -653,6 +654,16 @@ func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string) (map[string]mode
 		}
 
 		temp.Owner = collectionItem.Owner
+		temp.CanLike = false
+
+		if authUserLogin != "" {
+			if authUserLogin == collectionItem.Owner.Login {
+				temp.CanLike = false
+			} else {
+				temp.CanLike = !slices.Contains(collectionItem.Likes, authUserLogin)
+			}
+
+		}
 		collectionItemsMap[collectionItem.Id.String()] = temp
 	}
 	return collectionItemsMap, nil
