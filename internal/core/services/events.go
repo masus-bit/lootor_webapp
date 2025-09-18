@@ -164,7 +164,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	}()
 	go func() {
 		defer wg.Done()
-		itemsMap, _ = s.collectionItemsRepo.GetCollectionItemsByIdsMap(itemIDs)
+		itemsMap, _ = s.collectionItemsRepo.GetCollectionItemsByIdsMap(itemIDs, authUserLogin)
 	}()
 	go func() {
 		defer wg.Done()
