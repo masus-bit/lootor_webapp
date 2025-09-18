@@ -341,13 +341,6 @@ definitions:
           type: string
         type: array
     type: object
-  dto.IncrementRequest:
-    properties:
-      postIds:
-        items:
-          type: integer
-        type: array
-    type: object
   dto.LikeUserSwagger:
     properties:
       isLike:
@@ -359,8 +352,6 @@ definitions:
         items:
           type: string
         type: array
-    type: object
-  dto.PostUpdateRequest:
     type: object
   dto.Resp:
     properties:
@@ -569,6 +560,13 @@ definitions:
           type: string
         type: array
     type: object
+  models.IncrementRequest:
+    properties:
+      postIds:
+        items:
+          type: integer
+        type: array
+    type: object
   models.ItemTypes:
     properties:
       createdAt:
@@ -632,6 +630,8 @@ definitions:
         items:
           $ref: '#/definitions/models.Platforms'
         type: array
+    type: object
+  models.PostUpdateRequest:
     type: object
   models.SignInRequest:
     properties:
@@ -2227,7 +2227,7 @@ paths:
         name: updateRequest
         required: true
         schema:
-          $ref: '#/definitions/dto.PostUpdateRequest'
+          $ref: '#/definitions/models.PostUpdateRequest'
       produces:
       - application/json
       responses:
@@ -2288,7 +2288,7 @@ paths:
         name: updateRequest
         required: true
         schema:
-          $ref: '#/definitions/dto.IncrementRequest'
+          $ref: '#/definitions/models.IncrementRequest'
       produces:
       - application/json
       responses:

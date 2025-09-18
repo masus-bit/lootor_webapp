@@ -3,11 +3,14 @@ package repositories
 import (
 	"context"
 	"errors"
+	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 	"log"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
+	"slices"
 	"strconv"
 )
 
@@ -790,15 +793,29 @@ func (r *CollectionsRepository) GetCollectionsCount(login string) (int64, error)
 	return count, err
 }
 
-func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string) (map[string]models.Collections, error) {
+func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[uuid.UUID]int64, totalPrices map[uuid.UUID]float64, shippingCosts map[uuid.UUID]float64, subArray []string, authorizedUser string) (map[string]models.CollectionsResponse, error) {
 	var collections []models.Collections
-	err := r.db.Where("id IN (?)", ids).Find(&collections).Error
+	err := r.db.Where("id IN (?)", ids).Preload("User").Preload("Tags").Find(&collections).Error
 	if err != nil {
 		return nil, err
 	}
-	collectionsMap := make(map[string]models.Collections, len(collections))
+	collectionsMap := make(map[string]models.CollectionsResponse, len(collections))
 	for _, collection := range collections {
-		collectionsMap[collection.Id.String()] = collection
+
+		var temp models.CollectionsResponse
+		err = mapstructure.Decode(collection, &temp)
+		temp.CollectionItemsCount = counts[collection.Id]
+		temp.TotalPrice = totalPrices[collection.Id]
+		temp.ShippingTotal = shippingCosts[collection.Id]
+		temp.CanSubscribe = !slices.Contains(subArray, collection.Id.String())
+		temp.LikesCount = int64(len(collection.Likes))
+		temp.CanLike = true
+		temp.IsOwner = authorizedUser == temp.User.Login
+		if authorizedUser != "" {
+			temp.CanLike = !slices.Contains(collection.Likes, authorizedUser)
+		}
+
+		collectionsMap[collection.Id.String()] = temp
 	}
 	return collectionsMap, nil
 }

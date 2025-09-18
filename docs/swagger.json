@@ -2247,7 +2247,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.IncrementRequest"
+                            "$ref": "#/definitions/models.IncrementRequest"
                         }
                     }
                 ],
@@ -2280,7 +2280,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.PostUpdateRequest"
+                            "$ref": "#/definitions/models.PostUpdateRequest"
                         }
                     }
                 ],
@@ -3261,17 +3261,6 @@
                 }
             }
         },
-        "dto.IncrementRequest": {
-            "type": "object",
-            "properties": {
-                "postIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
         "dto.LikeUserSwagger": {
             "type": "object",
             "properties": {
@@ -3290,9 +3279,6 @@
                     }
                 }
             }
-        },
-        "dto.PostUpdateRequest": {
-            "type": "object"
         },
         "dto.Resp": {
             "type": "object",
@@ -3608,6 +3594,17 @@
                 }
             }
         },
+        "models.IncrementRequest": {
+            "type": "object",
+            "properties": {
+                "postIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "models.ItemTypes": {
             "type": "object",
             "properties": {
@@ -3706,6 +3703,9 @@
                     }
                 }
             }
+        },
+        "models.PostUpdateRequest": {
+            "type": "object"
         },
         "models.SignInRequest": {
             "type": "object",

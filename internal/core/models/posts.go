@@ -1,10 +1,10 @@
-package dto
+package models
+
+import "gorm.io/datatypes"
 
 import (
 	"github.com/google/uuid"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"lootor/internal/core/models"
 	"time"
 )
 
@@ -64,26 +64,26 @@ type EventPosts struct {
 	Content datatypes.JSON `gorm:"type:jsonb" json:"content"`
 }
 type Posts struct {
-	Id             uint64          `gorm:"primaryKey;autoIncrement" json:"id"`
-	Date           string          `json:"date"`
-	Author         models.SubUsers `json:"author"`
-	HeartCount     int             `json:"heartCount"`
-	FireCount      int             `json:"fireCount"`
-	GlassesCount   int             `json:"glassesCount"`
-	LaughCount     int             `json:"laughCount"`
-	TearsCount     int             `json:"tearsCount"`
-	PokerFaceCount int             `json:"pokerFaceCount"`
-	EyesCount      int             `json:"eyesCount"`
-	AngryCount     int             `json:"angryCount"`
-	ShitCount      int             `json:"shitCount"`
-	ClownCount     int             `json:"clownCount"`
-	Reacted        string          `json:"reacted"`
-	TotalReactions int             `gorm:"->;type:int generated always as (heart_count + fire_count + glasses_count + laugh_count + tears_count + poker_face_count + eyes_count + angry_count + shit_count + clown_count) stored" json:"totalReactions"`
-	IsDraft        bool            `json:"isDraft"`
-	Views          int             `json:"views"`
-	CommentsCount  int             `json:"commentsCount"`
-	Title          string          `json:"title"`
-	Translit       string          `json:"translit"`
+	Id             uint64   `gorm:"primaryKey;autoIncrement" json:"id"`
+	Date           string   `json:"date"`
+	Author         SubUsers `json:"author"`
+	HeartCount     int      `json:"heartCount"`
+	FireCount      int      `json:"fireCount"`
+	GlassesCount   int      `json:"glassesCount"`
+	LaughCount     int      `json:"laughCount"`
+	TearsCount     int      `json:"tearsCount"`
+	PokerFaceCount int      `json:"pokerFaceCount"`
+	EyesCount      int      `json:"eyesCount"`
+	AngryCount     int      `json:"angryCount"`
+	ShitCount      int      `json:"shitCount"`
+	ClownCount     int      `json:"clownCount"`
+	Reacted        string   `json:"reacted"`
+	TotalReactions int      `gorm:"->;type:int generated always as (heart_count + fire_count + glasses_count + laugh_count + tears_count + poker_face_count + eyes_count + angry_count + shit_count + clown_count) stored" json:"totalReactions"`
+	IsDraft        bool     `json:"isDraft"`
+	Views          int      `json:"views"`
+	CommentsCount  int      `json:"commentsCount"`
+	Title          string   `json:"title"`
+	Translit       string   `json:"translit"`
 
 	Content datatypes.JSON `gorm:"type:jsonb" json:"content"`
 
@@ -119,9 +119,9 @@ type PostReactions struct {
 }
 
 type React struct {
-	Id       string          `json:"id"`
-	User     models.SubUsers `json:"user"`
-	Reaction ReactionType    `json:"reaction"`
+	Id       string       `json:"id"`
+	User     SubUsers     `json:"user"`
+	Reaction ReactionType `json:"reaction"`
 }
 
 type ReactResponse struct {

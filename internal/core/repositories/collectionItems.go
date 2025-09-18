@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 	"log"
 	"lootor/internal/core/models"
@@ -616,15 +617,43 @@ func (r *CiRepository) IncrementCommentsCount(id string, amount int) error {
 		Update("comments_count", gorm.Expr("COALESCE(comments_count, 0) + ?", amount)).Error
 }
 
-func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string) (map[string]models.CollectionItems, error) {
+func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string) (map[string]models.CollectionItemsResponse, error) {
 	var collectionItems []models.CollectionItems
-	err := r.db.Where("id IN (?)", ids).Preload("Collections").Preload("Owner").Find(&collectionItems).Error
+	err := r.db.Where("id IN (?)", ids).
+		Preload("Collections").
+		Preload("Collections.User").
+		Preload("Owner").
+		Preload("Platform").
+		Preload("Entities").
+		Preload("ItemType").
+		Find(&collectionItems).Error
 	if err != nil {
 		return nil, err
 	}
-	collectionItemsMap := make(map[string]models.CollectionItems, len(collectionItems))
+	collectionItemsMap := make(map[string]models.CollectionItemsResponse, len(collectionItems))
 	for _, collectionItem := range collectionItems {
-		collectionItemsMap[collectionItem.Id.String()] = collectionItem
+		var temp models.CollectionItemsResponse
+		err = mapstructure.Decode(collectionItem, &temp)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(collectionItem.Collections) > 0 {
+			temp.Collection = collectionItem.Collections[0].Id
+			temp.CollectionTransliteration = collectionItem.Collections[0].Transliteration
+		} else {
+			temp.Collection = uuid.Nil
+			temp.CollectionTransliteration = ""
+		}
+
+		if collectionItem.Likes != nil {
+			temp.LikesCount = int64(len(collectionItem.Likes))
+		} else {
+			temp.LikesCount = 0
+		}
+
+		temp.Owner = collectionItem.Owner
+		collectionItemsMap[collectionItem.Id.String()] = temp
 	}
 	return collectionItemsMap, nil
 }

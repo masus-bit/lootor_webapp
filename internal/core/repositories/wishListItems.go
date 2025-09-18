@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 	"lootor/internal/core/models"
 )
@@ -97,15 +98,20 @@ func (r *WLRepository) UpdateItem(item *models.WishListItems) (*models.WishListI
 	return &updated, err
 }
 
-func (r *WLRepository) GetWLByIdsMap(ids []string) (map[string]models.WishListItems, error) {
+func (r *WLRepository) GetWLByIdsMap(ids []string) (map[string]models.WishListItemResponse, error) {
 	var items []models.WishListItems
-	err := r.db.Where("id IN (?)", ids).Find(&items).Error
+	err := r.db.Where("id IN (?)", ids).Preload("User").Preload("CollectionItem").Find(&items).Error
 	if err != nil {
 		return nil, err
 	}
-	itemsMap := make(map[string]models.WishListItems)
+	itemsMap := make(map[string]models.WishListItemResponse)
 	for _, item := range items {
-		itemsMap[item.Id.String()] = item
+		var resultItem models.WishListItemResponse
+		err = mapstructure.Decode(item, &resultItem)
+		if err != nil {
+			return nil, err
+		}
+		itemsMap[item.Id.String()] = resultItem
 	}
 	return itemsMap, nil
 }

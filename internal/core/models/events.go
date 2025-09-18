@@ -2,7 +2,6 @@ package models
 
 import (
 	"github.com/google/uuid"
-	"lootor/internal/pkg/types"
 )
 
 type Events struct {
@@ -21,11 +20,11 @@ type Events struct {
 	TargetWishListItemID string `gorm:"type:uuid" json:"targetWishListItemId"`
 	TargetPostId         string `json:"targetPostId"`
 
-	TargetUser         *SubUsers                        `gorm:"-" json:"targetUser"`
-	TargetCollection   *types.CommonShortTypeCollection `gorm:"-" json:"targetCollection"`
-	TargetItem         *types.CommonShortTypeItem       `gorm:"-" json:"targetItem"`
-	TargetWishListItem *types.CommonShortType           `gorm:"-" json:"targetWishListItem"`
-	TargetPost         *types.CommonShortTypePost       `gorm:"-" json:"targetPost"`
+	TargetUser         *SubUsers                `gorm:"-" json:"targetUser"`
+	TargetCollection   *CollectionsResponse     `gorm:"-" json:"targetCollection"`
+	TargetItem         *CollectionItemsResponse `gorm:"-" json:"targetItem"`
+	TargetWishListItem *WishListItemResponse    `gorm:"-" json:"targetWishListItem"`
+	TargetPost         *Posts                   `gorm:"-" json:"targetPost"`
 }
 
 type EventsDataResponse struct {

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/structpb"
 	"gorm.io/datatypes"
+	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"slices"
 	"strings"
@@ -275,4 +276,104 @@ func UsersOrder(order string) string {
 	}
 
 	return finalOrder
+}
+
+func FormatPost(post *microservices.PostItem, users []models.SubUsers, author *models.Users, reactLength int) (*models.PostDataResponse, error) {
+	content := NormalizeContent(post.Content)
+
+	reacts, err := FormatReacts(post, users, reactLength)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.PostDataResponse{Data: *fillPost(post, content, reacts, author)}, nil
+}
+
+func FormatReacts(post *microservices.PostItem, users []models.SubUsers, reactLength int) (*models.ReactResponse, error) {
+	var reactionsResult models.ReactResponse
+	reacts := map[string][]models.React{}
+	var reactUsers []string
+	var fullReactUsers = map[string]models.SubUsers{}
+	if reactLength != 0 {
+		for _, r := range post.Reactions {
+			reactUsers = append(reactUsers, r.UserLogin)
+		}
+
+		for _, u := range users {
+			fullReactUsers[u.Login] = u
+		}
+
+		reactionMapping := []struct {
+			field *[]models.React
+			key   string
+		}{
+			{&reactionsResult.Fire, "fire"},
+			{&reactionsResult.Heart, "heart"},
+			{&reactionsResult.Glasses, "glasses"},
+			{&reactionsResult.Laugh, "laugh"},
+			{&reactionsResult.Tears, "tears"},
+			{&reactionsResult.PokerFace, "pokerFace"},
+			{&reactionsResult.Eyes, "eyes"},
+			{&reactionsResult.Angry, "angry"},
+			{&reactionsResult.Shit, "shit"},
+			{&reactionsResult.Clown, "clown"},
+		}
+
+		for _, mapping := range reactionMapping {
+			*mapping.field = []models.React{}
+		}
+
+		for _, r := range post.GetReactions() {
+			reactUUID, err := uuid.Parse(r.Id)
+			if err != nil {
+				return nil, err
+			}
+			reacts[r.GetReaction()] = append(reacts[r.GetReaction()], models.React{
+				Id:       reactUUID.String(),
+				User:     fullReactUsers[r.UserLogin],
+				Reaction: models.ReactionType(r.Reaction),
+			})
+		}
+
+		for _, mapping := range reactionMapping {
+			if slice, exists := reacts[mapping.key]; exists && len(slice) > 0 {
+				*mapping.field = slice
+			}
+		}
+	}
+
+	return &reactionsResult, nil
+}
+
+func fillPost(p *microservices.PostItem, content []byte, reacts *models.ReactResponse, user *models.Users) *models.Posts {
+	return &models.Posts{
+		Id:   p.GetId(),
+		Date: p.GetDate(),
+		Author: models.SubUsers{
+			Login:       user.Login,
+			AvatarUrl:   user.AvatarUrl,
+			ProfileName: user.ProfileName,
+			IsPremium:   user.IsPremium,
+		},
+		Content:        content,
+		HeartCount:     int(p.GetHeartCount()),
+		FireCount:      int(p.GetFireCount()),
+		GlassesCount:   int(p.GetGlassesCount()),
+		LaughCount:     int(p.GetLaughCount()),
+		TearsCount:     int(p.GetTearsCount()),
+		PokerFaceCount: int(p.GetPokerFaceCount()),
+		EyesCount:      int(p.GetEyesCount()),
+		AngryCount:     int(p.GetAngryCount()),
+		ShitCount:      int(p.GetShitCount()),
+		ClownCount:     int(p.GetClownCount()),
+		TotalReactions: int(p.GetTotalReactions()),
+		Reactions:      reacts,
+		Reacted:        p.GetReacted(),
+		Views:          int(p.Views),
+		CommentsCount:  int(p.CommentsCount),
+		IsDraft:        p.IsDraft,
+		Title:          p.Title,
+		Translit:       p.Translit,
+	}
+
 }

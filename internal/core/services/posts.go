@@ -27,7 +27,7 @@ func NewPostsService(postsClient *postsclient.GRPCPostsClient, userRepo *reposit
 		postsClient: postsClient, userRepo: userRepo, eventsService: eventsService, notificationsService: notificationsService}
 }
 
-func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest) (*dto.PostDataResponse, error) {
+func (s *PostsService) CreatePost(ctx context.Context, request *models.PostRequest) (*models.PostDataResponse, error) {
 	post, err := s.postsClient.CreatePost(ctx, request)
 	if err != nil {
 		return nil, err
@@ -63,15 +63,15 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 		}()
 	}
 
-	_, _ = s.postsClient.UpdatePost(ctx, &dto.PostUpdateRequest{
+	_, _ = s.postsClient.UpdatePost(ctx, &models.PostUpdateRequest{
 		Id:       post.Data.Id,
 		Translit: translit,
 		Title:    post.Data.Title,
 		IsDraft:  post.Data.IsDraft,
 		Content:  content,
 	})
-	result := dto.PostDataResponse{
-		Data: dto.Posts{
+	result := models.PostDataResponse{
+		Data: models.Posts{
 			Id:   post.Data.Id,
 			Date: post.Data.Date,
 			Author: models.SubUsers{
@@ -92,7 +92,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 			ShitCount:      0,
 			ClownCount:     0,
 			TotalReactions: 0,
-			Reactions:      &dto.ReactResponse{},
+			Reactions:      &models.ReactResponse{},
 			IsDraft:        post.Data.IsDraft,
 			Views:          0,
 			CommentsCount:  0,
@@ -104,7 +104,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 	return &result, nil
 }
 
-func (s *PostsService) GetAllPosts(ctx context.Context, order, limit, offset, authUser string) (*dto.PostsDataResponse, error) {
+func (s *PostsService) GetAllPosts(ctx context.Context, order, limit, offset, authUser string) (*models.PostsDataResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	var authUserIsPremium bool
 	if err != nil {
@@ -121,7 +121,7 @@ func (s *PostsService) GetAllPosts(ctx context.Context, order, limit, offset, au
 
 }
 
-func (s *PostsService) GetPostsByUser(ctx context.Context, login, limit, offset, authUser string, isDraft bool) (*dto.PostsDataResponse, error) {
+func (s *PostsService) GetPostsByUser(ctx context.Context, login, limit, offset, authUser string, isDraft bool) (*models.PostsDataResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	var authUserIsPremium bool
 	if err != nil {
@@ -180,7 +180,7 @@ func (s *PostsService) DeletePost(ctx context.Context, id uint64, authUser strin
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *PostsService) GetPostById(ctx context.Context, id uint64, authUser string) (*dto.PostDataResponse, error) {
+func (s *PostsService) GetPostById(ctx context.Context, id uint64, authUser string) (*models.PostDataResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	var authUserIsPremium bool
 	if err != nil {
@@ -194,7 +194,7 @@ func (s *PostsService) GetPostById(ctx context.Context, id uint64, authUser stri
 	}
 
 	normalizedContent := utils.NormalizeContent(post.Data.Content)
-	var reacts *dto.ReactResponse
+	var reacts *models.ReactResponse
 	if len(post.Data.GetReactions()) != 0 {
 		reacts, err = s.formatReacts(post.Data)
 		if err != nil {
@@ -209,10 +209,10 @@ func (s *PostsService) GetPostById(ctx context.Context, id uint64, authUser stri
 
 	result := s.fillPost(post.Data, normalizedContent, reacts, author)
 
-	return &dto.PostDataResponse{Data: *result}, nil
+	return &models.PostDataResponse{Data: *result}, nil
 }
 
-func (s *PostsService) GetPostByTranslit(ctx context.Context, translit string, authUser string) (*dto.PostDataResponse, error) {
+func (s *PostsService) GetPostByTranslit(ctx context.Context, translit string, authUser string) (*models.PostDataResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	var authUserIsPremium bool
 	if err != nil {
@@ -226,7 +226,7 @@ func (s *PostsService) GetPostByTranslit(ctx context.Context, translit string, a
 	}
 
 	normalizedContent := utils.NormalizeContent(post.Data.Content)
-	var reacts *dto.ReactResponse
+	var reacts *models.ReactResponse
 	if len(post.Data.GetReactions()) != 0 {
 		reacts, err = s.formatReacts(post.Data)
 		if err != nil {
@@ -241,10 +241,10 @@ func (s *PostsService) GetPostByTranslit(ctx context.Context, translit string, a
 
 	result := s.fillPost(post.Data, normalizedContent, reacts, author)
 
-	return &dto.PostDataResponse{Data: *result}, nil
+	return &models.PostDataResponse{Data: *result}, nil
 }
 
-func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.CommonResponse, error) {
+func (s *PostsService) React(ctx context.Context, req *models.ReactRequest) (*dto.CommonResponse, error) {
 	resp, err := s.postsClient.ReactPost(ctx, req)
 	if err != nil {
 		return nil, err
@@ -284,7 +284,7 @@ func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.C
 
 }
 
-func (s *PostsService) Unreact(ctx context.Context, req *dto.ReactRequest) (*dto.CommonResponse, error) {
+func (s *PostsService) Unreact(ctx context.Context, req *models.ReactRequest) (*dto.CommonResponse, error) {
 	resp, err := s.postsClient.ReactPostDecrement(ctx, req)
 	if err != nil {
 		return nil, err
@@ -301,7 +301,7 @@ func (s *PostsService) Unreact(ctx context.Context, req *dto.ReactRequest) (*dto
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateRequest) (*dto.PostDataResponse, error) {
+func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateRequest) (*models.PostDataResponse, error) {
 	existPost, err := s.postsClient.GetPostById(ctx, req.Id, false)
 	if err != nil {
 		return nil, err
@@ -353,16 +353,16 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 	}
 
 	resultPost := s.fillPost(post.Data, utils.NormalizeContent(post.Data.Content), nil, user)
-	return &dto.PostDataResponse{Data: *resultPost}, nil
+	return &models.PostDataResponse{Data: *resultPost}, nil
 }
 
-func (s *PostsService) IncrementViews(ctx context.Context, req *dto.IncrementRequestInput) (*dto.CommonResponse, error) {
+func (s *PostsService) IncrementViews(ctx context.Context, req *models.IncrementRequestInput) (*dto.CommonResponse, error) {
 	var uintIds []uint64
 	for _, id := range req.PostIds {
 		idInt, _ := strconv.ParseUint(id, 10, 64)
 		uintIds = append(uintIds, idInt)
 	}
-	resp, err := s.postsClient.IncrementViews(ctx, &dto.IncrementRequest{PostIds: uintIds})
+	resp, err := s.postsClient.IncrementViews(ctx, &models.IncrementRequest{PostIds: uintIds})
 	if err != nil {
 		return nil, err
 	}
@@ -385,26 +385,8 @@ func (s *PostsService) GetCount(ctx context.Context, userLogin string) int64 {
 	return count.GetCount()
 }
 
-func (s *PostsService) GetPostsByIds(ids []string) (*dto.MapPosts, error) {
-	resp, err := s.postsClient.GetPostsByIds(context.Background(), ids)
-	if err != nil {
-		return nil, err
-	}
-	var posts dto.MapPosts
-	for key, p := range resp.Data {
-		posts.Posts[key] = dto.ShortPost{
-			Id:       p.Id,
-			Author:   p.Author,
-			Title:    p.Title,
-			Translit: p.Translit,
-		}
-
-	}
-	return &posts, nil
-}
-
-func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*dto.PostsDataResponse, error) {
-	var result []dto.Posts
+func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*models.PostsDataResponse, error) {
+	var result []models.Posts
 	for _, p := range posts.Data {
 		content := utils.NormalizeContent(p.Content)
 
@@ -422,12 +404,12 @@ func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*d
 
 	totalInt, _ := strconv.Atoi(posts.Total)
 
-	return &dto.PostsDataResponse{Data: result, Total: int64(totalInt)}, nil
+	return &models.PostsDataResponse{Data: result, Total: int64(totalInt)}, nil
 }
 
-func (s *PostsService) formatReacts(post *microservices.PostItem) (*dto.ReactResponse, error) {
-	var reactionsResult dto.ReactResponse
-	reacts := map[string][]dto.React{}
+func (s *PostsService) formatReacts(post *microservices.PostItem) (*models.ReactResponse, error) {
+	var reactionsResult models.ReactResponse
+	reacts := map[string][]models.React{}
 	var reactUsers []string
 	var fullReactUsers = map[string]models.SubUsers{}
 	if len(post.GetReactions()) != 0 {
@@ -444,7 +426,7 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*dto.ReactRes
 		}
 
 		reactionMapping := []struct {
-			field *[]dto.React
+			field *[]models.React
 			key   string
 		}{
 			{&reactionsResult.Fire, "fire"},
@@ -460,7 +442,7 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*dto.ReactRes
 		}
 
 		for _, mapping := range reactionMapping {
-			*mapping.field = []dto.React{}
+			*mapping.field = []models.React{}
 		}
 
 		for _, r := range post.GetReactions() {
@@ -468,10 +450,10 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*dto.ReactRes
 			if err != nil {
 				return nil, err
 			}
-			reacts[r.GetReaction()] = append(reacts[r.GetReaction()], dto.React{
+			reacts[r.GetReaction()] = append(reacts[r.GetReaction()], models.React{
 				Id:       reactUUID.String(),
 				User:     fullReactUsers[r.UserLogin],
-				Reaction: dto.ReactionType(r.Reaction),
+				Reaction: models.ReactionType(r.Reaction),
 			})
 		}
 
@@ -485,8 +467,8 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*dto.ReactRes
 	return &reactionsResult, nil
 }
 
-func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, reacts *dto.ReactResponse, user *models.Users) *dto.Posts {
-	return &dto.Posts{
+func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, reacts *models.ReactResponse, user *models.Users) *models.Posts {
+	return &models.Posts{
 		Id:   p.GetId(),
 		Date: p.GetDate(),
 		Author: models.SubUsers{

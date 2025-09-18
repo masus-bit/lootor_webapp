@@ -2,13 +2,13 @@ package services
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/eventsclient"
 	"lootor/internal/infrastructure/postsclient"
-	"lootor/internal/pkg/dto"
-	"lootor/internal/pkg/types"
+	"lootor/internal/pkg/utils"
 	"sync"
 )
 
@@ -72,13 +72,17 @@ func (s *EventsService) GetEvents(authUserLogin, limit, offset string) (*models.
 		if err != nil {
 			return nil, err
 		}
-		events = s.normalizeEvents(evs.Items)
+		events = s.normalizeEvents(evs.Items, authUserLogin, dbUser.IsPremium)
 		totalCount = evs.Total
 	}
 	return &models.EventsDataResponse{Data: events, Total: totalCount}, nil
 }
 
-func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionItem, wlId, limit, offset string) (*models.EventsDataResponse, error) {
+func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionItem, wlId, limit, offset, authUserLogin string) (*models.EventsDataResponse, error) {
+	dbUser, err := s.userRepo.GetUserByLogin(authUserLogin)
+	if err != nil {
+		return nil, err
+	}
 	evs, err := s.eventClient.GetFilteredEvents(context.Background(), &models.GetFilteredEventsRequest{
 		UserLogin:        userLogin,
 		CollectionId:     collectionId,
@@ -90,11 +94,16 @@ func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionIte
 	if err != nil {
 		return nil, err
 	}
-	events := s.normalizeEvents(evs.GetItems())
+	events := s.normalizeEvents(evs.GetItems(), authUserLogin, dbUser.IsPremium)
 	return &models.EventsDataResponse{Data: events, Total: evs.Total}, nil
 }
 
-func (s *EventsService) normalizeEvents(events []*microservices.EventsItem) []models.Events {
+func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, authUserLogin string, isPremium bool) []models.Events {
+
+	authUser, err := s.userRepo.GetUserByLogin(authUserLogin)
+	if err != nil {
+		return nil
+	}
 
 	var normalizedEvents []models.Events
 	var userLogins []string
@@ -127,10 +136,10 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem) []mo
 	var wg sync.WaitGroup
 
 	var usersMap map[string]models.SubUsers
-	var collectionsMap map[string]models.Collections
-	var itemsMap map[string]models.CollectionItems
-	var wlMap map[string]models.WishListItems
-	var postsMap map[string]dto.ShortPost
+	var collectionsMap map[string]models.CollectionsResponse
+	var itemsMap map[string]models.CollectionItemsResponse
+	var wlMap map[string]models.WishListItemResponse
+	var postsMap map[string]models.Posts
 
 	wg.Add(5)
 
@@ -140,7 +149,18 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem) []mo
 	}()
 	go func() {
 		defer wg.Done()
-		collectionsMap, _ = s.collectionsRepo.GetCollectionsByIdsMap(collectionIDs)
+		collectionIDsUUID := make([]uuid.UUID, len(collectionIDs))
+		for i, id := range collectionIDs {
+			collectionIDsUUID[i], _ = uuid.Parse(id)
+		}
+		counts, _ := s.collectionItemsRepo.GetCountCIByIDs(collectionIDsUUID)
+		totalPrices, _ := s.collectionItemsRepo.GetSumsByCollectionIDs(collectionIDsUUID)
+		shippingCosts, _ := s.collectionItemsRepo.GetShippingCostsByCollectionIDs(collectionIDsUUID)
+		var subArray []string
+		if authUserLogin != "" {
+			subArray = authUser.CollectionSubscriptions
+		}
+		collectionsMap, _ = s.collectionsRepo.GetCollectionsByIdsMap(collectionIDs, counts, totalPrices, shippingCosts, subArray, authUserLogin)
 	}()
 	go func() {
 		defer wg.Done()
@@ -152,15 +172,48 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem) []mo
 	}()
 	go func() {
 		defer wg.Done()
-		resp, _ := s.postService.GetPostsByIds(context.Background(), postIDs)
-		postsMap = make(map[string]dto.ShortPost)
+		resp, _ := s.postService.GetPostsByIds(context.Background(), postIDs, authUserLogin, isPremium)
+		postsMap = make(map[string]models.Posts)
 		if resp != nil && resp.Data != nil {
 			for key, p := range resp.Data {
-				postsMap[key] = dto.ShortPost{
-					Id:       p.Id,
-					Author:   p.Author,
-					Title:    p.Title,
-					Translit: p.Translit,
+				var reactUsers []string
+
+				for _, r := range p.Reactions {
+					reactUsers = append(reactUsers, r.UserLogin)
+				}
+				reactsLen := len(p.GetReactions())
+				var users []models.SubUsers
+				if reactsLen != 0 {
+					users, _ = s.userRepo.GetForSubs(reactUsers)
+				}
+				author, _ := s.userRepo.GetUserByLogin(p.Author)
+				postFormatted, err := utils.FormatPost(p, users, author, reactsLen)
+				if err != nil {
+					continue
+				}
+
+				postsMap[key] = models.Posts{
+					Id:             postFormatted.Data.Id,
+					Title:          postFormatted.Data.Title,
+					Author:         postFormatted.Data.Author,
+					Translit:       postFormatted.Data.Translit,
+					IsDraft:        postFormatted.Data.IsDraft,
+					Content:        postFormatted.Data.Content,
+					Views:          postFormatted.Data.Views,
+					Date:           postFormatted.Data.Date,
+					CommentsCount:  postFormatted.Data.CommentsCount,
+					HeartCount:     postFormatted.Data.HeartCount,
+					FireCount:      postFormatted.Data.FireCount,
+					GlassesCount:   postFormatted.Data.GlassesCount,
+					LaughCount:     postFormatted.Data.LaughCount,
+					TearsCount:     postFormatted.Data.TearsCount,
+					PokerFaceCount: postFormatted.Data.PokerFaceCount,
+					EyesCount:      postFormatted.Data.EyesCount,
+					AngryCount:     postFormatted.Data.AngryCount,
+					ShitCount:      postFormatted.Data.ShitCount,
+					ClownCount:     postFormatted.Data.ClownCount,
+					TotalReactions: postFormatted.Data.TotalReactions,
+					Reacted:        postFormatted.Data.Reacted,
 				}
 			}
 		}
@@ -172,16 +225,16 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem) []mo
 		usersMap = make(map[string]models.SubUsers)
 	}
 	if collectionsMap == nil {
-		collectionsMap = make(map[string]models.Collections)
+		collectionsMap = make(map[string]models.CollectionsResponse)
 	}
 	if itemsMap == nil {
-		itemsMap = make(map[string]models.CollectionItems)
+		itemsMap = make(map[string]models.CollectionItemsResponse)
 	}
 	if wlMap == nil {
-		wlMap = make(map[string]models.WishListItems)
+		wlMap = make(map[string]models.WishListItemResponse)
 	}
 	if postsMap == nil {
-		postsMap = make(map[string]dto.ShortPost)
+		postsMap = make(map[string]models.Posts)
 	}
 
 	for _, event := range events {
@@ -209,52 +262,19 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem) []mo
 		}
 
 		if collection, exists := collectionsMap[event.TargetCollectionId]; exists {
-			normalizedEvent.TargetCollection = &types.CommonShortTypeCollection{
-				CommonShortType: &types.CommonShortType{
-					ID:   collection.Id.String(),
-					Name: collection.Name,
-				},
-				Owner:           collection.UserLogin,
-				Transliteration: collection.Transliteration,
-			}
+			normalizedEvent.TargetCollection = &collection
 		}
 
 		if item, exists := itemsMap[event.TargetItemId]; exists {
-			targetItem := &types.CommonShortTypeItem{
-				CommonShortType: &types.CommonShortType{
-					ID:   item.Id.String(),
-					Name: item.Name,
-				},
-				Owner: item.Owner.Login,
-			}
-
-			if len(item.Collections) > 0 {
-				targetItem.Collection = item.Collections[0].Id.String()
-				targetItem.CollectionName = item.Collections[0].Name
-			} else {
-				targetItem.Collection = ""
-				targetItem.CollectionName = ""
-			}
-
-			normalizedEvent.TargetItem = targetItem
+			normalizedEvent.TargetItem = &item
 		}
 
 		if wlItem, exists := wlMap[event.TargetWishListItemId]; exists {
-			normalizedEvent.TargetWishListItem = &types.CommonShortType{
-				ID:   wlItem.Id.String(),
-				Name: wlItem.ItemName,
-			}
+			normalizedEvent.TargetWishListItem = &wlItem
 		}
 
 		if post, exists := postsMap[event.TargetPostId]; exists {
-			normalizedEvent.TargetPost = &types.CommonShortTypePost{
-				CommonShortType: &types.CommonShortType{
-					ID:   post.Id,
-					Name: post.Title,
-				},
-				Author:          post.Author,
-				Transliteration: post.Translit,
-			}
+			normalizedEvent.TargetPost = &post
 		}
 
 		if initiator, exists := usersMap[event.InitiatorLogin]; exists {

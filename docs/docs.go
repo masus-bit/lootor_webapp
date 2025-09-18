@@ -2250,7 +2250,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.IncrementRequest"
+                            "$ref": "#/definitions/models.IncrementRequest"
                         }
                     }
                 ],
@@ -2283,7 +2283,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.PostUpdateRequest"
+                            "$ref": "#/definitions/models.PostUpdateRequest"
                         }
                     }
                 ],
@@ -3264,17 +3264,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.IncrementRequest": {
-            "type": "object",
-            "properties": {
-                "postIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
         "dto.LikeUserSwagger": {
             "type": "object",
             "properties": {
@@ -3293,9 +3282,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "dto.PostUpdateRequest": {
-            "type": "object"
         },
         "dto.Resp": {
             "type": "object",
@@ -3611,6 +3597,17 @@ const docTemplate = `{
                 }
             }
         },
+        "models.IncrementRequest": {
+            "type": "object",
+            "properties": {
+                "postIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "models.ItemTypes": {
             "type": "object",
             "properties": {
@@ -3709,6 +3706,9 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "models.PostUpdateRequest": {
+            "type": "object"
         },
         "models.SignInRequest": {
             "type": "object",

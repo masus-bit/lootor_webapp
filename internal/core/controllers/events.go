@@ -61,7 +61,12 @@ func (c *EventsController) GetFilteredEvents(ctx echo.Context) error {
 	limit := ctx.QueryParam("limit")
 	offset := ctx.QueryParam("offset")
 
-	response, err := c.eventsService.GetFilteredEvents(userLogin, collectionId, collectionItemId, wishListItemId, limit, offset)
+	authInfo := ctx.Get("auth_info").(struct {
+		IsAuthenticated bool
+		UserLogin       string
+	})
+
+	response, err := c.eventsService.GetFilteredEvents(userLogin, collectionId, collectionItemId, wishListItemId, limit, offset, authInfo.UserLogin)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
