@@ -83,13 +83,21 @@ func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionIte
 	if err != nil {
 		return nil, err
 	}
+	var collectionItemIDs []string
+	if collectionId != "" {
+		collectionItemIDs, err = s.collectionsRepo.GetCollectionItemsIds(collectionId)
+		if err != nil {
+			return nil, err
+		}
+	}
 	evs, err := s.eventClient.GetFilteredEvents(context.Background(), &models.GetFilteredEventsRequest{
-		UserLogin:        userLogin,
-		CollectionId:     collectionId,
-		CollectionItemId: collectionItem,
-		WishListItemId:   wlId,
-		Limit:            limit,
-		Offset:           offset,
+		UserLogin:         userLogin,
+		CollectionId:      collectionId,
+		CollectionItemId:  collectionItem,
+		WishListItemId:    wlId,
+		Limit:             limit,
+		Offset:            offset,
+		CollectionItemIds: collectionItemIDs,
 	})
 	if err != nil {
 		return nil, err

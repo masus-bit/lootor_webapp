@@ -819,3 +819,21 @@ func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[
 	}
 	return collectionsMap, nil
 }
+
+func (r *CollectionsRepository) GetCollectionItemsIds(collectionId string) ([]string, error) {
+	var collectionItems []models.CollectionItems
+	var itemIDs []string
+	collectionItemsIds := r.db.Table("collections_collection_items_collection_items").Where("collections_id = ?", collectionId).Select("collection_items_id").Unscoped().
+		Pluck("collection_items_id", &itemIDs)
+
+	if collectionItemsIds.Error != nil {
+		return nil, collectionItemsIds.Error
+	}
+
+	var ids []string
+	for _, item := range collectionItems {
+		ids = append(ids, item.Id.String())
+	}
+	return itemIDs, nil
+
+}

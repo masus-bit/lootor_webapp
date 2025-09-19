@@ -43,6 +43,7 @@ message GetFilteredEventsRequest {
   string wish_list_item_id = 4;
   string limit = 5;
   string offset = 6;
+  repeated string collection_item_ids = 7;
 }
 message GetEventsResponse {
   repeated EventsItem items = 1;

@@ -63,10 +63,11 @@ type GetEventsRequest struct {
 }
 
 type GetFilteredEventsRequest struct {
-	UserLogin        string `json:"userLogin"`
-	CollectionId     string `json:"collectionId"`
-	CollectionItemId string `json:"collectionItemId"`
-	WishListItemId   string `json:"wishListItemId"`
-	Limit            string `json:"limit"`
-	Offset           string `json:"offset"`
+	UserLogin         string   `json:"userLogin"`
+	CollectionId      string   `json:"collectionId"`
+	CollectionItemId  string   `json:"collectionItemId"`
+	WishListItemId    string   `json:"wishListItemId"`
+	Limit             string   `json:"limit"`
+	Offset            string   `json:"offset"`
+	CollectionItemIds []string `json:"collectionItemIds"`
 }

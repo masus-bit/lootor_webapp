@@ -51,12 +51,13 @@ func (c *GRPCEventsClient) GetEvents(ctx context.Context, req *models.GetEventsR
 
 func (c *GRPCEventsClient) GetFilteredEvents(ctx context.Context, req *models.GetFilteredEventsRequest) (*microservices.GetEventsResponse, error) {
 	return c.client.GetFilteredEvents(ctx, &microservices.GetFilteredEventsRequest{
-		Limit:            req.Limit,
-		Offset:           req.Offset,
-		UserLogin:        req.UserLogin,
-		CollectionId:     req.CollectionId,
-		CollectionItemId: req.CollectionItemId,
-		WishListItemId:   req.WishListItemId,
+		Limit:             req.Limit,
+		Offset:            req.Offset,
+		UserLogin:         req.UserLogin,
+		CollectionId:      req.CollectionId,
+		CollectionItemId:  req.CollectionItemId,
+		WishListItemId:    req.WishListItemId,
+		CollectionItemIds: req.CollectionItemIds,
 	})
 }
 
