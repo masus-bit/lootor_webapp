@@ -31,6 +31,7 @@ func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser s
 	response.LikesCount = int64(len(item.Likes))
 	response.IsOwner = authUser == item.Owner.Login
 	response.CollectionTransliteration = item.Collections[0].Transliteration
+	response.CollectionName = item.Collections[0].Name
 
 	if authUser != "" {
 		response.CanLike = authUser != item.Owner.Login && !slices.Contains(item.Likes, authUser)
@@ -53,6 +54,7 @@ func (s *EnrichingCIService) enrichAnyItems(items []models.CollectionItems, auth
 		temp.CanLike = true
 		temp.IsOwner = authUser == item.Owner.Login
 		temp.CollectionTransliteration = item.Collections[0].Transliteration
+		temp.CollectionName = item.Collections[0].Name
 
 		if authUser != "" {
 			if authUser == item.Owner.Login {

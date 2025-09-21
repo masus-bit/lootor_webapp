@@ -69,6 +69,7 @@ type CollectionItemsResponse struct {
 	IsOwner                   bool       `json:"isOwner"`
 	CollectionTransliteration string     `json:"collectionTransliteration"`
 	CommentsCount             int64      `json:"commentsCount"`
+	CollectionName            string     `json:"collectionName"`
 }
 
 type CollectionItemsRequestCreate struct {

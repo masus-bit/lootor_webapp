@@ -642,6 +642,7 @@ func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin st
 		if len(collectionItem.Collections) > 0 {
 			temp.Collection = collectionItem.Collections[0].Id
 			temp.CollectionTransliteration = collectionItem.Collections[0].Transliteration
+			temp.CollectionName = collectionItem.Collections[0].Name
 		} else {
 			temp.Collection = uuid.Nil
 			temp.CollectionTransliteration = ""
