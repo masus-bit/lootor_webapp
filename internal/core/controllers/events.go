@@ -24,7 +24,7 @@ func NewEventsController(eventsService services.EventsService) *EventsController
 // @Success 201 {object} dto.EventsDataResponseSwagger
 // @Router /secured/events [post]
 func (c *EventsController) GetEvents(ctx echo.Context) error {
-	var request models.GetEventsRequest
+	var request models.GetEventsRequestForAll
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",

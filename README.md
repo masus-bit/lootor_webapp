@@ -21,7 +21,7 @@ sudo apt install protobuf-compiler ## Для Linux
 choco install protoc ## Для Windows
 ```
 
-## Генерация protobuf для сервиса новостей
+## Генерация protobuf
 
 ```shell
 make gen
