@@ -57,9 +57,11 @@ type AddEventRequest struct {
 }
 
 type GetEventsRequest struct {
-	Subscriptions []string `json:"subscriptions"`
-	Limit         string   `json:"limit"`
-	Offset        string   `json:"offset"`
+	Subscriptions    []string `json:"subscriptions"`
+	Limit            string   `json:"limit"`
+	Offset           string   `json:"offset"`
+	Actions          []string `json:"actions"`
+	EventTargetTypes []string `json:"eventTargetTypes"`
 }
 
 type GetFilteredEventsRequest struct {

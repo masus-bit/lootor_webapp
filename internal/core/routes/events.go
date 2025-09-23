@@ -19,6 +19,6 @@ func EventsRouter(e *echo.Echo, jwtService *auth.JWTService, eventsService servi
 	securedGroup := e.Group("/secured")
 	securedGroup.Use(jwtService.RequireAuthMiddleware())
 	{
-		securedGroup.GET("/events", controller.GetEvents)
+		securedGroup.POST("/events", controller.GetEvents)
 	}
 }

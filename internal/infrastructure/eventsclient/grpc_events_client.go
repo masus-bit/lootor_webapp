@@ -43,9 +43,11 @@ func (c *GRPCEventsClient) AddEvent(ctx context.Context, req *models.AddEventReq
 
 func (c *GRPCEventsClient) GetEvents(ctx context.Context, req *models.GetEventsRequest) (*microservices.GetEventsResponse, error) {
 	return c.client.GetEvents(ctx, &microservices.GetEventsRequest{
-		Limit:         req.Limit,
-		Offset:        req.Offset,
-		Subscriptions: req.Subscriptions,
+		Limit:            req.Limit,
+		Offset:           req.Offset,
+		Subscriptions:    req.Subscriptions,
+		Actions:          req.Actions,
+		EventTargetTypes: req.EventTargetTypes,
 	})
 }
 

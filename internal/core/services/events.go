@@ -55,7 +55,7 @@ func (s *EventsService) AddEvent(userLogin, action, target, title string, params
 	return nil
 }
 
-func (s *EventsService) GetEvents(authUserLogin, limit, offset string) (*models.EventsDataResponse, error) {
+func (s *EventsService) GetEvents(authUserLogin, limit, offset string, eventTargetTypes, actions []string) (*models.EventsDataResponse, error) {
 	dbUser, err := s.userRepo.GetUserByLogin(authUserLogin)
 	if err != nil {
 		return nil, err
@@ -65,9 +65,11 @@ func (s *EventsService) GetEvents(authUserLogin, limit, offset string) (*models.
 	subscriptions := dbUser.Subscriptions
 	if subscriptions != nil {
 		evs, err := s.eventClient.GetEvents(context.Background(), &models.GetEventsRequest{
-			Limit:         limit,
-			Offset:        offset,
-			Subscriptions: subscriptions,
+			Limit:            limit,
+			Offset:           offset,
+			Subscriptions:    subscriptions,
+			Actions:          actions,
+			EventTargetTypes: eventTargetTypes,
 		})
 		if err != nil {
 			return nil, err
