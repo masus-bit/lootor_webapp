@@ -1724,7 +1724,7 @@ const docTemplate = `{
             }
         },
         "/secured/events": {
-            "get": {
+            "post": {
                 "consumes": [
                     "application/json"
                 ],
@@ -1737,18 +1737,13 @@ const docTemplate = `{
                 "summary": "получить эвенты по юзеру из токена",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "limit",
-                        "name": "limit",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "offset",
-                        "name": "offset",
-                        "in": "query",
-                        "required": true
+                        "description": "фильтры",
+                        "name": "getEvents",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GetEventsRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -3590,6 +3585,35 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "names": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.GetEventsRequest": {
+            "type": "object",
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "eventTargetTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "limit": {
+                    "type": "string"
+                },
+                "offset": {
+                    "type": "string"
+                },
+                "subscriptions": {
                     "type": "array",
                     "items": {
                         "type": "string"

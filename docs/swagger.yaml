@@ -560,6 +560,25 @@ definitions:
           type: string
         type: array
     type: object
+  models.GetEventsRequest:
+    properties:
+      actions:
+        items:
+          type: string
+        type: array
+      eventTargetTypes:
+        items:
+          type: string
+        type: array
+      limit:
+        type: string
+      offset:
+        type: string
+      subscriptions:
+        items:
+          type: string
+        type: array
+    type: object
   models.IncrementRequest:
     properties:
       postIds:
@@ -1908,20 +1927,16 @@ paths:
       tags:
       - entities
   /secured/events:
-    get:
+    post:
       consumes:
       - application/json
       parameters:
-      - description: limit
-        in: query
-        name: limit
+      - description: фильтры
+        in: body
+        name: getEvents
         required: true
-        type: string
-      - description: offset
-        in: query
-        name: offset
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/models.GetEventsRequest'
       produces:
       - application/json
       responses:
