@@ -64,8 +64,8 @@ type GetEventsRequest struct {
 	EventTargetTypes []string `json:"eventTargetTypes"`
 }
 type GetEventsRequestForAll struct {
-	Limit            string   `json:"limit"`
-	Offset           string   `json:"offset"`
+	Limit            int64    `json:"limit"`
+	Offset           int64    `json:"offset"`
 	Actions          []string `json:"actions"`
 	EventTargetTypes []string `json:"eventTargetTypes"`
 }

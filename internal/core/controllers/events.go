@@ -5,6 +5,7 @@ import (
 	"lootor/internal/core/models"
 	"lootor/internal/core/services"
 	"net/http"
+	"strconv"
 )
 
 type EventsController struct {
@@ -35,7 +36,7 @@ func (c *EventsController) GetEvents(ctx echo.Context) error {
 		authUser = ""
 	}
 
-	response, err := c.eventsService.GetEvents(authUser, request.Limit, request.Offset, request.EventTargetTypes, request.Actions)
+	response, err := c.eventsService.GetEvents(authUser, strconv.FormatInt(request.Limit, 10), strconv.FormatInt(request.Offset, 10), request.EventTargetTypes, request.Actions)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
