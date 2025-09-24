@@ -455,7 +455,7 @@ func (r *UsersRepository) GetForSubs(users []string) ([]models.SubUsers, error) 
 func (r *UsersRepository) GetForSubsMap(users []string) (map[string]models.SubUsers, error) {
 	var subUsers []models.SubUsers
 	err := r.db.Model(&models.Users{}).
-		Where("LOWER(login) IN ?", users).
+		Where("login IN ?", users).
 		Select("login", "avatar_url", "profile_name", "is_premium").
 		Find(&subUsers).Error
 	subUsersMap := make(map[string]models.SubUsers)
