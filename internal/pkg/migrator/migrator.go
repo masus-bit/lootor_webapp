@@ -17,7 +17,7 @@ var migrationList = []struct {
 	{"002_change_post_id_to_uint", migrations.ChangePostIdToUint64AutoIncrement},
 	{"003_move_events", migrations.MoveEvents},
 	{"004_add_deleted_flag_events", migrations.AddDeletedFlagEvents},
-	{"005_fix_deleted_events", migrations.FixDeletedFlagEvents},
+	{"005_fix_deleted_events", migrations.MarkEventsDeletedForDeletedTargets},
 }
 
 func RunMigrations(db *gorm.DB) error {

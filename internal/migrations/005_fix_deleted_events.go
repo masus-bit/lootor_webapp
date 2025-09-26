@@ -5,29 +5,56 @@ import (
 	"gorm.io/gorm"
 )
 
-func FixDeletedFlagEvents(db *gorm.DB) error {
-	if err := db.Exec(`UPDATE loot_events.events SET deleted = false`).Error; err != nil {
-		return fmt.Errorf("failed to activate all events: %w", err)
-	}
+func MarkEventsDeletedForDeletedTargets(db *gorm.DB) error {
+	return db.Transaction(func(tx *gorm.DB) error {
+		queries := []string{
+			`UPDATE loot_events.events 
+             SET deleted = true 
+             WHERE target_post_id IN (
+                 SELECT target_post_id 
+                 FROM loot_events.events 
+                 WHERE action = 'delete' 
+                 AND event_target_type = 'post'
+                 AND target_post_id IS NOT NULL
+             )`,
 
-	if err := db.Exec(`
-        UPDATE loot_events.events 
-        SET deleted = true 
-        WHERE (target_collection_id IS NOT NULL AND NOT EXISTS (
-                SELECT 1 FROM loot.collections WHERE id::uuid = target_collection_id AND deleted_at IS NULL
-            ))
-            OR (target_item_id IS NOT NULL AND NOT EXISTS (
-                SELECT 1 FROM loot.collection_items WHERE id::uuid = target_item_id AND deleted_at IS NULL
-            ))
-            OR (target_wish_list_item_id IS NOT NULL AND NOT EXISTS (
-                SELECT 1 FROM loot.wish_list_items WHERE id::uuid = target_wish_list_item_id AND deleted_at IS NULL
-            ))
-            OR (target_post_id IS NOT NULL AND NOT EXISTS (
-                SELECT 1 FROM loot_posts.posts WHERE id::text = target_post_id AND deleted_at IS NULL
-            ))
-    `).Error; err != nil {
-		return fmt.Errorf("failed to mark orphaned events as deleted: %w", err)
-	}
+			`UPDATE loot_events.events 
+             SET deleted = true 
+             WHERE target_item_id IN (
+                 SELECT target_item_id 
+                 FROM loot_events.events 
+                 WHERE action = 'delete' 
+                 AND event_target_type = 'collectionItem'
+                 AND target_item_id IS NOT NULL
+             )`,
 
-	return nil
+			`UPDATE loot_events.events 
+             SET deleted = true 
+             WHERE target_collection_id IN (
+                 SELECT target_collection_id 
+                 FROM loot_events.events 
+                 WHERE action = 'delete' 
+                 AND event_target_type = 'collection'
+                 AND target_collection_id IS NOT NULL
+             )`,
+
+			`UPDATE loot_events.events 
+             SET deleted = true 
+             WHERE target_wish_list_item_id IN (
+                 SELECT target_wish_list_item_id 
+                 FROM loot_events.events 
+                 WHERE action = 'delete' 
+                 AND event_target_type = 'wishListItem'
+                 AND target_wish_list_item_id IS NOT NULL
+             )`,
+		}
+
+		for i, query := range queries {
+			if err := tx.Exec(query).Error; err != nil {
+				return fmt.Errorf("failed query %d: %w", i, err)
+			}
+		}
+
+		return nil
+	})
 }
