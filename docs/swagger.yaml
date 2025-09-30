@@ -237,13 +237,6 @@ definitions:
       data:
         $ref: '#/definitions/dto.UserResponseSwagger'
     type: object
-  dto.EntitiesDataResponseSwagger:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/dto.EntitiesSwagger'
-        type: array
-    type: object
   dto.EntitiesSwagger:
     properties:
       collectionItem:
@@ -475,6 +468,15 @@ definitions:
             type: array
         type: object
     type: object
+  models.AddTagToEntityRequest:
+    properties:
+      entityId:
+        type: string
+      entityType:
+        type: string
+      tagId:
+        type: string
+    type: object
   models.ChangePasswordReset:
     properties:
       password:
@@ -528,10 +530,6 @@ definitions:
         type: string
       edition:
         type: string
-      entities:
-        items:
-          type: string
-        type: array
       images:
         items:
           type: string
@@ -552,12 +550,21 @@ definitions:
         type: boolean
       shippingCost:
         type: number
-    type: object
-  models.EntitiesCreateRequest:
-    properties:
-      names:
+      tags:
         items:
           type: string
+        type: array
+    type: object
+  models.Entities:
+    properties:
+      collectionItems:
+        items: {}
+        type: array
+      collections:
+        items: {}
+        type: array
+      posts:
+        items: {}
         type: array
     type: object
   models.GetEventsRequest:
@@ -608,6 +615,15 @@ definitions:
           $ref: '#/definitions/models.ItemTypes'
         type: array
     type: object
+  models.MergeTagsRequest:
+    properties:
+      fromTagIds:
+        items:
+          type: string
+        type: array
+      toTagId:
+        type: string
+    type: object
   models.Payments:
     properties:
       amount:
@@ -651,6 +667,17 @@ definitions:
         type: array
     type: object
   models.PostUpdateRequest:
+    type: object
+  models.RemoveTagsRequest:
+    properties:
+      entityId:
+        type: string
+      entityType:
+        type: string
+      tagIds:
+        items:
+          type: string
+        type: array
     type: object
   models.SignInRequest:
     properties:
@@ -696,6 +723,92 @@ definitions:
     properties:
       data:
         type: string
+    type: object
+  models.TagCreateRequest:
+    properties:
+      author:
+        type: string
+      entityId:
+        type: string
+      entityType:
+        type: string
+      name:
+        type: string
+    type: object
+  models.TagDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.Tags'
+      total:
+        type: integer
+    type: object
+  models.TagLinks:
+    properties:
+      createdAt:
+        type: string
+      entityId:
+        type: string
+      entityType:
+        type: string
+      tag:
+        $ref: '#/definitions/models.Tags'
+      tagId:
+        type: string
+    type: object
+  models.TagUpdateRequest:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
+  models.Tags:
+    properties:
+      author:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      entities:
+        $ref: '#/definitions/models.Entities'
+      id:
+        type: string
+      isPrimary:
+        type: boolean
+      name:
+        type: string
+      primary:
+        $ref: '#/definitions/models.Tags'
+      primaryId:
+        type: string
+      slug:
+        type: string
+      synonyms:
+        items:
+          $ref: '#/definitions/models.Tags'
+        type: array
+      tagLinks:
+        items:
+          $ref: '#/definitions/models.TagLinks'
+        type: array
+      totalCollectionItems:
+        type: integer
+      totalCollections:
+        type: integer
+      totalPosts:
+        type: integer
+    type: object
+  models.TagsDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Tags'
+        type: array
     type: object
   models.UserRequestUpdate:
     properties:
@@ -920,78 +1033,6 @@ paths:
       summary: получить КИ all
       tags:
       - collection items
-  /public/collection_item/entity:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: entity
-        in: query
-        name: entity
-        required: true
-        type: string
-      - description: limit
-        in: query
-        name: limit
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.AllCollectionsDataResponseSwagger'
-      summary: получить КИ по кнтити
-      tags:
-      - collection items
-  /public/collection_item/entity/type:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: entity
-        in: query
-        name: entity
-        required: true
-        type: string
-      - description: limit
-        in: query
-        name: limit
-        required: true
-        type: string
-      - description: offset
-        in: query
-        name: offset
-        required: true
-        type: string
-      - description: поле сортировки% может быть  name, purchaseDate, purchasePrice,
-          platform, type, rating
-        in: query
-        name: orderBy
-        type: string
-      - description: порядок сортировки asc или desc
-        in: query
-        name: order
-        type: string
-      - description: поиск среди коллекций по entity
-        in: query
-        name: search
-        type: string
-      - description: type
-        in: query
-        name: type
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.AllCollectionsDataResponseSwagger'
-      summary: получить КИ по entity и типу
-      tags:
-      - collection items
   /public/collections:
     get:
       consumes:
@@ -1110,31 +1151,6 @@ paths:
           schema:
             $ref: '#/definitions/dto.AllCollectionsDataResponseSwagger'
       summary: получение коллекций всех
-      tags:
-      - collections
-  /public/collections/subscribe:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: id
-        in: query
-        name: id
-        required: true
-        type: string
-      - description: flag
-        in: query
-        name: isSubscribe
-        required: true
-        type: boolean
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.CommonResponse'
-      summary: подписка на коллекцию
       tags:
       - collections
   /public/comments:
@@ -1433,6 +1449,41 @@ paths:
       summary: Поиск по коллекциям, ентити, КИ, тегам, юзерам
       tags:
       - search
+  /public/tags/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: tag id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: entity type
+        in: query
+        name: entityType
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.TagDataResponse'
+      summary: получить все сущности по тегу с фильтром
+      tags:
+      - tags
   /public/thumbs/{key}:
     get:
       parameters:
@@ -1702,48 +1753,6 @@ paths:
       summary: like/dislike
       tags:
       - collections
-  /secured/collections/tag:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: tag
-        in: query
-        name: tag
-        required: true
-        type: string
-      - description: limit
-        in: query
-        name: limit
-        required: true
-        type: string
-      - description: offset
-        in: query
-        name: offset
-        required: true
-        type: string
-      - description: поле сортировки% может быть totalPrice, name, created, collectionItemsCount
-        in: query
-        name: orderBy
-        type: string
-      - description: порядок сортировки asc или desc
-        in: query
-        name: order
-        type: string
-      - description: поиск среди коллекций по тегу
-        in: query
-        name: search
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.AllCollectionsDataResponseSwagger'
-      summary: получить коллекции по тегу
-      tags:
-      - collections
   /secured/collections/update:
     post:
       consumes:
@@ -1856,76 +1865,6 @@ paths:
       summary: лайк коммента
       tags:
       - comments
-  /secured/entities:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: имя
-        in: query
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.EntitiesDataResponseSwagger'
-      summary: поиск по entities
-      tags:
-      - entities
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: поля создания
-        in: body
-        name: createRequest
-        required: true
-        schema:
-          $ref: '#/definitions/models.EntitiesCreateRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.EntitiesDataResponseSwagger'
-      summary: Создание entity
-      tags:
-      - entities
-  /secured/entities/all:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: search
-        in: query
-        name: search
-        required: true
-        type: string
-      - description: offset
-        in: query
-        name: offset
-        required: true
-        type: string
-      - description: limit
-        in: query
-        name: limit
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.EntitiesDataResponseSwagger'
-      summary: все ентити
-      tags:
-      - entities
   /secured/events:
     post:
       consumes:
@@ -2339,19 +2278,9 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: search string
+      - description: name
         in: query
-        name: search
-        required: true
-        type: string
-      - description: limit
-        in: query
-        name: limit
-        required: true
-        type: string
-      - description: offset
-        in: query
-        name: offset
+        name: name
         required: true
         type: string
       produces:
@@ -2360,8 +2289,112 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dto.TagsSwagger'
-      summary: все теги
+            $ref: '#/definitions/models.TagsDataResponse'
+      summary: Поиск по тегам
+      tags:
+      - tags
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля создания (entityID, entityType - необязательные)
+        in: body
+        name: createRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.TagCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: Создание тега
+      tags:
+      - tags
+  /secured/tags/adm/merge:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: необходимые поля
+        in: body
+        name: mergeRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.MergeTagsRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: смержить теги к одному праймари тегу
+      tags:
+      - tags
+  /secured/tags/adm/update/{id}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: необходимые поля
+        in: body
+        name: updateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.TagUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: обновить инфу по тегу
+      tags:
+      - tags
+  /secured/tags/entity:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: необходимые поля
+        in: body
+        name: addRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddTagToEntityRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: добавить тег к сущности
+      tags:
+      - tags
+  /secured/tags/entity/remove:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: необходимые поля
+        in: body
+        name: removeRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.RemoveTagsRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: удалить теги у сущностей
       tags:
       - tags
   /secured/user/delete:

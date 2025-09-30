@@ -192,113 +192,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/public/collection_item/entity": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "collection items"
-                ],
-                "summary": "получить КИ по кнтити",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "entity",
-                        "name": "entity",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "limit",
-                        "name": "limit",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.AllCollectionsDataResponseSwagger"
-                        }
-                    }
-                }
-            }
-        },
-        "/public/collection_item/entity/type": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "collection items"
-                ],
-                "summary": "получить КИ по entity и типу",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "entity",
-                        "name": "entity",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "limit",
-                        "name": "limit",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "offset",
-                        "name": "offset",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "поле сортировки% может быть  name, purchaseDate, purchasePrice, platform, type, rating",
-                        "name": "orderBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "порядок сортировки asc или desc",
-                        "name": "order",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "поиск среди коллекций по entity",
-                        "name": "search",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "type",
-                        "name": "type",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.AllCollectionsDataResponseSwagger"
-                        }
-                    }
-                }
-            }
-        },
         "/public/collections": {
             "get": {
                 "consumes": [
@@ -473,44 +366,6 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/dto.AllCollectionsDataResponseSwagger"
-                        }
-                    }
-                }
-            }
-        },
-        "/public/collections/subscribe": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "collections"
-                ],
-                "summary": "подписка на коллекцию",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "flag",
-                        "name": "isSubscribe",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.CommonResponse"
                         }
                     }
                 }
@@ -964,6 +819,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/tags/{id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "получить все сущности по тегу с фильтром",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "tag id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "entity type",
+                        "name": "entityType",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.TagDataResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/public/thumbs/{key}": {
             "get": {
                 "produces": [
@@ -1380,69 +1287,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/secured/collections/tag": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "collections"
-                ],
-                "summary": "получить коллекции по тегу",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "tag",
-                        "name": "tag",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "limit",
-                        "name": "limit",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "offset",
-                        "name": "offset",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "поле сортировки% может быть totalPrice, name, created, collectionItemsCount",
-                        "name": "orderBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "порядок сортировки asc или desc",
-                        "name": "order",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "поиск среди коллекций по тегу",
-                        "name": "search",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.AllCollectionsDataResponseSwagger"
-                        }
-                    }
-                }
-            }
-        },
         "/secured/collections/update": {
             "post": {
                 "consumes": [
@@ -1611,113 +1455,6 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/dto.CommonResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/secured/entities": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "entities"
-                ],
-                "summary": "поиск по entities",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "имя",
-                        "name": "name",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.EntitiesDataResponseSwagger"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "entities"
-                ],
-                "summary": "Создание entity",
-                "parameters": [
-                    {
-                        "description": "поля создания",
-                        "name": "createRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.EntitiesCreateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.EntitiesDataResponseSwagger"
-                        }
-                    }
-                }
-            }
-        },
-        "/secured/entities/all": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "entities"
-                ],
-                "summary": "все ентити",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "search",
-                        "name": "search",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "offset",
-                        "name": "offset",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "limit",
-                        "name": "limit",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.EntitiesDataResponseSwagger"
                         }
                     }
                 }
@@ -2363,26 +2100,12 @@ const docTemplate = `{
                 "tags": [
                     "tags"
                 ],
-                "summary": "все теги",
+                "summary": "Поиск по тегам",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "search string",
-                        "name": "search",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "limit",
-                        "name": "limit",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "offset",
-                        "name": "offset",
+                        "description": "name",
+                        "name": "name",
                         "in": "query",
                         "required": true
                     }
@@ -2391,7 +2114,170 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.TagsSwagger"
+                            "$ref": "#/definitions/models.TagsDataResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "Создание тега",
+                "parameters": [
+                    {
+                        "description": "поля создания (entityID, entityType - необязательные)",
+                        "name": "createRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.TagCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/tags/adm/merge": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "смержить теги к одному праймари тегу",
+                "parameters": [
+                    {
+                        "description": "необходимые поля",
+                        "name": "mergeRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MergeTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/tags/adm/update/{id}": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "обновить инфу по тегу",
+                "parameters": [
+                    {
+                        "description": "необходимые поля",
+                        "name": "updateRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.TagUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/tags/entity": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "добавить тег к сущности",
+                "parameters": [
+                    {
+                        "description": "необходимые поля",
+                        "name": "addRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AddTagToEntityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/tags/entity/remove": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "удалить теги у сущностей",
+                "parameters": [
+                    {
+                        "description": "необходимые поля",
+                        "name": "removeRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RemoveTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
                         }
                     }
                 }
@@ -3100,17 +2986,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.EntitiesDataResponseSwagger": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.EntitiesSwagger"
-                    }
-                }
-            }
-        },
         "dto.EntitiesSwagger": {
             "type": "object",
             "properties": {
@@ -3463,6 +3338,20 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AddTagToEntityRequest": {
+            "type": "object",
+            "properties": {
+                "entityId": {
+                    "type": "string"
+                },
+                "entityType": {
+                    "type": "string"
+                },
+                "tagId": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ChangePasswordReset": {
             "type": "object",
             "required": [
@@ -3543,12 +3432,6 @@ const docTemplate = `{
                 "edition": {
                     "type": "string"
                 },
-                "entities": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "images": {
                     "type": "array",
                     "items": {
@@ -3578,17 +3461,29 @@ const docTemplate = `{
                 },
                 "shippingCost": {
                     "type": "number"
-                }
-            }
-        },
-        "models.EntitiesCreateRequest": {
-            "type": "object",
-            "properties": {
-                "names": {
+                },
+                "tags": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "models.Entities": {
+            "type": "object",
+            "properties": {
+                "collectionItems": {
+                    "type": "array",
+                    "items": {}
+                },
+                "collections": {
+                    "type": "array",
+                    "items": {}
+                },
+                "posts": {
+                    "type": "array",
+                    "items": {}
                 }
             }
         },
@@ -3666,6 +3561,20 @@ const docTemplate = `{
                 }
             }
         },
+        "models.MergeTagsRequest": {
+            "type": "object",
+            "properties": {
+                "fromTagIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "toTagId": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Payments": {
             "type": "object",
             "properties": {
@@ -3734,6 +3643,23 @@ const docTemplate = `{
         "models.PostUpdateRequest": {
             "type": "object"
         },
+        "models.RemoveTagsRequest": {
+            "type": "object",
+            "properties": {
+                "entityId": {
+                    "type": "string"
+                },
+                "entityType": {
+                    "type": "string"
+                },
+                "tagIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "models.SignInRequest": {
             "type": "object",
             "required": [
@@ -3798,6 +3724,138 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "type": "string"
+                }
+            }
+        },
+        "models.TagCreateRequest": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "entityId": {
+                    "type": "string"
+                },
+                "entityType": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TagDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.Tags"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.TagLinks": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "entityId": {
+                    "type": "string"
+                },
+                "entityType": {
+                    "type": "string"
+                },
+                "tag": {
+                    "$ref": "#/definitions/models.Tags"
+                },
+                "tagId": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TagUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Tags": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "entities": {
+                    "$ref": "#/definitions/models.Entities"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isPrimary": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "primary": {
+                    "$ref": "#/definitions/models.Tags"
+                },
+                "primaryId": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "synonyms": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Tags"
+                    }
+                },
+                "tagLinks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TagLinks"
+                    }
+                },
+                "totalCollectionItems": {
+                    "type": "integer"
+                },
+                "totalCollections": {
+                    "type": "integer"
+                },
+                "totalPosts": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.TagsDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Tags"
+                    }
                 }
             }
         },
