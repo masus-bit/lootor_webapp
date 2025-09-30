@@ -20,6 +20,7 @@ var migrationList = []struct {
 	{"005_fix_deleted_events", migrations.MarkEventsDeletedForDeletedTargets},
 	{"006_move_tags_and_entities", migrations.MoveTagsAndEntities},
 	{"065_set_all_roles", migrations.SetAllRoles},
+	{"066_entity_id_to_string", migrations.EntityIDToString},
 }
 
 func RunMigrations(db *gorm.DB) error {

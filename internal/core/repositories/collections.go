@@ -60,7 +60,6 @@ func (r *CollectionsRepository) GetCollectionById(id string, limit string, offse
 
 	err := r.db.
 		Preload("User").
-		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
 
 			if search != "" {
@@ -136,7 +135,6 @@ func (r *CollectionsRepository) GetCollectionByIdWithoutLimits(id string) (*mode
 
 	err := r.db.
 		Preload("User").
-		Preload("Tags").
 		Preload("CollectionItems").
 		Preload("CollectionItems.Platform").
 		Preload("CollectionItems.Entities").
@@ -155,7 +153,6 @@ func (r *CollectionsRepository) GetByShareString(shareString string, limit strin
 
 	err := r.db.
 		Preload("User").
-		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
 
 			if search != "" {
@@ -230,7 +227,6 @@ func (r *CollectionsRepository) GetByIdWithoutCollectionItems(id string) (*model
 	var collection models.Collections
 	err := r.db.
 		Preload("User").
-		Preload("Tags").
 		Where("id = ?", id).
 		Where("deleted_at IS NULL").
 		First(&collection).Error
@@ -248,7 +244,6 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 		Where("deleted_at IS NULL").
 		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
-		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
 
 			if search != "" {
@@ -330,7 +325,6 @@ func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Co
 	var collections []models.Collections
 	err := r.db.
 		Where("LOWER(user_login) = LOWER(?)", login).Preload("User").
-		Preload("Tags").
 		Preload("CollectionItems", func(tx *gorm.DB) *gorm.DB {
 			return tx.Order("created DESC")
 		}).
@@ -359,7 +353,6 @@ func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string, 
 	query := r.db.
 		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
-		Preload("Tags").
 		Where("deleted_at IS NULL").
 		Order("created DESC")
 
@@ -387,7 +380,6 @@ func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string, search 
 	query := r.db.
 		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
-		Preload("Tags").
 		Where("collections.is_private = ?", false).
 		Where("collections.deleted_at IS NULL").
 		Order("collections.created DESC")
@@ -424,7 +416,6 @@ func (r *CollectionsRepository) GetAllWithoutPrivates(search, limit, offset, sor
 	var collections []models.Collections
 	query := r.db.
 		Preload("User").
-		Preload("Tags").
 		Where("collections.is_private = ?", false).
 		Where("collections.deleted_at IS NULL").
 		Offset(intOffset).
@@ -496,7 +487,6 @@ func (r *CollectionsRepository) GetAllWithoutPrivates(search, limit, offset, sor
 func (r *CollectionsRepository) GetByIdWithoutUser(id string) (models.Collections, error) {
 	var collection models.Collections
 	err := r.db.
-		Preload("Tags").
 		Where("id = ?", id).
 		Where("collections.deleted_at IS NULL").
 		Order("collections.created DESC").
@@ -533,7 +523,6 @@ func (r *CollectionsRepository) GetCollectionByTag(tag string, limit string, off
 		Joins("JOIN tags ON tags.id = tags_collections_collections.tags_id").
 		Where("LOWER(tags.name) = LOWER(?)", tag).
 		Preload("User").
-		Preload("Tags").
 		Where("collections.is_private = ?", false).
 		Where("collections.deleted_at IS NULL").
 		Order("collections.created ASC").
@@ -619,7 +608,6 @@ func (r *CollectionsRepository) UpdateCollectionFull(existsCollection *models.Co
 	var result models.Collections
 
 	if err := r.db.
-		Preload("Tags").
 		Preload("User").
 		First(&result, "id = ?", existsCollection.Id).
 		Error; err != nil {

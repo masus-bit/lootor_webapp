@@ -157,6 +157,10 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 
 	var collectionsTagsMap, itemsTagsMap, postsTagsMap map[string][]models.ShortTags
 
+	collectionsTagsMap = make(map[string][]models.ShortTags)
+	itemsTagsMap = make(map[string][]models.ShortTags)
+	postsTagsMap = make(map[string][]models.ShortTags)
+
 	wg.Add(5)
 
 	go func() {
