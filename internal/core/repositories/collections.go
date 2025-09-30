@@ -122,7 +122,6 @@ func (r *CollectionsRepository) GetCollectionById(id string, limit string, offse
 			}
 		}).
 		Preload("CollectionItems.Platform").
-		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.ItemType").
 		Where("id = ?", id).
 		Where("deleted_at IS NULL").
@@ -137,7 +136,6 @@ func (r *CollectionsRepository) GetCollectionByIdWithoutLimits(id string) (*mode
 		Preload("User").
 		Preload("CollectionItems").
 		Preload("CollectionItems.Platform").
-		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.ItemType").
 		Where("id = ?", id).
 		Where("deleted_at IS NULL").
@@ -215,7 +213,6 @@ func (r *CollectionsRepository) GetByShareString(shareString string, limit strin
 			}
 		}).
 		Preload("CollectionItems.Platform").
-		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.ItemType").
 		Where("share_string = ?", shareString).
 		Where("deleted_at IS NULL").
@@ -306,7 +303,6 @@ func (r *CollectionsRepository) GetOneByTransliteration(login string, transliter
 			}
 		}).
 		Preload("CollectionItems.Platform").
-		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.Owner").
 		Preload("CollectionItems.ItemType").
 		First(&collection).Error
@@ -329,7 +325,6 @@ func (r *CollectionsRepository) GetCollectionByUserId(login string) ([]models.Co
 			return tx.Order("created DESC")
 		}).
 		Preload("CollectionItems.Platform").
-		Preload("CollectionItems.Entities").
 		Preload("CollectionItems.Owner").
 		Preload("CollectionItems.ItemType").
 		Where("deleted_at IS NULL").
