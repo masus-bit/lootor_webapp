@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"lootor/internal/core/repositories"
+	"lootor/internal/core/services"
 	"lootor/internal/pkg/elasticsearch"
 	"net/http"
 
@@ -15,8 +16,7 @@ type ReindexController struct {
 	userRepo       *repositories.UsersRepository
 	collectionRepo *repositories.CollectionsRepository
 	itemRepo       *repositories.CiRepository
-	tagRepo        *repositories.TagsRepository
-	entityRepo     *repositories.EntitiesRepository
+	tagService     *services.TagsService
 }
 
 func NewReindexController(
@@ -24,16 +24,14 @@ func NewReindexController(
 	userRepo *repositories.UsersRepository,
 	collectionRepo *repositories.CollectionsRepository,
 	itemRepo *repositories.CiRepository,
-	tagRepo *repositories.TagsRepository,
-	entityRepo *repositories.EntitiesRepository,
+	tagService *services.TagsService,
 ) *ReindexController {
 	return &ReindexController{
 		es:             es,
 		userRepo:       userRepo,
 		collectionRepo: collectionRepo,
 		itemRepo:       itemRepo,
-		tagRepo:        tagRepo,
-		entityRepo:     entityRepo,
+		tagService:     tagService,
 	}
 }
 
@@ -43,7 +41,6 @@ func (c *ReindexController) Reindex(ctx echo.Context) error {
 		"collections":      c.getCollectionData,
 		"collection_items": c.getCollectionItemData,
 		"tags":             c.getTagData,
-		"entities":         c.getEntityData,
 	}
 
 	if err := c.es.ReindexAll(ctx.Request().Context(), dataProviders); err != nil {
@@ -59,7 +56,6 @@ func (c *ReindexController) ReindexInternal(ctx context.Context) error {
 		"collections":      c.getCollectionData,
 		"collection_items": c.getCollectionItemData,
 		"tags":             c.getTagData,
-		"entities":         c.getEntityData,
 	}
 	return c.es.ReindexAll(ctx, dataProviders)
 }
@@ -128,7 +124,7 @@ func (c *ReindexController) getCollectionItemData() ([]map[string]interface{}, e
 }
 
 func (c *ReindexController) getTagData() ([]map[string]interface{}, error) {
-	tags, err := c.tagRepo.FindAllTags()
+	tags, err := c.tagService.GetAllTags()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tags: %w", err)
 	}
@@ -136,25 +132,9 @@ func (c *ReindexController) getTagData() ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, len(tags))
 	for i, tag := range tags {
 		result[i] = map[string]interface{}{
-			"id":   tag.Id.String(),
+			"id":   tag.ID,
 			"name": tag.Name,
-		}
-	}
-	return result, nil
-}
-
-func (c *ReindexController) getEntityData() ([]map[string]interface{}, error) {
-	entities, err := c.entityRepo.GetAllEntities()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get entities: %w", err)
-	}
-
-	result := make([]map[string]interface{}, len(entities))
-	for i, entity := range entities {
-		result[i] = map[string]interface{}{
-			"id":              entity.Id.String(),
-			"name":            entity.Name,
-			"transliteration": entity.Transliteration,
+			"slug": tag.Slug,
 		}
 	}
 	return result, nil

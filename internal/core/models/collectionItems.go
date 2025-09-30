@@ -7,11 +7,6 @@ import (
 	"time"
 )
 
-type EntitiesCollectionItemCollectionItem struct {
-	EntitiesId        uuid.UUID `gorm:"primaryKey;column:entitiesId"`
-	CollectionItemsId uuid.UUID `gorm:"primaryKey;column:collectionItemsId"`
-}
-
 type CollectionItems struct {
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
@@ -35,41 +30,36 @@ type CollectionItems struct {
 	Owner           Users         `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
 	Platform        *Platforms    `gorm:"foreignKey:PlatformID;references:Id;constraint:OnDelete:SET NULL;"`
 	ItemType        *ItemTypes    `gorm:"foreignKey:ItemTypeID;references:Id;constraint:OnDelete:SET NULL;"`
-	Entities        []Entities    `gorm:"many2many:entities_collection_item_collection_items;constraint:OnDelete:CASCADE;"`
 	UserLogin       string        `gorm:"type:varchar(255);index"`
 	PlatformID      *uuid.UUID    `gorm:"type:uuid;index"`
 	ItemTypeID      *uuid.UUID    `gorm:"type:uuid;index"`
 	ReportsCount    int64         `json:"-"`
 	CommentsCount   int64         `json:"commentsCount"`
 }
-
-func (EntitiesCollectionItemCollectionItem) TableName() string {
-	return "entities_collection_item_collection_items"
-}
-
 type CollectionItemsResponse struct {
-	Id                        uuid.UUID  `json:"id"`
-	Name                      string     `json:"name"`
-	Description               string     `json:"description"`
-	Images                    []string   `json:"images"`
-	PurchaseDate              string     `json:"purchaseDate"`
-	PurchasePrice             float64    `json:"purchasePrice"`
-	Sealed                    bool       `json:"sealed"`
-	Edition                   string     `json:"edition"`
-	CopyNumber                []int64    `json:"copyNumber"`
-	Rating                    float64    `json:"rating"`
-	ShippingCost              float64    `json:"shippingCost"`
-	Entities                  []Entities `json:"entities"`
-	Platform                  *Platforms `json:"platform"`
-	Collection                uuid.UUID  `json:"collection"`
-	Owner                     Users      `json:"owner"`
-	ItemType                  *ItemTypes `json:"itemType"`
-	CanLike                   bool       `json:"canLike"`
-	LikesCount                int64      `json:"likesCount"`
-	IsOwner                   bool       `json:"isOwner"`
-	CollectionTransliteration string     `json:"collectionTransliteration"`
-	CommentsCount             int64      `json:"commentsCount"`
-	CollectionName            string     `json:"collectionName"`
+	Id                        uuid.UUID   `json:"id"`
+	Name                      string      `json:"name"`
+	Description               string      `json:"description"`
+	Images                    []string    `json:"images"`
+	PurchaseDate              string      `json:"purchaseDate"`
+	PurchasePrice             float64     `json:"purchasePrice"`
+	Sealed                    bool        `json:"sealed"`
+	Edition                   string      `json:"edition"`
+	CopyNumber                []int64     `json:"copyNumber"`
+	Rating                    float64     `json:"rating"`
+	ShippingCost              float64     `json:"shippingCost"`
+	Entities                  []Entities  `json:"entities"`
+	Platform                  *Platforms  `json:"platform"`
+	Collection                uuid.UUID   `json:"collection"`
+	Owner                     Users       `json:"owner"`
+	ItemType                  *ItemTypes  `json:"itemType"`
+	CanLike                   bool        `json:"canLike"`
+	LikesCount                int64       `json:"likesCount"`
+	IsOwner                   bool        `json:"isOwner"`
+	CollectionTransliteration string      `json:"collectionTransliteration"`
+	CommentsCount             int64       `json:"commentsCount"`
+	CollectionName            string      `json:"collectionName"`
+	Tags                      []ShortTags `json:"tags"`
 }
 
 type CollectionItemsRequestCreate struct {
@@ -83,10 +73,10 @@ type CollectionItemsRequestCreate struct {
 	Rating        float64  `json:"rating"`
 	CopyNumber    []int64  `json:"copyNumber"`
 	ShippingCost  float64  `json:"shippingCost"`
-	Entities      []string `json:"entities"`
 	Platform      string   `json:"platform"`
 	Collection    string   `json:"collection"`
 	ItemType      string   `json:"itemType"`
+	Tags          []string `json:"tags"`
 }
 
 type CollectionItemsRequestUpdate struct {
@@ -100,10 +90,10 @@ type CollectionItemsRequestUpdate struct {
 	Rating        *float64 `json:"rating"`
 	CopyNumber    []int64  `json:"copyNumber"`
 	ShippingCost  *float64 `json:"shippingCost"`
-	Entities      []string `json:"entities"`
 	Platform      *string  `json:"platform"`
 	Collection    *string  `json:"collection"`
 	ItemType      *string  `json:"itemType"`
+	Tags          []string `json:"tags"`
 }
 
 type CollectionItemsDataResponse struct {

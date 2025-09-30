@@ -113,6 +113,9 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	response.TotalDonations = donationsString
 	response.PostCount = int(postsCount)
 	e := mapstructure.Decode(dbUser, &response)
+	response.Email = ""
+	response.VkId = ""
+	response.TelegramId = ""
 	if e != nil {
 		return nil, e
 	}

@@ -37,7 +37,6 @@ type Collections struct {
 	ShareString      string            `json:"shareString"`
 	CollectionItems  []CollectionItems `gorm:"many2many:collections_collection_items_collection_items;constraint:OnDelete:CASCADE;" json:"collectionItems"`
 	User             *Users            `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;" json:"user"`
-	Tags             []Tags            `gorm:"many2many:tags_collections_collections;constraint:OnDelete:CASCADE;" json:"tags"`
 	UserLogin        string            `gorm:"type:varchar(255);index"`
 	ReportsCount     int64             `json:"-"`
 	CommentsCount    int64             `json:"commentsCount"`
@@ -45,10 +44,6 @@ type Collections struct {
 
 func (CollectionsCollectionItemsCollectionItems) TableName() string {
 	return "collections_collection_items_collection_items"
-}
-
-func (TagsCollectionsCollections) TableName() string {
-	return "tags_collections_collections"
 }
 
 type CollectionsResponse struct {
@@ -66,9 +61,8 @@ type CollectionsResponse struct {
 	ShareString          string                    `json:"shareString"`
 	CollectionItems      []CollectionItemsResponse `json:"collectionItems"`
 	User                 UserResponse              `json:"user"`
-	Tags                 []Tags                    `json:"tags"`
+	Tags                 []ShortTags               `json:"tags"`
 	CollectionItemsCount int64                     `json:"collectionItemsCount"`
-	CanSubscribe         bool                      `json:"canSubscribe"`
 	LikesCount           int64                     `json:"likesCount"`
 	CreatedAt            time.Time                 `json:"createdAt"`
 	CanLike              bool                      `json:"canLike"`

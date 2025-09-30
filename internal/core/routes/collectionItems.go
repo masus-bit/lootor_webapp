@@ -15,8 +15,6 @@ func RegisterCollectionItemsRoutes(e *echo.Echo, jwtService *auth.JWTService, ci
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
 		publicGroup.GET("/collection_item", controller.GetCollectionItem)
-		publicGroup.GET("/collection_item/entity", controller.GetByEntity)
-		publicGroup.GET("/collection_item/entity/type", controller.GetByEntityAndType)
 		publicGroup.GET("/collection_item/all", controller.GetAll)
 	}
 

@@ -1,19 +1,22 @@
 package utils
 
 import (
+	"context"
 	"github.com/mitchellh/mapstructure"
+	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
+	"lootor/internal/infrastructure/tagsclient"
 	"slices"
 )
 
 type EnrichedCI interface {
 	Update(id string, dto *models.CollectionItemsRequestUpdate) (*models.CollectionItems, error)
 	GetById(id string, authUser string) (*models.CollectionItems, error)
-	GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string, authUser string) ([]models.CollectionItems, *models.Entities, int64, error)
 }
 
 type EnrichingCIService struct {
-	service EnrichedCI
+	service    EnrichedCI
+	tagsClient *tagsclient.GRPCTagsClient
 }
 
 func NewEnrichedCIService(service EnrichedCI) *EnrichingCIService {
@@ -22,9 +25,23 @@ func NewEnrichedCIService(service EnrichedCI) *EnrichingCIService {
 
 func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser string) (*models.CollectionItemsResponse, error) {
 	var response models.CollectionItemsResponse
-	if err := mapstructure.Decode(item, &response); err != nil {
+	protoTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: item.Id.String()})
+	if err != nil {
 		return nil, err
 	}
+	if err = mapstructure.Decode(item, &response); err != nil {
+		return nil, err
+	}
+
+	var resultTags []models.ShortTags
+	for _, tag := range protoTags.GetTags() {
+		resultTags = append(resultTags, models.ShortTags{
+			ID:   tag.GetId(),
+			Name: tag.GetName(),
+			Slug: tag.GetSlug(),
+		})
+	}
+	response.Tags = resultTags
 
 	response.Collection = item.Collections[0].Id
 	response.Owner = item.Owner
@@ -48,6 +65,22 @@ func (s *EnrichingCIService) enrichAnyItems(items []models.CollectionItems, auth
 		if err != nil {
 			return nil, err
 		}
+
+		protoTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: item.Id.String()})
+		if err != nil {
+			return nil, err
+		}
+
+		var resultTags []models.ShortTags
+		for _, tag := range protoTags.GetTags() {
+			resultTags = append(resultTags, models.ShortTags{
+				ID:   tag.GetId(),
+				Name: tag.GetName(),
+				Slug: tag.GetSlug(),
+			})
+		}
+		temp.Tags = resultTags
+
 		temp.Collection = item.Collections[0].Id
 		temp.Owner = item.Owner
 		temp.LikesCount = int64(len(item.Likes))
@@ -85,13 +118,4 @@ func (s *EnrichingCIService) Update(id string, dto *models.CollectionItemsReques
 	}
 	enriched, err := s.enrichItem(item, authUser)
 	return &models.CollectionItemsDataResponse{Data: *enriched}, err
-}
-
-func (s *EnrichingCIService) GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string, authUser string) (*models.CollectionItemsDataResponseWithCount, error) {
-	items, entityModel, total, err := s.service.GetByEntityAndType(entity, itemType, limit, offset, search, orderBy, order, authUser)
-	if err != nil {
-		return nil, err
-	}
-	enriched, err := s.enrichAnyItems(items, authUser)
-	return &models.CollectionItemsDataResponseWithCount{Data: enriched, Total: total, Entity: *entityModel}, err
 }

@@ -18,4 +18,5 @@ type TokenData interface {
 	GetProfileName() string
 	GetSubscribersLogins() []string
 	GetSubscriptions() []string
+	GetRole() string
 }

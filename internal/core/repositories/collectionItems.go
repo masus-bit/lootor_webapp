@@ -9,7 +9,6 @@ import (
 	"log"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
-	"lootor/internal/pkg/utils"
 	"reflect"
 	"slices"
 	"strconv"
@@ -26,7 +25,7 @@ func NewCiRepository(db *gorm.DB, es *elasticsearch.ElasticService) *CiRepositor
 }
 
 func (r *CiRepository) CreateCI(ci *models.CollectionItems) (*models.CollectionItems, error) {
-	err := r.db.Create(ci).Preload("Entities")
+	err := r.db.Create(ci)
 	if err.Error != nil {
 		return nil, err.Error
 	}
@@ -57,7 +56,6 @@ func (r *CiRepository) GetCIByID(id string) (*models.CollectionItems, error) {
 		Preload("Collections.User").
 		Preload("Owner").
 		Preload("Platform").
-		Preload("Entities").
 		Preload("ItemType").
 		Where("id = ?", id).
 		Where("deleted_at IS NULL").
@@ -92,13 +90,6 @@ func (r *CiRepository) UpdateCI(existsItem *models.CollectionItems, updated *mod
 		}
 	}
 
-	if updated.Entities != nil {
-		err := r.db.Model(existsItem).Association("Entities").Replace(updated.Entities)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	if updated.ItemType != nil {
 		err := r.db.Model(existsItem).Association("ItemType").Replace(updated.ItemType)
 		if err != nil {
@@ -123,7 +114,7 @@ func (r *CiRepository) UpdateCI(existsItem *models.CollectionItems, updated *mod
 	}
 
 	var result models.CollectionItems
-	err := r.db.Preload("Platform").Preload("Collections").Preload("Entities").Preload("ItemType").First(&result, existsItem.Id).Error
+	err := r.db.Preload("Platform").Preload("Collections").Preload("ItemType").First(&result, existsItem.Id).Error
 	return &result, err
 
 }
@@ -144,7 +135,6 @@ func (r *CiRepository) UpdateCIFull(existsItem *models.CollectionItems) (*models
 		}{
 			{"Platform", existsItem.Platform},
 			{"Collections", existsItem.Collections},
-			{"Entities", existsItem.Entities},
 			{"ItemType", existsItem.ItemType},
 		}
 
@@ -167,7 +157,6 @@ func (r *CiRepository) UpdateCIFull(existsItem *models.CollectionItems) (*models
 		return tx.Select("*").
 			Preload("Platform").
 			Preload("Collections").
-			Preload("Entities").
 			Preload("ItemType").
 			Preload("Owner").
 			First(&result, "id = ?", existsItem.Id).
@@ -387,202 +376,6 @@ func (r *CiRepository) GetShippingCostsByCollectionIDs(collectionIDs []uuid.UUID
 	return sums, nil
 }
 
-func (r *CiRepository) GetCollectionItemsByEntity(entity string, limit string) (*struct {
-	VideoGames         []models.CollectionItems `json:"videoGames"`
-	BoardGames         []models.CollectionItems `json:"boardGames"`
-	Comics             []models.CollectionItems `json:"comics"`
-	GamingHardware     []models.CollectionItems `json:"gamingHardware"`
-	CollectibleFigures []models.CollectionItems `json:"collectibleFigures"`
-	Books              []models.CollectionItems `json:"books"`
-	Vinyl              []models.CollectionItems `json:"vinyl"`
-	Steelbooks         []models.CollectionItems `json:"steelbooks"`
-	CollectibleCards   []models.CollectionItems `json:"collectibleCards"`
-}, int64, error) {
-	type Result struct {
-		Items     []models.CollectionItems
-		UniqueIDs map[uuid.UUID]bool
-		FieldName string
-	}
-
-	var GroupedCollectionItems struct {
-		VideoGames         []models.CollectionItems `json:"videoGames"`
-		BoardGames         []models.CollectionItems `json:"boardGames"`
-		Comics             []models.CollectionItems `json:"comics"`
-		GamingHardware     []models.CollectionItems `json:"gamingHardware"`
-		CollectibleFigures []models.CollectionItems `json:"collectibleFigures"`
-		Books              []models.CollectionItems `json:"books"`
-		Vinyl              []models.CollectionItems `json:"vinyl"`
-		Steelbooks         []models.CollectionItems `json:"steelbooks"`
-		CollectibleCards   []models.CollectionItems `json:"collectibleCards"`
-	}
-	var totalCount int64
-	itemTypes := []Result{
-		{FieldName: "Video Games", UniqueIDs: make(map[uuid.UUID]bool)},
-		{FieldName: "Board Games", UniqueIDs: make(map[uuid.UUID]bool)},
-		{FieldName: "Comics", UniqueIDs: make(map[uuid.UUID]bool)},
-		{FieldName: "Gaming Hardware", UniqueIDs: make(map[uuid.UUID]bool)},
-		{FieldName: "Collectible Figures", UniqueIDs: make(map[uuid.UUID]bool)},
-		{FieldName: "Books", UniqueIDs: make(map[uuid.UUID]bool)},
-		{FieldName: "Vinyl", UniqueIDs: make(map[uuid.UUID]bool)},
-		{FieldName: "Steelbooks", UniqueIDs: make(map[uuid.UUID]bool)},
-		{FieldName: "Collectible Cards", UniqueIDs: make(map[uuid.UUID]bool)},
-	}
-	itemTypeNames := []string{"Video games", "Board games", "Comics", "Gaming hardware", "Collectible figures", "Books", "Vinyl", "Steelbooks", "Collectible cards"}
-
-	intLimit, _ := strconv.Atoi(limit)
-
-	err := r.db.
-		Model(&models.CollectionItems{}).
-		Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
-		Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
-		Where("LOWER(entities.transliteration) = LOWER(?)", entity).
-		Where("collection_items.deleted_at IS NULL").
-		Count(&totalCount).Error
-
-	if err != nil {
-		return nil, 0, err
-	}
-
-	for i, itemType := range itemTypeNames {
-		var items []models.CollectionItems
-
-		err := r.db.
-			Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
-			Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
-			Joins("JOIN item_types ON item_types.id = collection_items.item_type_id").
-			Where("LOWER(entities.transliteration) = LOWER(?)", entity).
-			Where("item_types.name = ?", itemType).
-			Preload("Collections").
-			Preload("Collections.User").
-			Preload("Owner").
-			Preload("Platform").
-			Preload("Entities").
-			Preload("ItemType").
-			Where("collection_items.deleted_at IS NULL").
-			Order("collection_items.created_at DESC").
-			Limit(intLimit).
-			Find(&items).Error
-
-		if err != nil {
-			return nil, 0, err
-		}
-
-		var uniqueItems []models.CollectionItems
-		for _, item := range items {
-			if !itemTypes[i].UniqueIDs[item.Id] {
-				itemTypes[i].UniqueIDs[item.Id] = true
-				uniqueItems = append(uniqueItems, item)
-			}
-		}
-
-		switch itemTypes[i].FieldName {
-		case "Video Games":
-			GroupedCollectionItems.VideoGames = uniqueItems
-		case "Board Games":
-			GroupedCollectionItems.BoardGames = uniqueItems
-		case "Comics":
-			GroupedCollectionItems.Comics = uniqueItems
-		case "Gaming Hardware":
-			GroupedCollectionItems.GamingHardware = uniqueItems
-		case "Collectible Figures":
-			GroupedCollectionItems.CollectibleFigures = uniqueItems
-		case "Books":
-			GroupedCollectionItems.Books = uniqueItems
-		case "Vinyl":
-			GroupedCollectionItems.Vinyl = uniqueItems
-		case "Steelbooks":
-			GroupedCollectionItems.Steelbooks = uniqueItems
-		case "Collectible Cards":
-			GroupedCollectionItems.CollectibleCards = uniqueItems
-		}
-	}
-
-	return &GroupedCollectionItems, totalCount, nil
-}
-
-func (r *CiRepository) GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string) ([]models.CollectionItems, int64, error) {
-	var collectionItems []models.CollectionItems
-	var totalCount int64
-
-	itemTypeNew := utils.GetReformatedItemType(itemType)
-
-	intLimit, _ := strconv.Atoi(limit)
-	intOffset, _ := strconv.Atoi(offset)
-
-	countQuery := r.db.
-		Model(&models.CollectionItems{}).
-		Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
-		Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
-		Joins("JOIN item_types ON item_types.id = collection_items.item_type_id").
-		Where("LOWER(entities.transliteration) = LOWER(?)", entity).
-		Where("item_types.name = ?", itemTypeNew).
-		Where("collection_items.deleted_at IS NULL")
-
-	if search != "" {
-		countQuery = countQuery.Where("collection_items.name ILIKE ?", "%"+search+"%")
-	}
-
-	err := countQuery.Count(&totalCount).Error
-	if err != nil {
-		return nil, 0, err
-	}
-
-	query := r.db.
-		Joins("JOIN entities_collection_item_collection_items ON entities_collection_item_collection_items.collection_items_id = collection_items.id").
-		Joins("JOIN entities ON entities.id = entities_collection_item_collection_items.entities_id").
-		Joins("JOIN item_types ON item_types.id = collection_items.item_type_id").
-		Where("LOWER(entities.transliteration) = LOWER(?)", entity).
-		Where("item_types.name = ?", itemTypeNew).
-		Preload("Collections").
-		Preload("Collections.User").
-		Preload("Owner").
-		Preload("Platform").
-		Preload("Entities").
-		Preload("ItemType").
-		Where("collection_items.deleted_at IS NULL")
-
-	if search != "" {
-		query = query.Where("collection_items.name ILIKE ?", "%"+search+"%")
-	}
-
-	ciOrder := utils.GetCIOrderString(orderBy, order)
-	if ciOrder.Joins != "" {
-		query = query.Joins(ciOrder.Joins).Order(ciOrder.Order)
-	} else {
-		query = query.Order(ciOrder.Order)
-	}
-
-	var allItems []models.CollectionItems
-	err = query.Find(&allItems).Error
-	if err != nil {
-		return nil, 0, err
-	}
-
-	uniqueItems := make([]models.CollectionItems, 0)
-	seenIDs := make(map[uuid.UUID]bool)
-	for _, item := range allItems {
-		if !seenIDs[item.Id] {
-			seenIDs[item.Id] = true
-			uniqueItems = append(uniqueItems, item)
-		}
-	}
-
-	totalCount = int64(len(uniqueItems))
-
-	start := intOffset
-	end := intOffset + intLimit
-	if start > len(uniqueItems) {
-		start = len(uniqueItems)
-	}
-	if end > len(uniqueItems) {
-		end = len(uniqueItems)
-	}
-
-	collectionItems = uniqueItems[start:end]
-
-	return collectionItems, totalCount, nil
-}
-
 func (r *CiRepository) GetAll(limit, offset, search string) ([]models.CollectionItems, error) {
 	var collectionItems []models.CollectionItems
 
@@ -594,7 +387,6 @@ func (r *CiRepository) GetAll(limit, offset, search string) ([]models.Collection
 		Preload("Collections.User").
 		Preload("Owner").
 		Preload("Platform").
-		Preload("Entities").
 		Preload("ItemType").
 		Where("collection_items.deleted_at IS NULL").
 		Limit(intLimit).
@@ -625,7 +417,6 @@ func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin st
 		Preload("Collections.User").
 		Preload("Owner").
 		Preload("Platform").
-		Preload("Entities").
 		Preload("ItemType").
 		Find(&collectionItems).Error
 	if err != nil {
@@ -668,4 +459,53 @@ func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin st
 		collectionItemsMap[collectionItem.Id.String()] = temp
 	}
 	return collectionItemsMap, nil
+}
+
+func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin string) ([]models.CollectionItemsResponse, error) {
+	var collectionItems []models.CollectionItems
+	err := r.db.Where("id IN (?)", ids).
+		Preload("Collections").
+		Preload("Collections.User").
+		Preload("Owner").
+		Preload("Platform").
+		Preload("ItemType").
+		Find(&collectionItems).Error
+	var result []models.CollectionItemsResponse
+	for _, collectionItem := range collectionItems {
+		var temp models.CollectionItemsResponse
+		err = mapstructure.Decode(collectionItem, &temp)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(collectionItem.Collections) > 0 {
+			temp.Collection = collectionItem.Collections[0].Id
+			temp.CollectionTransliteration = collectionItem.Collections[0].Transliteration
+			temp.CollectionName = collectionItem.Collections[0].Name
+		} else {
+			temp.Collection = uuid.Nil
+			temp.CollectionTransliteration = ""
+		}
+
+		if collectionItem.Likes != nil {
+			temp.LikesCount = int64(len(collectionItem.Likes))
+		} else {
+			temp.LikesCount = 0
+		}
+
+		temp.Owner = collectionItem.Owner
+		temp.CanLike = false
+
+		if authUserLogin != "" {
+			if authUserLogin == collectionItem.Owner.Login {
+				temp.CanLike = false
+			} else {
+				temp.CanLike = !slices.Contains(collectionItem.Likes, authUserLogin)
+			}
+
+		}
+
+		result = append(result, temp)
+	}
+	return result, err
 }

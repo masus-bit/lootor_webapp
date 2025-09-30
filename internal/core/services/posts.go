@@ -9,6 +9,7 @@ import (
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/postsclient"
+	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/utils"
 	"strconv"
@@ -20,11 +21,12 @@ type PostsService struct {
 	userRepo             *repositories.UsersRepository
 	eventsService        *EventsService
 	notificationsService *NotificationsService
+	tagsClient           *tagsclient.GRPCTagsClient
 }
 
-func NewPostsService(postsClient *postsclient.GRPCPostsClient, userRepo *repositories.UsersRepository, eventsService *EventsService, notificationsService *NotificationsService) *PostsService {
+func NewPostsService(postsClient *postsclient.GRPCPostsClient, userRepo *repositories.UsersRepository, eventsService *EventsService, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient) *PostsService {
 	return &PostsService{
-		postsClient: postsClient, userRepo: userRepo, eventsService: eventsService, notificationsService: notificationsService}
+		postsClient: postsClient, userRepo: userRepo, eventsService: eventsService, notificationsService: notificationsService, tagsClient: tagsClient}
 }
 
 func (s *PostsService) CreatePost(ctx context.Context, request *models.PostRequest) (*models.PostDataResponse, error) {
@@ -70,6 +72,32 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 		IsDraft:  post.Data.IsDraft,
 		Content:  content,
 	})
+	var tags []models.ShortTags
+	if len(request.Tags) > 0 {
+		go func() {
+			_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
+				EntityType: "post",
+				EntityId:   strconv.FormatUint(post.Data.Id, 10),
+				TagIds:     request.Tags,
+			})
+
+		}()
+		respTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{
+			EntityId: strconv.FormatUint(post.Data.Id, 10),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, tag := range respTags.GetTags() {
+			tags = append(tags, models.ShortTags{
+				ID:   tag.GetId(),
+				Name: tag.GetName(),
+				Slug: tag.GetSlug(),
+			})
+		}
+	}
+
 	result := models.PostDataResponse{
 		Data: models.Posts{
 			Id:   post.Data.Id,
@@ -98,6 +126,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 			CommentsCount:  0,
 			Title:          post.Data.Title,
 			Translit:       translit,
+			Tags:           tags,
 		},
 	}
 
@@ -207,7 +236,7 @@ func (s *PostsService) GetPostById(ctx context.Context, id uint64, authUser stri
 		return nil, err
 	}
 
-	result := s.fillPost(post.Data, normalizedContent, reacts, author)
+	result := s.fillPost(post.Data, normalizedContent, reacts, author, nil)
 
 	return &models.PostDataResponse{Data: *result}, nil
 }
@@ -239,7 +268,7 @@ func (s *PostsService) GetPostByTranslit(ctx context.Context, translit string, a
 		return nil, err
 	}
 
-	result := s.fillPost(post.Data, normalizedContent, reacts, author)
+	result := s.fillPost(post.Data, normalizedContent, reacts, author, nil)
 
 	return &models.PostDataResponse{Data: *result}, nil
 }
@@ -352,7 +381,18 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateReq
 		}()
 	}
 
-	resultPost := s.fillPost(post.Data, utils.NormalizeContent(post.Data.Content), nil, user)
+	if len(req.Tags) > 0 {
+		go func() {
+			_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
+				EntityType: "post",
+				EntityId:   strconv.FormatUint(existPost.GetData().GetId(), 10),
+				TagIds:     req.Tags,
+			})
+
+		}()
+	}
+
+	resultPost := s.fillPost(post.Data, utils.NormalizeContent(post.Data.Content), nil, user, nil)
 	return &models.PostDataResponse{Data: *resultPost}, nil
 }
 
@@ -385,11 +425,101 @@ func (s *PostsService) GetCount(ctx context.Context, userLogin string) int64 {
 	return count.GetCount()
 }
 
+func (s *PostsService) GetPostsByIDs(ctx context.Context, ids []string, authUserLogin string, isPremium bool) (*models.PostsDataResponse, error) {
+	resp, _ := s.postsClient.GetPostsByIds(context.Background(), ids, authUserLogin, isPremium)
+	var posts []models.Posts
+	var postIds []string
+	for _, id := range ids {
+		postIds = append(postIds, id)
+	}
+	tagsMap, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+		EntityIds: postIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if resp != nil && resp.Data != nil {
+		for _, p := range resp.Data {
+			var reactUsers []string
+			itemTags := tagsMap.GetTags()[strconv.FormatUint(p.Id, 10)]
+
+			var resultTags []models.ShortTags
+			for _, tag := range itemTags.GetTags() {
+				resultTags = append(resultTags, models.ShortTags{
+					ID:   tag.GetId(),
+					Name: tag.GetName(),
+					Slug: tag.GetSlug(),
+				})
+			}
+			for _, r := range p.Reactions {
+				reactUsers = append(reactUsers, r.UserLogin)
+			}
+			reactsLen := len(p.GetReactions())
+			var users []models.SubUsers
+			if reactsLen != 0 {
+				users, _ = s.userRepo.GetForSubs(reactUsers)
+			}
+			author, _ := s.userRepo.GetUserByLogin(p.Author)
+			postFormatted, err := utils.FormatPost(p, users, author, reactsLen)
+			if err != nil {
+				continue
+			}
+
+			posts = append(posts, models.Posts{
+				Id:             postFormatted.Data.Id,
+				Title:          postFormatted.Data.Title,
+				Author:         postFormatted.Data.Author,
+				Translit:       postFormatted.Data.Translit,
+				IsDraft:        postFormatted.Data.IsDraft,
+				Content:        postFormatted.Data.Content,
+				Views:          postFormatted.Data.Views,
+				Date:           postFormatted.Data.Date,
+				CommentsCount:  postFormatted.Data.CommentsCount,
+				HeartCount:     postFormatted.Data.HeartCount,
+				FireCount:      postFormatted.Data.FireCount,
+				GlassesCount:   postFormatted.Data.GlassesCount,
+				LaughCount:     postFormatted.Data.LaughCount,
+				TearsCount:     postFormatted.Data.TearsCount,
+				PokerFaceCount: postFormatted.Data.PokerFaceCount,
+				EyesCount:      postFormatted.Data.EyesCount,
+				AngryCount:     postFormatted.Data.AngryCount,
+				ShitCount:      postFormatted.Data.ShitCount,
+				ClownCount:     postFormatted.Data.ClownCount,
+				TotalReactions: postFormatted.Data.TotalReactions,
+				Reacted:        postFormatted.Data.Reacted,
+				Tags:           resultTags,
+			})
+		}
+	}
+	return &models.PostsDataResponse{Data: posts}, nil
+}
+
 func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*models.PostsDataResponse, error) {
 	var result []models.Posts
+	var postIds []string
+	for _, p := range posts.Data {
+		id := strconv.FormatUint(p.Id, 10)
+		postIds = append(postIds, id)
+	}
+	tagsMap, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+		EntityIds: postIds,
+	})
+	if err != nil {
+		return nil, err
+	}
 	for _, p := range posts.Data {
 		content := utils.NormalizeContent(p.Content)
+		itemTags := tagsMap.GetTags()[strconv.FormatUint(p.Id, 10)]
 
+		var resultTags []models.ShortTags
+		for _, tag := range itemTags.GetTags() {
+			resultTags = append(resultTags, models.ShortTags{
+				ID:   tag.GetId(),
+				Name: tag.GetName(),
+				Slug: tag.GetSlug(),
+			})
+		}
 		user, err := s.userRepo.GetUserByLogin(p.Author)
 		if err != nil {
 			return nil, err
@@ -399,7 +529,7 @@ func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*m
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, *s.fillPost(p, content, reacts, user))
+		result = append(result, *s.fillPost(p, content, reacts, user, resultTags))
 	}
 
 	totalInt, _ := strconv.Atoi(posts.Total)
@@ -467,7 +597,27 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*models.React
 	return &reactionsResult, nil
 }
 
-func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, reacts *models.ReactResponse, user *models.Users) *models.Posts {
+func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, reacts *models.ReactResponse, user *models.Users, resTags []models.ShortTags) *models.Posts {
+	var tags []models.ShortTags
+	if resTags != nil {
+		tags = resTags
+	} else {
+
+		respTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{
+			EntityId: strconv.FormatUint(p.Id, 10),
+		})
+		if err != nil {
+			return nil
+		}
+
+		for _, tag := range respTags.GetTags() {
+			tags = append(tags, models.ShortTags{
+				ID:   tag.GetId(),
+				Name: tag.GetName(),
+				Slug: tag.GetSlug(),
+			})
+		}
+	}
 	return &models.Posts{
 		Id:   p.GetId(),
 		Date: p.GetDate(),
@@ -496,6 +646,7 @@ func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, react
 		IsDraft:        p.IsDraft,
 		Title:          p.Title,
 		Translit:       p.Translit,
+		Tags:           tags,
 	}
 
 }

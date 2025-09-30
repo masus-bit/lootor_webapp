@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+
+package tags;
+
+option go_package = "./gen/go/microservices";
+
+service TagsService {
+  rpc CreateTags(CreateTagsRequest) returns (TagCreateResponse);
+  rpc SearchTags(TagsSearchRequest) returns (TagsDataResponse);
+  rpc MergeTags(MergeTagsRequest) returns (TagsSuccessResponse);
+  rpc FindAllEntitiesByTag(GetEntitiesByTagRequest) returns (TagDataResponse);
+  rpc AddTagToEntity(AddTagsToEntityRequest) returns (TagsSuccessResponse);
+  rpc RemoveTagsFromEntity(RemoveTagsRequest) returns (TagsSuccessResponse);
+  rpc UpdateTag(UpdateTagRequest) returns (TagItem);
+  rpc GetAllTags(GetAllTagsRequest) returns (GetShortsResponse);
+  rpc GetTagsByEntityId(GetTagsByEntityIdRequest) returns (GetShortsResponse);
+  rpc AddTagsToEntity(AddFewTagsToEntityRequest) returns (TagsSuccessResponse);
+  rpc GetTagsByEntityIdsMap(GetTagsByEntityIdsMapRequest) returns (TagsMapResponse);
+}
+
+message GetTagsByEntityIdsMapRequest {
+  repeated string entity_ids = 1;
+}
+
+message TagsMapResponse {
+  map<string, GetShortsResponse> tags = 1;
+}
+
+message AddFewTagsToEntityRequest {
+  string entity_id = 1;
+  repeated string tag_ids = 2;
+  string entity_type = 3;
+}
+
+message GetTagsByEntityIdRequest {
+  string entity_id = 1;
+}
+
+message GetAllTagsRequest {}
+
+message GetTagRequest {
+  string id = 1;
+}
+
+message RemoveTagsRequest {
+  string entity_id = 1;
+  repeated string tag_ids = 2;
+  string entity_type = 3;
+}
+
+message AddTagsToEntityRequest {
+  string entity_id = 1;
+  string tag_id = 2;
+  string entity_type = 3;
+}
+
+message MergeTagsRequest {
+  repeated string from_tag_ids = 1;
+  string to_tag_id = 2;
+}
+
+message TagsSuccessResponse {
+  bool success = 1;
+}
+
+message TagCreateResponse {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+}
+
+message TagsSearchRequest {
+  string name = 1;
+}
+
+message TagsDataResponse {
+  repeated TagItem tags = 1;
+}
+
+message TagDataResponse {
+  TagItem tag = 1;
+  int64 total_entities = 2;
+  int64 total_posts = 3;
+  int64 total_collections = 4;
+  int64 total_collection_items = 5;
+}
+
+message CreateTagsRequest {
+  string name = 1;
+  string author = 2;
+}
+
+message TagItem {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string author = 4;
+  string description = 5;
+  string created_at = 6;
+  string primary_id = 7;
+  TagItem primary = 8;
+  repeated TagLinksItem entities = 9;
+  repeated TagItem synonyms = 10;
+  bool is_primary = 11;
+}
+
+message GetShortsResponse {
+  repeated TagItemShort tags = 1;
+}
+
+message TagItemShort {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+}
+
+message GetEntitiesByTagRequest {
+  string tag_id = 1;
+  string entity_type = 2;
+  int64 limit = 3;
+  int64 offset = 4;
+}
+
+message TagLinksItem {
+  string tag_id = 1;
+  string entity_type = 2;
+  string entity_id = 3;
+  string created_at = 4;
+}
+
+message UpdateTagRequest {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string description = 4;
+}

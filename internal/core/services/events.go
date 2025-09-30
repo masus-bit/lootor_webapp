@@ -8,7 +8,9 @@ import (
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/eventsclient"
 	"lootor/internal/infrastructure/postsclient"
+	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/utils"
+	"strconv"
 	"sync"
 )
 
@@ -19,9 +21,10 @@ type EventsService struct {
 	collectionItemsRepo *repositories.CiRepository
 	postService         *postsclient.GRPCPostsClient
 	wishListRepo        *repositories.WLRepository
+	tagsClient          *tagsclient.GRPCTagsClient
 }
 
-func NewEventsService(userRepo *repositories.UsersRepository, eventClient *eventsclient.GRPCEventsClient, collectionRepo *repositories.CollectionsRepository, collectionItemsRepo *repositories.CiRepository, postService *postsclient.GRPCPostsClient, wishListRepo *repositories.WLRepository) *EventsService {
+func NewEventsService(userRepo *repositories.UsersRepository, eventClient *eventsclient.GRPCEventsClient, collectionRepo *repositories.CollectionsRepository, collectionItemsRepo *repositories.CiRepository, postService *postsclient.GRPCPostsClient, wishListRepo *repositories.WLRepository, tagsClient *tagsclient.GRPCTagsClient) *EventsService {
 	return &EventsService{
 		userRepo:            userRepo,
 		eventClient:         eventClient,
@@ -29,6 +32,7 @@ func NewEventsService(userRepo *repositories.UsersRepository, eventClient *event
 		collectionItemsRepo: collectionItemsRepo,
 		postService:         postService,
 		wishListRepo:        wishListRepo,
+		tagsClient:          tagsClient,
 	}
 }
 
@@ -81,11 +85,9 @@ func (s *EventsService) GetEvents(authUserLogin, limit, offset string, eventTarg
 }
 
 func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionItem, wlId, limit, offset, authUserLogin string) (*models.EventsDataResponse, error) {
-	dbUser, err := s.userRepo.GetUserByLogin(authUserLogin)
-	if err != nil {
-		return nil, err
-	}
+	dbUser, _ := s.userRepo.GetUserByLogin(authUserLogin)
 	var collectionItemIDs []string
+	var err error
 	if collectionId != "" {
 		collectionItemIDs, err = s.collectionsRepo.GetCollectionItemsIds(collectionId)
 		if err != nil {
@@ -104,16 +106,18 @@ func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionIte
 	if err != nil {
 		return nil, err
 	}
-	events := s.normalizeEvents(evs.GetItems(), authUserLogin, dbUser.IsPremium)
+	var isPremium bool
+
+	if dbUser != nil {
+		isPremium = dbUser.IsPremium
+	} else {
+		isPremium = false
+	}
+	events := s.normalizeEvents(evs.GetItems(), authUserLogin, isPremium)
 	return &models.EventsDataResponse{Data: events, Total: evs.Total}, nil
 }
 
 func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, authUserLogin string, isPremium bool) []models.Events {
-
-	authUser, err := s.userRepo.GetUserByLogin(authUserLogin)
-	if err != nil {
-		return nil
-	}
 
 	var normalizedEvents []models.Events
 	var userLogins []string
@@ -151,6 +155,8 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	var wlMap map[string]models.WishListItemResponse
 	var postsMap map[string]models.Posts
 
+	var collectionsTagsMap, itemsTagsMap, postsTagsMap map[string][]models.ShortTags
+
 	wg.Add(5)
 
 	go func() {
@@ -163,18 +169,33 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		for i, id := range collectionIDs {
 			collectionIDsUUID[i], _ = uuid.Parse(id)
 		}
+		tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+			EntityIds: collectionIDs,
+		})
+		if err != nil {
+			return
+		}
+		for key, tag := range tags.GetTags() {
+			collectionsTagsMap[key] = toShortTags(tag.GetTags())
+		}
 		counts, _ := s.collectionItemsRepo.GetCountCIByIDs(collectionIDsUUID)
 		totalPrices, _ := s.collectionItemsRepo.GetSumsByCollectionIDs(collectionIDsUUID)
 		shippingCosts, _ := s.collectionItemsRepo.GetShippingCostsByCollectionIDs(collectionIDsUUID)
-		var subArray []string
-		if authUserLogin != "" {
-			subArray = authUser.CollectionSubscriptions
-		}
-		collectionsMap, _ = s.collectionsRepo.GetCollectionsByIdsMap(collectionIDs, counts, totalPrices, shippingCosts, subArray, authUserLogin)
+
+		collectionsMap, _ = s.collectionsRepo.GetCollectionsByIdsMap(collectionIDs, counts, totalPrices, shippingCosts, authUserLogin)
 	}()
 	go func() {
 		defer wg.Done()
 		itemsMap, _ = s.collectionItemsRepo.GetCollectionItemsByIdsMap(itemIDs, authUserLogin)
+		tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+			EntityIds: itemIDs,
+		})
+		if err != nil {
+			return
+		}
+		for key, tag := range tags.GetTags() {
+			itemsTagsMap[key] = toShortTags(tag.GetTags())
+		}
 	}()
 	go func() {
 		defer wg.Done()
@@ -227,6 +248,15 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 				}
 			}
 		}
+		tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+			EntityIds: postIDs,
+		})
+		if err != nil {
+			return
+		}
+		for key, tag := range tags.GetTags() {
+			postsTagsMap[key] = toShortTags(tag.GetTags())
+		}
 	}()
 
 	wg.Wait()
@@ -272,10 +302,12 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		}
 
 		if collection, exists := collectionsMap[event.TargetCollectionId]; exists {
+			collection.Tags = postsTagsMap[collection.Id.String()]
 			normalizedEvent.TargetCollection = &collection
 		}
 
 		if item, exists := itemsMap[event.TargetItemId]; exists {
+			item.Tags = postsTagsMap[item.Id.String()]
 			normalizedEvent.TargetItem = &item
 		}
 
@@ -284,6 +316,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		}
 
 		if post, exists := postsMap[event.TargetPostId]; exists {
+			post.Tags = postsTagsMap[strconv.FormatUint(post.Id, 10)]
 			normalizedEvent.TargetPost = &post
 		}
 
@@ -299,4 +332,12 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		normalizedEvents = append(normalizedEvents, normalizedEvent)
 	}
 	return normalizedEvents
+}
+
+func toShortTags(tags []*microservices.TagItemShort) []models.ShortTags {
+	result := make([]models.ShortTags, len(tags))
+	for i, t := range tags {
+		result[i] = models.ShortTags{ID: t.GetId(), Name: t.GetName(), Slug: t.GetSlug()}
+	}
+	return result
 }

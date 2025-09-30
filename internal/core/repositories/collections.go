@@ -553,12 +553,6 @@ func (r *CollectionsRepository) GetCollectionByTag(tag string, limit string, off
 }
 
 func (r *CollectionsRepository) UpdateCollection(existsCollection *models.Collections, updated *models.Collections) (*models.Collections, error) {
-	if updated.Tags != nil {
-		err := r.db.Model(existsCollection).Association("Tags").Replace(updated.Tags)
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	if updated.CollectionItems != nil {
 		err := r.db.Model(existsCollection).Association("CollectionItems").Replace(updated.CollectionItems)
@@ -612,10 +606,6 @@ func (r *CollectionsRepository) DeleteRelation(sourceCollectionId string, itemId
 func (r *CollectionsRepository) UpdateCollectionFull(existsCollection *models.Collections) (*models.Collections, error) {
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(existsCollection).Select("*").Updates(existsCollection).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Model(existsCollection).Association("Tags").Replace(existsCollection.Tags); err != nil {
 			return err
 		}
 
@@ -793,7 +783,7 @@ func (r *CollectionsRepository) GetCollectionsCount(login string) (int64, error)
 	return count, err
 }
 
-func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[uuid.UUID]int64, totalPrices map[uuid.UUID]float64, shippingCosts map[uuid.UUID]float64, subArray []string, authorizedUser string) (map[string]models.CollectionsResponse, error) {
+func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[uuid.UUID]int64, totalPrices map[uuid.UUID]float64, shippingCosts map[uuid.UUID]float64, authorizedUser string) (map[string]models.CollectionsResponse, error) {
 	var collections []models.Collections
 	err := r.db.Where("id IN (?)", ids).Preload("User").Preload("Tags").Find(&collections).Error
 	if err != nil {
@@ -807,7 +797,6 @@ func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[
 		temp.CollectionItemsCount = counts[collection.Id]
 		temp.TotalPrice = totalPrices[collection.Id]
 		temp.ShippingTotal = shippingCosts[collection.Id]
-		temp.CanSubscribe = !slices.Contains(subArray, collection.Id.String())
 		temp.LikesCount = int64(len(collection.Likes))
 		temp.CanLike = false
 		temp.IsOwner = authorizedUser == temp.User.Login
@@ -818,6 +807,31 @@ func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[
 		collectionsMap[collection.Id.String()] = temp
 	}
 	return collectionsMap, nil
+}
+
+func (r *CollectionsRepository) GetCollectionsByIds(ids []string, counts map[uuid.UUID]int64, totalPrices map[uuid.UUID]float64, shippingCosts map[uuid.UUID]float64, authorizedUser string) ([]models.CollectionsResponse, error) {
+	var collections []models.Collections
+	err := r.db.Where("id IN (?)", ids).Preload("User").Preload("Tags").Find(&collections).Error
+	if err != nil {
+		return nil, err
+	}
+	var result []models.CollectionsResponse
+	for _, collection := range collections {
+		var temp models.CollectionsResponse
+		err = mapstructure.Decode(collection, &temp)
+		temp.CollectionItemsCount = counts[collection.Id]
+		temp.TotalPrice = totalPrices[collection.Id]
+		temp.ShippingTotal = shippingCosts[collection.Id]
+		temp.LikesCount = int64(len(collection.Likes))
+		temp.CanLike = false
+		temp.IsOwner = authorizedUser == temp.User.Login
+		if authorizedUser != "" {
+			temp.CanLike = !slices.Contains(collection.Likes, authorizedUser)
+		}
+
+		result = append(result, temp)
+	}
+	return result, nil
 }
 
 func (r *CollectionsRepository) GetCollectionItemsIds(collectionId string) ([]string, error) {

@@ -21,6 +21,7 @@ import (
 	"lootor/internal/infrastructure/newsclient"
 	"lootor/internal/infrastructure/notificationsclient"
 	"lootor/internal/infrastructure/postsclient"
+	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/auth"
 	"lootor/internal/pkg/database"
 	"lootor/internal/pkg/elasticsearch"
@@ -142,18 +143,20 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	if err != nil {
 		log.Fatal("failed to create events client:", err)
 	}
+	tagsClient, err := tagsclient.NewGRPCTagsClient(os.Getenv("TAGS_SERVICE_ADDR"))
+	if err != nil {
+		log.Fatal("failed to create tags client:", err)
+	}
 
 	ciRepo := repositories.NewCiRepository(db, searchService)
 	colRepo := repositories.NewCollectionsRepository(db, searchService)
-	tagRepo := repositories.NewTagsRepository(db, searchService)
 	platformRepo := repositories.NewPlatformsRepository(db)
-	entityRepo := repositories.NewEntitiesRepository(db, searchService)
 	itemTypesRepo := repositories.NewItemTypesRepository(db)
 	wlRepo := repositories.NewWLRepository(db)
 	subRepo := repositories.NewSubscriptionRepository(db)
 	paymentsRepo := repositories.NewPaymentsRepository(db)
 	userRepo := repositories.NewUsersRepository(db, searchService, colRepo)
-	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Collections{}, &models.Tags{}, &models.CollectionItems{}, &models.Entities{}, &models.ItemTypes{}, &models.WishListItems{}, &models.Subscription{}, &models.Payments{}, &models.Migrations{})
+	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Collections{}, &models.CollectionItems{}, &models.ItemTypes{}, &models.WishListItems{}, &models.Subscription{}, &models.Payments{}, &models.Migrations{})
 	if err != nil {
 		return nil, err
 	}
@@ -174,18 +177,17 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		*userRepo,
 	)
 	notificationsService := services.NewNotificationsService(notificationsClient, userRepo, colRepo, ciRepo, postsClient)
-	eventsService := services.NewEventsService(userRepo, eventsClient, colRepo, ciRepo, postsClient, wlRepo)
-	postsService := services.NewPostsService(postsClient, userRepo, eventsService, notificationsService)
+	eventsService := services.NewEventsService(userRepo, eventsClient, colRepo, ciRepo, postsClient, wlRepo, tagsClient)
+	postsService := services.NewPostsService(postsClient, userRepo, eventsService, notificationsService, tagsClient)
 
 	s3Service := s3.NewS3Service(redisClient)
 	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootor.me>`)
 	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsService, notificationsService, colRepo, postsService)
-	ciService := services.NewCiService(ciRepo, eventsService, colRepo, userRepo, platformRepo, entityRepo, s3Service, itemTypesRepo, notificationsService)
-	colService := services.NewCollectionService(colRepo, tagRepo, userRepo, eventsService, ciRepo, s3Service, notificationsService)
-	entitiesService := services.NewEntitiesService(entityRepo)
+	ciService := services.NewCiService(ciRepo, eventsService, colRepo, userRepo, platformRepo, s3Service, itemTypesRepo, notificationsService, tagsClient)
+	colService := services.NewCollectionService(colRepo, userRepo, eventsService, ciRepo, s3Service, notificationsService, tagsClient)
 	platformsService := services.NewPlatformsService(platformRepo)
 	itemTypesService := services.NewItemTypesService(itemTypesRepo)
-	tagsService := services.NewTagsService(tagRepo)
+	tagsService := services.NewTagsService(tagsClient, userRepo, postsService, ciRepo, colRepo, eventsService, searchService)
 	fbService := feedback.NewFeedbackService()
 	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsService)
 	enrichedCIService := utils.NewEnrichedCIService(ciService)
@@ -206,11 +208,10 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.TagsRouter(e, jwtService, *tagsService)
 	routes.RegisterCollectionsRoutes(e, jwtService, *colService)
 	routes.RegisterCollectionItemsRoutes(e, jwtService, *ciService, *enrichedCIService)
-	routes.EntitiesRouter(e, jwtService, *entitiesService)
 	routes.PlatformsRouter(e, jwtService, *platformsService)
 	routes.S3Router(e, jwtService, *s3Service)
 	routes.SearchRouter(e, jwtService, *searchService)
-	routes.ReindexRouter(e, jwtService, *searchService, *userRepo, *ciRepo, *colRepo, *tagRepo, *entityRepo)
+	routes.ReindexRouter(e, jwtService, *searchService, *userRepo, *ciRepo, *colRepo, *tagsService)
 	routes.EventsRouter(e, jwtService, *eventsService)
 	routes.FeedbackRouter(e, jwtService, *fbService)
 	routes.ItemTypesRouter(e, jwtService, *itemTypesService)
@@ -223,7 +224,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.NotificationsRouter(e, jwtService, *notificationsService)
 	routes.PostsRouter(e, jwtService, *postsService)
 
-	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagRepo, entityRepo).ReindexInternal(context.Background())
+	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagsService).ReindexInternal(context.Background())
 	setupMonitoring(s3Service)
 
 	if err = migrator.RunMigrations(db); err != nil {

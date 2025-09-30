@@ -191,40 +191,6 @@ func (c *CIController) Like(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
-// GetByEntity
-// @Summary получить КИ по кнтити
-// @Tags collection items
-// @Accept  json
-// @Produce  json
-// @Param entity query string true "entity"
-// @Param limit query string true "limit"
-// @Success 201 {object} dto.AllCollectionsDataResponseSwagger
-// @Router /public/collection_item/entity [get]
-func (c *CIController) GetByEntity(ctx echo.Context) error {
-	entity := ctx.QueryParam("entity")
-	limit := ctx.QueryParam("limit")
-
-	if entity == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Entity parameter is required",
-		})
-	}
-
-	authInfo := ctx.Get("auth_info").(struct {
-		IsAuthenticated bool
-		UserLogin       string
-	})
-
-	response, err := c.ciService.GetByEntity(entity, authInfo.UserLogin, limit)
-	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
-	}
-
-	return ctx.JSON(http.StatusOK, response)
-}
-
 // GetAll
 // @Summary получить КИ all
 // @Tags collection items
@@ -241,49 +207,6 @@ func (c *CIController) GetAll(ctx echo.Context) error {
 	offset := ctx.QueryParam("offset")
 
 	response, err := c.ciService.GetAll(limit, offset, search)
-	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
-	}
-
-	return ctx.JSON(http.StatusOK, response)
-}
-
-// GetByEntityAndType
-// @Summary получить КИ по entity и типу
-// @Tags collection items
-// @Accept  json
-// @Produce  json
-// @Param entity query string true "entity"
-// @Param limit query string true "limit"
-// @Param offset query string true "offset"
-// @Param orderBy query string false "поле сортировки% может быть  name, purchaseDate, purchasePrice, platform, type, rating"
-// @Param order query string false "порядок сортировки asc или desc"
-// @Param search query string false "поиск среди коллекций по entity"
-// @Param type query string false "type"
-// @Success 201 {object} dto.AllCollectionsDataResponseSwagger
-// @Router /public/collection_item/entity/type [get]
-func (c *CIController) GetByEntityAndType(ctx echo.Context) error {
-	entity := ctx.QueryParam("entity")
-	limit := ctx.QueryParam("limit")
-	offset := ctx.QueryParam("offset")
-	orderBy := ctx.QueryParam("orderBy")
-	order := ctx.QueryParam("order")
-	search := ctx.QueryParam("search")
-	ciType := ctx.QueryParam("type")
-	if entity == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Entity parameter is required",
-		})
-	}
-
-	authInfo := ctx.Get("auth_info").(struct {
-		IsAuthenticated bool
-		UserLogin       string
-	})
-
-	response, err := c.enrichedService.GetByEntityAndType(entity, ciType, limit, offset, search, orderBy, order, authInfo.UserLogin)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),

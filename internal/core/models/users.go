@@ -6,38 +6,39 @@ import (
 )
 
 type Users struct {
-	Login                   string          `gorm:"primaryKey" json:"login"`
-	UserName                string          `json:"userName"`
-	City                    string          `json:"city"`
-	Bio                     string          `json:"bio"`
-	TmpLogin                bool            `gorm:"default:false" json:"tmpLogin"`
-	Password                string          `gorm:"-" json:"-"`
-	PasswordHash            string          `gorm:"column:password" json:"-"`
-	VkId                    string          `json:"vkId"`
-	TelegramId              string          `json:"telegramId"`
-	Email                   string          `json:"email"`
-	Created                 string          `json:"created"`
-	Likes                   int             `json:"likes"`
-	Dislikes                int             `json:"dislikes"`
-	AvatarUrl               string          `json:"avatarUrl"`
-	BackgroundUrl           string          `json:"backgroundUrl"`
-	VerificationToken       string          `json:"verificationToken"`
-	ResetToken              string          `json:"resetToken"`
-	Subscribers             int             `json:"subscribers"`
-	SubscribersLogins       pq.StringArray  `gorm:"type:text[]" json:"subscribersLogins"`
-	Subscriptions           pq.StringArray  `gorm:"type:text[]" json:"subscriptions"`
-	CollectionSubscriptions pq.StringArray  `gorm:"type:text[]" json:"collectionSubscriptions"`
-	WishListItems           []WishListItems `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
-	IsPremium               bool            `gorm:"default:false" json:"isPremium"`
-	PremiumSince            time.Time       `json:"premiumSince,omitempty"`
-	PremiumUntil            time.Time       `json:"premiumUntil,omitempty"`
-	PremiumType             string          `json:"premiumType,omitempty"`
-	ReportsCount            int64           `json:"-"`
-	DeletedAt               *time.Time      `json:"-" gorm:"column:deleted_at"`
-	ProfileName             string          `json:"profileName"`
+	Login             string          `gorm:"primaryKey" json:"login"`
+	UserName          string          `json:"userName"`
+	City              string          `json:"city"`
+	Bio               string          `json:"bio"`
+	TmpLogin          bool            `gorm:"default:false" json:"tmpLogin"`
+	Password          string          `gorm:"-" json:"-"`
+	PasswordHash      string          `gorm:"column:password" json:"-"`
+	VkId              string          `json:"vkId"`
+	TelegramId        string          `json:"telegramId"`
+	Email             string          `json:"email"`
+	Created           string          `json:"created"`
+	Likes             int             `json:"likes"`
+	Dislikes          int             `json:"dislikes"`
+	AvatarUrl         string          `json:"avatarUrl"`
+	BackgroundUrl     string          `json:"backgroundUrl"`
+	VerificationToken string          `json:"verificationToken"`
+	ResetToken        string          `json:"resetToken"`
+	Subscribers       int             `json:"subscribers"`
+	SubscribersLogins pq.StringArray  `gorm:"type:text[]" json:"subscribersLogins"`
+	Subscriptions     pq.StringArray  `gorm:"type:text[]" json:"subscriptions"`
+	WishListItems     []WishListItems `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
+	IsPremium         bool            `gorm:"default:false" json:"isPremium"`
+	PremiumSince      time.Time       `json:"premiumSince,omitempty"`
+	PremiumUntil      time.Time       `json:"premiumUntil,omitempty"`
+	PremiumType       string          `json:"premiumType,omitempty"`
+	ReportsCount      int64           `json:"-"`
+	DeletedAt         *time.Time      `json:"-" gorm:"column:deleted_at"`
+	ProfileName       string          `json:"profileName"`
 
 	Exp         int `json:"exp"`
 	SocialScore int `json:"socialScore"`
+
+	Role string `json:"role"`
 }
 
 type SignUpRequest struct {
@@ -80,67 +81,65 @@ type SubUsers struct {
 }
 
 type UserResponse struct {
-	Login                   string          `json:"login"`
-	UserName                string          `json:"userName"`
-	City                    string          `json:"city"`
-	Bio                     string          `json:"bio"`
-	VkId                    string          `json:"vkId"`
-	TelegramId              string          `json:"telegramId"`
-	Email                   string          `json:"email"`
-	Created                 string          `json:"created"`
-	Likes                   int             `json:"likes"`
-	Dislikes                int             `json:"dislikes"`
-	AvatarUrl               string          `json:"avatarUrl"`
-	BackgroundUrl           string          `json:"backgroundUrl"`
-	Subscribers             int             `json:"subscribers"`
-	Subscriptions           []string        `json:"subscriptions"`
-	SubscribersLogins       []string        `json:"subscribersLogins"`
-	SubscriptionsExtended   []SubUsers      `json:"subscriptionsExtended" mapstructure:"-"`
-	SubscribersExtended     []SubUsers      `json:"subscribersExtended" mapstructure:"-"`
-	CollectionSubscriptions pq.StringArray  `json:"collectionSubscriptions"`
-	CanSubscribe            bool            `json:"canSubscribe"`
-	CollectionItemsCount    int             `json:"collectionItemsCount" default:"0"`
-	CollectionsCount        int             `json:"collectionsCount" default:"0"`
-	TotalSum                int             `json:"totalSum" default:"0"`
-	WishListItems           []WishListItems `json:"wishListItems"`
-	IsPremium               bool            `json:"isPremium"`
-	ShippingTotal           int             `json:"shippingTotal"`
-	ProfileName             string          `json:"profileName"`
-	Exp                     int             `json:"exp"`
-	SocialScore             int             `json:"socialScore"`
-	TotalDonations          string          `json:"totalDonations"`
-	PostCount               int             `json:"postCount"`
+	Login                 string          `json:"login"`
+	UserName              string          `json:"userName"`
+	City                  string          `json:"city"`
+	Bio                   string          `json:"bio"`
+	VkId                  string          `json:"vkId"`
+	TelegramId            string          `json:"telegramId"`
+	Email                 string          `json:"email"`
+	Created               string          `json:"created"`
+	Likes                 int             `json:"likes"`
+	Dislikes              int             `json:"dislikes"`
+	AvatarUrl             string          `json:"avatarUrl"`
+	BackgroundUrl         string          `json:"backgroundUrl"`
+	Subscribers           int             `json:"subscribers"`
+	Subscriptions         []string        `json:"subscriptions"`
+	SubscribersLogins     []string        `json:"subscribersLogins"`
+	SubscriptionsExtended []SubUsers      `json:"subscriptionsExtended" mapstructure:"-"`
+	SubscribersExtended   []SubUsers      `json:"subscribersExtended" mapstructure:"-"`
+	CanSubscribe          bool            `json:"canSubscribe"`
+	CollectionItemsCount  int             `json:"collectionItemsCount" default:"0"`
+	CollectionsCount      int             `json:"collectionsCount" default:"0"`
+	TotalSum              int             `json:"totalSum" default:"0"`
+	WishListItems         []WishListItems `json:"wishListItems"`
+	IsPremium             bool            `json:"isPremium"`
+	ShippingTotal         int             `json:"shippingTotal"`
+	ProfileName           string          `json:"profileName"`
+	Exp                   int             `json:"exp"`
+	SocialScore           int             `json:"socialScore"`
+	TotalDonations        string          `json:"totalDonations"`
+	PostCount             int             `json:"postCount"`
 }
 
 type UserResponseForSingleUser struct {
-	Login                   string          `json:"login"`
-	UserName                string          `json:"userName"`
-	City                    string          `json:"city"`
-	Bio                     string          `json:"bio"`
-	VkId                    string          `json:"vkId"`
-	TelegramId              string          `json:"telegramId"`
-	Email                   string          `json:"email"`
-	Created                 string          `json:"created"`
-	Likes                   int             `json:"likes"`
-	Dislikes                int             `json:"dislikes"`
-	AvatarUrl               string          `json:"avatarUrl"`
-	BackgroundUrl           string          `json:"backgroundUrl"`
-	SubscribersLogins       []SubUsers      `json:"subscribersLogins" mapstructure:"-"`
-	Subscribers             int             `json:"subscribers"`
-	Subscriptions           []SubUsers      `json:"subscriptions" mapstructure:"-"`
-	CollectionSubscriptions pq.StringArray  `json:"collectionSubscriptions"`
-	CanSubscribe            bool            `json:"canSubscribe"`
-	CollectionItemsCount    int             `json:"collectionItemsCount" default:"0"`
-	CollectionsCount        int             `json:"collectionsCount" default:"0"`
-	TotalSum                int             `json:"totalSum" default:"0"`
-	WishListItems           []WishListItems `json:"wishListItems"`
-	IsPremium               bool            `json:"isPremium"`
-	ShippingTotal           int             `json:"shippingTotal"`
-	ProfileName             string          `json:"profileName"`
-	Exp                     int             `json:"exp"`
-	SocialScore             int             `json:"socialScore"`
-	TotalDonations          string          `json:"totalDonations"`
-	PostCount               int             `json:"postCount"`
+	Login                string          `json:"login"`
+	UserName             string          `json:"userName"`
+	City                 string          `json:"city"`
+	Bio                  string          `json:"bio"`
+	VkId                 string          `json:"vkId"`
+	TelegramId           string          `json:"telegramId"`
+	Email                string          `json:"email"`
+	Created              string          `json:"created"`
+	Likes                int             `json:"likes"`
+	Dislikes             int             `json:"dislikes"`
+	AvatarUrl            string          `json:"avatarUrl"`
+	BackgroundUrl        string          `json:"backgroundUrl"`
+	SubscribersLogins    []SubUsers      `json:"subscribersLogins" mapstructure:"-"`
+	Subscribers          int             `json:"subscribers"`
+	Subscriptions        []SubUsers      `json:"subscriptions" mapstructure:"-"`
+	CanSubscribe         bool            `json:"canSubscribe"`
+	CollectionItemsCount int             `json:"collectionItemsCount" default:"0"`
+	CollectionsCount     int             `json:"collectionsCount" default:"0"`
+	TotalSum             int             `json:"totalSum" default:"0"`
+	WishListItems        []WishListItems `json:"wishListItems"`
+	IsPremium            bool            `json:"isPremium"`
+	ShippingTotal        int             `json:"shippingTotal"`
+	ProfileName          string          `json:"profileName"`
+	Exp                  int             `json:"exp"`
+	SocialScore          int             `json:"socialScore"`
+	TotalDonations       string          `json:"totalDonations"`
+	PostCount            int             `json:"postCount"`
 }
 
 type UserRequestUpdate struct {
@@ -269,3 +268,4 @@ func (u *Users) GetSubscribersLogins() []string { return u.SubscribersLogins }
 func (u *Users) GetSubscriptions() []string {
 	return u.Subscriptions
 }
+func (u *Users) GetRole() string { return u.Role }

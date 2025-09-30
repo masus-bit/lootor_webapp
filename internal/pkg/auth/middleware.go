@@ -22,7 +22,14 @@ func (s *JWTService) RequireAuthMiddleware() echo.MiddlewareFunc {
 					"error": "Invalid token",
 				})
 			}
+			role, err := s.GetRole(token)
+			if err != nil {
+				return c.JSON(http.StatusUnauthorized, map[string]string{
+					"error": "Invalid token",
+				})
+			}
 			c.Set("user_login", login)
+			c.Set("role", role)
 			return next(c)
 		}
 	}

@@ -39,6 +39,7 @@ type Claims struct {
 	ProfileName       string            `json:"profileName"`
 	SubscribersLogins []models.SubUsers `json:"subscribersLogins" mapstructure:"-"`
 	Subscriptions     []models.SubUsers `json:"subscriptions" mapstructure:"-"`
+	Role              string            `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -99,6 +100,7 @@ func (s *JWTService) generateToken(user TokenData, exp time.Duration, subLogins,
 		ProfileName:       user.GetProfileName(),
 		SubscribersLogins: subLogins,
 		Subscriptions:     subs,
+		Role:              user.GetRole(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(exp)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -124,6 +126,25 @@ func (s *JWTService) ParseToken(tokenString string) (string, error) {
 
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
 		return claims.Login, nil
+	}
+
+	return "", errors.New("invalid token")
+}
+
+func (s *JWTService) GetRole(tokenString string) (string, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return s.secretKey, nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims.Role, nil
 	}
 
 	return "", errors.New("invalid token")
@@ -192,4 +213,5 @@ type tokenData struct {
 	profileName       string
 	subscribersLogins []models.SubUsers
 	subscriptions     []models.SubUsers
+	role              string
 }

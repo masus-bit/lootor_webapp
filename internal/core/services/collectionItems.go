@@ -6,8 +6,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
 	"log"
+	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
+	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/s3"
 	"lootor/internal/pkg/utils"
@@ -22,43 +24,14 @@ type CiService struct {
 	collectionRepo       *repositories.CollectionsRepository
 	userRepo             *repositories.UsersRepository
 	platformsRepo        *repositories.PlatformsRepository
-	entityRepo           *repositories.EntitiesRepository
 	s3Service            *s3.S3Service
 	itemTypeRepo         *repositories.ItemTypesRepository
 	notificationsService *NotificationsService
+	tagsClient           *tagsclient.GRPCTagsClient
 }
 
-func NewCiService(repo *repositories.CiRepository, eventsService *EventsService, collectionRepo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, platformsRepo *repositories.PlatformsRepository, entityRepo *repositories.EntitiesRepository, s3Service *s3.S3Service, itemTypeRepo *repositories.ItemTypesRepository, notificationsService *NotificationsService) *CiService {
-	return &CiService{repo: repo, eventsService: eventsService, collectionRepo: collectionRepo, userRepo: userRepo, platformsRepo: platformsRepo, entityRepo: entityRepo, s3Service: s3Service, itemTypeRepo: itemTypeRepo, notificationsService: notificationsService}
-}
-
-func (s *CiService) getEntities(entities []string, userLogin string) []models.Entities {
-	var resultEntities []models.Entities
-	for _, entity := range entities {
-		entityByTranslit, err := s.entityRepo.GetEntityByName(entity)
-		if err != nil {
-			fmt.Errorf("failed to get entity: %w", err)
-		}
-		if entityByTranslit == nil {
-			newEntity := &models.Entities{Name: entity, Transliteration: utils.Slugify(entity), Author: userLogin}
-			entityByTranslit, err = s.entityRepo.CreateEntity(newEntity)
-			if err != nil {
-				fmt.Errorf("failed to add entity: %w", err)
-			}
-			existsUser, _ := s.userRepo.GetUserByLogin(userLogin)
-			err = s.userRepo.IncrementExperience(existsUser.Login, utils.EntityExp)
-			err = s.userRepo.IncrementSocialScore(userLogin, 1)
-			if err != nil {
-				fmt.Errorf("can't add rating: %w", err)
-			}
-
-			if entityByTranslit == nil {
-				fmt.Errorf("unexpected nil entity after adding")
-			}
-		}
-		resultEntities = append(resultEntities, *entityByTranslit)
-	}
-	return resultEntities
+func NewCiService(repo *repositories.CiRepository, eventsService *EventsService, collectionRepo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, platformsRepo *repositories.PlatformsRepository, s3Service *s3.S3Service, itemTypeRepo *repositories.ItemTypesRepository, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient) *CiService {
+	return &CiService{repo: repo, eventsService: eventsService, collectionRepo: collectionRepo, userRepo: userRepo, platformsRepo: platformsRepo, s3Service: s3Service, itemTypeRepo: itemTypeRepo, notificationsService: notificationsService, tagsClient: tagsClient}
 }
 
 func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLogin string) (*models.CollectionItemsDataResponse, error) {
@@ -91,13 +64,6 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 		itemTypeID = nil
 	}
 
-	var entities []models.Entities
-
-	if len(dto.Entities) == 0 {
-		entities = make([]models.Entities, 0)
-	} else {
-		entities = s.getEntities(dto.Entities, authUserLogin)
-	}
 	owner, ownerErr := s.userRepo.GetUserByLogin(authUserLogin)
 	if ownerErr != nil {
 		return nil, ownerErr
@@ -115,7 +81,6 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 		Sealed:        dto.Sealed,
 		Edition:       dto.Edition,
 		ShippingCost:  dto.ShippingCost,
-		Entities:      entities,
 		Platform:      platform,
 		ItemType:      itemType,
 		Owner:         *owner,
@@ -151,9 +116,6 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 
 	exp := utils.CIExp
 
-	if len(dto.Entities) != 0 {
-		exp += utils.EntityAttachExp
-	}
 	if dto.PurchaseDate != "" {
 		exp += utils.CIPurchaseDateExp
 	}
@@ -174,7 +136,16 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 	if err != nil {
 		return nil, err
 	}
+	if len(dto.Tags) > 0 {
+		go func() {
+			_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
+				EntityType: "collectionItem",
+				EntityId:   collectionItem.Id.String(),
+				TagIds:     dto.Tags,
+			})
 
+		}()
+	}
 	return &models.CollectionItemsDataResponse{Data: collectionItemResponse}, nil
 }
 
@@ -204,10 +175,6 @@ func (s *CiService) Delete(id string, ctx context.Context) (*dto.CommonResponse,
 		result = &dto.CommonResponse{Data: dto.Resp{Success: true}}
 
 		exp := utils.CIExp
-
-		if len(exists.Entities) != 0 {
-			exp += utils.EntityAttachExp
-		}
 		if exists.PurchaseDate != "" {
 			exp += utils.CIPurchaseDateExp
 		}
@@ -238,14 +205,6 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 		return nil, err
 	}
 
-	var resultEntities []models.Entities
-
-	if len(dto.Entities) != 0 {
-		resultEntities = s.getEntities(dto.Entities, exists.Owner.Login)
-	} else {
-		resultEntities = make([]models.Entities, 0)
-	}
-
 	err = s.updateCIExp(exists, dto)
 	if err != nil {
 		return nil, err
@@ -258,7 +217,7 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 		field := src.Field(i)
 		fieldName := src.Type().Field(i).Name
 
-		if fieldName == "Entities" || fieldName == "Platform" || fieldName == "ItemType" {
+		if fieldName == "Platform" || fieldName == "ItemType" {
 			continue
 		}
 
@@ -289,8 +248,6 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 	//err = mapstructure.Decode(dto, &dbCollectionItem)
 	//dbCollectionItem.Entities = resultEntities
 
-	exists.Entities = resultEntities
-
 	var platform *models.Platforms
 	var platformID *uuid.UUID
 	var itemType *models.ItemTypes
@@ -320,6 +277,17 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 		itemTypeID = nil
 	}
 
+	if len(dto.Tags) > 0 {
+		go func() {
+			_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
+				EntityType: "collectionItem",
+				EntityId:   id,
+				TagIds:     dto.Tags,
+			})
+
+		}()
+	}
+
 	exists.Platform = platform
 	exists.PlatformID = platformID
 	exists.ItemTypeID = itemTypeID
@@ -328,7 +296,6 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 	if err != nil {
 		return nil, err
 	}
-
 	if !exists.Collections[0].IsPrivate {
 		eventError := s.eventsService.AddEvent(exists.Owner.Login, utils.EventActionUpdate, utils.EventTargetCollectionItem, exists.Name, &models.EventsParams{TargetItemID: exists.Id})
 		if eventError != nil {
@@ -460,46 +427,19 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *CiService) GetByEntity(entity string, authUserLogin string, limit string) (*models.CollectionItemsDataSortedResponse, error) {
-	dbEntity, err := s.entityRepo.GetEntityByTranslit(entity)
-	if dbEntity == nil {
-		return nil, fmt.Errorf("entity not found")
-	}
-	collectionItems, totalCount, err := s.repo.GetCollectionItemsByEntity(entity, limit)
+func (s *CiService) GetAll(limit, offset, search string) (*models.CollectionItemsDataPoor, error) {
+	collectionItems, err := s.repo.GetAll(limit, offset, search)
 	if err != nil {
 		return nil, err
 	}
 
-	var sortedCollectionItems models.CollectionItemsSortedResponse
+	var collectionItemIds []string
 
-	sortedCollectionItems.CollectibleFigures, _ = processCI(collectionItems.CollectibleFigures, authUserLogin)
-	sortedCollectionItems.Books, _ = processCI(collectionItems.Books, authUserLogin)
-	sortedCollectionItems.BoardGames, _ = processCI(collectionItems.BoardGames, authUserLogin)
-	sortedCollectionItems.Comics, _ = processCI(collectionItems.Comics, authUserLogin)
-	sortedCollectionItems.GamingHardware, _ = processCI(collectionItems.GamingHardware, authUserLogin)
-	sortedCollectionItems.Vinyl, _ = processCI(collectionItems.Vinyl, authUserLogin)
-	sortedCollectionItems.VideoGames, _ = processCI(collectionItems.VideoGames, authUserLogin)
-	sortedCollectionItems.Steelbooks, _ = processCI(collectionItems.Steelbooks, authUserLogin)
-	sortedCollectionItems.CollectibleCards, _ = processCI(collectionItems.CollectibleCards, authUserLogin)
-
-	return &models.CollectionItemsDataSortedResponse{Data: sortedCollectionItems, Total: totalCount, Entity: *dbEntity}, nil
-}
-
-func (s *CiService) GetByEntityAndType(entity string, itemType string, limit string, offset string, search string, orderBy string, order string, authUser string) ([]models.CollectionItems, *models.Entities, int64, error) {
-	dbEntity, err := s.entityRepo.GetEntityByTranslit(entity)
-	if dbEntity == nil {
-		return nil, nil, 0, fmt.Errorf("entity not found")
-	}
-	collectionItems, totalCount, err := s.repo.GetByEntityAndType(entity, itemType, limit, offset, search, orderBy, order)
-	if err != nil {
-		return nil, nil, totalCount, err
+	for _, item := range collectionItems {
+		collectionItemIds = append(collectionItemIds, item.Id.String())
 	}
 
-	return collectionItems, dbEntity, totalCount, err
-}
-
-func (s *CiService) GetAll(limit, offset, search string) (*models.CollectionItemsDataPoor, error) {
-	collectionItems, err := s.repo.GetAll(limit, offset, search)
+	tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{EntityIds: collectionItemIds})
 	if err != nil {
 		return nil, err
 	}
@@ -508,9 +448,19 @@ func (s *CiService) GetAll(limit, offset, search string) (*models.CollectionItem
 
 	for _, item := range collectionItems {
 		var temp models.CollectionItemsResponse
-		err := mapstructure.Decode(item, &temp)
+		err = mapstructure.Decode(item, &temp)
 		if err != nil {
 			return nil, err
+		}
+		itemTags := tags.GetTags()[item.Id.String()]
+
+		var resultTags []models.ShortTags
+		for _, tag := range itemTags.GetTags() {
+			resultTags = append(resultTags, models.ShortTags{
+				ID:   tag.GetId(),
+				Name: tag.GetName(),
+				Slug: tag.GetSlug(),
+			})
 		}
 
 		if len(item.Collections) > 0 {
@@ -526,7 +476,7 @@ func (s *CiService) GetAll(limit, offset, search string) (*models.CollectionItem
 		} else {
 			temp.LikesCount = 0
 		}
-
+		temp.Tags = resultTags
 		temp.Owner = item.Owner
 		collectionItemsAll = append(collectionItemsAll, temp)
 	}
@@ -563,13 +513,6 @@ func processCI(slice []models.CollectionItems, authUser string) ([]models.Collec
 
 func (s *CiService) updateCIExp(exists *models.CollectionItems, dto *models.CollectionItemsRequestUpdate) error {
 	var exp int
-	if dto.Entities != nil {
-		if len(exists.Entities) != 0 && len(dto.Entities) == 0 {
-			exp -= utils.EntityAttachExp
-		} else if len(exists.Entities) == 0 && len(dto.Entities) != 0 {
-			exp += utils.EntityAttachExp
-		}
-	}
 
 	if exists.PurchaseDate != "" && dto.PurchaseDate == nil {
 		exp -= utils.CIPurchaseDateExp
