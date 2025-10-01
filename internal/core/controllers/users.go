@@ -223,6 +223,12 @@ func (c *UserController) Subscribe(ctx echo.Context) error {
 func (c *UserController) Verification(ctx echo.Context) error {
 	token := ctx.QueryParam("verificationToken")
 
+	if token == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "verificationToken parameter is required",
+		})
+	}
+
 	response, err := c.userService.Verification(token)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
