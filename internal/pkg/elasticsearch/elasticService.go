@@ -224,7 +224,6 @@ func (es *ElasticService) createIndex(indexName string) error {
 		return err
 	}
 
-	// Добавляем контекст с таймаутом
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -405,21 +404,11 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 					{
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
-								{"term": map[string]interface{}{"_index": "entities"}},
-								{"term": map[string]interface{}{"name.keyword": lowerQuery}},
-							},
-							"boost": 2.0,
-						},
-					},
-					{
-						"bool": map[string]interface{}{
-							"must": []map[string]interface{}{
 								{"bool": map[string]interface{}{
 									"should": []map[string]interface{}{
 										{"term": map[string]interface{}{"_index": "collections"}},
 										{"term": map[string]interface{}{"_index": "tags"}},
 										{"term": map[string]interface{}{"_index": "collection_items"}},
-										{"term": map[string]interface{}{"_index": "entities"}},
 									},
 								}},
 								{"match": map[string]interface{}{
@@ -439,7 +428,6 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 										{"term": map[string]interface{}{"_index": "collections"}},
 										{"term": map[string]interface{}{"_index": "tags"}},
 										{"term": map[string]interface{}{"_index": "collection_items"}},
-										{"term": map[string]interface{}{"_index": "entities"}},
 									},
 								}},
 								{"prefix": map[string]interface{}{
