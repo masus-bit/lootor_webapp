@@ -550,7 +550,7 @@ func (r *CollectionsRepository) UpdateCollection(existsCollection *models.Collec
 	}
 
 	var result models.Collections
-	err := r.db.Preload("Tags").First(&result, existsCollection.Id).Error
+	err := r.db.First(&result, existsCollection.Id).Error
 
 	if !result.IsPrivate {
 		doc := map[string]interface{}{
@@ -561,7 +561,7 @@ func (r *CollectionsRepository) UpdateCollection(existsCollection *models.Collec
 			"bannerUrl":   result.BannerUrl,
 		}
 
-		if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
+		if err = r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
 			log.Printf("Failed to index collection: %v", err)
 		}
 	}
@@ -768,7 +768,7 @@ func (r *CollectionsRepository) GetCollectionsCount(login string) (int64, error)
 
 func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[uuid.UUID]int64, totalPrices map[uuid.UUID]float64, shippingCosts map[uuid.UUID]float64, authorizedUser string) (map[string]models.CollectionsResponse, error) {
 	var collections []models.Collections
-	err := r.db.Where("id IN (?)", ids).Preload("User").Preload("Tags").Find(&collections).Error
+	err := r.db.Where("id IN (?)", ids).Preload("User").Find(&collections).Error
 	if err != nil {
 		return nil, err
 	}
@@ -794,7 +794,7 @@ func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[
 
 func (r *CollectionsRepository) GetCollectionsByIds(ids []string, counts map[uuid.UUID]int64, totalPrices map[uuid.UUID]float64, shippingCosts map[uuid.UUID]float64, authorizedUser string) ([]models.CollectionsResponse, error) {
 	var collections []models.Collections
-	err := r.db.Where("id IN (?)", ids).Preload("User").Preload("Tags").Find(&collections).Error
+	err := r.db.Where("id IN (?)", ids).Preload("User").Find(&collections).Error
 	if err != nil {
 		return nil, err
 	}

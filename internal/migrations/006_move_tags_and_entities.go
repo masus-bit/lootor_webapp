@@ -87,7 +87,7 @@ func MoveTagsAndEntities(db *gorm.DB) error {
 	}
 
 	moveEntityLinksSQL := fmt.Sprintf(`INSERT INTO %s.tag_links (tag_id, entity_type, entity_id, created_at) 
-		SELECT entities_id as tag_id, 'collection_item' as entity_type, collection_items_id as entity_id, NOW() as created_at 
+		SELECT entities_id as tag_id, 'collectionItem' as entity_type, collection_items_id as entity_id, NOW() as created_at 
 		FROM %s.entities_collection_item_collection_items;`, targetSchema, sourceSchema)
 
 	if err := db.Exec(moveEntityLinksSQL).Error; err != nil {
