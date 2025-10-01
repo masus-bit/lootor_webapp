@@ -34,7 +34,7 @@ func (c *SearchController) Search(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "limit query is обязателей"})
 	}
 
-	indices := []string{"users", "tags", "collection_items", "collections", "entities"}
+	indices := []string{"users", "tags", "collection_items", "collections"}
 	result, err := c.es.SearchInIndices(ctx.Request().Context(), indices, query, limit)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

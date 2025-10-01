@@ -181,8 +181,6 @@ func getIndexPosition(index string) int {
 		return 2
 	case "collection_items":
 		return 3
-	case "entities":
-		return 4
 	default:
 		return -1
 	}
