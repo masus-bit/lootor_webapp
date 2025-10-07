@@ -43,9 +43,8 @@ const (
 const (
 	CollectionExp         = 50
 	CIExp                 = 1
-	EntityAttachExp       = 1
+	TagAttachExp          = 1
 	UserSelfSubExp        = 15
-	CollectionSelfSubExp  = 10
 	CollectionSelfLikeExp = 5
 	CISelfLikeExp         = 1
 	CIPurchaseDateExp     = 1
@@ -57,7 +56,7 @@ const (
 	AvatarAddExt          = 50
 	BannerAddExp          = 50
 	CICopyNumberExp       = 1
-	EntityExp             = 2
+	TagExp                = 2
 	PostCreateExp         = 10
 	PostReactExt          = 1
 )

@@ -11,6 +11,7 @@ import (
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/elasticsearch"
+	"lootor/internal/pkg/utils"
 	"strconv"
 )
 
@@ -62,6 +63,9 @@ func (s *TagsService) CreateTag(req *models.TagCreateRequest, authUser string) (
 	if err = s.es.IndexDocument(context.Background(), "tags", doc); err != nil {
 		log.Printf("Failed to index tag: %v", err)
 	}
+
+	_ = s.userRepo.IncrementExperience(authUser, utils.TagExp)
+	_ = s.userRepo.IncrementSocialScore(authUser, 1)
 
 	return &dto.CommonResponse{
 		Data: dto.Resp{Success: true},
@@ -132,13 +136,14 @@ func (s *TagsService) AddTagToEntity(req *models.AddTagToEntityRequest, authUser
 		TagId:      req.TagID,
 		EntityType: req.EntityType,
 	})
+	_ = s.userRepo.IncrementExperience(authUser, utils.TagAttachExp)
+
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при добавлении тега: %v", err)
 	}
 	return &dto.CommonResponse{
 		Data: dto.Resp{Success: true},
 	}, nil
-
 }
 
 func (s *TagsService) RemoveTagsFromEntity(req *models.RemoveTagsRequest, authUser, role string) (*dto.CommonResponse, error) {
@@ -155,6 +160,8 @@ func (s *TagsService) RemoveTagsFromEntity(req *models.RemoveTagsRequest, authUs
 		TagIds:     req.TagIDs,
 		EntityType: req.EntityType,
 	})
+	_ = s.userRepo.DecrementExperience(authUser, int(utils.TagAttachExp*float64(len(req.TagIDs))))
+
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при удалении тегov: %v", err)
 	}
