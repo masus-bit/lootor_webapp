@@ -190,21 +190,21 @@ func (s *PostsService) DeletePost(ctx context.Context, id uint64, authUser strin
 		go func() {
 			_ = s.notificationsService.DeleteAllNotificationsByTargetId(context.Background(), strconv.FormatUint(id, 10))
 		}()
+		go func() {
+			err = s.userRepo.DecrementExperience(user.Login, int(utils.PostCreateExp+result.ReactCount))
+			if err != nil {
+				return
+			}
+			err = s.userRepo.DecrementSocialScore(user.Login, 5)
+			if err != nil {
+				return
+			}
+			err = s.userRepo.DecrementPostCount(user.Login)
+			if err != nil {
+				return
+			}
+		}()
 	}
-	go func() {
-		err = s.userRepo.DecrementExperience(user.Login, int(utils.PostCreateExp+result.ReactCount))
-		if err != nil {
-			return
-		}
-		err = s.userRepo.DecrementSocialScore(user.Login, 5)
-		if err != nil {
-			return
-		}
-		err = s.userRepo.DecrementPostCount(user.Login)
-		if err != nil {
-			return
-		}
-	}()
 
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
