@@ -310,6 +310,7 @@ func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*m
 		Bio:               dto.Bio,
 		City:              dto.City,
 		ProfileName:       dto.ProfileName,
+		Role:              "user",
 	}
 	err := s.repo.CreateUser(&dbUser)
 
