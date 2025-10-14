@@ -461,15 +461,22 @@ func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin st
 	return collectionItemsMap, nil
 }
 
-func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin string) ([]models.CollectionItemsResponse, error) {
+func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin, filter string) ([]models.CollectionItemsResponse, error) {
 	var collectionItems []models.CollectionItems
-	err := r.db.Where("id IN (?)", ids).
+	query := r.db.Where("id IN (?)", ids).
 		Preload("Collections").
 		Preload("Collections.User").
 		Preload("Owner").
 		Preload("Platform").
-		Preload("ItemType").
-		Find(&collectionItems).Error
+		Preload("ItemType")
+
+	if filter != "" {
+		query = query.Where("collection_items.item_type_id = ?", filter)
+	}
+	err := query.Find(&collectionItems).Error
+	if err != nil {
+		return nil, err
+	}
 	var result []models.CollectionItemsResponse
 	for _, collectionItem := range collectionItems {
 		var temp models.CollectionItemsResponse
@@ -507,5 +514,24 @@ func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin strin
 
 		result = append(result, temp)
 	}
-	return result, err
+	return result, nil
+}
+
+func (r *CiRepository) GetCICountsByItemType() (map[string]int64, error) {
+	var results []struct {
+		ItemType string
+		Count    int64
+	}
+	err := r.db.Table("collection_items").
+		Select("item_type_id as item_type, COUNT(*) as count").
+		Group("item_type").
+		Find(&results).Error
+	if err != nil {
+		return nil, err
+	}
+	counts := make(map[string]int64, len(results))
+	for _, result := range results {
+		counts[result.ItemType] = result.Count
+	}
+	return counts, nil
 }

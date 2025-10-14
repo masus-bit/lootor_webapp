@@ -132,17 +132,6 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 
 	exists.IsPrivate = *dto.IsPrivate
 
-	if len(dto.Tags) > 0 {
-		go func() {
-			_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
-				EntityType: "collection",
-				EntityId:   id,
-				TagIds:     dto.Tags,
-			})
-
-		}()
-	}
-
 	resultCollection, err := s.repo.UpdateCollectionFull(exists)
 	if err != nil {
 		return nil, err

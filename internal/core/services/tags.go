@@ -22,10 +22,11 @@ type TagsService struct {
 	ciRepo         *repositories.CiRepository
 	collectionRepo *repositories.CollectionsRepository
 	eventsService  *EventsService
+	itemTypeRepo   *repositories.ItemTypesRepository
 	es             *elasticsearch.ElasticService
 }
 
-func NewTagsService(tagsClient *tagsclient.GRPCTagsClient, userRepo *repositories.UsersRepository, postsService *PostsService, ciRepo *repositories.CiRepository, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService, es *elasticsearch.ElasticService) *TagsService {
+func NewTagsService(tagsClient *tagsclient.GRPCTagsClient, userRepo *repositories.UsersRepository, postsService *PostsService, ciRepo *repositories.CiRepository, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService, itemTypeRepo *repositories.ItemTypesRepository, es *elasticsearch.ElasticService) *TagsService {
 	return &TagsService{
 		tagsClient:     tagsClient,
 		userRepo:       userRepo,
@@ -33,6 +34,7 @@ func NewTagsService(tagsClient *tagsclient.GRPCTagsClient, userRepo *repositorie
 		ciRepo:         ciRepo,
 		collectionRepo: collectionRepo,
 		eventsService:  eventsService,
+		itemTypeRepo:   itemTypeRepo,
 		es:             es,
 	}
 }
@@ -42,30 +44,31 @@ func (s *TagsService) CreateTag(req *models.TagCreateRequest, authUser string) (
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при создании тега: %v", err)
 	}
+	for _, tag := range resp.GetTags() {
+		if req.EntityID != "" && req.EntityType != "" {
+			_, err = s.AddTagToEntity(&models.AddTagToEntityRequest{
+				TagID:      tag.GetId(),
+				EntityType: req.EntityType,
+				EntityID:   req.EntityID,
+			}, authUser, "user")
+			if err != nil {
+				return nil, fmt.Errorf("ошибка при добавлении тега к сущности: %v", err)
+			}
+		}
 
-	if req.EntityID != "" && req.EntityType != "" {
-		_, err = s.AddTagToEntity(&models.AddTagToEntityRequest{
-			TagID:      resp.GetId(),
-			EntityType: req.EntityType,
-			EntityID:   req.EntityID,
-		}, authUser, "user")
-		if err != nil {
-			return nil, fmt.Errorf("ошибка при добавлении тега к сущности: %v", err)
+		doc := map[string]interface{}{
+			"id":   tag.GetId(),
+			"name": tag.GetName(),
+			"slug": tag.GetSlug(),
+		}
+
+		if err = s.es.IndexDocument(context.Background(), "tags", doc); err != nil {
+			log.Printf("Failed to index tag: %v", err)
 		}
 	}
 
-	doc := map[string]interface{}{
-		"id":   resp.Id,
-		"name": resp.Name,
-		"slug": resp.Slug,
-	}
-
-	if err = s.es.IndexDocument(context.Background(), "tags", doc); err != nil {
-		log.Printf("Failed to index tag: %v", err)
-	}
-
-	_ = s.userRepo.IncrementExperience(authUser, utils.TagExp)
-	_ = s.userRepo.IncrementSocialScore(authUser, 1)
+	_ = s.userRepo.IncrementExperience(authUser, int(utils.TagExp*float64(len(resp.GetTags()))))
+	_ = s.userRepo.IncrementSocialScore(authUser, 1*len(resp.GetTags()))
 
 	return &dto.CommonResponse{
 		Data: dto.Resp{Success: true},
@@ -82,7 +85,7 @@ func (s *TagsService) SearchTags(name string) (*models.TagsDataResponse, error) 
 
 	var result []models.Tags
 	for _, tag := range tags.GetTags() {
-		result = append(result, *s.convertProtoToModel(tag, "", false))
+		result = append(result, *s.convertProtoToModel(tag, "", false, ""))
 	}
 
 	return &models.TagsDataResponse{Data: result}, nil
@@ -101,7 +104,7 @@ func (s *TagsService) MergeTags(req *models.MergeTagsRequest) (*dto.CommonRespon
 	}, nil
 }
 
-func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, authUserLogin string) (*models.TagDataResponse, error) {
+func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, authUserLogin, ciFilter string) (*models.TagDataResponse, error) {
 	authUser, _ := s.userRepo.GetUserByLogin(authUserLogin)
 	var isPremium bool
 	if authUser != nil {
@@ -115,7 +118,7 @@ func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, aut
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
 	}
-	resultTag := s.convertProtoToModel(tag.GetTag(), authUserLogin, isPremium)
+	resultTag := s.convertProtoToModel(tag.GetTag(), authUserLogin, isPremium, ciFilter)
 	resultTag.TotalPosts = tag.GetTotalPosts()
 	resultTag.TotalCollections = tag.GetTotalCollections()
 	resultTag.TotalCollectionItems = tag.GetTotalCollectionItems()
@@ -180,7 +183,7 @@ func (s *TagsService) UpdateTag(req *models.TagUpdateRequest) (*models.TagDataRe
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при обновлении тега: %v", err)
 	}
-	return &models.TagDataResponse{Data: *s.convertProtoToModel(tag, "", false)}, nil
+	return &models.TagDataResponse{Data: *s.convertProtoToModel(tag, "", false, "")}, nil
 }
 
 func (s *TagsService) GetAllTags() ([]models.ShortTags, error) {
@@ -215,19 +218,21 @@ func (s *TagsService) GetTagsByEntityId(entityId string) ([]models.ShortTags, er
 	return result, nil
 }
 
-func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLogin string, isPremium bool) *models.Tags {
+func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLogin string, isPremium bool, filter string) *models.Tags {
 	var primaryTag *models.Tags
 	var synonyms []models.Tags
 	var entities models.Entities
+	var collectionItemProps *models.CollectionItemsProps
+	collectionItemProps = nil
 
 	if tag.PrimaryId != "" {
-		primaryTag = s.convertProtoToModel(tag.Primary, userAuthLogin, isPremium)
+		primaryTag = s.convertProtoToModel(tag.Primary, userAuthLogin, isPremium, filter)
 	} else {
 		primaryTag = nil
 	}
 	if tag.Synonyms != nil || len(tag.Synonyms) > 0 {
 		for _, synonym := range tag.Synonyms {
-			synonyms = append(synonyms, *s.convertProtoToModel(synonym, userAuthLogin, isPremium))
+			synonyms = append(synonyms, *s.convertProtoToModel(synonym, userAuthLogin, isPremium, filter))
 		}
 	} else {
 		synonyms = []models.Tags{}
@@ -238,41 +243,85 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 		for _, entity := range tag.Entities {
 			entityIDs = append(entityIDs, entity.EntityId)
 		}
-		resEntities, err := s.getEntitiesByType(entitiesType, userAuthLogin, entityIDs, isPremium)
+		resEntities, ciProps, err := s.getEntitiesByType(entitiesType, userAuthLogin, entityIDs, isPremium, filter)
 		if err != nil {
 			return nil
+		}
+		if ciProps != nil {
+			collectionItemProps = ciProps
 		}
 		entities = *resEntities
 	} else {
 		entities = models.Entities{}
 	}
 	return &models.Tags{
-		ID:          tag.Id,
-		Name:        tag.Name,
-		Slug:        tag.Slug,
-		Author:      tag.Author,
-		Description: tag.Description,
-		CreatedAt:   tag.CreatedAt,
-		PrimaryID:   tag.PrimaryId,
-		Primary:     primaryTag,
-		Entities:    entities,
-		Synonyms:    synonyms,
-		IsPrimary:   tag.IsPrimary,
+		ID:                   tag.Id,
+		Name:                 tag.Name,
+		Slug:                 tag.Slug,
+		Author:               tag.Author,
+		Description:          tag.Description,
+		CreatedAt:            tag.CreatedAt,
+		PrimaryID:            tag.PrimaryId,
+		Primary:              primaryTag,
+		Entities:             entities,
+		Synonyms:             synonyms,
+		IsPrimary:            tag.IsPrimary,
+		CollectionItemsProps: collectionItemProps,
 	}
 }
 
-func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entityIDs []string, isPremium bool) (*models.Entities, error) {
+func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entityIDs []string, isPremium bool, filter string) (*models.Entities, *models.CollectionItemsProps, error) {
 	var entities models.Entities
+	var collectionItemsProps *models.CollectionItemsProps
+	collectionItemsProps = nil
 	if entityType == "post" {
 		posts, err := s.postsService.GetPostsByIDs(context.Background(), entityIDs, authUserLogin, isPremium)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		entities.Posts = posts.Data
 	} else if entityType == "collectionItem" {
-		collectionItems, err := s.ciRepo.GetCollectionItemsByIDs(entityIDs, authUserLogin)
+
+		itemTypes, err := s.itemTypeRepo.FindAllTypes()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
+		}
+		counts, err := s.ciRepo.GetCICountsByItemType()
+		if err != nil {
+			return nil, nil, err
+		}
+
+		for key, item := range counts {
+			for _, itemType := range itemTypes {
+				if key == itemType.Id.String() {
+					switch itemType.Slug {
+					case "books":
+						collectionItemsProps.Books = item
+					case "videoGames":
+						collectionItemsProps.VideoGames = item
+					case "boardGames":
+						collectionItemsProps.BoardGames = item
+					case "comics":
+						collectionItemsProps.Comics = item
+					case "gamingHardware":
+						collectionItemsProps.GamingHardware = item
+					case "vinyl":
+						collectionItemsProps.Vinyl = item
+					case "steelbooks":
+						collectionItemsProps.Steelbooks = item
+					case "collectibleCards":
+						collectionItemsProps.CollectibleCards = item
+					case "collectibleFigures":
+						collectionItemsProps.CollectibleFigures = item
+					}
+					break
+				}
+			}
+		}
+
+		collectionItems, err := s.ciRepo.GetCollectionItemsByIDs(entityIDs, authUserLogin, filter)
+		if err != nil {
+			return nil, nil, err
 		}
 		entities.CollectionItems = collectionItems
 	} else if entityType == "collection" {
@@ -285,14 +334,14 @@ func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entity
 		shippingCosts, _ := s.ciRepo.GetShippingCostsByCollectionIDs(collectionIDsUUID)
 		collections, err := s.collectionRepo.GetCollectionsByIds(entityIDs, counts, totalPrices, shippingCosts, authUserLogin)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		entities.Collections = collections
 	} else {
-		return nil, fmt.Errorf("unknown entity type: %s", entityType)
+		return nil, nil, fmt.Errorf("unknown entity type: %s", entityType)
 	}
 
-	return &entities, nil
+	return &entities, collectionItemsProps, nil
 }
 
 func (s *TagsService) canActivate(authUser, role, entityID, entityType string) (bool, error) {

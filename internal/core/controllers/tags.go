@@ -49,9 +49,19 @@ func (c *TagsController) CreateTag(ctx echo.Context) error {
 			"error": "Invalid request body",
 		})
 	}
+	userRole, ok := ctx.Get("role").(string)
+	if !ok {
+		userRole = ""
+	}
+
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
 		authUser = ""
+	}
+	if request.Author != "" && userRole != "admin" {
+		return ctx.JSON(http.StatusForbidden, map[string]string{
+			"error": "Forbidden",
+		})
 	}
 	request.Author = authUser
 	response, err := c.tagsService.CreateTag(&request, authUser)
@@ -72,6 +82,7 @@ func (c *TagsController) CreateTag(ctx echo.Context) error {
 // @Param entityType query string true "entity type"
 // @Param limit query string true "limit"
 // @Param offset query string true "offset"
+// @Param ciFilter query string true "filter"
 // @Success 201 {object} models.TagDataResponse
 // @Router /public/tags/{id} [get]
 func (c *TagsController) FindEntitiesByTag(ctx echo.Context) error {
@@ -79,11 +90,12 @@ func (c *TagsController) FindEntitiesByTag(ctx echo.Context) error {
 	entityType := ctx.QueryParam("entityType")
 	limit := ctx.QueryParam("limit")
 	offset := ctx.QueryParam("offset")
+	ciFilter := ctx.QueryParam("ciFilter")
 	authInfo := ctx.Get("auth_info").(struct {
 		IsAuthenticated bool
 		UserLogin       string
 	})
-	response, err := c.tagsService.FindAllEntitiesByTag(tagId, entityType, limit, offset, authInfo.UserLogin)
+	response, err := c.tagsService.FindAllEntitiesByTag(tagId, entityType, limit, offset, authInfo.UserLogin, ciFilter)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

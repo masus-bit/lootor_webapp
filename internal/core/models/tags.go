@@ -28,6 +28,20 @@ type Tags struct {
 	Synonyms []Tags     `gorm:"foreignKey:PrimaryID" json:"synonyms"`
 
 	Entities Entities `json:"entities"`
+
+	CollectionItemsProps *CollectionItemsProps `json:"collectionItemsProps"`
+}
+
+type CollectionItemsProps struct {
+	Books              int64 `json:"books"`
+	VideoGames         int64 `json:"videoGames"`
+	BoardGames         int64 `json:"boardGames"`
+	Comics             int64 `json:"comics"`
+	GamingHardware     int64 `json:"gamingHardware"`
+	Vinyl              int64 `json:"vinyl"`
+	Steelbooks         int64 `json:"steelbooks"`
+	CollectibleCards   int64 `json:"collectibleCards"`
+	CollectibleFigures int64 `json:"collectibleFigures"`
 }
 
 type Entities struct {
@@ -61,10 +75,10 @@ type TagDataResponse struct {
 }
 
 type TagCreateRequest struct {
-	Name       string `json:"name"`
-	Author     string `json:"author"`
-	EntityID   string `json:"entityId"`
-	EntityType string `json:"entityType"`
+	Names      []string `json:"names"`
+	Author     string   `json:"author"`
+	EntityID   string   `json:"entityId"`
+	EntityType string   `json:"entityType"`
 }
 
 type TagsSearchRequest struct {

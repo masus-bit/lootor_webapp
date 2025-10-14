@@ -277,17 +277,6 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 		itemTypeID = nil
 	}
 
-	if len(dto.Tags) > 0 {
-		go func() {
-			_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
-				EntityType: "collectionItem",
-				EntityId:   id,
-				TagIds:     dto.Tags,
-			})
-
-		}()
-	}
-
 	exists.Platform = platform
 	exists.PlatformID = platformID
 	exists.ItemTypeID = itemTypeID

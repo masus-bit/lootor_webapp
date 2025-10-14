@@ -25,10 +25,10 @@ func NewGRPCTagsClient(addr string) (*GRPCTagsClient, error) {
 	}, nil
 }
 
-func (c *GRPCTagsClient) CreateTag(ctx context.Context, dto *models.TagCreateRequest) (*microservices.TagCreateResponse, error) {
+func (c *GRPCTagsClient) CreateTag(ctx context.Context, dto *models.TagCreateRequest) (*microservices.TagsCreateResponse, error) {
 
 	resp, err := c.client.CreateTags(ctx, &microservices.CreateTagsRequest{
-		Name:   dto.Name,
+		Names:  dto.Names,
 		Author: dto.Author,
 	})
 	if err != nil {

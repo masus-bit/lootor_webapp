@@ -6,7 +6,7 @@ package tags;
 option go_package = "./gen/go/microservices";
 
 service TagsService {
-  rpc CreateTags(CreateTagsRequest) returns (TagCreateResponse);
+  rpc CreateTags(CreateTagsRequest) returns (TagsCreateResponse);
   rpc SearchTags(TagsSearchRequest) returns (TagsDataResponse);
   rpc MergeTags(MergeTagsRequest) returns (TagsSuccessResponse);
   rpc FindAllEntitiesByTag(GetEntitiesByTagRequest) returns (TagDataResponse);
@@ -87,8 +87,12 @@ message TagDataResponse {
 }
 
 message CreateTagsRequest {
-  string name = 1;
+  repeated string names = 1;
   string author = 2;
+}
+
+message TagsCreateResponse {
+  repeated TagCreateResponse tags = 1;
 }
 
 message TagItem {
