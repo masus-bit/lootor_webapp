@@ -244,9 +244,17 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 		}
 	}
 
-	//var dbCollectionItem models.CollectionItems
-	//err = mapstructure.Decode(dto, &dbCollectionItem)
-	//dbCollectionItem.Entities = resultEntities
+	if len(dto.Tags) > 0 {
+		_, err = s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
+			EntityType: "collectionItem",
+			EntityId:   id,
+			TagIds:     dto.Tags,
+			Author:     exists.Owner.Login,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	var platform *models.Platforms
 	var platformID *uuid.UUID

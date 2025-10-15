@@ -120,6 +120,14 @@ func (c *GRPCTagsClient) GetTagsByEntityIdsMap(ctx context.Context, dto *microse
 	return resp, nil
 }
 
+func (c *GRPCTagsClient) UpdateTagsOfEntity(ctx context.Context, dto *microservices.UpdateTagsOfEntityRequest) (*microservices.TagsCreateResponse, error) {
+	resp, err := c.client.UpdateTagsOfEntity(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (c *GRPCTagsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

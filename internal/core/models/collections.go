@@ -97,10 +97,11 @@ type CollectionCreateRequest struct {
 }
 
 type CollectionUpdateRequest struct {
-	Name            *string `json:"name"`
-	Description     *string `json:"description"`
-	IsPrivate       *bool   `json:"isPrivate"`
-	BannerUrl       *string `json:"bannerUrl"`
-	Transliteration *string `json:"transliteration"`
-	UserLogin       *string `json:"userLogin"`
+	Name            *string  `json:"name"`
+	Description     *string  `json:"description"`
+	IsPrivate       *bool    `json:"isPrivate"`
+	BannerUrl       *string  `json:"bannerUrl"`
+	Transliteration *string  `json:"transliteration"`
+	UserLogin       *string  `json:"userLogin"`
+	Tags            []string `json:"tags"`
 }

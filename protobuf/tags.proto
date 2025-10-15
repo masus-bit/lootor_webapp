@@ -17,6 +17,14 @@ service TagsService {
   rpc GetTagsByEntityId(GetTagsByEntityIdRequest) returns (GetShortsResponse);
   rpc AddTagsToEntity(AddFewTagsToEntityRequest) returns (TagsSuccessResponse);
   rpc GetTagsByEntityIdsMap(GetTagsByEntityIdsMapRequest) returns (TagsMapResponse);
+  rpc UpdateTagsOfEntity(UpdateTagsOfEntityRequest) returns (TagsCreateResponse);
+}
+
+message UpdateTagsOfEntityRequest {
+  repeated string tag_ids = 1;
+  string entity_id = 2;
+  string entity_type = 3;
+  string author = 4;
 }
 
 message GetTagsByEntityIdsMapRequest {

@@ -151,9 +151,37 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 	}
 
 	var finalCollection models.CollectionsResponse
-	if err := mapstructure.Decode(resultCollection, &finalCollection); err != nil {
+	if err = mapstructure.Decode(resultCollection, &finalCollection); err != nil {
 		return nil, err
 	}
+
+	var tags *microservices.TagsCreateResponse
+
+	if len(dto.Tags) > 0 {
+		tags, err = s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
+			EntityType: "collection",
+			EntityId:   id,
+			TagIds:     dto.Tags,
+			Author:     exists.UserLogin,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var resultTags []models.ShortTags
+	resultTags = make([]models.ShortTags, 0)
+	if tags != nil {
+		for _, tag := range tags.GetTags() {
+			resultTags = append(resultTags, models.ShortTags{
+				ID:   tag.GetId(),
+				Name: tag.GetName(),
+				Slug: tag.GetSlug(),
+			})
+		}
+	}
+
+	finalCollection.Tags = resultTags
 	finalCollection.CanLike = true
 	finalCollection.IsOwner = true
 

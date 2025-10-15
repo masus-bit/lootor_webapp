@@ -602,7 +602,7 @@ func (r *CollectionsRepository) UpdateCollectionFull(existsCollection *models.Co
 
 	var result models.Collections
 
-	if err := r.db.
+	if err = r.db.
 		Preload("User").
 		First(&result, "id = ?", existsCollection.Id).
 		Error; err != nil {

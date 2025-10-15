@@ -93,6 +93,7 @@ type CollectionItemsRequestUpdate struct {
 	Platform      *string  `json:"platform"`
 	Collection    *string  `json:"collection"`
 	ItemType      *string  `json:"itemType"`
+	Tags          []string `json:"tags"`
 }
 
 type CollectionItemsDataResponse struct {

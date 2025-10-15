@@ -39,14 +39,12 @@ func NewTagsService(tagsClient *tagsclient.GRPCTagsClient, userRepo *repositorie
 	}
 }
 
-func (s *TagsService) CreateTag(req *models.TagCreateRequest, authUser string) (*dto.CommonResponse, error) {
-	resp, err := s.tagsClient.CreateTag(context.Background(), req)
-	if err != nil {
-		return nil, fmt.Errorf("ошибка при создании тега: %v", err)
-	}
+func (s *TagsService) CreateTag(req *models.TagCreateRequest, authUser string) (*models.TagIDsResponse, error) {
+	resp, _ := s.tagsClient.CreateTag(context.Background(), req)
+
 	for _, tag := range resp.GetTags() {
 		if req.EntityID != "" && req.EntityType != "" {
-			_, err = s.AddTagToEntity(&models.AddTagToEntityRequest{
+			_, err := s.AddTagToEntity(&models.AddTagToEntityRequest{
 				TagID:      tag.GetId(),
 				EntityType: req.EntityType,
 				EntityID:   req.EntityID,
@@ -62,7 +60,7 @@ func (s *TagsService) CreateTag(req *models.TagCreateRequest, authUser string) (
 			"slug": tag.GetSlug(),
 		}
 
-		if err = s.es.IndexDocument(context.Background(), "tags", doc); err != nil {
+		if err := s.es.IndexDocument(context.Background(), "tags", doc); err != nil {
 			log.Printf("Failed to index tag: %v", err)
 		}
 	}
@@ -70,9 +68,12 @@ func (s *TagsService) CreateTag(req *models.TagCreateRequest, authUser string) (
 	_ = s.userRepo.IncrementExperience(authUser, int(utils.TagExp*float64(len(resp.GetTags()))))
 	_ = s.userRepo.IncrementSocialScore(authUser, 1*len(resp.GetTags()))
 
-	return &dto.CommonResponse{
-		Data: dto.Resp{Success: true},
-	}, nil
+	var tagIDs []string
+	for _, tag := range resp.GetTags() {
+		tagIDs = append(tagIDs, tag.GetId())
+	}
+
+	return &models.TagIDsResponse{Data: tagIDs}, nil
 }
 
 func (s *TagsService) SearchTags(name string) (*models.TagsDataResponse, error) {

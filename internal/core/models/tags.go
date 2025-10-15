@@ -108,3 +108,7 @@ type TagUpdateRequest struct {
 	Slug        string `json:"slug"`
 	Description string `json:"description"`
 }
+
+type TagIDsResponse struct {
+	Data []string `json:"data"`
+}

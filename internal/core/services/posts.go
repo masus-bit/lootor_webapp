@@ -381,18 +381,35 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateReq
 		}()
 	}
 
-	if len(req.Tags) > 0 {
-		go func() {
-			_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
-				EntityType: "post",
-				EntityId:   strconv.FormatUint(existPost.GetData().GetId(), 10),
-				TagIds:     req.Tags,
-			})
+	var tags *microservices.TagsCreateResponse
 
-		}()
+	if len(req.Tags) > 0 {
+		tags, err = s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
+			EntityType: "post",
+			EntityId:   strconv.FormatUint(existPost.GetData().GetId(), 10),
+			TagIds:     req.Tags,
+			Author:     existPost.GetData().GetAuthor(),
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var resultTags []models.ShortTags
+	resultTags = make([]models.ShortTags, 0)
+	if tags != nil {
+		for _, tag := range tags.GetTags() {
+			resultTags = append(resultTags, models.ShortTags{
+				ID:   tag.GetId(),
+				Name: tag.GetName(),
+				Slug: tag.GetSlug(),
+			})
+		}
 	}
 
 	resultPost := s.fillPost(post.Data, utils.NormalizeContent(post.Data.Content), nil, user, nil)
+	resultPost.Tags = resultTags
+
 	return &models.PostDataResponse{Data: *resultPost}, nil
 }
 
