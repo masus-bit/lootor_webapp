@@ -104,7 +104,7 @@ func (c *GRPCTagsClient) GetTagsByEntityId(ctx context.Context, dto *microservic
 	return resp, nil
 }
 
-func (c *GRPCTagsClient) AddTagsToEntity(ctx context.Context, dto *microservices.AddFewTagsToEntityRequest) (*microservices.TagsSuccessResponse, error) {
+func (c *GRPCTagsClient) AddTagsToEntity(ctx context.Context, dto *microservices.AddFewTagsToEntityRequest) (*microservices.GetShortsResponse, error) {
 	resp, err := c.client.AddTagsToEntity(ctx, dto)
 	if err != nil {
 		return nil, err
@@ -122,6 +122,16 @@ func (c *GRPCTagsClient) GetTagsByEntityIdsMap(ctx context.Context, dto *microse
 
 func (c *GRPCTagsClient) UpdateTagsOfEntity(ctx context.Context, dto *microservices.UpdateTagsOfEntityRequest) (*microservices.TagsCreateResponse, error) {
 	resp, err := c.client.UpdateTagsOfEntity(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *GRPCTagsClient) GetTagBySlug(ctx context.Context, slug string) (*microservices.TagItem, error) {
+	resp, err := c.client.GetTagBySlug(ctx, &microservices.GetTagBySlugRequest{
+		Slug: slug,
+	})
 	if err != nil {
 		return nil, err
 	}

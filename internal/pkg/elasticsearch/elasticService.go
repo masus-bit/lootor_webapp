@@ -533,6 +533,86 @@ func (es *ElasticService) IndexDocument(ctx context.Context, index string, doc m
 	return nil
 }
 
+func (es *ElasticService) BulkIndexDocuments(ctx context.Context, index string, docs []map[string]interface{}) error {
+	if len(docs) == 0 {
+		return nil
+	}
+
+	ctxCheck, cancelCheck := context.WithTimeout(ctx, 5*time.Second)
+	defer cancelCheck()
+
+	exists, err := es.indexExists(ctxCheck, index)
+	if err != nil {
+		return fmt.Errorf("index check failed: %w", err)
+	}
+
+	if !exists {
+		if err := es.createIndex(index); err != nil {
+			return fmt.Errorf("failed to create index: %w", err)
+		}
+	}
+
+	var buf strings.Builder
+	for _, doc := range docs {
+		id, ok := doc["id"].(string)
+		if !ok {
+			continue
+		}
+
+		meta := map[string]interface{}{
+			"index": map[string]interface{}{
+				"_index": index,
+				"_id":    id,
+			},
+		}
+
+		metaJSON, err := json.Marshal(meta)
+		if err != nil {
+			return fmt.Errorf("error encoding metadata: %w", err)
+		}
+
+		docJSON, err := json.Marshal(doc)
+		if err != nil {
+			return fmt.Errorf("error encoding document: %w", err)
+		}
+
+		buf.WriteString(string(metaJSON))
+		buf.WriteString("\n")
+		buf.WriteString(string(docJSON))
+		buf.WriteString("\n")
+	}
+
+	if buf.Len() == 0 {
+		return fmt.Errorf("no valid documents to index")
+	}
+
+	req := esapi.BulkRequest{
+		Body:    strings.NewReader(buf.String()),
+		Refresh: "wait_for",
+	}
+
+	res, err := req.Do(ctx, es.client)
+	if err != nil {
+		return fmt.Errorf("bulk request error: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return parseErrorResponse(res)
+	}
+
+	var response map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
+		return fmt.Errorf("error parsing bulk response: %w", err)
+	}
+
+	if errors, exists := response["errors"].(bool); exists && errors {
+		log.Printf("Bulk operation completed with errors: %v", response)
+	}
+
+	return nil
+}
+
 func (es *ElasticService) DeleteDocument(ctx context.Context, index, id string) error {
 	req := esapi.DeleteRequest{
 		Index:      index,

@@ -104,6 +104,25 @@ func (c *TagsController) FindEntitiesByTag(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// GetTagBySlug
+// @Summary получить все сущности по тегу с фильтром
+// @Tags tags
+// @Accept  json
+// @Produce  json
+// @Param id path string true "tag slug"
+// @Success 201 {object} models.TagDataResponse
+// @Router /public/tags/slug/{id} [get]
+func (c *TagsController) GetTagBySlug(ctx echo.Context) error {
+	tagId := ctx.Param("id")
+	response, err := c.tagsService.GetTagBySlug(tagId)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
 // AddTagToEntity
 // @Summary добавить тег к сущности
 // @Tags tags

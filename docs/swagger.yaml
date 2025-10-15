@@ -518,6 +518,27 @@ definitions:
           type: string
         type: array
     type: object
+  models.CollectionItemsProps:
+    properties:
+      boardGames:
+        type: integer
+      books:
+        type: integer
+      collectibleCards:
+        type: integer
+      collectibleFigures:
+        type: integer
+      comics:
+        type: integer
+      gamingHardware:
+        type: integer
+      steelbooks:
+        type: integer
+      videoGames:
+        type: integer
+      vinyl:
+        type: integer
+    type: object
   models.CollectionItemsRequestCreate:
     properties:
       collection:
@@ -553,18 +574,6 @@ definitions:
       tags:
         items:
           type: string
-        type: array
-    type: object
-  models.Entities:
-    properties:
-      collectionItems:
-        items: {}
-        type: array
-      collections:
-        items: {}
-        type: array
-      posts:
-        items: {}
         type: array
     type: object
   models.GetEventsRequest:
@@ -732,8 +741,10 @@ definitions:
         type: string
       entityType:
         type: string
-      name:
-        type: string
+      names:
+        items:
+          type: string
+        type: array
     type: object
   models.TagDataResponse:
     properties:
@@ -770,12 +781,12 @@ definitions:
     properties:
       author:
         type: string
+      collectionItemsProps:
+        $ref: '#/definitions/models.CollectionItemsProps'
       createdAt:
         type: string
       description:
         type: string
-      entities:
-        $ref: '#/definitions/models.Entities'
       id:
         type: string
       isPrimary:
@@ -1472,6 +1483,31 @@ paths:
       - description: offset
         in: query
         name: offset
+        required: true
+        type: string
+      - description: filter
+        in: query
+        name: ciFilter
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.TagDataResponse'
+      summary: получить все сущности по тегу с фильтром
+      tags:
+      - tags
+  /public/tags/slug/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: tag slug
+        in: path
+        name: id
         required: true
         type: string
       produces:

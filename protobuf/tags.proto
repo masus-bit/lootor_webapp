@@ -15,9 +15,10 @@ service TagsService {
   rpc UpdateTag(UpdateTagRequest) returns (TagItem);
   rpc GetAllTags(GetAllTagsRequest) returns (GetShortsResponse);
   rpc GetTagsByEntityId(GetTagsByEntityIdRequest) returns (GetShortsResponse);
-  rpc AddTagsToEntity(AddFewTagsToEntityRequest) returns (TagsSuccessResponse);
+  rpc AddTagsToEntity(AddFewTagsToEntityRequest) returns (GetShortsResponse);
   rpc GetTagsByEntityIdsMap(GetTagsByEntityIdsMapRequest) returns (TagsMapResponse);
   rpc UpdateTagsOfEntity(UpdateTagsOfEntityRequest) returns (TagsCreateResponse);
+  rpc GetTagBySlug(GetTagBySlugRequest) returns (TagItem);
 }
 
 message UpdateTagsOfEntityRequest {
@@ -49,6 +50,10 @@ message GetAllTagsRequest {}
 
 message GetTagRequest {
   string id = 1;
+}
+
+message GetTagBySlugRequest {
+  string slug = 1;
 }
 
 message RemoveTagsRequest {

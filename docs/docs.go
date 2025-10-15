@@ -819,6 +819,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/tags/slug/{id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "получить все сущности по тегу с фильтром",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "tag slug",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.TagDataResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/public/tags/{id}": {
             "get": {
                 "consumes": [
@@ -857,6 +888,13 @@ const docTemplate = `{
                         "type": "string",
                         "description": "offset",
                         "name": "offset",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter",
+                        "name": "ciFilter",
                         "in": "query",
                         "required": true
                     }
@@ -3414,6 +3452,38 @@ const docTemplate = `{
                 }
             }
         },
+        "models.CollectionItemsProps": {
+            "type": "object",
+            "properties": {
+                "boardGames": {
+                    "type": "integer"
+                },
+                "books": {
+                    "type": "integer"
+                },
+                "collectibleCards": {
+                    "type": "integer"
+                },
+                "collectibleFigures": {
+                    "type": "integer"
+                },
+                "comics": {
+                    "type": "integer"
+                },
+                "gamingHardware": {
+                    "type": "integer"
+                },
+                "steelbooks": {
+                    "type": "integer"
+                },
+                "videoGames": {
+                    "type": "integer"
+                },
+                "vinyl": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.CollectionItemsRequestCreate": {
             "type": "object",
             "properties": {
@@ -3467,23 +3537,6 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "models.Entities": {
-            "type": "object",
-            "properties": {
-                "collectionItems": {
-                    "type": "array",
-                    "items": {}
-                },
-                "collections": {
-                    "type": "array",
-                    "items": {}
-                },
-                "posts": {
-                    "type": "array",
-                    "items": {}
                 }
             }
         },
@@ -3739,8 +3792,11 @@ const docTemplate = `{
                 "entityType": {
                     "type": "string"
                 },
-                "name": {
-                    "type": "string"
+                "names": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -3798,14 +3854,14 @@ const docTemplate = `{
                 "author": {
                     "type": "string"
                 },
+                "collectionItemsProps": {
+                    "$ref": "#/definitions/models.CollectionItemsProps"
+                },
                 "createdAt": {
                     "type": "string"
                 },
                 "description": {
                     "type": "string"
-                },
-                "entities": {
-                    "$ref": "#/definitions/models.Entities"
                 },
                 "id": {
                     "type": "string"

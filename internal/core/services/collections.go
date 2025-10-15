@@ -82,15 +82,27 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	e := mapstructure.Decode(res, &response)
 	response.Id = res.Id
 
-	if len(dto.Tags) > 0 {
-		go func() {
-			_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
-				EntityType: "collection",
-				EntityId:   res.Id.String(),
-				TagIds:     dto.Tags,
-			})
+	var tags *microservices.GetShortsResponse
 
-		}()
+	if len(dto.Tags) > 0 {
+		tags, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
+			EntityType: "collection",
+			EntityId:   res.Id.String(),
+			TagIds:     dto.Tags,
+		})
+	}
+
+	var resultTags []models.ShortTags
+	resultTags = make([]models.ShortTags, 0)
+	if tags != nil {
+		for _, tag := range tags.Tags {
+			resultTags = append(resultTags, models.ShortTags{
+				ID:   tag.Id,
+				Name: tag.Name,
+				Slug: tag.Slug,
+			})
+		}
+		response.Tags = resultTags
 	}
 
 	if e != nil {

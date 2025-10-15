@@ -13,6 +13,7 @@ import (
 	"lootor/internal/pkg/elasticsearch"
 	"lootor/internal/pkg/utils"
 	"strconv"
+	"sync"
 )
 
 type TagsService struct {
@@ -40,40 +41,54 @@ func NewTagsService(tagsClient *tagsclient.GRPCTagsClient, userRepo *repositorie
 }
 
 func (s *TagsService) CreateTag(req *models.TagCreateRequest, authUser string) (*models.TagIDsResponse, error) {
-	resp, _ := s.tagsClient.CreateTag(context.Background(), req)
+	resp, err := s.tagsClient.CreateTag(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
 
-	for _, tag := range resp.GetTags() {
-		if req.EntityID != "" && req.EntityType != "" {
-			_, err := s.AddTagToEntity(&models.AddTagToEntityRequest{
-				TagID:      tag.GetId(),
-				EntityType: req.EntityType,
-				EntityID:   req.EntityID,
-			}, authUser, "user")
-			if err != nil {
-				return nil, fmt.Errorf("ошибка при добавлении тега к сущности: %v", err)
-			}
+	tags := resp.GetTags()
+	if len(tags) == 0 {
+		return &models.TagIDsResponse{Data: []string{}}, nil
+	}
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := s.bulkIndexTags(tags); err != nil {
+			log.Printf("Failed to index tags in bulk: %v", err)
 		}
+	}()
 
-		doc := map[string]interface{}{
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		exp := int(utils.TagExp * float64(len(tags)))
+		// Выполняем последовательно, но параллельно с индексацией
+		_ = s.userRepo.IncrementExperience(authUser, exp)
+		_ = s.userRepo.IncrementSocialScore(authUser, len(tags))
+	}()
+
+	tagIDs := make([]string, len(tags))
+	for i, tag := range tags {
+		tagIDs[i] = tag.GetId()
+	}
+
+	return &models.TagIDsResponse{Data: tagIDs}, nil
+}
+
+func (s *TagsService) bulkIndexTags(tags []*microservices.TagCreateResponse) error {
+	docs := make([]map[string]interface{}, len(tags))
+	for i, tag := range tags {
+		docs[i] = map[string]interface{}{
 			"id":   tag.GetId(),
 			"name": tag.GetName(),
 			"slug": tag.GetSlug(),
 		}
-
-		if err := s.es.IndexDocument(context.Background(), "tags", doc); err != nil {
-			log.Printf("Failed to index tag: %v", err)
-		}
 	}
 
-	_ = s.userRepo.IncrementExperience(authUser, int(utils.TagExp*float64(len(resp.GetTags()))))
-	_ = s.userRepo.IncrementSocialScore(authUser, 1*len(resp.GetTags()))
-
-	var tagIDs []string
-	for _, tag := range resp.GetTags() {
-		tagIDs = append(tagIDs, tag.GetId())
-	}
-
-	return &models.TagIDsResponse{Data: tagIDs}, nil
+	return s.es.BulkIndexDocuments(context.Background(), "tags", docs)
 }
 
 func (s *TagsService) SearchTags(name string) (*models.TagsDataResponse, error) {
@@ -217,6 +232,14 @@ func (s *TagsService) GetTagsByEntityId(entityId string) ([]models.ShortTags, er
 		})
 	}
 	return result, nil
+}
+
+func (s *TagsService) GetTagBySlug(slug string) (*models.Tags, error) {
+	tag, err := s.tagsClient.GetTagBySlug(context.Background(), slug)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при поиске тега: %v", err)
+	}
+	return s.convertProtoToModel(tag, "", false, ""), nil
 }
 
 func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLogin string, isPremium bool, filter string) *models.Tags {
