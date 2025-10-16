@@ -806,7 +806,7 @@ func (r *CollectionsRepository) GetCollectionsByIds(ids []string, counts map[uui
 		temp.TotalPrice = totalPrices[collection.Id]
 		temp.ShippingTotal = shippingCosts[collection.Id]
 		temp.LikesCount = int64(len(collection.Likes))
-		temp.CanLike = false
+		temp.CanLike = true
 		temp.IsOwner = authorizedUser == temp.User.Login
 		if authorizedUser != "" {
 			temp.CanLike = !slices.Contains(collection.Likes, authorizedUser)
