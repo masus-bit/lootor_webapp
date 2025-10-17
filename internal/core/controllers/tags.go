@@ -74,7 +74,7 @@ func (c *TagsController) CreateTag(ctx echo.Context) error {
 }
 
 // FindEntitiesByTag
-// @Summary получить все сущности по тегу с фильтром
+// @Summary получить все сущности по slug тегa с фильтром
 // @Tags tags
 // @Accept  json
 // @Produce  json
@@ -86,7 +86,7 @@ func (c *TagsController) CreateTag(ctx echo.Context) error {
 // @Success 201 {object} models.TagDataResponse
 // @Router /public/tags/{id} [get]
 func (c *TagsController) FindEntitiesByTag(ctx echo.Context) error {
-	tagId := ctx.Param("id")
+	tagSlug := ctx.Param("id")
 	entityType := ctx.QueryParam("entityType")
 	limit := ctx.QueryParam("limit")
 	offset := ctx.QueryParam("offset")
@@ -95,26 +95,7 @@ func (c *TagsController) FindEntitiesByTag(ctx echo.Context) error {
 		IsAuthenticated bool
 		UserLogin       string
 	})
-	response, err := c.tagsService.FindAllEntitiesByTag(tagId, entityType, limit, offset, authInfo.UserLogin, ciFilter)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
-	}
-	return ctx.JSON(http.StatusOK, response)
-}
-
-// GetTagBySlug
-// @Summary получить все сущности по тегу с фильтром
-// @Tags tags
-// @Accept  json
-// @Produce  json
-// @Param id path string true "tag slug"
-// @Success 201 {object} models.TagDataResponse
-// @Router /public/tags/slug/{id} [get]
-func (c *TagsController) GetTagBySlug(ctx echo.Context) error {
-	tagId := ctx.Param("id")
-	response, err := c.tagsService.GetTagBySlug(tagId)
+	response, err := c.tagsService.FindAllEntitiesByTag(tagSlug, entityType, limit, offset, authInfo.UserLogin, ciFilter)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

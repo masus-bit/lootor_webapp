@@ -819,37 +819,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/public/tags/slug/{id}": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "tags"
-                ],
-                "summary": "получить все сущности по тегу с фильтром",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "tag slug",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/models.TagDataResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/public/tags/{id}": {
             "get": {
                 "consumes": [
@@ -861,7 +830,7 @@ const docTemplate = `{
                 "tags": [
                     "tags"
                 ],
-                "summary": "получить все сущности по тегу с фильтром",
+                "summary": "получить все сущности по slug тегa с фильтром",
                 "parameters": [
                     {
                         "type": "string",
@@ -3780,6 +3749,23 @@ const docTemplate = `{
                 }
             }
         },
+        "models.SubUsers": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "isPremium": {
+                    "type": "boolean"
+                },
+                "login": {
+                    "type": "string"
+                },
+                "profileName": {
+                    "type": "string"
+                }
+            }
+        },
         "models.TagCreateRequest": {
             "type": "object",
             "properties": {
@@ -3852,7 +3838,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "author": {
-                    "type": "string"
+                    "$ref": "#/definitions/models.SubUsers"
                 },
                 "collectionItemsProps": {
                     "$ref": "#/definitions/models.CollectionItemsProps"
