@@ -97,6 +97,7 @@ message TagDataResponse {
   int64 total_posts = 3;
   int64 total_collections = 4;
   int64 total_collection_items = 5;
+  map<string, GetShortsResponse> tags_map = 6;
 }
 
 message CreateTagsRequest {

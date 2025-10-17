@@ -17,8 +17,8 @@ type Tags struct {
 	IsPrimary   bool   `gorm:"default:true" json:"isPrimary"`
 	Description string `gorm:"type:text" json:"description"`
 
-	Slug   string `gorm:"type:varchar(255);not null;unique" json:"slug"`
-	Author string `json:"author"`
+	Slug   string   `gorm:"type:varchar(255);not null;unique" json:"slug"`
+	Author SubUsers `json:"author"`
 
 	TotalPosts           int64 `json:"totalPosts"`
 	TotalCollections     int64 `json:"totalCollections"`

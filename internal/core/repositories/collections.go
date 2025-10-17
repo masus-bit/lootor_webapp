@@ -8,8 +8,10 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 	"log"
+	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
+	"lootor/internal/pkg/utils"
 	"slices"
 	"strconv"
 )
@@ -792,7 +794,7 @@ func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[
 	return collectionsMap, nil
 }
 
-func (r *CollectionsRepository) GetCollectionsByIds(ids []string, counts map[uuid.UUID]int64, totalPrices map[uuid.UUID]float64, shippingCosts map[uuid.UUID]float64, authorizedUser string) ([]models.CollectionsResponse, error) {
+func (r *CollectionsRepository) GetCollectionsByIds(ids []string, counts map[uuid.UUID]int64, totalPrices map[uuid.UUID]float64, shippingCosts map[uuid.UUID]float64, authorizedUser string, tagsMap map[string]*microservices.GetShortsResponse) ([]models.CollectionsResponse, error) {
 	var collections []models.Collections
 	err := r.db.Where("id IN (?)", ids).Preload("User").Find(&collections).Error
 	if err != nil {
@@ -810,6 +812,11 @@ func (r *CollectionsRepository) GetCollectionsByIds(ids []string, counts map[uui
 		temp.IsOwner = authorizedUser == temp.User.Login
 		if authorizedUser != "" {
 			temp.CanLike = !slices.Contains(collection.Likes, authorizedUser)
+		}
+		if len(tagsMap) > 0 {
+			tagsProto := tagsMap[collection.Id.String()].Tags
+			tempTags := utils.NormalizeTagsShort(tagsProto)
+			temp.Tags = tempTags
 		}
 
 		result = append(result, temp)

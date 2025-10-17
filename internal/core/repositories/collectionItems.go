@@ -7,8 +7,10 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 	"log"
+	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
+	"lootor/internal/pkg/utils"
 	"reflect"
 	"slices"
 	"strconv"
@@ -461,7 +463,7 @@ func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin st
 	return collectionItemsMap, nil
 }
 
-func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin, filter string) ([]models.CollectionItemsResponse, error) {
+func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin, filter string, tagsMap map[string]*microservices.GetShortsResponse) ([]models.CollectionItemsResponse, error) {
 	var collectionItems []models.CollectionItems
 	query := r.db.Where("id IN (?)", ids).
 		Preload("Collections").
@@ -483,6 +485,11 @@ func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin, filt
 		err = mapstructure.Decode(collectionItem, &temp)
 		if err != nil {
 			return nil, err
+		}
+		if len(tagsMap) > 0 {
+			tagsProto := tagsMap[collectionItem.Id.String()].Tags
+			tempTags := utils.NormalizeTagsShort(tagsProto)
+			temp.Tags = tempTags
 		}
 
 		if len(collectionItem.Collections) > 0 {

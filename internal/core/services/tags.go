@@ -101,7 +101,7 @@ func (s *TagsService) SearchTags(name string) (*models.TagsDataResponse, error) 
 
 	var result []models.Tags
 	for _, tag := range tags.GetTags() {
-		result = append(result, *s.convertProtoToModel(tag, "", false, ""))
+		result = append(result, *s.convertProtoToModel(tag, "", false, "", nil))
 	}
 
 	return &models.TagsDataResponse{Data: result}, nil
@@ -134,10 +134,22 @@ func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, aut
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
 	}
-	resultTag := s.convertProtoToModel(tag.GetTag(), authUserLogin, isPremium, ciFilter)
+	author, _ := s.userRepo.GetUserByLogin(tag.GetTag().GetAuthor())
+
+	tagsMap := tag.TagsMap
+	resultTag := s.convertProtoToModel(tag.GetTag(), authUserLogin, isPremium, ciFilter, tagsMap)
 	resultTag.TotalPosts = tag.GetTotalPosts()
 	resultTag.TotalCollections = tag.GetTotalCollections()
 	resultTag.TotalCollectionItems = tag.GetTotalCollectionItems()
+	if author != nil {
+		resultTag.Author = models.SubUsers{
+			Login:       author.Login,
+			AvatarUrl:   author.AvatarUrl,
+			ProfileName: author.ProfileName,
+			IsPremium:   author.IsPremium,
+		}
+	}
+
 	return &models.TagDataResponse{Data: *resultTag, Total: tag.GetTotalEntities()}, nil
 }
 
@@ -199,7 +211,7 @@ func (s *TagsService) UpdateTag(req *models.TagUpdateRequest) (*models.TagDataRe
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при обновлении тега: %v", err)
 	}
-	return &models.TagDataResponse{Data: *s.convertProtoToModel(tag, "", false, "")}, nil
+	return &models.TagDataResponse{Data: *s.convertProtoToModel(tag, "", false, "", nil)}, nil
 }
 
 func (s *TagsService) GetAllTags() ([]models.ShortTags, error) {
@@ -239,10 +251,10 @@ func (s *TagsService) GetTagBySlug(slug string) (*models.Tags, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при поиске тега: %v", err)
 	}
-	return s.convertProtoToModel(tag, "", false, ""), nil
+	return s.convertProtoToModel(tag, "", false, "", nil), nil
 }
 
-func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLogin string, isPremium bool, filter string) *models.Tags {
+func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLogin string, isPremium bool, filter string, tagsMap map[string]*microservices.GetShortsResponse) *models.Tags {
 	var primaryTag *models.Tags
 	var synonyms []models.Tags
 	var entities models.Entities
@@ -250,13 +262,13 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 	collectionItemProps = nil
 
 	if tag.PrimaryId != "" {
-		primaryTag = s.convertProtoToModel(tag.Primary, userAuthLogin, isPremium, filter)
+		primaryTag = s.convertProtoToModel(tag.Primary, userAuthLogin, isPremium, filter, tagsMap)
 	} else {
 		primaryTag = nil
 	}
 	if tag.Synonyms != nil || len(tag.Synonyms) > 0 {
 		for _, synonym := range tag.Synonyms {
-			synonyms = append(synonyms, *s.convertProtoToModel(synonym, userAuthLogin, isPremium, filter))
+			synonyms = append(synonyms, *s.convertProtoToModel(synonym, userAuthLogin, isPremium, filter, tagsMap))
 		}
 	} else {
 		synonyms = []models.Tags{}
@@ -267,7 +279,7 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 		for _, entity := range tag.Entities {
 			entityIDs = append(entityIDs, entity.EntityId)
 		}
-		resEntities, ciProps, err := s.getEntitiesByType(entitiesType, userAuthLogin, entityIDs, isPremium, filter)
+		resEntities, ciProps, err := s.getEntitiesByType(entitiesType, userAuthLogin, entityIDs, isPremium, filter, tagsMap)
 		if err != nil {
 			return nil
 		}
@@ -282,7 +294,6 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 		ID:                   tag.Id,
 		Name:                 tag.Name,
 		Slug:                 tag.Slug,
-		Author:               tag.Author,
 		Description:          tag.Description,
 		CreatedAt:            tag.CreatedAt,
 		PrimaryID:            tag.PrimaryId,
@@ -294,7 +305,7 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 	}
 }
 
-func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entityIDs []string, isPremium bool, filter string) (*models.Entities, *models.CollectionItemsProps, error) {
+func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entityIDs []string, isPremium bool, filter string, tagsMap map[string]*microservices.GetShortsResponse) (*models.Entities, *models.CollectionItemsProps, error) {
 	var entities models.Entities
 	var collectionItemsProps *models.CollectionItemsProps
 	collectionItemsProps = nil
@@ -343,7 +354,7 @@ func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entity
 			}
 		}
 
-		collectionItems, err := s.ciRepo.GetCollectionItemsByIDs(entityIDs, authUserLogin, filter)
+		collectionItems, err := s.ciRepo.GetCollectionItemsByIDs(entityIDs, authUserLogin, filter, tagsMap)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -356,7 +367,7 @@ func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entity
 		counts, _ := s.ciRepo.GetCountCIByIDs(collectionIDsUUID)
 		totalPrices, _ := s.ciRepo.GetSumsByCollectionIDs(collectionIDsUUID)
 		shippingCosts, _ := s.ciRepo.GetShippingCostsByCollectionIDs(collectionIDsUUID)
-		collections, err := s.collectionRepo.GetCollectionsByIds(entityIDs, counts, totalPrices, shippingCosts, authUserLogin)
+		collections, err := s.collectionRepo.GetCollectionsByIds(entityIDs, counts, totalPrices, shippingCosts, authUserLogin, tagsMap)
 		if err != nil {
 			return nil, nil, err
 		}
