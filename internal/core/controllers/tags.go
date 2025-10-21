@@ -241,11 +241,11 @@ func (c *TagsController) UpdateTag(ctx echo.Context) error {
 }
 
 // GetAllTags
-// @Summary Поиск по тегам
+// @Summary Получить все теги
 // @Tags tags
 // @Accept  json
 // @Produce  json
-// @Success 201 {object} models.TagsDataResponse
+// @Success 201 {object} models.TagsShortDataResponse
 // @Router /secured/tags/all [get]
 func (c *TagsController) GetAllTags(ctx echo.Context) error {
 	response, err := c.tagsService.GetAllTags()
@@ -258,12 +258,12 @@ func (c *TagsController) GetAllTags(ctx echo.Context) error {
 }
 
 // Subscribe
-// @Summary Поиск по тегам
+// @Summary подписка на тег
 // @Tags tags
 // @Accept  json
 // @Produce  json
 // @Param id path string true "tag id"
-// @Success 201 {object} models.TagsDataResponse
+// @Success 201 {object} dto.CommonResponse
 // @Router /secured/tags/subscribe/{id} [get]
 func (c *TagsController) Subscribe(ctx echo.Context) error {
 	id := ctx.Param("id")

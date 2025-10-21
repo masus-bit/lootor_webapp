@@ -215,7 +215,7 @@ func (s *TagsService) UpdateTag(req *models.TagUpdateRequest) (*models.TagDataRe
 	return &models.TagDataResponse{Data: *s.convertProtoToModel(tag, "", false, "", nil)}, nil
 }
 
-func (s *TagsService) GetAllTags() ([]models.ShortTags, error) {
+func (s *TagsService) GetAllTags() (*models.TagsShortDataResponse, error) {
 	tags, err := s.tagsClient.GetAllTags(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
@@ -228,7 +228,7 @@ func (s *TagsService) GetAllTags() ([]models.ShortTags, error) {
 			Slug: tag.GetSlug(),
 		})
 	}
-	return result, nil
+	return &models.TagsShortDataResponse{Data: result}, nil
 }
 
 func (s *TagsService) GetTagsByEntityId(entityId string) ([]models.ShortTags, error) {

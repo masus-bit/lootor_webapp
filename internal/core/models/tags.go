@@ -112,3 +112,7 @@ type TagUpdateRequest struct {
 type TagIDsResponse struct {
 	Data []string `json:"data"`
 }
+
+type TagsShortDataResponse struct {
+	Data []ShortTags `json:"data"`
+}

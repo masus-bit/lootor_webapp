@@ -688,6 +688,15 @@ definitions:
           type: string
         type: array
     type: object
+  models.ShortTags:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
   models.SignInRequest:
     properties:
       email:
@@ -830,6 +839,13 @@ definitions:
       data:
         items:
           $ref: '#/definitions/models.Tags'
+        type: array
+    type: object
+  models.TagsShortDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.ShortTags'
         type: array
     type: object
   models.UserRequestUpdate:
@@ -2392,8 +2408,8 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.TagsDataResponse'
-      summary: Поиск по тегам
+            $ref: '#/definitions/models.TagsShortDataResponse'
+      summary: Получить все теги
       tags:
       - tags
   /secured/tags/entity:
@@ -2454,8 +2470,8 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.TagsDataResponse'
-      summary: Поиск по тегам
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: подписка на тег
       tags:
       - tags
   /secured/user/delete:

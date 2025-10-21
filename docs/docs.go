@@ -2235,12 +2235,12 @@ const docTemplate = `{
                 "tags": [
                     "tags"
                 ],
-                "summary": "Поиск по тегам",
+                "summary": "Получить все теги",
                 "responses": {
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.TagsDataResponse"
+                            "$ref": "#/definitions/models.TagsShortDataResponse"
                         }
                     }
                 }
@@ -2323,7 +2323,7 @@ const docTemplate = `{
                 "tags": [
                     "tags"
                 ],
-                "summary": "Поиск по тегам",
+                "summary": "подписка на тег",
                 "parameters": [
                     {
                         "type": "string",
@@ -2337,7 +2337,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.TagsDataResponse"
+                            "$ref": "#/definitions/dto.CommonResponse"
                         }
                     }
                 }
@@ -3735,6 +3735,20 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ShortTags": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                }
+            }
+        },
         "models.SignInRequest": {
             "type": "object",
             "required": [
@@ -3950,6 +3964,17 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.Tags"
+                    }
+                }
+            }
+        },
+        "models.TagsShortDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ShortTags"
                     }
                 }
             }

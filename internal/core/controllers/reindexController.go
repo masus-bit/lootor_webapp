@@ -129,8 +129,8 @@ func (c *ReindexController) getTagData() ([]map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to get tags: %w", err)
 	}
 
-	result := make([]map[string]interface{}, len(tags))
-	for i, tag := range tags {
+	result := make([]map[string]interface{}, len(tags.Data))
+	for i, tag := range tags.Data {
 		result[i] = map[string]interface{}{
 			"id":   tag.ID,
 			"name": tag.Name,
