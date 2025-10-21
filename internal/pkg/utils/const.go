@@ -6,6 +6,7 @@ const (
 	EventTargetCollectionItem = "collectionItem"
 	EventTargetWL             = "wishListItem"
 	EventTargetPost           = "post"
+	EventTargetTag            = "tag"
 )
 
 const (
@@ -14,6 +15,7 @@ const (
 	EventActionDelete    = "delete"
 	EventActionSubscribe = "subscribe"
 	EventActionLike      = "like"
+	EventActionAddTag    = "tagAdd"
 )
 
 const (

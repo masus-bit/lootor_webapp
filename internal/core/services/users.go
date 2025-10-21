@@ -9,8 +9,10 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/mitchellh/mapstructure"
+	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
+	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/auth"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/mail"
@@ -34,11 +36,12 @@ type UserService struct {
 	notificationsService *NotificationsService
 	collectionRepo       *repositories.CollectionsRepository
 	postsService         *PostsService
+	tagsClient           *tagsclient.GRPCTagsClient
 }
 
-func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService, eventsService *EventsService, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, postsService *PostsService) *UserService {
+func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService, eventsService *EventsService, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, postsService *PostsService, tagsClient *tagsclient.GRPCTagsClient) *UserService {
 	_ = godotenv.Load()
-	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, eventsService: eventsService, notificationsService: notificationsService, collectionRepo: collectionRepo, postsService: postsService}
+	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, eventsService: eventsService, notificationsService: notificationsService, collectionRepo: collectionRepo, postsService: postsService, tagsClient: tagsClient}
 }
 
 func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*models.DataUserResponseForSingleUser, error) {
@@ -130,6 +133,19 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	if err != nil {
 		return nil, err
 	}
+	subTags, _ := s.tagsClient.GetTagsByIDs(context.Background(), &microservices.GetTagsByIDsRequest{Ids: dbUser.TagsSubscriptions})
+	var resultTags []models.SubTags
+	resultTags = make([]models.SubTags, 0)
+	if len(subTags.GetTags()) > 0 || subTags != nil {
+		for _, tag := range subTags.GetTags() {
+			resultTags = append(resultTags, models.SubTags{
+				ID:   tag.Id,
+				Name: tag.Name,
+				Slug: tag.Slug,
+			})
+		}
+	}
+	response.TagsSubscriptions = resultTags
 	response.Subscriptions = subscriptions
 
 	return &models.DataUserResponseForSingleUser{Data: response}, nil

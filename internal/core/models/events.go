@@ -19,12 +19,16 @@ type Events struct {
 	TargetItemID         string `gorm:"type:uuid" json:"targetItemId"`
 	TargetWishListItemID string `gorm:"type:uuid" json:"targetWishListItemId"`
 	TargetPostId         string `json:"targetPostId"`
+	TargetTagID          string `json:"targetTagId"`
 
 	TargetUser         *SubUsers                `gorm:"-" json:"targetUser"`
 	TargetCollection   *CollectionsResponse     `gorm:"-" json:"targetCollection"`
 	TargetItem         *CollectionItemsResponse `gorm:"-" json:"targetItem"`
 	TargetWishListItem *WishListItemResponse    `gorm:"-" json:"targetWishListItem"`
 	TargetPost         *Posts                   `gorm:"-" json:"targetPost"`
+	TargetTag          *ShortTags               `gorm:"-" json:"targetTag"`
+
+	TagRelatedEntityType string `json:"tagRelatedEntityType"`
 }
 
 type EventsDataResponse struct {
@@ -33,19 +37,23 @@ type EventsDataResponse struct {
 }
 
 type EventsParams struct {
-	TargetUserLogin    string
-	TargetCollectionID uuid.UUID
-	TargetItemID       uuid.UUID
-	TargetWLID         uuid.UUID
-	TargetPostID       string
+	TargetUserLogin      string
+	TargetCollectionID   uuid.UUID
+	TargetItemID         uuid.UUID
+	TargetWLID           uuid.UUID
+	TargetPostID         string
+	TargetTagID          uuid.UUID
+	TagRelatedEntityType string
 }
 
 type EventsParamsStrings struct {
-	TargetUserLogin    string
-	TargetCollectionID string
-	TargetItemID       string
-	TargetWLID         string
-	TargetPostID       string
+	TargetUserLogin      string
+	TargetCollectionID   string
+	TargetItemID         string
+	TargetWLID           string
+	TargetPostID         string
+	TargetTagID          string
+	TagRelatedEntityType string
 }
 
 type AddEventRequest struct {

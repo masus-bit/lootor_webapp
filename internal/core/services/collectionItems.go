@@ -145,6 +145,16 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 			EntityId:   collectionItemResponse.Id.String(),
 			TagIds:     dto.Tags,
 		})
+
+		if !collection.IsPrivate {
+			for _, tag := range tags.GetTags() {
+				tagUUID, _ := uuid.Parse(tag.GetId())
+				eventError := s.eventsService.AddEvent(collectionItemResponse.Owner.Login, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TagRelatedEntityType: utils.EventTargetCollectionItem})
+				if eventError != nil {
+					log.Default().Print(eventError)
+				}
+			}
+		}
 	}
 
 	var resultTags []models.ShortTags
@@ -258,7 +268,7 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 	}
 
 	if len(dto.Tags) > 0 {
-		_, err = s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
+		tags, err := s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
 			EntityType: "collectionItem",
 			EntityId:   id,
 			TagIds:     dto.Tags,
@@ -266,6 +276,15 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 		})
 		if err != nil {
 			return nil, err
+		}
+		if !exists.Collections[0].IsPrivate {
+			for _, tag := range tags.GetTags() {
+				tagUUID, _ := uuid.Parse(tag.GetId())
+				eventError := s.eventsService.AddEvent(exists.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TagRelatedEntityType: utils.EventTargetCollectionItem})
+				if eventError != nil {
+					log.Default().Print(eventError)
+				}
+			}
 		}
 	}
 

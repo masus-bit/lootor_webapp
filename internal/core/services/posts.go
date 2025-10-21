@@ -75,11 +75,23 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 	var tags []models.ShortTags
 	if len(request.Tags) > 0 {
 		go func() {
-			_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
+			tagsAdded, err := s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
 				EntityType: "post",
 				EntityId:   strconv.FormatUint(post.Data.Id, 10),
 				TagIds:     request.Tags,
 			})
+			if err != nil {
+				fmt.Println(err)
+			}
+			if tagsAdded != nil {
+				for _, tag := range tagsAdded.GetTags() {
+					tagUUID, _ := uuid.Parse(tag.GetId())
+					eventError := s.eventsService.AddEvent(post.GetData().GetAuthor(), utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TagRelatedEntityType: utils.EventTargetPost})
+					if eventError != nil {
+						log.Default().Print(eventError)
+					}
+				}
+			}
 
 		}()
 		respTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{
@@ -392,6 +404,15 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateReq
 		})
 		if err != nil {
 			return nil, err
+		}
+		if tags != nil {
+			for _, tag := range tags.GetTags() {
+				tagUUID, _ := uuid.Parse(tag.GetId())
+				eventError := s.eventsService.AddEvent(post.GetData().GetAuthor(), utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TagRelatedEntityType: utils.EventTargetPost})
+				if eventError != nil {
+					log.Default().Print(eventError)
+				}
+			}
 		}
 	}
 

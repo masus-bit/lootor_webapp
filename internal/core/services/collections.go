@@ -90,6 +90,15 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 			EntityId:   res.Id.String(),
 			TagIds:     dto.Tags,
 		})
+		if !dto.IsPrivate {
+			for _, tag := range tags.GetTags() {
+				tagUUID, _ := uuid.Parse(tag.GetId())
+				eventError := s.eventsService.AddEvent(dto.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TagRelatedEntityType: utils.EventTargetCollection})
+				if eventError != nil {
+					log.Default().Print(eventError)
+				}
+			}
+		}
 	}
 
 	var resultTags []models.ShortTags
@@ -178,6 +187,15 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 		})
 		if err != nil {
 			return nil, err
+		}
+		if !*dto.IsPrivate {
+			for _, tag := range tags.GetTags() {
+				tagUUID, _ := uuid.Parse(tag.GetId())
+				eventError := s.eventsService.AddEvent(exists.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TagRelatedEntityType: utils.EventTargetCollection})
+				if eventError != nil {
+					log.Default().Print(eventError)
+				}
+			}
 		}
 	}
 
@@ -450,7 +468,7 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 		collectionItems = append(collectionItems, temp)
 	}
 
-	protoTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: id})
+	protoTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: dbCollection.Id.String()})
 	if err != nil {
 		return nil, err
 	}

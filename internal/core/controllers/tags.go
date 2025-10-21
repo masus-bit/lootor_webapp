@@ -239,3 +239,43 @@ func (c *TagsController) UpdateTag(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
+
+// GetAllTags
+// @Summary Поиск по тегам
+// @Tags tags
+// @Accept  json
+// @Produce  json
+// @Success 201 {object} models.TagsDataResponse
+// @Router /secured/tags/all [get]
+func (c *TagsController) GetAllTags(ctx echo.Context) error {
+	response, err := c.tagsService.GetAllTags()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
+// Subscribe
+// @Summary Поиск по тегам
+// @Tags tags
+// @Accept  json
+// @Produce  json
+// @Param id path string true "tag id"
+// @Success 201 {object} models.TagsDataResponse
+// @Router /secured/tags/subscribe/{id} [get]
+func (c *TagsController) Subscribe(ctx echo.Context) error {
+	id := ctx.Param("id")
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+	response, err := c.tagsService.Subscribe(id, authUser)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}

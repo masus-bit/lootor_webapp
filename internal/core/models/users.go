@@ -26,6 +26,7 @@ type Users struct {
 	Subscribers       int             `json:"subscribers"`
 	SubscribersLogins pq.StringArray  `gorm:"type:text[]" json:"subscribersLogins"`
 	Subscriptions     pq.StringArray  `gorm:"type:text[]" json:"subscriptions"`
+	TagsSubscriptions pq.StringArray  `gorm:"type:text[]" json:"tagsSubscriptions"`
 	WishListItems     []WishListItems `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
 	IsPremium         bool            `gorm:"default:false" json:"isPremium"`
 	PremiumSince      time.Time       `json:"premiumSince,omitempty"`
@@ -95,6 +96,7 @@ type UserResponse struct {
 	BackgroundUrl         string          `json:"backgroundUrl"`
 	Subscribers           int             `json:"subscribers"`
 	Subscriptions         []string        `json:"subscriptions"`
+	TagsSubscriptions     []string        `json:"tagsSubscriptions"`
 	SubscribersLogins     []string        `json:"subscribersLogins"`
 	SubscriptionsExtended []SubUsers      `json:"subscriptionsExtended" mapstructure:"-"`
 	SubscribersExtended   []SubUsers      `json:"subscribersExtended" mapstructure:"-"`
@@ -128,6 +130,7 @@ type UserResponseForSingleUser struct {
 	SubscribersLogins    []SubUsers      `json:"subscribersLogins" mapstructure:"-"`
 	Subscribers          int             `json:"subscribers"`
 	Subscriptions        []SubUsers      `json:"subscriptions" mapstructure:"-"`
+	TagsSubscriptions    []SubTags       `json:"tagsSubscriptions" mapstructure:"-"`
 	CanSubscribe         bool            `json:"canSubscribe"`
 	CollectionItemsCount int             `json:"collectionItemsCount" default:"0"`
 	CollectionsCount     int             `json:"collectionsCount" default:"0"`
@@ -247,6 +250,12 @@ type TelegramOauthRequest struct {
 	PhotoUrl  string `json:"photo_url"`
 	AuthDate  int64  `json:"auth_date"`
 	Hash      string `json:"hash"`
+}
+
+type SubTags struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
 }
 
 func (u *Users) GetLogin() string               { return u.Login }

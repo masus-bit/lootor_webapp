@@ -43,11 +43,13 @@ func (s *EventsService) AddEvent(userLogin, action, target, title string, params
 		TargetName:      title,
 		InitiatorLogin:  userLogin,
 		Params: models.EventsParamsStrings{
-			TargetUserLogin:    params.TargetUserLogin,
-			TargetCollectionID: params.TargetCollectionID.String(),
-			TargetItemID:       params.TargetItemID.String(),
-			TargetWLID:         params.TargetWLID.String(),
-			TargetPostID:       params.TargetPostID,
+			TargetUserLogin:      params.TargetUserLogin,
+			TargetCollectionID:   params.TargetCollectionID.String(),
+			TargetItemID:         params.TargetItemID.String(),
+			TargetWLID:           params.TargetWLID.String(),
+			TargetPostID:         params.TargetPostID,
+			TargetTagID:          params.TargetTagID.String(),
+			TagRelatedEntityType: params.TagRelatedEntityType,
 		},
 	})
 	if err != nil {
@@ -125,6 +127,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	var itemIDs []string
 	var wlIDs []string
 	var postIDs []string
+	var tagIDs []string
 
 	for _, event := range events {
 		if event.InitiatorLogin != "" {
@@ -145,6 +148,17 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		if event.TargetPostId != "" {
 			postIDs = append(postIDs, event.TargetPostId)
 		}
+		if event.TargetTagId != "" {
+			tagIDs = append(tagIDs, event.TargetTagId)
+			switch event.TagRelatedEntityType {
+			case "collection":
+				collectionIDs = append(collectionIDs, event.TargetCollectionId)
+			case "item":
+				itemIDs = append(itemIDs, event.TargetItemId)
+			case "post":
+				postIDs = append(postIDs, event.TargetPostId)
+			}
+		}
 	}
 
 	var wg sync.WaitGroup
@@ -154,6 +168,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	var itemsMap map[string]models.CollectionItemsResponse
 	var wlMap map[string]models.WishListItemResponse
 	var postsMap map[string]models.Posts
+	var tagsMap map[string]models.ShortTags
 
 	var collectionsTagsMap, itemsTagsMap, postsTagsMap map[string][]models.ShortTags
 
@@ -161,7 +176,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	itemsTagsMap = make(map[string][]models.ShortTags)
 	postsTagsMap = make(map[string][]models.ShortTags)
 
-	wg.Add(5)
+	wg.Add(6)
 
 	go func() {
 		defer wg.Done()
@@ -252,6 +267,25 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 				}
 			}
 		}
+		go func() {
+			defer wg.Done()
+			tagsRaw, err := s.tagsClient.GetTagsByIdsMap(context.Background(), &microservices.GetTagsByIDsRequest{
+				Ids: tagIDs,
+			})
+			if err != nil {
+				return
+			}
+			if tagsRaw != nil {
+				for key, tag := range tagsRaw.GetTags() {
+					tagsMap[key] = models.ShortTags{
+						ID:   tag.GetId(),
+						Name: tag.GetName(),
+						Slug: tag.GetSlug(),
+					}
+				}
+			}
+
+		}()
 		tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
 			EntityIds: postIDs,
 		})
@@ -280,6 +314,9 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	if postsMap == nil {
 		postsMap = make(map[string]models.Posts)
 	}
+	if tagsMap == nil {
+		tagsMap = make(map[string]models.ShortTags)
+	}
 
 	for _, event := range events {
 		normalizedEvent := models.Events{
@@ -294,6 +331,8 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 			TargetItemID:         event.TargetItemId,
 			TargetWishListItemID: event.TargetWishListItemId,
 			TargetPostId:         event.TargetPostId,
+			TargetTagID:          event.TargetTagId,
+			TagRelatedEntityType: event.TagRelatedEntityType,
 		}
 
 		if user, exists := usersMap[event.TargetUserLogin]; exists {
@@ -330,6 +369,21 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 				AvatarUrl:   initiator.AvatarUrl,
 				ProfileName: initiator.ProfileName,
 				IsPremium:   initiator.IsPremium,
+			}
+		}
+
+		if tag, exists := tagsMap[event.TargetTagId]; exists {
+			normalizedEvent.TargetTag = &tag
+			switch normalizedEvent.TagRelatedEntityType {
+			case "collection":
+				collectionRes := collectionsMap[normalizedEvent.TargetCollectionID]
+				normalizedEvent.TargetCollection = &collectionRes
+			case "collectionItem":
+				itemRes := itemsMap[normalizedEvent.TargetItemID]
+				normalizedEvent.TargetItem = &itemRes
+			case "post":
+				postRes := postsMap[normalizedEvent.TargetPostId]
+				normalizedEvent.TargetPost = &postRes
 			}
 		}
 

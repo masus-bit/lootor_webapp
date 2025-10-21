@@ -2382,6 +2382,20 @@ paths:
       summary: обновить инфу по тегу
       tags:
       - tags
+  /secured/tags/all:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.TagsDataResponse'
+      summary: Поиск по тегам
+      tags:
+      - tags
   /secured/tags/entity:
     post:
       consumes:
@@ -2422,6 +2436,26 @@ paths:
           schema:
             $ref: '#/definitions/dto.CommonResponse'
       summary: удалить теги у сущностей
+      tags:
+      - tags
+  /secured/tags/subscribe/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: tag id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.TagsDataResponse'
+      summary: Поиск по тегам
       tags:
       - tags
   /secured/user/delete:

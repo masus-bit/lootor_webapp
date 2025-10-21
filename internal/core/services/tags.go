@@ -12,6 +12,7 @@ import (
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/elasticsearch"
 	"lootor/internal/pkg/utils"
+	"slices"
 	"strconv"
 	"sync"
 )
@@ -252,6 +253,40 @@ func (s *TagsService) GetTagBySlug(slug string) (*models.Tags, error) {
 		return nil, fmt.Errorf("ошибка при поиске тега: %v", err)
 	}
 	return s.convertProtoToModel(tag, "", false, "", nil), nil
+}
+
+func (s *TagsService) Subscribe(id, userLogin string) (*dto.CommonResponse, error) {
+	user, err := s.userRepo.GetUserByLogin(userLogin)
+	if err != nil {
+		return nil, err
+	}
+	tag, err := s.tagsClient.GetTag(context.Background(), &microservices.GetTagRequest{Id: id})
+	if err != nil {
+		return nil, err
+	}
+	subsTags := user.TagsSubscriptions
+	if slices.Contains(subsTags, id) {
+		utils.RemoveByValue(subsTags, id)
+	} else {
+		subsTags = append(subsTags, id)
+		go func() {
+			tagUUID, _ := uuid.Parse(tag.GetId())
+			err = s.eventsService.AddEvent(userLogin, utils.EventActionSubscribe, utils.EventTargetTag, tag.GetName(), &models.EventsParams{TargetTagID: tagUUID})
+			if err != nil {
+				fmt.Println(err)
+			}
+		}()
+	}
+
+	user.TagsSubscriptions = subsTags
+	_, err = s.userRepo.UpdateUser(user, *user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.CommonResponse{
+		Data: dto.Resp{Success: true},
+	}, nil
 }
 
 func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLogin string, isPremium bool, filter string, tagsMap map[string]*microservices.GetShortsResponse) *models.Tags {

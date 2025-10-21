@@ -19,6 +19,13 @@ service TagsService {
   rpc GetTagsByEntityIdsMap(GetTagsByEntityIdsMapRequest) returns (TagsMapResponse);
   rpc UpdateTagsOfEntity(UpdateTagsOfEntityRequest) returns (TagsCreateResponse);
   rpc GetTagBySlug(GetTagBySlugRequest) returns (TagItem);
+  rpc GetTag(GetTagRequest) returns (TagItemShort);
+  rpc GetTagsByIDs(GetTagsByIDsRequest) returns (GetShortsResponse);
+  rpc GetTagsByIdsMap(GetTagsByIDsRequest) returns (TagsMapResponseForEvents);
+}
+
+message GetTagsByIDsRequest {
+  repeated string ids = 1;
 }
 
 message UpdateTagsOfEntityRequest {
@@ -34,6 +41,9 @@ message GetTagsByEntityIdsMapRequest {
 
 message TagsMapResponse {
   map<string, GetShortsResponse> tags = 1;
+}
+message TagsMapResponseForEvents {
+  map<string, TagItemShort> tags = 1;
 }
 
 message AddFewTagsToEntityRequest {

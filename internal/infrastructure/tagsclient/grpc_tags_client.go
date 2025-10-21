@@ -138,6 +138,30 @@ func (c *GRPCTagsClient) GetTagBySlug(ctx context.Context, slug string) (*micros
 	return resp, nil
 }
 
+func (c *GRPCTagsClient) GetTag(ctx context.Context, dto *microservices.GetTagRequest) (*microservices.TagItemShort, error) {
+	resp, err := c.client.GetTag(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *GRPCTagsClient) GetTagsByIDs(ctx context.Context, dto *microservices.GetTagsByIDsRequest) (*microservices.GetShortsResponse, error) {
+	resp, err := c.client.GetTagsByIDs(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *GRPCTagsClient) GetTagsByIdsMap(ctx context.Context, dto *microservices.GetTagsByIDsRequest) (*microservices.TagsMapResponseForEvents, error) {
+	resp, err := c.client.GetTagsByIdsMap(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (c *GRPCTagsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {
