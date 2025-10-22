@@ -278,7 +278,7 @@ func (c *TagsController) GetAllTags(ctx echo.Context) error {
 // @Produce  json
 // @Param id path string true "tag id"
 // @Success 201 {object} dto.CommonResponse
-// @Router /secured/tags/subscribe/{id} [get]
+// @Router /public/tags/subscribe/{id} [get]
 func (c *TagsController) Subscribe(ctx echo.Context) error {
 	id := ctx.Param("id")
 	authUser, ok := ctx.Get("user_login").(string)

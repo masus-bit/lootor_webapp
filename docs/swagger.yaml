@@ -1531,6 +1531,26 @@ paths:
       summary: получить все сущности по slug тегa с фильтром
       tags:
       - tags
+  /public/tags/subscribe/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: tag id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: подписка на тег
+      tags:
+      - tags
   /public/thumbs/{key}:
     get:
       parameters:
@@ -2467,26 +2487,6 @@ paths:
           schema:
             $ref: '#/definitions/models.TagsShortDataResponse'
       summary: Получить все теги
-      tags:
-      - tags
-  /secured/tags/subscribe/{id}:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: tag id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.CommonResponse'
-      summary: подписка на тег
       tags:
       - tags
   /secured/user/delete:
