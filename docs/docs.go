@@ -2158,6 +2158,72 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/tags/adm/entity": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "добавить тег к сущности",
+                "parameters": [
+                    {
+                        "description": "необходимые поля",
+                        "name": "addRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AddTagToEntityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/tags/adm/entity/remove": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "удалить теги у сущностей",
+                "parameters": [
+                    {
+                        "description": "необходимые поля",
+                        "name": "removeRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RemoveTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/tags/adm/merge": {
             "post": {
                 "consumes": [
@@ -2236,77 +2302,27 @@ const docTemplate = `{
                     "tags"
                 ],
                 "summary": "Получить все теги",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/models.TagsShortDataResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/secured/tags/entity": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "tags"
-                ],
-                "summary": "добавить тег к сущности",
-                "parameters": [
-                    {
-                        "description": "необходимые поля",
-                        "name": "addRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.AddTagToEntityRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.CommonResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/secured/tags/entity/remove": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "tags"
-                ],
-                "summary": "удалить теги у сущностей",
-                "parameters": [
-                    {
-                        "description": "необходимые поля",
-                        "name": "removeRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.RemoveTagsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.CommonResponse"
                         }
                     }
                 }
@@ -3407,8 +3423,11 @@ const docTemplate = `{
                 "entityType": {
                     "type": "string"
                 },
-                "tagId": {
-                    "type": "string"
+                "tagIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -3965,6 +3984,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.Tags"
                     }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

@@ -88,8 +88,8 @@ func (c *GRPCTagsClient) UpdateTag(ctx context.Context, dto *microservices.Updat
 	return resp, nil
 }
 
-func (c *GRPCTagsClient) GetAllTags(ctx context.Context) (*microservices.GetShortsResponse, error) {
-	resp, err := c.client.GetAllTags(ctx, &microservices.GetAllTagsRequest{})
+func (c *GRPCTagsClient) GetAllTags(ctx context.Context, dto *microservices.GetAllTagsRequest) (*microservices.TagsDataResponse, error) {
+	resp, err := c.client.GetAllTags(ctx, dto)
 	if err != nil {
 		return nil, err
 	}

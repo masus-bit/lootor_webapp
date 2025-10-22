@@ -163,9 +163,9 @@ func (s *TagsService) AddTagToEntity(req *models.AddTagToEntityRequest, authUser
 		return nil, fmt.Errorf("вы не можете добавить тег к сущности, созданной другим пользователем")
 	}
 
-	_, err = s.tagsClient.AddTagToEntity(context.Background(), &microservices.AddTagsToEntityRequest{
+	_, err = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
 		EntityId:   req.EntityID,
-		TagId:      req.TagID,
+		TagIds:     req.TagIDs,
 		EntityType: req.EntityType,
 	})
 	_ = s.userRepo.IncrementExperience(authUser, utils.TagAttachExp)
@@ -215,8 +215,10 @@ func (s *TagsService) UpdateTag(req *models.TagUpdateRequest) (*models.TagDataRe
 	return &models.TagDataResponse{Data: *s.convertProtoToModel(tag, "", false, "", nil)}, nil
 }
 
-func (s *TagsService) GetAllTags() (*models.TagsShortDataResponse, error) {
-	tags, err := s.tagsClient.GetAllTags(context.Background())
+func (s *TagsService) GetAllTagsForElastic(limit, offset string) ([]models.ShortTags, error) {
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
+	tags, err := s.tagsClient.GetAllTags(context.Background(), &microservices.GetAllTagsRequest{Limit: int64(intLimit), Offset: int64(intOffset)})
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
 	}
@@ -228,7 +230,22 @@ func (s *TagsService) GetAllTags() (*models.TagsShortDataResponse, error) {
 			Slug: tag.GetSlug(),
 		})
 	}
-	return &models.TagsShortDataResponse{Data: result}, nil
+	return result, nil
+}
+
+func (s *TagsService) GetAllTags(limit, offset string) (*models.TagsDataResponse, error) {
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
+	tags, err := s.tagsClient.GetAllTags(context.Background(), &microservices.GetAllTagsRequest{Limit: int64(intLimit), Offset: int64(intOffset)})
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
+	}
+	var result []models.Tags
+	for _, tag := range tags.GetTags() {
+		normalizedTag := s.convertProtoToModel(tag, "", false, "", nil)
+		result = append(result, *normalizedTag)
+	}
+	return &models.TagsDataResponse{Data: result, Total: tags.GetTotal()}, nil
 }
 
 func (s *TagsService) GetTagsByEntityId(entityId string) ([]models.ShortTags, error) {
@@ -295,6 +312,8 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 	var entities models.Entities
 	var collectionItemProps *models.CollectionItemsProps
 	collectionItemProps = nil
+	author := &models.Users{}
+	author, _ = s.userRepo.GetUserByLogin(tag.GetAuthor())
 
 	if tag.PrimaryId != "" {
 		primaryTag = s.convertProtoToModel(tag.Primary, userAuthLogin, isPremium, filter, tagsMap)
@@ -325,6 +344,18 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 	} else {
 		entities = models.Entities{}
 	}
+
+	var authorTag *models.SubUsers
+	authorTag = &models.SubUsers{}
+	if author != nil {
+		authorTag = &models.SubUsers{
+			Login:       author.Login,
+			AvatarUrl:   author.AvatarUrl,
+			ProfileName: author.ProfileName,
+			IsPremium:   author.IsPremium,
+		}
+	}
+
 	return &models.Tags{
 		ID:                   tag.Id,
 		Name:                 tag.Name,
@@ -337,6 +368,7 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 		Synonyms:             synonyms,
 		IsPrimary:            tag.IsPrimary,
 		CollectionItemsProps: collectionItemProps,
+		Author:               *authorTag,
 	}
 }
 

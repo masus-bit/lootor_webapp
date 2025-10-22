@@ -474,8 +474,10 @@ definitions:
         type: string
       entityType:
         type: string
-      tagId:
-        type: string
+      tagIds:
+        items:
+          type: string
+        type: array
     type: object
   models.ChangePasswordReset:
     properties:
@@ -840,6 +842,8 @@ definitions:
         items:
           $ref: '#/definitions/models.Tags'
         type: array
+      total:
+        type: integer
     type: object
   models.TagsShortDataResponse:
     properties:
@@ -2356,6 +2360,48 @@ paths:
       summary: Создание тега
       tags:
       - tags
+  /secured/tags/adm/entity:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: необходимые поля
+        in: body
+        name: addRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddTagToEntityRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: добавить тег к сущности
+      tags:
+      - tags
+  /secured/tags/adm/entity/remove:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: необходимые поля
+        in: body
+        name: removeRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.RemoveTagsRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: удалить теги у сущностей
+      tags:
+      - tags
   /secured/tags/adm/merge:
     post:
       consumes:
@@ -2402,6 +2448,17 @@ paths:
     get:
       consumes:
       - application/json
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -2410,48 +2467,6 @@ paths:
           schema:
             $ref: '#/definitions/models.TagsShortDataResponse'
       summary: Получить все теги
-      tags:
-      - tags
-  /secured/tags/entity:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: необходимые поля
-        in: body
-        name: addRequest
-        required: true
-        schema:
-          $ref: '#/definitions/models.AddTagToEntityRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.CommonResponse'
-      summary: добавить тег к сущности
-      tags:
-      - tags
-  /secured/tags/entity/remove:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: необходимые поля
-        in: body
-        name: removeRequest
-        required: true
-        schema:
-          $ref: '#/definitions/models.RemoveTagsRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.CommonResponse'
-      summary: удалить теги у сущностей
       tags:
       - tags
   /secured/tags/subscribe/{id}:

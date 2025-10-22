@@ -124,13 +124,13 @@ func (c *ReindexController) getCollectionItemData() ([]map[string]interface{}, e
 }
 
 func (c *ReindexController) getTagData() ([]map[string]interface{}, error) {
-	tags, err := c.tagService.GetAllTags()
+	tags, err := c.tagService.GetAllTagsForElastic("99999", "0")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tags: %w", err)
 	}
 
-	result := make([]map[string]interface{}, len(tags.Data))
-	for i, tag := range tags.Data {
+	result := make([]map[string]interface{}, len(tags))
+	for i, tag := range tags {
 		result[i] = map[string]interface{}{
 			"id":   tag.ID,
 			"name": tag.Name,

@@ -111,7 +111,7 @@ func (c *TagsController) FindEntitiesByTag(ctx echo.Context) error {
 // @Produce  json
 // @Param addRequest body models.AddTagToEntityRequest true "необходимые поля"
 // @Success 201 {object} dto.CommonResponse
-// @Router /secured/tags/entity [post]
+// @Router /secured/tags/adm/entity [post]
 func (c *TagsController) AddTagToEntity(ctx echo.Context) error {
 	var request models.AddTagToEntityRequest
 	if err := ctx.Bind(&request); err != nil {
@@ -126,6 +126,11 @@ func (c *TagsController) AddTagToEntity(ctx echo.Context) error {
 	role, ok := ctx.Get("role").(string)
 	if !ok {
 		role = ""
+	}
+	if role != "admin" {
+		return ctx.JSON(http.StatusForbidden, map[string]string{
+			"error": "Forbidden",
+		})
 	}
 	response, err := c.tagsService.AddTagToEntity(&request, authUser, role)
 	if err != nil {
@@ -143,7 +148,7 @@ func (c *TagsController) AddTagToEntity(ctx echo.Context) error {
 // @Produce  json
 // @Param removeRequest body models.RemoveTagsRequest true "необходимые поля"
 // @Success 201 {object} dto.CommonResponse
-// @Router /secured/tags/entity/remove [post]
+// @Router /secured/tags/adm/entity/remove [post]
 func (c *TagsController) RemoveTagsFromEntity(ctx echo.Context) error {
 	var request models.RemoveTagsRequest
 	authUser, ok := ctx.Get("user_login").(string)
@@ -153,6 +158,11 @@ func (c *TagsController) RemoveTagsFromEntity(ctx echo.Context) error {
 	role, ok := ctx.Get("role").(string)
 	if !ok {
 		role = ""
+	}
+	if role != "admin" {
+		return ctx.JSON(http.StatusForbidden, map[string]string{
+			"error": "Forbidden",
+		})
 	}
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
@@ -245,10 +255,14 @@ func (c *TagsController) UpdateTag(ctx echo.Context) error {
 // @Tags tags
 // @Accept  json
 // @Produce  json
+// @Param limit query string true "limit"
+// @Param offset query string true "offset"
 // @Success 201 {object} models.TagsShortDataResponse
 // @Router /secured/tags/all [get]
 func (c *TagsController) GetAllTags(ctx echo.Context) error {
-	response, err := c.tagsService.GetAllTags()
+	limit := ctx.QueryParam("limit")
+	offset := ctx.QueryParam("offset")
+	response, err := c.tagsService.GetAllTags(limit, offset)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

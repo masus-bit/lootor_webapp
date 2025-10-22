@@ -14,6 +14,7 @@ func TagsRouter(e *echo.Echo, jwtService *auth.JWTService, tagsService services.
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
 		publicGroup.GET("/tags/:id", controller.FindEntitiesByTag)
+		publicGroup.GET("/tags/all", controller.GetAllTags)
 	}
 
 	securedGroup := e.Group("/secured")
@@ -21,11 +22,10 @@ func TagsRouter(e *echo.Echo, jwtService *auth.JWTService, tagsService services.
 	{
 		securedGroup.GET("/tags", controller.SearchTags)
 		securedGroup.POST("/tags", controller.CreateTag)
-		securedGroup.POST("/tags/entity", controller.AddTagToEntity)
-		securedGroup.POST("/tags/entity/remove", controller.RemoveTagsFromEntity)
+		securedGroup.POST("/tags/adm/entity", controller.AddTagToEntity)
+		securedGroup.POST("/tags/adm/entity/remove", controller.RemoveTagsFromEntity)
 		securedGroup.POST("/tags/adm/merge", controller.MergeTags)
 		securedGroup.POST("/tags/adm/update/:id", controller.UpdateTag)
-		securedGroup.GET("/tags/all", controller.GetAllTags)
 		securedGroup.GET("/tags/subscribe/:id", controller.Subscribe)
 	}
 }

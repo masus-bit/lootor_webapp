@@ -66,7 +66,8 @@ type ShortTags struct {
 }
 
 type TagsDataResponse struct {
-	Data []Tags `json:"data"`
+	Data  []Tags `json:"data"`
+	Total int64  `json:"total"`
 }
 
 type TagDataResponse struct {
@@ -91,9 +92,9 @@ type MergeTagsRequest struct {
 }
 
 type AddTagToEntityRequest struct {
-	TagID      string `json:"tagId"`
-	EntityType string `json:"entityType"`
-	EntityID   string `json:"entityId"`
+	TagIDs     []string `json:"tagIds"`
+	EntityType string   `json:"entityType"`
+	EntityID   string   `json:"entityId"`
 }
 
 type RemoveTagsRequest struct {
