@@ -215,10 +215,8 @@ func (s *TagsService) UpdateTag(req *models.TagUpdateRequest) (*models.TagDataRe
 	return &models.TagDataResponse{Data: *s.convertProtoToModel(tag, "", false, "", nil)}, nil
 }
 
-func (s *TagsService) GetAllTagsForElastic(limit, offset string) ([]models.ShortTags, error) {
-	intLimit, _ := strconv.Atoi(limit)
-	intOffset, _ := strconv.Atoi(offset)
-	tags, err := s.tagsClient.GetAllTags(context.Background(), &microservices.GetAllTagsRequest{Limit: int64(intLimit), Offset: int64(intOffset)})
+func (s *TagsService) GetAllTagsForElastic() ([]models.ShortTags, error) {
+	tags, err := s.tagsClient.FindAllTags(context.Background(), &microservices.FindAllTagsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
 	}
@@ -313,63 +311,68 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 	var collectionItemProps *models.CollectionItemsProps
 	collectionItemProps = nil
 	author := &models.Users{}
-	author, _ = s.userRepo.GetUserByLogin(tag.GetAuthor())
+	if tag != nil {
+		author, _ = s.userRepo.GetUserByLogin(tag.GetAuthor())
+		if tag.GetPrimaryId() != "" {
+			primaryTag = s.convertProtoToModel(tag.Primary, userAuthLogin, isPremium, filter, tagsMap)
+		} else {
+			primaryTag = nil
+		}
 
-	if tag.PrimaryId != "" {
-		primaryTag = s.convertProtoToModel(tag.Primary, userAuthLogin, isPremium, filter, tagsMap)
-	} else {
-		primaryTag = nil
-	}
-	if tag.Synonyms != nil || len(tag.Synonyms) > 0 {
-		for _, synonym := range tag.Synonyms {
-			synonyms = append(synonyms, *s.convertProtoToModel(synonym, userAuthLogin, isPremium, filter, tagsMap))
-		}
-	} else {
-		synonyms = []models.Tags{}
-	}
-	if tag.Entities != nil || len(tag.Entities) > 0 {
-		entitiesType := tag.Entities[0].EntityType
-		var entityIDs []string
-		for _, entity := range tag.Entities {
-			entityIDs = append(entityIDs, entity.EntityId)
-		}
-		resEntities, ciProps, err := s.getEntitiesByType(entitiesType, userAuthLogin, entityIDs, isPremium, filter, tagsMap)
-		if err != nil {
-			return nil
-		}
-		if ciProps != nil {
-			collectionItemProps = ciProps
-		}
-		entities = *resEntities
-	} else {
-		entities = models.Entities{}
-	}
+		fmt.Println(tag.Synonyms)
 
-	var authorTag *models.SubUsers
-	authorTag = &models.SubUsers{}
-	if author != nil {
-		authorTag = &models.SubUsers{
-			Login:       author.Login,
-			AvatarUrl:   author.AvatarUrl,
-			ProfileName: author.ProfileName,
-			IsPremium:   author.IsPremium,
+		if tag.GetSynonyms() != nil || len(tag.GetSynonyms()) > 0 {
+			for _, synonym := range tag.GetSynonyms() {
+				synonyms = append(synonyms, *s.convertProtoToModel(synonym, userAuthLogin, isPremium, filter, tagsMap))
+			}
+		} else {
+			synonyms = []models.Tags{}
+		}
+		if tag.GetEntities() != nil || len(tag.GetEntities()) > 0 {
+			entitiesType := tag.Entities[0].EntityType
+			var entityIDs []string
+			for _, entity := range tag.Entities {
+				entityIDs = append(entityIDs, entity.EntityId)
+			}
+			resEntities, ciProps, err := s.getEntitiesByType(entitiesType, userAuthLogin, entityIDs, isPremium, filter, tagsMap)
+			if err != nil {
+				return nil
+			}
+			if ciProps != nil {
+				collectionItemProps = ciProps
+			}
+			entities = *resEntities
+		} else {
+			entities = models.Entities{}
+		}
+
+		var authorTag *models.SubUsers
+		authorTag = &models.SubUsers{}
+		if author != nil {
+			authorTag = &models.SubUsers{
+				Login:       author.Login,
+				AvatarUrl:   author.AvatarUrl,
+				ProfileName: author.ProfileName,
+				IsPremium:   author.IsPremium,
+			}
+		}
+
+		return &models.Tags{
+			ID:                   tag.Id,
+			Name:                 tag.Name,
+			Slug:                 tag.Slug,
+			Description:          tag.Description,
+			CreatedAt:            tag.CreatedAt,
+			PrimaryID:            tag.PrimaryId,
+			Primary:              primaryTag,
+			Entities:             entities,
+			Synonyms:             synonyms,
+			IsPrimary:            tag.IsPrimary,
+			CollectionItemsProps: collectionItemProps,
+			Author:               *authorTag,
 		}
 	}
-
-	return &models.Tags{
-		ID:                   tag.Id,
-		Name:                 tag.Name,
-		Slug:                 tag.Slug,
-		Description:          tag.Description,
-		CreatedAt:            tag.CreatedAt,
-		PrimaryID:            tag.PrimaryId,
-		Primary:              primaryTag,
-		Entities:             entities,
-		Synonyms:             synonyms,
-		IsPrimary:            tag.IsPrimary,
-		CollectionItemsProps: collectionItemProps,
-		Author:               *authorTag,
-	}
+	return &models.Tags{}
 }
 
 func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entityIDs []string, isPremium bool, filter string, tagsMap map[string]*microservices.GetShortsResponse) (*models.Entities, *models.CollectionItemsProps, error) {

@@ -162,6 +162,14 @@ func (c *GRPCTagsClient) GetTagsByIdsMap(ctx context.Context, dto *microservices
 	return resp, nil
 }
 
+func (c *GRPCTagsClient) FindAllTags(ctx context.Context, dto *microservices.FindAllTagsRequest) (*microservices.TagsDataResponse, error) {
+	resp, err := c.client.FindAllTags(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (c *GRPCTagsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

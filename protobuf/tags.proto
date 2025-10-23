@@ -22,6 +22,11 @@ service TagsService {
   rpc GetTag(GetTagRequest) returns (TagItemShort);
   rpc GetTagsByIDs(GetTagsByIDsRequest) returns (GetShortsResponse);
   rpc GetTagsByIdsMap(GetTagsByIDsRequest) returns (TagsMapResponseForEvents);
+  rpc FindAllTags(FindAllTagsRequest) returns (TagsDataResponse);
+}
+
+message FindAllTagsRequest {
+
 }
 
 message GetTagsByIDsRequest {
