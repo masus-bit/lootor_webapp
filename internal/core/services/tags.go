@@ -319,8 +319,6 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 			primaryTag = nil
 		}
 
-		fmt.Println(tag.Synonyms)
-
 		if tag.GetSynonyms() != nil || len(tag.GetSynonyms()) > 0 {
 			for _, synonym := range tag.GetSynonyms() {
 				synonyms = append(synonyms, *s.convertProtoToModel(synonym, userAuthLogin, isPremium, filter, tagsMap))
@@ -378,7 +376,7 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entityIDs []string, isPremium bool, filter string, tagsMap map[string]*microservices.GetShortsResponse) (*models.Entities, *models.CollectionItemsProps, error) {
 	var entities models.Entities
 	var collectionItemsProps *models.CollectionItemsProps
-	collectionItemsProps = nil
+	collectionItemsProps = &models.CollectionItemsProps{}
 	if entityType == "post" {
 		posts, err := s.postsService.GetPostsByIDs(context.Background(), entityIDs, authUserLogin, isPremium)
 		if err != nil {
@@ -386,7 +384,6 @@ func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entity
 		}
 		entities.Posts = posts.Data
 	} else if entityType == "collectionItem" {
-
 		itemTypes, err := s.itemTypeRepo.FindAllTypes()
 		if err != nil {
 			return nil, nil, err
@@ -396,30 +393,39 @@ func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entity
 			return nil, nil, err
 		}
 
+		typeMap := make(map[string]*int64)
+		for _, itemType := range itemTypes {
+			if itemType.Id.String() != "" {
+				typeMap[itemType.Id.String()] = nil
+			}
+		}
+
 		for key, item := range counts {
-			for _, itemType := range itemTypes {
-				if key == itemType.Id.String() {
-					switch itemType.Slug {
-					case "books":
-						collectionItemsProps.Books = item
-					case "videoGames":
-						collectionItemsProps.VideoGames = item
-					case "boardGames":
-						collectionItemsProps.BoardGames = item
-					case "comics":
-						collectionItemsProps.Comics = item
-					case "gamingHardware":
-						collectionItemsProps.GamingHardware = item
-					case "vinyl":
-						collectionItemsProps.Vinyl = item
-					case "steelbooks":
-						collectionItemsProps.Steelbooks = item
-					case "collectibleCards":
-						collectionItemsProps.CollectibleCards = item
-					case "collectibleFigures":
-						collectionItemsProps.CollectibleFigures = item
+			if _, exists := typeMap[key]; exists {
+				for _, it := range itemTypes {
+					if it.Id.String() != "" && it.Id.String() == key {
+						switch it.Slug {
+						case "books":
+							collectionItemsProps.Books = item
+						case "videoGames":
+							collectionItemsProps.VideoGames = item
+						case "boardGames":
+							collectionItemsProps.BoardGames = item
+						case "comics":
+							collectionItemsProps.Comics = item
+						case "gamingHardware":
+							collectionItemsProps.GamingHardware = item
+						case "vinyl":
+							collectionItemsProps.Vinyl = item
+						case "steelbooks":
+							collectionItemsProps.Steelbooks = item
+						case "collectibleCards":
+							collectionItemsProps.CollectibleCards = item
+						case "collectibleFigures":
+							collectionItemsProps.CollectibleFigures = item
+						}
+						break
 					}
-					break
 				}
 			}
 		}
