@@ -377,6 +377,7 @@ func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entity
 	var entities models.Entities
 	var collectionItemsProps *models.CollectionItemsProps
 	collectionItemsProps = &models.CollectionItemsProps{}
+	var filterId string
 	if entityType == "post" {
 		posts, err := s.postsService.GetPostsByIDs(context.Background(), entityIDs, authUserLogin, isPremium)
 		if err != nil {
@@ -388,13 +389,17 @@ func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entity
 		if err != nil {
 			return nil, nil, err
 		}
-		counts, err := s.ciRepo.GetCICountsByItemType()
+		counts, err := s.ciRepo.GetCICountsByItemType(entityIDs)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		typeMap := make(map[string]*int64)
 		for _, itemType := range itemTypes {
+			if filter == itemType.Slug {
+				filterId = itemType.Id.String()
+			}
+
 			if itemType.Id.String() != "" {
 				typeMap[itemType.Id.String()] = nil
 			}
@@ -430,7 +435,7 @@ func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entity
 			}
 		}
 
-		collectionItems, err := s.ciRepo.GetCollectionItemsByIDs(entityIDs, authUserLogin, filter, tagsMap)
+		collectionItems, err := s.ciRepo.GetCollectionItemsByIDs(entityIDs, authUserLogin, filterId, tagsMap)
 		if err != nil {
 			return nil, nil, err
 		}

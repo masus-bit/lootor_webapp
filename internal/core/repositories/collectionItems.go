@@ -524,12 +524,13 @@ func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin, filt
 	return result, nil
 }
 
-func (r *CiRepository) GetCICountsByItemType() (map[string]int64, error) {
+func (r *CiRepository) GetCICountsByItemType(entityIDs []string) (map[string]int64, error) {
 	var results []struct {
 		ItemType string
 		Count    int64
 	}
 	err := r.db.Table("collection_items").
+		Where("id IN (?)", entityIDs).
 		Select("item_type_id as item_type, COUNT(*) as count").
 		Group("item_type").
 		Find(&results).Error
