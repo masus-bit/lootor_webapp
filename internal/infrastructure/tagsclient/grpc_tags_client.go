@@ -56,6 +56,14 @@ func (c *GRPCTagsClient) MergeTags(ctx context.Context, dto *microservices.Merge
 	return resp, nil
 }
 
+func (c *GRPCTagsClient) MergeSeries(ctx context.Context, dto *microservices.MergeTagsRequest) (*microservices.TagsSuccessResponse, error) {
+	resp, err := c.client.MergeSeries(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (c *GRPCTagsClient) FindAllEntitiesByTag(ctx context.Context, dto *microservices.GetEntitiesByTagRequest) (*microservices.TagDataResponse, error) {
 	resp, err := c.client.FindAllEntitiesByTag(ctx, dto)
 	if err != nil {

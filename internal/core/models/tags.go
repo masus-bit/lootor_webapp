@@ -30,6 +30,11 @@ type Tags struct {
 	Entities Entities `json:"entities"`
 
 	CollectionItemsProps *CollectionItemsProps `json:"collectionItemsProps"`
+
+	IsSeries      bool       `gorm:"default:true" json:"isSeries"`
+	SeriesID      string     `gorm:"type:uuid" json:"seriesId"`
+	SeriesEntries []Tags     `gorm:"foreignKey:PrimaryID" json:"seriesEntries"`
+	Series        *ShortTags `gorm:"foreignKey:SeriesID" json:"series"`
 }
 
 type CollectionItemsProps struct {

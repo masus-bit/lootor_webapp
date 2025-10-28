@@ -23,6 +23,7 @@ service TagsService {
   rpc GetTagsByIDs(GetTagsByIDsRequest) returns (GetShortsResponse);
   rpc GetTagsByIdsMap(GetTagsByIDsRequest) returns (TagsMapResponseForEvents);
   rpc FindAllTags(FindAllTagsRequest) returns (TagsDataResponse);
+  rpc MergeSeries(MergeTagsRequest) returns (TagsSuccessResponse);
 }
 
 message FindAllTagsRequest {
@@ -140,6 +141,10 @@ message TagItem {
   repeated TagLinksItem entities = 9;
   repeated TagItem synonyms = 10;
   bool is_primary = 11;
+  string series_id = 12;
+  bool is_series = 13;
+  repeated TagItem series_entries = 14;
+  TagItemShort series = 15;
 }
 
 message GetShortsResponse {

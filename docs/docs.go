@@ -2288,6 +2288,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/tags/adm/merge_series": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "смержить теги к одному главному тегу серии",
+                "parameters": [
+                    {
+                        "description": "необходимые поля",
+                        "name": "mergeRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MergeTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/tags/adm/update/{id}": {
             "post": {
                 "consumes": [
@@ -3941,6 +3974,9 @@ const docTemplate = `{
                 "isPrimary": {
                     "type": "boolean"
                 },
+                "isSeries": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -3948,6 +3984,18 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.Tags"
                 },
                 "primaryId": {
+                    "type": "string"
+                },
+                "series": {
+                    "$ref": "#/definitions/models.ShortTags"
+                },
+                "seriesEntries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Tags"
+                    }
+                },
+                "seriesId": {
                     "type": "string"
                 },
                 "slug": {

@@ -813,11 +813,21 @@ definitions:
         type: string
       isPrimary:
         type: boolean
+      isSeries:
+        type: boolean
       name:
         type: string
       primary:
         $ref: '#/definitions/models.Tags'
       primaryId:
+        type: string
+      series:
+        $ref: '#/definitions/models.ShortTags'
+      seriesEntries:
+        items:
+          $ref: '#/definitions/models.Tags'
+        type: array
+      seriesId:
         type: string
       slug:
         type: string
@@ -2441,6 +2451,27 @@ paths:
           schema:
             $ref: '#/definitions/dto.CommonResponse'
       summary: смержить теги к одному праймари тегу
+      tags:
+      - tags
+  /secured/tags/adm/merge_series:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: необходимые поля
+        in: body
+        name: mergeRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.MergeTagsRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: смержить теги к одному главному тегу серии
       tags:
       - tags
   /secured/tags/adm/update/{id}:

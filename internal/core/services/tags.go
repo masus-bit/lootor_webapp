@@ -66,7 +66,6 @@ func (s *TagsService) CreateTag(req *models.TagCreateRequest, authUser string) (
 	go func() {
 		defer wg.Done()
 		exp := int(utils.TagExp * float64(len(tags)))
-		// Выполняем последовательно, но параллельно с индексацией
 		_ = s.userRepo.IncrementExperience(authUser, exp)
 		_ = s.userRepo.IncrementSocialScore(authUser, len(tags))
 	}()
@@ -110,6 +109,19 @@ func (s *TagsService) SearchTags(name string) (*models.TagsDataResponse, error) 
 
 func (s *TagsService) MergeTags(req *models.MergeTagsRequest) (*dto.CommonResponse, error) {
 	_, err := s.tagsClient.MergeTags(context.Background(), &microservices.MergeTagsRequest{
+		FromTagIds: req.FromTagIDs,
+		ToTagId:    req.ToTagID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при слиянии тегов: %v", err)
+	}
+	return &dto.CommonResponse{
+		Data: dto.Resp{Success: true},
+	}, nil
+}
+
+func (s *TagsService) MergeSeries(req *models.MergeTagsRequest) (*dto.CommonResponse, error) {
+	_, err := s.tagsClient.MergeSeries(context.Background(), &microservices.MergeTagsRequest{
 		FromTagIds: req.FromTagIDs,
 		ToTagId:    req.ToTagID,
 	})
@@ -306,7 +318,9 @@ func (s *TagsService) Subscribe(id, userLogin string) (*dto.CommonResponse, erro
 
 func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLogin string, isPremium bool, filter string, tagsMap map[string]*microservices.GetShortsResponse) *models.Tags {
 	var primaryTag *models.Tags
+	var seriesTag *models.ShortTags
 	var synonyms []models.Tags
+	var seriesEntries []models.Tags
 	var entities models.Entities
 	var collectionItemProps *models.CollectionItemsProps
 	collectionItemProps = nil
@@ -319,12 +333,28 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 			primaryTag = nil
 		}
 
+		if tag.GetSeriesId() != "" {
+			seriesTag = &models.ShortTags{
+				ID:   tag.GetSeriesId(),
+				Name: tag.GetSeries().GetName(),
+				Slug: tag.GetSeries().GetSlug()}
+		} else {
+			seriesTag = nil
+		}
+
 		if tag.GetSynonyms() != nil || len(tag.GetSynonyms()) > 0 {
 			for _, synonym := range tag.GetSynonyms() {
 				synonyms = append(synonyms, *s.convertProtoToModel(synonym, userAuthLogin, isPremium, filter, tagsMap))
 			}
 		} else {
 			synonyms = []models.Tags{}
+		}
+		if tag.GetSeriesEntries() != nil || len(tag.GetSeriesEntries()) > 0 {
+			for _, entry := range tag.GetSeriesEntries() {
+				seriesEntries = append(seriesEntries, *s.convertProtoToModel(entry, userAuthLogin, isPremium, filter, tagsMap))
+			}
+		} else {
+			seriesEntries = []models.Tags{}
 		}
 		if tag.GetEntities() != nil || len(tag.GetEntities()) > 0 {
 			entitiesType := tag.Entities[0].EntityType
@@ -368,6 +398,10 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 			IsPrimary:            tag.IsPrimary,
 			CollectionItemsProps: collectionItemProps,
 			Author:               *authorTag,
+			IsSeries:             tag.IsSeries,
+			SeriesID:             tag.SeriesId,
+			SeriesEntries:        seriesEntries,
+			Series:               seriesTag,
 		}
 	}
 	return &models.Tags{}

@@ -214,6 +214,42 @@ func (c *TagsController) MergeTags(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// MergeSeries
+// @Summary смержить теги к одному главному тегу серии
+// @Tags tags
+// @Accept  json
+// @Produce  json
+// @Param mergeRequest body models.MergeTagsRequest true "необходимые поля"
+// @Success 201 {object} dto.CommonResponse
+// @Router /secured/tags/adm/merge_series [post]
+func (c *TagsController) MergeSeries(ctx echo.Context) error {
+	var request models.MergeTagsRequest
+
+	userRole, ok := ctx.Get("role").(string)
+	if !ok {
+		userRole = ""
+	}
+
+	if userRole != "admin" {
+		return ctx.JSON(http.StatusForbidden, map[string]string{
+			"error": "Forbidden",
+		})
+	}
+
+	if err := ctx.Bind(&request); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body",
+		})
+	}
+	response, err := c.tagsService.MergeSeries(&request)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
 // UpdateTag
 // @Summary обновить инфу по тегу
 // @Tags tags

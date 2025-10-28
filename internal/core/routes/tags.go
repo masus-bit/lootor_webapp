@@ -25,6 +25,7 @@ func TagsRouter(e *echo.Echo, jwtService *auth.JWTService, tagsService services.
 		securedGroup.POST("/tags/adm/entity", controller.AddTagToEntity)
 		securedGroup.POST("/tags/adm/entity/remove", controller.RemoveTagsFromEntity)
 		securedGroup.POST("/tags/adm/merge", controller.MergeTags)
+		securedGroup.POST("/tags/adm/merge_series", controller.MergeSeries)
 		securedGroup.POST("/tags/adm/update/:id", controller.UpdateTag)
 		securedGroup.GET("/tags/subscribe/:id", controller.Subscribe)
 	}
