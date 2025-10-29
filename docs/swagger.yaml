@@ -862,6 +862,21 @@ definitions:
           $ref: '#/definitions/models.ShortTags'
         type: array
     type: object
+  models.UserChoiceRequest:
+    properties:
+      feedbackScore:
+        type: integer
+      searchQuery:
+        type: string
+      selectedTagId:
+        type: string
+      sessionId:
+        type: string
+      userId:
+        type: string
+      wasCorrect:
+        type: boolean
+    type: object
   models.UserRequestUpdate:
     properties:
       avatarUrl:
@@ -2518,6 +2533,77 @@ paths:
           schema:
             $ref: '#/definitions/models.TagsShortDataResponse'
       summary: Получить все теги
+      tags:
+      - tags
+  /secured/tags/record_choice:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: необходимые поля
+        in: body
+        name: addRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserChoiceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: Выбобр юзера записать
+      tags:
+      - tags
+  /secured/tags/search:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: name
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.TagsDataResponse'
+      summary: Поиск по тегам
+      tags:
+      - tags
+  /secured/tags/suggestions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: name
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.TagsDataResponse'
+      summary: Получить предположения
       tags:
       - tags
   /secured/user/delete:

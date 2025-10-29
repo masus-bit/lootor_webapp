@@ -34,6 +34,72 @@ func (c *TagsController) SearchTags(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// SearchTagsV2
+// @Summary Поиск по тегам
+// @Tags tags
+// @Accept  json
+// @Produce  json
+// @Param name query string true "name"
+// @Param limit query string true "limit"
+// @Success 201 {object} models.TagsDataResponse
+// @Router /secured/tags/search [get]
+func (c *TagsController) SearchTagsV2(ctx echo.Context) error {
+	name := ctx.QueryParam("name")
+	limit := ctx.QueryParam("limit")
+	response, err := c.tagsService.SearchSmartTags(name, limit)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
+// GetSuggestions
+// @Summary Получить предположения
+// @Tags tags
+// @Accept  json
+// @Produce  json
+// @Param name query string true "name"
+// @Param limit query string true "limit"
+// @Success 201 {object} models.TagsDataResponse
+// @Router /secured/tags/suggestions [get]
+func (c *TagsController) GetSuggestions(ctx echo.Context) error {
+	name := ctx.QueryParam("name")
+	limit := ctx.QueryParam("limit")
+	response, err := c.tagsService.GetSuggestions(name, limit)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
+// RecordChoice
+// @Summary Выбобр юзера записать
+// @Tags tags
+// @Accept  json
+// @Produce  json
+// @Param addRequest body models.UserChoiceRequest true "необходимые поля"
+// @Success 201 {object} dto.CommonResponse
+// @Router /secured/tags/record_choice [post]
+func (c *TagsController) RecordChoice(ctx echo.Context) error {
+	var request models.UserChoiceRequest
+	if err := ctx.Bind(&request); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body",
+		})
+	}
+	response, err := c.tagsService.RecordUserChoice(&request)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
 // CreateTag
 // @Summary Создание тега
 // @Tags tags

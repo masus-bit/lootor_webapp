@@ -2392,6 +2392,115 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/tags/record_choice": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "Выбобр юзера записать",
+                "parameters": [
+                    {
+                        "description": "необходимые поля",
+                        "name": "addRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UserChoiceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/tags/search": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "Поиск по тегам",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.TagsDataResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/tags/suggestions": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "Получить предположения",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.TagsDataResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/user/delete": {
             "get": {
                 "consumes": [
@@ -4046,6 +4155,29 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.ShortTags"
                     }
+                }
+            }
+        },
+        "models.UserChoiceRequest": {
+            "type": "object",
+            "properties": {
+                "feedbackScore": {
+                    "type": "integer"
+                },
+                "searchQuery": {
+                    "type": "string"
+                },
+                "selectedTagId": {
+                    "type": "string"
+                },
+                "sessionId": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "wasCorrect": {
+                    "type": "boolean"
                 }
             }
         },

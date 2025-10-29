@@ -122,3 +122,63 @@ type TagIDsResponse struct {
 type TagsShortDataResponse struct {
 	Data []ShortTags `json:"data"`
 }
+
+type ParsedSeries struct {
+	OriginalName string  `json:"originalName"`
+	CoreName     string  `json:"coreName"`
+	Suffix       string  `json:"suffix"`
+	Confidence   float64 `json:"confidence"`
+	PatternUsed  string  `json:"patternUsed"`
+	IsExactMatch bool    `json:"isExactMatch"`
+	FoundTagID   string  `json:"foundTagId,omitempty"`
+}
+
+type ParsedTitle struct {
+	Original   string  `json:"original"`
+	SeriesCore string  `json:"seriesCore"`
+	GamePart   string  `json:"gamePart"`
+	Edition    string  `json:"edition"`
+	Platform   string  `json:"platform"`
+	Year       string  `json:"year"`
+	Confidence float64 `json:"confidence"`
+}
+
+type Results struct {
+	Tag           *Tags        `json:"tag"`
+	SeriesTag     *Tags        `json:"seriesTag"`
+	SeriesEntries []Tags       `json:"seriesEntries"`
+	Confidence    float64      `json:"confidence"`
+	MatchType     string       `json:"matchType"`
+	Score         float64      `json:"score"`
+	ParsedData    *ParsedTitle `json:"parsedData"`
+}
+type SearchResult struct {
+	SearchTerm   string       `json:"searchTerm"`
+	ParsedData   *ParsedTitle `json:"parsedData"`
+	Results      []Results    `json:"results"`
+	TotalCount   int32        `json:"totalCount"`
+	SearchTimeNs int64        `json:"searchTimeNs"`
+	DidLearn     bool         `json:"didLearn"`
+}
+type UserChoiceRequest struct {
+	SearchQuery   string `json:"searchQuery"`
+	SelectedTagID string `json:"selectedTagId"`
+	SessionID     string `json:"sessionId"`
+	UserID        string `json:"userId"`
+	WasCorrect    bool   `json:"wasCorrect"`
+	FeedbackScore int32  `json:"feedbackScore"`
+}
+
+type SearchSuggestions struct {
+	Title      string  `json:"title"`
+	Type       string  `json:"type"`
+	Score      float64 `json:"score"`
+	Confidence float64 `json:"confidence"`
+	TagID      string  `json:"tagId"`
+}
+type SearchSuggestionResponse struct {
+	Data []SearchSuggestions `json:"data"`
+}
+type SearchResponse struct {
+	Data *SearchResult `json:"data"`
+}

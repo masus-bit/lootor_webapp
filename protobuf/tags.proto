@@ -24,6 +24,87 @@ service TagsService {
   rpc GetTagsByIdsMap(GetTagsByIDsRequest) returns (TagsMapResponseForEvents);
   rpc FindAllTags(FindAllTagsRequest) returns (TagsDataResponse);
   rpc MergeSeries(MergeTagsRequest) returns (TagsSuccessResponse);
+  rpc SearchGameTitles(SearchGameTitlesRequest) returns (GameSearchResponse);
+  rpc RecordUserChoice(RecordUserChoiceRequest) returns (TagsSuccessResponse);
+  rpc GetSearchSuggestions(GetSearchSuggestionsRequest) returns (SearchSuggestionsResponse);
+  rpc GetLearningStats(GetLearningStatsRequest) returns (LearningStatsResponse);
+}
+message SearchGameTitlesRequest {
+  string query = 1;           // Search query (e.g., "metal gear solid 5 phantom pain")
+  int32 limit = 2;           // Maximum number of results (default: 10)
+  string session_id = 3;     // User session ID for learning
+  string context_type = 4;   // Optional context (e.g., "game", "console", "comic")
+}
+
+message RecordUserChoiceRequest {
+  string search_query = 1;   // Original search query
+  string selected_tag_id = 2; // ID of the tag user selected
+  string session_id = 3;     // User session ID
+  string user_id = 4;        // Optional user ID
+  bool was_correct = 5;      // Whether the result was correct
+  int32 feedback_score = 6;  // -1, 0, 1 rating
+}
+
+message GetSearchSuggestionsRequest {
+  string query = 1;          // Partial query for autocomplete
+  int32 limit = 2;           // Maximum number of suggestions (default: 5)
+}
+
+message GetLearningStatsRequest {
+  int32 days = 1;            // Number of days for statistics (default: 30)
+}
+
+// ===== RESPONSE MESSAGES =====
+
+message GameSearchResponse {
+  string search_term = 1;
+  ParsedTitle parsed_title = 2;
+  repeated SearchResult results = 3;
+  int32 total_count = 4;
+  int64 search_time_ns = 5;  // Search duration in nanoseconds
+  bool did_learn = 6;        // Whether learning occurred
+  repeated string suggestions = 7;
+}
+
+message SearchSuggestionsResponse {
+  repeated SearchSuggestion suggestions = 1;
+}
+
+message LearningStatsResponse {
+  int64 total_searches = 1;
+  double avg_confidence = 2;
+  int64 correct_searches = 3;
+  double success_rate = 4;
+}
+
+// ===== DATA MESSAGES =====
+
+message ParsedTitle {
+  string original = 1;
+  string series_core = 2;
+  string game_part = 3;
+  string edition = 4;
+  string platform = 5;
+  string year = 6;
+  double confidence = 7;
+}
+
+message SearchResult {
+  TagItem tag = 1;                   // Matched tag (if exact/partial match)
+  TagItem series_tag = 2;            // Series tag (if series match)
+  repeated TagItem series_entries = 3; // All entries in the series
+  double confidence = 4;             // Match confidence (0.0 - 1.0)
+  string match_type = 5;             // "exact", "series", "partial", "learned"
+  double score = 6;                  // Final score for sorting
+  ParsedTitle parsed_data = 7;       // Parsed title data
+}
+
+message SearchSuggestion {
+  string title = 1;
+  string type = 2;          // "series", "game", "platform", "learned"
+  double confidence = 3;
+  string tag_id = 4;        // Optional tag ID if applicable
+  double score = 5;         // Sorting score
 }
 
 message FindAllTagsRequest {
@@ -144,7 +225,7 @@ message TagItem {
   string series_id = 12;
   bool is_series = 13;
   repeated TagItem series_entries = 14;
-  TagItemShort series = 15;
+  TagItem series = 15;
 }
 
 message GetShortsResponse {

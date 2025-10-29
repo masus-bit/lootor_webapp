@@ -316,6 +316,100 @@ func (s *TagsService) Subscribe(id, userLogin string) (*dto.CommonResponse, erro
 	}, nil
 }
 
+func (s *TagsService) SearchSmartTags(query string, limit string) (*models.SearchResponse, error) {
+	intLimit, _ := strconv.Atoi(limit)
+	resp, err := s.tagsClient.SearchGameTitles(context.Background(), &microservices.SearchGameTitlesRequest{
+		Query: query,
+		Limit: int32(intLimit),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
+	}
+	var results []models.Results
+	for _, result := range resp.GetResults() {
+		var seriesEntries []models.Tags
+		for _, seriesEntry := range result.GetSeriesEntries() {
+			seriesEntries = append(seriesEntries, *s.convertProtoToModel(seriesEntry, "", false, "", nil))
+		}
+		results = append(results, models.Results{
+			Tag:   s.convertProtoToModel(result.GetTag(), "", false, "", nil),
+			Score: result.GetScore(),
+			ParsedData: &models.ParsedTitle{Original: result.GetParsedData().GetEdition(),
+				SeriesCore: result.GetParsedData().GetSeriesCore(),
+				GamePart:   result.GetParsedData().GetGamePart(),
+				Edition:    result.GetParsedData().GetEdition(),
+				Platform:   result.GetParsedData().GetPlatform(),
+				Year:       result.GetParsedData().GetYear(),
+				Confidence: result.GetParsedData().GetConfidence(),
+			},
+			SeriesTag:     s.convertProtoToModel(result.GetSeriesTag(), "", false, "", nil),
+			MatchType:     result.GetMatchType(),
+			Confidence:    result.GetConfidence(),
+			SeriesEntries: seriesEntries,
+		})
+	}
+	parsedData := &models.ParsedTitle{
+		Original:   resp.GetParsedTitle().GetOriginal(),
+		SeriesCore: resp.GetParsedTitle().GetSeriesCore(),
+		GamePart:   resp.GetParsedTitle().GetGamePart(),
+		Edition:    resp.GetParsedTitle().GetEdition(),
+		Platform:   resp.GetParsedTitle().GetPlatform(),
+		Year:       resp.GetParsedTitle().GetYear(),
+		Confidence: resp.GetParsedTitle().GetConfidence(),
+	}
+
+	response := &models.SearchResponse{
+		Data: &models.SearchResult{
+			Results:      results,
+			SearchTerm:   resp.GetSearchTerm(),
+			ParsedData:   parsedData,
+			TotalCount:   resp.GetTotalCount(),
+			SearchTimeNs: resp.GetSearchTimeNs(),
+			DidLearn:     resp.GetDidLearn(),
+		},
+	}
+	return response, nil
+}
+
+func (s *TagsService) RecordUserChoice(req *models.UserChoiceRequest) (*dto.CommonResponse, error) {
+	_, err := s.tagsClient.RecordUserChoice(context.Background(), &microservices.RecordUserChoiceRequest{
+		SearchQuery:   req.SearchQuery,
+		SelectedTagId: req.SelectedTagID,
+		SessionId:     req.SessionID,
+		UserId:        req.UserID,
+		WasCorrect:    req.WasCorrect,
+		FeedbackScore: req.FeedbackScore,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &dto.CommonResponse{
+		Data: dto.Resp{Success: true},
+	}, nil
+}
+
+func (s *TagsService) GetSuggestions(query, limit string) (*models.SearchSuggestionResponse, error) {
+	intLimit, _ := strconv.Atoi(limit)
+	resp, err := s.tagsClient.GetSearchSuggestions(context.Background(), &microservices.GetSearchSuggestionsRequest{
+		Query: query,
+		Limit: int32(intLimit),
+	})
+	if err != nil {
+		return nil, err
+	}
+	var resultSuggestions []models.SearchSuggestions
+	for _, suggestion := range resp.GetSuggestions() {
+		resultSuggestions = append(resultSuggestions, models.SearchSuggestions{
+			Title:      suggestion.GetTitle(),
+			Type:       suggestion.GetType(),
+			Score:      suggestion.GetScore(),
+			Confidence: suggestion.GetConfidence(),
+			TagID:      suggestion.GetTagId(),
+		})
+	}
+	return &models.SearchSuggestionResponse{Data: resultSuggestions}, nil
+}
+
 func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLogin string, isPremium bool, filter string, tagsMap map[string]*microservices.GetShortsResponse) *models.Tags {
 	var primaryTag *models.Tags
 	var seriesTag *models.ShortTags

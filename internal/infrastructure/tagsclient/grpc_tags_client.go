@@ -178,6 +178,30 @@ func (c *GRPCTagsClient) FindAllTags(ctx context.Context, dto *microservices.Fin
 	return resp, nil
 }
 
+func (c *GRPCTagsClient) SearchGameTitles(ctx context.Context, dto *microservices.SearchGameTitlesRequest) (*microservices.GameSearchResponse, error) {
+	resp, err := c.client.SearchGameTitles(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *GRPCTagsClient) RecordUserChoice(ctx context.Context, dto *microservices.RecordUserChoiceRequest) (*microservices.TagsSuccessResponse, error) {
+	resp, err := c.client.RecordUserChoice(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *GRPCTagsClient) GetSearchSuggestions(ctx context.Context, dto *microservices.GetSearchSuggestionsRequest) (*microservices.SearchSuggestionsResponse, error) {
+	resp, err := c.client.GetSearchSuggestions(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (c *GRPCTagsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {
