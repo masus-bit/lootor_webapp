@@ -19,8 +19,8 @@ type EnrichingCIService struct {
 	tagsClient *tagsclient.GRPCTagsClient
 }
 
-func NewEnrichedCIService(service EnrichedCI) *EnrichingCIService {
-	return &EnrichingCIService{service: service}
+func NewEnrichedCIService(service EnrichedCI, tagsClient *tagsclient.GRPCTagsClient) *EnrichingCIService {
+	return &EnrichingCIService{service: service, tagsClient: tagsClient}
 }
 
 func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser string) (*models.CollectionItemsResponse, error) {
@@ -32,15 +32,17 @@ func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser s
 	if err = mapstructure.Decode(item, &response); err != nil {
 		return nil, err
 	}
-
 	var resultTags []models.ShortTags
-	for _, tag := range protoTags.GetTags() {
-		resultTags = append(resultTags, models.ShortTags{
-			ID:   tag.GetId(),
-			Name: tag.GetName(),
-			Slug: tag.GetSlug(),
-		})
+	if protoTags != nil {
+		for _, tag := range protoTags.GetTags() {
+			resultTags = append(resultTags, models.ShortTags{
+				ID:   tag.GetId(),
+				Name: tag.GetName(),
+				Slug: tag.GetSlug(),
+			})
+		}
 	}
+
 	response.Tags = resultTags
 
 	response.Collection = item.Collections[0].Id
@@ -108,6 +110,9 @@ func (s *EnrichingCIService) GetById(id string, authUser string) (*models.Collec
 		return nil, err
 	}
 	enriched, err := s.enrichItem(item, authUser)
+	if err != nil {
+		return nil, err
+	}
 	return &models.CollectionItemsDataResponse{Data: *enriched}, err
 }
 

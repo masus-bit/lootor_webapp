@@ -167,6 +167,10 @@ func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, aut
 }
 
 func (s *TagsService) AddTagToEntity(req *models.AddTagToEntityRequest, authUser, role string) (*dto.CommonResponse, error) {
+	author := authUser
+	if role == "admin" {
+		author = req.Author
+	}
 	canActivate, err := s.canActivate(authUser, role, req.EntityID, req.EntityType)
 	if err != nil {
 		return nil, err
@@ -179,8 +183,9 @@ func (s *TagsService) AddTagToEntity(req *models.AddTagToEntityRequest, authUser
 		EntityId:   req.EntityID,
 		TagIds:     req.TagIDs,
 		EntityType: req.EntityType,
+		Author:     author,
 	})
-	_ = s.userRepo.IncrementExperience(authUser, utils.TagAttachExp)
+	_ = s.userRepo.IncrementExperience(author, utils.TagAttachExp)
 
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при добавлении тега: %v", err)
@@ -235,9 +240,11 @@ func (s *TagsService) GetAllTagsForElastic() ([]models.ShortTags, error) {
 	var result []models.ShortTags
 	for _, tag := range tags.GetTags() {
 		result = append(result, models.ShortTags{
-			ID:   tag.GetId(),
-			Name: tag.GetName(),
-			Slug: tag.GetSlug(),
+			ID:        tag.GetId(),
+			Name:      tag.GetName(),
+			Slug:      tag.GetSlug(),
+			PrimaryID: tag.GetPrimaryId(),
+			SeriesID:  tag.GetSeriesId(),
 		})
 	}
 	return result, nil
@@ -266,9 +273,11 @@ func (s *TagsService) GetTagsByEntityId(entityId string) ([]models.ShortTags, er
 	var result []models.ShortTags
 	for _, tag := range tags.GetTags() {
 		result = append(result, models.ShortTags{
-			ID:   tag.GetId(),
-			Name: tag.GetName(),
-			Slug: tag.GetSlug(),
+			ID:        tag.GetId(),
+			Name:      tag.GetName(),
+			Slug:      tag.GetSlug(),
+			PrimaryID: tag.GetPrimaryId(),
+			SeriesID:  tag.GetSeriesId(),
 		})
 	}
 	return result, nil
@@ -429,9 +438,12 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 
 		if tag.GetSeriesId() != "" {
 			seriesTag = &models.ShortTags{
-				ID:   tag.GetSeriesId(),
-				Name: tag.GetSeries().GetName(),
-				Slug: tag.GetSeries().GetSlug()}
+				ID:        tag.GetSeriesId(),
+				Name:      tag.GetSeries().GetName(),
+				Slug:      tag.GetSeries().GetSlug(),
+				PrimaryID: tag.GetSeries().GetPrimaryId(),
+				SeriesID:  tag.GetSeries().GetSeriesId(),
+			}
 		} else {
 			seriesTag = nil
 		}

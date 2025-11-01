@@ -65,9 +65,11 @@ type TagLinks struct {
 }
 
 type ShortTags struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Slug string `json:"slug"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Slug      string `json:"slug"`
+	PrimaryID string `json:"primaryId"`
+	SeriesID  string `json:"seriesId"`
 }
 
 type TagsDataResponse struct {
@@ -100,6 +102,7 @@ type AddTagToEntityRequest struct {
 	TagIDs     []string `json:"tagIds"`
 	EntityType string   `json:"entityType"`
 	EntityID   string   `json:"entityId"`
+	Author     string   `json:"author"`
 }
 
 type RemoveTagsRequest struct {

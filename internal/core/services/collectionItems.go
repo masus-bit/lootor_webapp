@@ -141,9 +141,11 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 
 	if len(dto.Tags) > 0 {
 		tags, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
-			EntityType: "collection",
+			EntityType: "collectionItem",
 			EntityId:   collectionItemResponse.Id.String(),
 			TagIds:     dto.Tags,
+			Author:     authUserLogin,
+			ShowSearch: !collection.IsPrivate,
 		})
 
 		if !collection.IsPrivate {

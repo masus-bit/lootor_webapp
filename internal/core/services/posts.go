@@ -79,6 +79,8 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 				EntityType: "post",
 				EntityId:   strconv.FormatUint(post.Data.Id, 10),
 				TagIds:     request.Tags,
+				Author:     request.Author,
+				ShowSearch: !request.IsDraft,
 			})
 			if err != nil {
 				fmt.Println(err)
@@ -404,6 +406,25 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateReq
 		})
 		if err != nil {
 			return nil, err
+		}
+		var IDs []string
+		IDs = append(IDs, strconv.FormatUint(existPost.GetData().GetId(), 10))
+		if !req.IsDraft {
+			_, err = s.tagsClient.UpdateVisibleLinks(context.Background(), &microservices.UpdateVisibleLinksRequest{
+				EntityIds: IDs,
+				Visible:   true,
+			})
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			_, err = s.tagsClient.UpdateVisibleLinks(context.Background(), &microservices.UpdateVisibleLinksRequest{
+				EntityIds: IDs,
+				Visible:   false,
+			})
+			if err != nil {
+				return nil, err
+			}
 		}
 		if tags != nil {
 			for _, tag := range tags.GetTags() {

@@ -278,9 +278,11 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 			if tagsRaw != nil {
 				for key, tag := range tagsRaw.GetTags() {
 					tagsMap[key] = models.ShortTags{
-						ID:   tag.GetId(),
-						Name: tag.GetName(),
-						Slug: tag.GetSlug(),
+						ID:        tag.GetId(),
+						Name:      tag.GetName(),
+						Slug:      tag.GetSlug(),
+						PrimaryID: tag.GetPrimaryId(),
+						SeriesID:  tag.GetSeriesId(),
 					}
 				}
 			}
@@ -395,7 +397,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 func toShortTags(tags []*microservices.TagItemShort) []models.ShortTags {
 	result := make([]models.ShortTags, len(tags))
 	for i, t := range tags {
-		result[i] = models.ShortTags{ID: t.GetId(), Name: t.GetName(), Slug: t.GetSlug()}
+		result[i] = models.ShortTags{ID: t.GetId(), Name: t.GetName(), Slug: t.GetSlug(), PrimaryID: t.GetPrimaryId(), SeriesID: t.GetSeriesId()}
 	}
 	return result
 }

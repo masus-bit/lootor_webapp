@@ -28,7 +28,14 @@ service TagsService {
   rpc RecordUserChoice(RecordUserChoiceRequest) returns (TagsSuccessResponse);
   rpc GetSearchSuggestions(GetSearchSuggestionsRequest) returns (SearchSuggestionsResponse);
   rpc GetLearningStats(GetLearningStatsRequest) returns (LearningStatsResponse);
+  rpc UpdateVisibleLinks(UpdateVisibleLinksRequest) returns (TagsSuccessResponse);
 }
+
+message UpdateVisibleLinksRequest {
+  repeated string entity_ids = 1;
+  bool visible = 2;
+}
+
 message SearchGameTitlesRequest {
   string query = 1;           // Search query (e.g., "metal gear solid 5 phantom pain")
   int32 limit = 2;           // Maximum number of results (default: 10)
@@ -137,6 +144,8 @@ message AddFewTagsToEntityRequest {
   string entity_id = 1;
   repeated string tag_ids = 2;
   string entity_type = 3;
+  string author = 4;
+  bool show_search = 5;
 }
 
 message GetTagsByEntityIdRequest {
@@ -181,6 +190,8 @@ message TagCreateResponse {
   string id = 1;
   string name = 2;
   string slug = 3;
+  string primary_id = 4;
+  string series_id = 5;
 }
 
 message TagsSearchRequest {
@@ -236,6 +247,8 @@ message TagItemShort {
   string id = 1;
   string name = 2;
   string slug = 3;
+  string series_id = 4;
+  string primary_id = 5;
 }
 
 message GetEntitiesByTagRequest {
@@ -243,6 +256,7 @@ message GetEntitiesByTagRequest {
   string entity_type = 2;
   int64 limit = 3;
   int64 offset = 4;
+  string author = 5;
 }
 
 message TagLinksItem {

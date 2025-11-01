@@ -202,6 +202,14 @@ func (c *GRPCTagsClient) GetSearchSuggestions(ctx context.Context, dto *microser
 	return resp, nil
 }
 
+func (c *GRPCTagsClient) UpdateVisibleLinks(ctx context.Context, dto *microservices.UpdateVisibleLinksRequest) (*microservices.TagsSuccessResponse, error) {
+	resp, err := c.client.UpdateVisibleLinks(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (c *GRPCTagsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

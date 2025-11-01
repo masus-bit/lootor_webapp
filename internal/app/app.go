@@ -190,7 +190,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	tagsService := services.NewTagsService(tagsClient, userRepo, postsService, ciRepo, colRepo, eventsService, itemTypesRepo, searchService)
 	fbService := feedback.NewFeedbackService()
 	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsService)
-	enrichedCIService := utils.NewEnrichedCIService(ciService)
+	enrichedCIService := utils.NewEnrichedCIService(ciService, tagsClient)
 	subService := services.NewSubscriptionService(subRepo)
 	paymentService := payment.NewPayService(userRepo, userService, subService, paymentsRepo)
 	captchaService := auth.NewRecaptchaService()

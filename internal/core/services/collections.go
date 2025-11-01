@@ -89,6 +89,8 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 			EntityType: "collection",
 			EntityId:   res.Id.String(),
 			TagIds:     dto.Tags,
+			Author:     dto.UserLogin,
+			ShowSearch: !dto.IsPrivate,
 		})
 		if !dto.IsPrivate {
 			for _, tag := range tags.GetTags() {
@@ -189,12 +191,42 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 			return nil, err
 		}
 		if !*dto.IsPrivate {
+			var entitiesIDs []string
+			collectionItemsIDs, err := s.repo.GetCollectionItemsIds(id)
+			if err != nil {
+				return nil, err
+			}
+			entitiesIDs = append(entitiesIDs, collectionItemsIDs...)
+			entitiesIDs = append(entitiesIDs, id)
+			_, err = s.tagsClient.UpdateVisibleLinks(context.Background(), &microservices.UpdateVisibleLinksRequest{
+				EntityIds: entitiesIDs,
+				Visible:   true,
+			})
+			if err != nil {
+				return nil, err
+			}
 			for _, tag := range tags.GetTags() {
 				tagUUID, _ := uuid.Parse(tag.GetId())
 				eventError := s.eventsService.AddEvent(exists.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TagRelatedEntityType: utils.EventTargetCollection})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
+			}
+
+		} else {
+			var entitiesIDs []string
+			collectionItemsIDs, err := s.repo.GetCollectionItemsIds(id)
+			if err != nil {
+				return nil, err
+			}
+			entitiesIDs = append(entitiesIDs, collectionItemsIDs...)
+			entitiesIDs = append(entitiesIDs, id)
+			_, err = s.tagsClient.UpdateVisibleLinks(context.Background(), &microservices.UpdateVisibleLinksRequest{
+				EntityIds: entitiesIDs,
+				Visible:   false,
+			})
+			if err != nil {
+				return nil, err
 			}
 		}
 	}
