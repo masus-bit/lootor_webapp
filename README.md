@@ -34,7 +34,7 @@ go run cmd/api/main.go
 ```
 
 ## Contributing
-Хуютинг
+zaluping
 
 ## Лицензия
 
