@@ -236,9 +236,11 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 	if tags != nil {
 		for _, tag := range tags.GetTags() {
 			resultTags = append(resultTags, models.ShortTags{
-				ID:   tag.GetId(),
-				Name: tag.GetName(),
-				Slug: tag.GetSlug(),
+				ID:        tag.GetId(),
+				Name:      tag.GetName(),
+				Slug:      tag.GetSlug(),
+				PrimaryID: tag.GetPrimaryId(),
+				SeriesID:  tag.GetSeriesId(),
 			})
 		}
 	}
@@ -337,13 +339,8 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 		itemTags := tags.GetTags()[dbCollection.Id.String()]
 
 		var resultTags []models.ShortTags
-		for _, tag := range itemTags.GetTags() {
-			resultTags = append(resultTags, models.ShortTags{
-				ID:   tag.GetId(),
-				Name: tag.GetName(),
-				Slug: tag.GetSlug(),
-			})
-		}
+
+		resultTags = utils.NormalizeTagsShort(itemTags.GetTags())
 
 		temp.Tags = resultTags
 
@@ -397,13 +394,7 @@ func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit
 		itemTags := tags.GetTags()[dbCollection.Id.String()]
 
 		var resultTags []models.ShortTags
-		for _, tag := range itemTags.GetTags() {
-			resultTags = append(resultTags, models.ShortTags{
-				ID:   tag.GetId(),
-				Name: tag.GetName(),
-				Slug: tag.GetSlug(),
-			})
-		}
+		resultTags = utils.NormalizeTagsShort(itemTags.GetTags())
 
 		temp.Tags = resultTags
 
@@ -475,13 +466,7 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 		itemTags := ciTags.GetTags()[item.Id.String()]
 
 		var resultTags []models.ShortTags
-		for _, tag := range itemTags.GetTags() {
-			resultTags = append(resultTags, models.ShortTags{
-				ID:   tag.GetId(),
-				Name: tag.GetName(),
-				Slug: tag.GetSlug(),
-			})
-		}
+		resultTags = utils.NormalizeTagsShort(itemTags.GetTags())
 		temp.Tags = resultTags
 
 		temp.Collection = finalCollection.Id
@@ -506,13 +491,7 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	}
 
 	var resultTags []models.ShortTags
-	for _, tag := range protoTags.GetTags() {
-		resultTags = append(resultTags, models.ShortTags{
-			ID:   tag.GetId(),
-			Name: tag.GetName(),
-			Slug: tag.GetSlug(),
-		})
-	}
+	resultTags = utils.NormalizeTagsShort(protoTags.GetTags())
 
 	finalCollection.Tags = resultTags
 

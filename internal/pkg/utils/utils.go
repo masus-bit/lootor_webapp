@@ -382,9 +382,11 @@ func NormalizeTagsShort(tagsProto []*microservices.TagItemShort) []models.ShortT
 	tempTags := make([]models.ShortTags, 0, len(tagsProto))
 	for _, tag := range tagsProto {
 		tempTags = append(tempTags, models.ShortTags{
-			ID:   tag.GetId(),
-			Name: tag.GetName(),
-			Slug: tag.GetSlug(),
+			ID:        tag.GetId(),
+			Name:      tag.GetName(),
+			Slug:      tag.GetSlug(),
+			PrimaryID: tag.GetPrimaryId(),
+			SeriesID:  tag.GetSeriesId(),
 		})
 	}
 

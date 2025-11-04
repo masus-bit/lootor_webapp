@@ -34,13 +34,7 @@ func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser s
 	}
 	var resultTags []models.ShortTags
 	if protoTags != nil {
-		for _, tag := range protoTags.GetTags() {
-			resultTags = append(resultTags, models.ShortTags{
-				ID:   tag.GetId(),
-				Name: tag.GetName(),
-				Slug: tag.GetSlug(),
-			})
-		}
+		resultTags = NormalizeTagsShort(protoTags.GetTags())
 	}
 
 	response.Tags = resultTags
@@ -74,13 +68,7 @@ func (s *EnrichingCIService) enrichAnyItems(items []models.CollectionItems, auth
 		}
 
 		var resultTags []models.ShortTags
-		for _, tag := range protoTags.GetTags() {
-			resultTags = append(resultTags, models.ShortTags{
-				ID:   tag.GetId(),
-				Name: tag.GetName(),
-				Slug: tag.GetSlug(),
-			})
-		}
+		resultTags = NormalizeTagsShort(protoTags.GetTags())
 		temp.Tags = resultTags
 
 		temp.Collection = item.Collections[0].Id

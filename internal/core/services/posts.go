@@ -103,13 +103,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 			return nil, err
 		}
 
-		for _, tag := range respTags.GetTags() {
-			tags = append(tags, models.ShortTags{
-				ID:   tag.GetId(),
-				Name: tag.GetName(),
-				Slug: tag.GetSlug(),
-			})
-		}
+		tags = utils.NormalizeTagsShort(respTags.GetTags())
 	}
 
 	result := models.PostDataResponse{
@@ -442,9 +436,11 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateReq
 	if tags != nil {
 		for _, tag := range tags.GetTags() {
 			resultTags = append(resultTags, models.ShortTags{
-				ID:   tag.GetId(),
-				Name: tag.GetName(),
-				Slug: tag.GetSlug(),
+				ID:        tag.GetId(),
+				Name:      tag.GetName(),
+				Slug:      tag.GetSlug(),
+				PrimaryID: tag.GetPrimaryId(),
+				SeriesID:  tag.GetSeriesId(),
 			})
 		}
 	}
@@ -504,13 +500,7 @@ func (s *PostsService) GetPostsByIDs(ctx context.Context, ids []string, authUser
 			itemTags := tagsMap.GetTags()[strconv.FormatUint(p.Id, 10)]
 
 			var resultTags []models.ShortTags
-			for _, tag := range itemTags.GetTags() {
-				resultTags = append(resultTags, models.ShortTags{
-					ID:   tag.GetId(),
-					Name: tag.GetName(),
-					Slug: tag.GetSlug(),
-				})
-			}
+			resultTags = utils.NormalizeTagsShort(itemTags.GetTags())
 			for _, r := range p.Reactions {
 				reactUsers = append(reactUsers, r.UserLogin)
 			}
@@ -572,13 +562,7 @@ func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*m
 		itemTags := tagsMap.GetTags()[strconv.FormatUint(p.Id, 10)]
 
 		var resultTags []models.ShortTags
-		for _, tag := range itemTags.GetTags() {
-			resultTags = append(resultTags, models.ShortTags{
-				ID:   tag.GetId(),
-				Name: tag.GetName(),
-				Slug: tag.GetSlug(),
-			})
-		}
+		resultTags = utils.NormalizeTagsShort(itemTags.GetTags())
 		user, err := s.userRepo.GetUserByLogin(p.Author)
 		if err != nil {
 			return nil, err
@@ -669,13 +653,7 @@ func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, react
 			return nil
 		}
 
-		for _, tag := range respTags.GetTags() {
-			tags = append(tags, models.ShortTags{
-				ID:   tag.GetId(),
-				Name: tag.GetName(),
-				Slug: tag.GetSlug(),
-			})
-		}
+		tags = utils.NormalizeTagsShort(respTags.GetTags())
 	}
 	return &models.Posts{
 		Id:   p.GetId(),

@@ -162,13 +162,7 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 	var resultTags []models.ShortTags
 	resultTags = make([]models.ShortTags, 0)
 	if tags != nil {
-		for _, tag := range tags.Tags {
-			resultTags = append(resultTags, models.ShortTags{
-				ID:   tag.Id,
-				Name: tag.Name,
-				Slug: tag.Slug,
-			})
-		}
+		resultTags = utils.NormalizeTagsShort(tags.GetTags())
 		collectionItemResponse.Tags = resultTags
 	}
 	return &models.CollectionItemsDataResponse{Data: collectionItemResponse}, nil
@@ -486,13 +480,7 @@ func (s *CiService) GetAll(limit, offset, search string) (*models.CollectionItem
 		itemTags := tags.GetTags()[item.Id.String()]
 
 		var resultTags []models.ShortTags
-		for _, tag := range itemTags.GetTags() {
-			resultTags = append(resultTags, models.ShortTags{
-				ID:   tag.GetId(),
-				Name: tag.GetName(),
-				Slug: tag.GetSlug(),
-			})
-		}
+		resultTags = utils.NormalizeTagsShort(itemTags.GetTags())
 
 		if len(item.Collections) > 0 {
 			temp.Collection = item.Collections[0].Id
