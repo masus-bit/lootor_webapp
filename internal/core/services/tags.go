@@ -61,13 +61,11 @@ func (s *TagsService) CreateTag(req *models.TagCreateRequest, authUser string) (
 			log.Printf("Failed to index tags in bulk: %v", err)
 		}
 	}()
-
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		exp := int(utils.TagExp * float64(len(tags)))
+		exp := int(utils.TagExp * float64(resp.GetDeletedCount()))
 		_ = s.userRepo.IncrementExperience(authUser, exp)
-		_ = s.userRepo.IncrementSocialScore(authUser, len(tags))
 	}()
 
 	tagIDs := make([]string, len(tags))

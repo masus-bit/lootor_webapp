@@ -224,6 +224,7 @@ message CreateTagsRequest {
 
 message TagsCreateResponse {
   repeated TagCreateResponse tags = 1;
+  int64 deleted_count = 2;
 }
 
 message TagItem {
