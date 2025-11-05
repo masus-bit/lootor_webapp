@@ -29,6 +29,11 @@ service TagsService {
   rpc GetSearchSuggestions(GetSearchSuggestionsRequest) returns (SearchSuggestionsResponse);
   rpc GetLearningStats(GetLearningStatsRequest) returns (LearningStatsResponse);
   rpc UpdateVisibleLinks(UpdateVisibleLinksRequest) returns (TagsSuccessResponse);
+  rpc RemoveEntityTags(RemoveEntityTagsRequest) returns (TagsSuccessResponse);
+}
+
+message RemoveEntityTagsRequest {
+  string entity_id = 1;
 }
 
 message UpdateVisibleLinksRequest {

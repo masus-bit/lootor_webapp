@@ -273,6 +273,12 @@ func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonR
 
 	}
 
+	go func() {
+		_, _ = s.tagsClient.RemoveEntityTags(context.Background(), &microservices.RemoveEntityTagsRequest{
+			EntityId: id,
+		})
+	}()
+
 	exp := len(exists.CollectionItems) + utils.CollectionExp
 
 	cis := exists.CollectionItems

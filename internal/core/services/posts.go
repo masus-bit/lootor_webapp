@@ -214,6 +214,13 @@ func (s *PostsService) DeletePost(ctx context.Context, id uint64, authUser strin
 		}()
 	}
 
+	go func() {
+		stringId := strconv.Itoa(int(id))
+		_, _ = s.tagsClient.RemoveEntityTags(context.Background(), &microservices.RemoveEntityTagsRequest{
+			EntityId: stringId,
+		})
+	}()
+
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 

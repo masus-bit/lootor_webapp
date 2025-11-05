@@ -210,6 +210,14 @@ func (c *GRPCTagsClient) UpdateVisibleLinks(ctx context.Context, dto *microservi
 	return resp, nil
 }
 
+func (c *GRPCTagsClient) RemoveEntityTags(ctx context.Context, dto *microservices.RemoveEntityTagsRequest) (*microservices.TagsSuccessResponse, error) {
+	resp, err := c.client.RemoveEntityTags(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (c *GRPCTagsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {
