@@ -267,17 +267,16 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 			}
 		}
 	}
-
+	tags, err := s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
+		EntityType: "collectionItem",
+		EntityId:   id,
+		TagIds:     dto.Tags,
+		Author:     exists.Owner.Login,
+	})
+	if err != nil {
+		return nil, err
+	}
 	if len(dto.Tags) > 0 {
-		tags, err := s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
-			EntityType: "collectionItem",
-			EntityId:   id,
-			TagIds:     dto.Tags,
-			Author:     exists.Owner.Login,
-		})
-		if err != nil {
-			return nil, err
-		}
 		if !exists.Collections[0].IsPrivate {
 			for _, tag := range tags.GetTags() {
 				tagUUID, _ := uuid.Parse(tag.GetId())

@@ -397,17 +397,16 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateReq
 	}
 
 	var tags *microservices.TagsCreateResponse
-
+	tags, err = s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
+		EntityType: "post",
+		EntityId:   strconv.FormatUint(existPost.GetData().GetId(), 10),
+		TagIds:     req.Tags,
+		Author:     existPost.GetData().GetAuthor(),
+	})
+	if err != nil {
+		return nil, err
+	}
 	if len(req.Tags) > 0 {
-		tags, err = s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
-			EntityType: "post",
-			EntityId:   strconv.FormatUint(existPost.GetData().GetId(), 10),
-			TagIds:     req.Tags,
-			Author:     existPost.GetData().GetAuthor(),
-		})
-		if err != nil {
-			return nil, err
-		}
 		var IDs []string
 		IDs = append(IDs, strconv.FormatUint(existPost.GetData().GetId(), 10))
 		if !req.IsDraft {

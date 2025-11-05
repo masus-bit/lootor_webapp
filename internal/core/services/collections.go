@@ -179,17 +179,16 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 	}
 
 	var tags *microservices.TagsCreateResponse
-
+	tags, err = s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
+		EntityType: "collection",
+		EntityId:   id,
+		TagIds:     dto.Tags,
+		Author:     exists.UserLogin,
+	})
+	if err != nil {
+		return nil, err
+	}
 	if len(dto.Tags) > 0 {
-		tags, err = s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
-			EntityType: "collection",
-			EntityId:   id,
-			TagIds:     dto.Tags,
-			Author:     exists.UserLogin,
-		})
-		if err != nil {
-			return nil, err
-		}
 		if !*dto.IsPrivate {
 			var entitiesIDs []string
 			collectionItemsIDs, err := s.repo.GetCollectionItemsIds(id)
