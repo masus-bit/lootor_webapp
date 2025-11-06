@@ -384,7 +384,7 @@ func getType(tagProto *microservices.TagItemShort) string {
 
 	if primaryId == "" {
 		if seriesId == "" {
-			return "primarySeries"
+			return "series"
 		}
 		return "primarySeriesChild"
 	}
