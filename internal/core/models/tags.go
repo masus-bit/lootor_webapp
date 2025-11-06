@@ -70,6 +70,7 @@ type ShortTags struct {
 	Slug      string `json:"slug"`
 	PrimaryID string `json:"primaryId"`
 	SeriesID  string `json:"seriesId"`
+	Type      string `json:"type"`
 }
 
 type TagsDataResponse struct {

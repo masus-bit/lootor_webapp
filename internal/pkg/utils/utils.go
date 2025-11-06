@@ -378,6 +378,22 @@ func fillPost(p *microservices.PostItem, content []byte, reacts *models.ReactRes
 
 }
 
+func getType(tagProto *microservices.TagItemShort) string {
+	primaryId := tagProto.GetPrimaryId()
+	seriesId := tagProto.GetSeriesId()
+
+	if primaryId == "" {
+		if seriesId == "" {
+			return "primarySeries"
+		}
+		return "primarySeriesChild"
+	}
+	if seriesId == "" {
+		return "synonymSeries"
+	}
+	return "synonymSeriesChild"
+}
+
 func NormalizeTagsShort(tagsProto []*microservices.TagItemShort) []models.ShortTags {
 	tempTags := make([]models.ShortTags, 0, len(tagsProto))
 	for _, tag := range tagsProto {
@@ -387,6 +403,7 @@ func NormalizeTagsShort(tagsProto []*microservices.TagItemShort) []models.ShortT
 			Slug:      tag.GetSlug(),
 			PrimaryID: tag.GetPrimaryId(),
 			SeriesID:  tag.GetSeriesId(),
+			Type:      getType(tag),
 		})
 	}
 
