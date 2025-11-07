@@ -512,7 +512,7 @@ func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin, filt
 
 		if authUserLogin != "" {
 			if authUserLogin == collectionItem.Owner.Login {
-				temp.CanLike = false
+				temp.CanLike = true
 			} else {
 				temp.CanLike = !slices.Contains(collectionItem.Likes, authUserLogin)
 			}
