@@ -88,7 +88,6 @@ type UserResponse struct {
 	Bio                   string          `json:"bio"`
 	VkId                  string          `json:"vkId"`
 	TelegramId            string          `json:"telegramId"`
-	Email                 string          `json:"email"`
 	Created               string          `json:"created"`
 	Likes                 int             `json:"likes"`
 	Dislikes              int             `json:"dislikes"`
@@ -121,7 +120,6 @@ type UserResponseForSingleUser struct {
 	Bio                  string          `json:"bio"`
 	VkId                 string          `json:"vkId"`
 	TelegramId           string          `json:"telegramId"`
-	Email                string          `json:"email"`
 	Created              string          `json:"created"`
 	Likes                int             `json:"likes"`
 	Dislikes             int             `json:"dislikes"`
@@ -171,7 +169,6 @@ type UserResponseForCollection struct {
 	UserName      string         `json:"userName"`
 	City          string         `json:"city"`
 	Bio           string         `json:"bio"`
-	Email         string         `json:"email"`
 	AvatarUrl     string         `json:"avatarUrl"`
 	Subscriptions pq.StringArray `json:"subscriptions"`
 	ProfileName   string         `json:"profileName"`

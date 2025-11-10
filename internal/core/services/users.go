@@ -116,7 +116,6 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	response.TotalDonations = donationsString
 	response.PostCount = int(postsCount)
 	e := mapstructure.Decode(dbUser, &response)
-	response.Email = ""
 	response.VkId = ""
 	response.TelegramId = ""
 	if e != nil {
@@ -250,6 +249,10 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		subscriptionTargetUser.SubscribersLogins = utils.RemoveByValue(subscriptionTargetUser.SubscribersLogins, strings.ToLower(authUserLogin))
 		go func() {
 			_ = s.notificationsService.DeleteNotification(context.Background(), targetUserLogin, authUserLogin)
+			err := s.eventsService.AddEvent(authUserLogin, utils.EventActionUnsubscribe, utils.EventTargetUser, targetUserLogin, &models.EventsParams{TargetUserLogin: targetUserLogin})
+			if err != nil {
+				fmt.Println(err)
+			}
 		}()
 		subscriptionTargetUser.Exp -= utils.UserSelfSubExp
 	}

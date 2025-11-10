@@ -10,13 +10,14 @@ const (
 )
 
 const (
-	EventActionCreate    = "create"
-	EventActionUpdate    = "update"
-	EventActionDelete    = "delete"
-	EventActionSubscribe = "subscribe"
-	EventActionLike      = "like"
-	EventActionAddTag    = "tagAdd"
-	EventActionDislike   = "dislike"
+	EventActionCreate      = "create"
+	EventActionUpdate      = "update"
+	EventActionDelete      = "delete"
+	EventActionSubscribe   = "subscribe"
+	EventActionLike        = "like"
+	EventActionAddTag      = "tagAdd"
+	EventActionDislike     = "dislike"
+	EventActionUnsubscribe = "unsubscribe"
 )
 
 const (

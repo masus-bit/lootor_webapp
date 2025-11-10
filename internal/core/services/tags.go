@@ -303,6 +303,13 @@ func (s *TagsService) Subscribe(id, userLogin string) (*dto.CommonResponse, erro
 	subsTags := user.TagsSubscriptions
 	if slices.Contains(subsTags, id) {
 		utils.RemoveByValue(subsTags, id)
+		go func() {
+			tagUUID, _ := uuid.Parse(tag.GetId())
+			err = s.eventsService.AddEvent(userLogin, utils.EventActionUnsubscribe, utils.EventTargetTag, tag.GetName(), &models.EventsParams{TargetTagID: tagUUID})
+			if err != nil {
+				fmt.Println(err)
+			}
+		}()
 	} else {
 		subsTags = append(subsTags, id)
 		go func() {
