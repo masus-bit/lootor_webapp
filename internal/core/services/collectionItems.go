@@ -443,6 +443,10 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 		err = s.userRepo.DecrementExperience(exists.UserLogin, utils.CISelfLikeExp)
 		go func() {
 			_ = s.notificationsService.DeleteNotification(context.Background(), id, userLogin)
+			eventError := s.eventsService.AddEvent(userLogin, utils.EventActionDislike, utils.EventTargetCollectionItem, exists.Name, &models.EventsParams{TargetItemID: exists.Id})
+			if eventError != nil {
+				log.Default().Print(eventError)
+			}
 		}()
 		if err != nil {
 			return nil, err

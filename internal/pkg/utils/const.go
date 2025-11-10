@@ -16,6 +16,7 @@ const (
 	EventActionSubscribe = "subscribe"
 	EventActionLike      = "like"
 	EventActionAddTag    = "tagAdd"
+	EventActionDislike   = "dislike"
 )
 
 const (
