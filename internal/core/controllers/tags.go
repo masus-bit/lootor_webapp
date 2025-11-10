@@ -316,6 +316,42 @@ func (c *TagsController) MergeSeries(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// DeleteTags
+// @Summary смержить теги к одному главному тегу серии
+// @Tags tags
+// @Accept  json
+// @Produce  json
+// @Param mergeRequest body models.DeleteTags true "необходимые поля"
+// @Success 201 {object} dto.CommonResponse
+// @Router /secured/tags/adm/delete [post]
+func (c *TagsController) DeleteTags(ctx echo.Context) error {
+	var request models.DeleteTags
+
+	userRole, ok := ctx.Get("role").(string)
+	if !ok {
+		userRole = ""
+	}
+
+	if userRole != "admin" {
+		return ctx.JSON(http.StatusForbidden, map[string]string{
+			"error": "Forbidden",
+		})
+	}
+
+	if err := ctx.Bind(&request); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body",
+		})
+	}
+	response, err := c.tagsService.DeleteTags(&request)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
 // UpdateTag
 // @Summary обновить инфу по тегу
 // @Tags tags

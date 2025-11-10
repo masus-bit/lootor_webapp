@@ -426,6 +426,16 @@ func (s *TagsService) GetSuggestions(query, limit string) (*models.SearchSuggest
 	return &models.SearchSuggestionResponse{Data: resultSuggestions}, nil
 }
 
+func (s *TagsService) DeleteTags(req *models.DeleteTags) (*dto.CommonResponse, error) {
+	_, err := s.tagsClient.DeleteTags(context.Background(), &microservices.GetTagsByIDsRequest{
+		Ids: req.IDs,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+}
+
 func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLogin string, isPremium bool, filter string, tagsMap map[string]*microservices.GetShortsResponse) *models.Tags {
 	var primaryTag *models.Tags
 	var seriesTag *models.ShortTags

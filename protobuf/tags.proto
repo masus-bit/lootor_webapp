@@ -30,6 +30,7 @@ service TagsService {
   rpc GetLearningStats(GetLearningStatsRequest) returns (LearningStatsResponse);
   rpc UpdateVisibleLinks(UpdateVisibleLinksRequest) returns (TagsSuccessResponse);
   rpc RemoveEntityTags(RemoveEntityTagsRequest) returns (TagsSuccessResponse);
+  rpc DeleteTags(GetTagsByIDsRequest) returns (TagsSuccessResponse);
 }
 
 message RemoveEntityTagsRequest {

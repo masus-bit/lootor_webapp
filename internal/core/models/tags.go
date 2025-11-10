@@ -186,3 +186,7 @@ type SearchSuggestionResponse struct {
 type SearchResponse struct {
 	Data *SearchResult `json:"data"`
 }
+
+type DeleteTags struct {
+	IDs []string `json:"ids"`
+}

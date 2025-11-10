@@ -218,6 +218,14 @@ func (c *GRPCTagsClient) RemoveEntityTags(ctx context.Context, dto *microservice
 	return resp, nil
 }
 
+func (c *GRPCTagsClient) DeleteTags(ctx context.Context, dto *microservices.GetTagsByIDsRequest) (*microservices.TagsSuccessResponse, error) {
+	resp, err := c.client.DeleteTags(ctx, dto)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (c *GRPCTagsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

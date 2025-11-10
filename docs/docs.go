@@ -2189,6 +2189,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/tags/adm/delete": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "смержить теги к одному главному тегу серии",
+                "parameters": [
+                    {
+                        "description": "необходимые поля",
+                        "name": "mergeRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DeleteTags"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/tags/adm/entity": {
             "post": {
                 "consumes": [
@@ -3559,6 +3592,9 @@ const docTemplate = `{
         "models.AddTagToEntityRequest": {
             "type": "object",
             "properties": {
+                "author": {
+                    "type": "string"
+                },
                 "entityId": {
                     "type": "string"
                 },
@@ -3716,6 +3752,17 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.DeleteTags": {
+            "type": "object",
+            "properties": {
+                "ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -3905,7 +3952,16 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "primaryId": {
+                    "type": "string"
+                },
+                "seriesId": {
+                    "type": "string"
+                },
                 "slug": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }

@@ -80,7 +80,7 @@ func (s *EventsService) GetEvents(authUserLogin, limit, offset string, eventTarg
 		if err != nil {
 			return nil, err
 		}
-		events = s.normalizeEvents(evs.Items, authUserLogin, dbUser.IsPremium)
+		events = s.normalizeEvents(evs.GetItems(), authUserLogin, dbUser.IsPremium)
 		totalCount = evs.Total
 	}
 	return &models.EventsDataResponse{Data: events, Total: totalCount}, nil

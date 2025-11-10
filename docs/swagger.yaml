@@ -470,6 +470,8 @@ definitions:
     type: object
   models.AddTagToEntityRequest:
     properties:
+      author:
+        type: string
       entityId:
         type: string
       entityType:
@@ -574,6 +576,13 @@ definitions:
       shippingCost:
         type: number
       tags:
+        items:
+          type: string
+        type: array
+    type: object
+  models.DeleteTags:
+    properties:
+      ids:
         items:
           type: string
         type: array
@@ -696,7 +705,13 @@ definitions:
         type: string
       name:
         type: string
+      primaryId:
+        type: string
+      seriesId:
+        type: string
       slug:
+        type: string
+      type:
         type: string
     type: object
   models.SignInRequest:
@@ -2403,6 +2418,27 @@ paths:
           schema:
             $ref: '#/definitions/dto.CommonResponse'
       summary: Создание тега
+      tags:
+      - tags
+  /secured/tags/adm/delete:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: необходимые поля
+        in: body
+        name: mergeRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.DeleteTags'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: смержить теги к одному главному тегу серии
       tags:
       - tags
   /secured/tags/adm/entity:
