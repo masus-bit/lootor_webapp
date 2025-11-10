@@ -80,9 +80,11 @@ func (s *TagsService) bulkIndexTags(tags []*microservices.TagCreateResponse) err
 	docs := make([]map[string]interface{}, len(tags))
 	for i, tag := range tags {
 		docs[i] = map[string]interface{}{
-			"id":   tag.GetId(),
-			"name": tag.GetName(),
-			"slug": tag.GetSlug(),
+			"id":        tag.GetId(),
+			"name":      tag.GetName(),
+			"slug":      tag.GetSlug(),
+			"primaryId": tag.GetPrimaryId(),
+			"seriesId":  tag.GetSeriesId(),
 		}
 	}
 
