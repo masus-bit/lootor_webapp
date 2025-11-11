@@ -5,14 +5,5 @@ import (
 )
 
 func UppercaseTagsNames(db *gorm.DB) error {
-	return db.Transaction(func(tx *gorm.DB) error {
-		result := tx.Table("loot_tags.tags").
-			Update("name", gorm.Expr("UPPER(name)"))
-
-		if result.Error != nil {
-			return result.Error
-		}
-
-		return nil
-	})
+	return db.Exec("UPDATE loot_tags.tags SET name = UPPER(name) WHERE id IS NOT NULL").Error
 }
