@@ -433,6 +433,12 @@ func (s *TagsService) DeleteTags(req *models.DeleteTags) (*dto.CommonResponse, e
 	if err != nil {
 		return nil, err
 	}
+	for _, tagId := range req.IDs {
+		if err := s.es.DeleteDocument(context.Background(), "tags", tagId); err != nil {
+			log.Printf("Failed to delete tag from index: %v", err)
+		}
+	}
+
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
