@@ -151,7 +151,7 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 		if !collection.IsPrivate {
 			for _, tag := range tags.GetTags() {
 				tagUUID, _ := uuid.Parse(tag.GetId())
-				eventError := s.eventsService.AddEvent(collectionItemResponse.Owner.Login, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TagRelatedEntityType: utils.EventTargetCollectionItem})
+				eventError := s.eventsService.AddEvent(collectionItemResponse.Owner.Login, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TargetItemID: collectionItemResponse.Id, TagRelatedEntityType: utils.EventTargetCollectionItem})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -280,7 +280,7 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 		if !exists.Collections[0].IsPrivate {
 			for _, tag := range tags.GetTags() {
 				tagUUID, _ := uuid.Parse(tag.GetId())
-				eventError := s.eventsService.AddEvent(exists.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TagRelatedEntityType: utils.EventTargetCollectionItem})
+				eventError := s.eventsService.AddEvent(exists.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TargetItemID: exists.Id, TagRelatedEntityType: utils.EventTargetCollectionItem})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}

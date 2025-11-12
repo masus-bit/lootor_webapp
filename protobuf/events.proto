@@ -20,7 +20,7 @@ message Params {
   string target_item_id = 3;
   string target_wish_list_item_id = 4;
   string target_post_id = 5;
-  string target_tag_id = 6;
+  string target_tag_id = 7;
 }
 
 message AddEventRequest {

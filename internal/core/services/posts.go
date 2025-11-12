@@ -88,7 +88,8 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 			if tagsAdded != nil {
 				for _, tag := range tagsAdded.GetTags() {
 					tagUUID, _ := uuid.Parse(tag.GetId())
-					eventError := s.eventsService.AddEvent(post.GetData().GetAuthor(), utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TagRelatedEntityType: utils.EventTargetPost})
+					stringifyUINT := strconv.Itoa(int(post.GetData().GetId()))
+					eventError := s.eventsService.AddEvent(post.GetData().GetAuthor(), utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TargetPostID: stringifyUINT, TagRelatedEntityType: utils.EventTargetPost})
 					if eventError != nil {
 						log.Default().Print(eventError)
 					}
@@ -429,7 +430,8 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateReq
 		if tags != nil {
 			for _, tag := range tags.GetTags() {
 				tagUUID, _ := uuid.Parse(tag.GetId())
-				eventError := s.eventsService.AddEvent(post.GetData().GetAuthor(), utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TagRelatedEntityType: utils.EventTargetPost})
+				stringifyUINT := strconv.Itoa(int(req.Id))
+				eventError := s.eventsService.AddEvent(post.GetData().GetAuthor(), utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TargetPostID: stringifyUINT, TagRelatedEntityType: utils.EventTargetPost})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
