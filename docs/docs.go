@@ -3058,6 +3058,12 @@ const docTemplate = `{
         "dto.CollectionsResponseSwagger": {
             "type": "object",
             "properties": {
+                "album": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "bannerUrl": {
                     "type": "string"
                 },
@@ -3132,6 +3138,12 @@ const docTemplate = `{
         "dto.CollectionsSwagger": {
             "type": "object",
             "properties": {
+                "album": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "bannerUrl": {
                     "type": "string"
                 },
@@ -3628,6 +3640,12 @@ const docTemplate = `{
         "models.CollectionCreateRequest": {
             "type": "object",
             "properties": {
+                "album": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "bannerUrl": {
                     "type": "string"
                 },

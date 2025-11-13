@@ -119,6 +119,10 @@ definitions:
     type: object
   dto.CollectionsResponseSwagger:
     properties:
+      album:
+        items:
+          type: string
+        type: array
       bannerUrl:
         type: string
       canLike:
@@ -168,6 +172,10 @@ definitions:
     type: object
   dto.CollectionsSwagger:
     properties:
+      album:
+        items:
+          type: string
+        type: array
       bannerUrl:
         type: string
       collectionItems:
@@ -494,6 +502,10 @@ definitions:
     type: object
   models.CollectionCreateRequest:
     properties:
+      album:
+        items:
+          type: string
+        type: array
       bannerUrl:
         type: string
       description:

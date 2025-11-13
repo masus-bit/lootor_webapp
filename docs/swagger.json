@@ -3055,6 +3055,12 @@
         "dto.CollectionsResponseSwagger": {
             "type": "object",
             "properties": {
+                "album": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "bannerUrl": {
                     "type": "string"
                 },
@@ -3129,6 +3135,12 @@
         "dto.CollectionsSwagger": {
             "type": "object",
             "properties": {
+                "album": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "bannerUrl": {
                     "type": "string"
                 },
@@ -3625,6 +3637,12 @@
         "models.CollectionCreateRequest": {
             "type": "object",
             "properties": {
+                "album": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "bannerUrl": {
                     "type": "string"
                 },

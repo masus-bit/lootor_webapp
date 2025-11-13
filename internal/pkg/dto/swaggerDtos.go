@@ -67,6 +67,7 @@ type CollectionsSwagger struct {
 	User             *UsersSwagger            `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;" json:"user"`
 	Tags             []TagsSwagger            `gorm:"many2many:tags_collections_collections;constraint:OnDelete:CASCADE;" json:"tags"`
 	UserLogin        string                   `gorm:"type:varchar(255);index"`
+	Album            []string                 `json:"album"`
 }
 
 type UsersSwagger struct {
@@ -118,6 +119,7 @@ type CollectionsResponseSwagger struct {
 	CreatedAt            time.Time                        `json:"createdAt"`
 	CanLike              bool                             `json:"canLike"`
 	IsOwner              bool                             `json:"isOwner"`
+	Album                []string                         `json:"album"`
 }
 
 type CollectionItemsResponseSwagger struct {

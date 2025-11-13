@@ -56,6 +56,7 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 		TotalPrice:      0,
 		ShareString:     utils.GenerateRandomStringNoHex(8),
 		UserLogin:       dto.UserLogin,
+		Album:           dto.Album,
 	}
 
 	res, err := s.repo.CreateCollection(dbCollection)
