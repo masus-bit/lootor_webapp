@@ -10,6 +10,7 @@ import (
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
+	"lootor/internal/infrastructure/photosclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/s3"
@@ -28,10 +29,11 @@ type CollectionService struct {
 	s3Service            *s3.S3Service
 	notificationsService *NotificationsService
 	tagsClient           *tagsclient.GRPCTagsClient
+	photosClient         *photosclient.GRPCPhotosClient
 }
 
-func NewCollectionService(repo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, eventsService *EventsService, collectionItemRepo *repositories.CiRepository, seService *s3.S3Service, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient) *CollectionService {
-	return &CollectionService{repo: repo, userRepo: userRepo, eventsService: eventsService, collectionItemRepo: collectionItemRepo, s3Service: seService, notificationsService: notificationsService, tagsClient: tagsClient}
+func NewCollectionService(repo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, eventsService *EventsService, collectionItemRepo *repositories.CiRepository, seService *s3.S3Service, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient, photosClient *photosclient.GRPCPhotosClient) *CollectionService {
+	return &CollectionService{repo: repo, userRepo: userRepo, eventsService: eventsService, collectionItemRepo: collectionItemRepo, s3Service: seService, notificationsService: notificationsService, tagsClient: tagsClient, photosClient: photosClient}
 }
 
 func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models.CollectionDataResponse, error) {
@@ -56,7 +58,6 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 		TotalPrice:      0,
 		ShareString:     utils.GenerateRandomStringNoHex(8),
 		UserLogin:       dto.UserLogin,
-		Album:           dto.Album,
 	}
 
 	res, err := s.repo.CreateCollection(dbCollection)
@@ -462,6 +463,10 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	if err != nil {
 		return nil, err
 	}
+	photosCount, err := s.photosClient.GetCountByCollection(context.Background(), &microservices.CountRequestPhoto{CollectionId: id})
+	if err != nil {
+		return nil, err
+	}
 
 	for _, item := range dbCollection.CollectionItems {
 		var temp models.CollectionItemsResponse
@@ -510,6 +515,7 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	finalCollection.LikesCount = int64(len(dbCollection.Likes))
 	finalCollection.CanLike = true
 	finalCollection.IsOwner = authorizerUser == userLogin
+	finalCollection.PhotosCount = photosCount.GetCount()
 	if authUser != nil {
 		subArray = authUser.Subscriptions
 		subsExtended, _ := s.userRepo.GetForSubs(subArray)

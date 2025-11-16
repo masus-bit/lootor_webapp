@@ -40,7 +40,6 @@ type Collections struct {
 	UserLogin        string            `gorm:"type:varchar(255);index"`
 	ReportsCount     int64             `json:"-"`
 	CommentsCount    int64             `json:"commentsCount"`
-	Album            pq.StringArray    `gorm:"type:text[]" json:"album"`
 }
 
 func (CollectionsCollectionItemsCollectionItems) TableName() string {
@@ -69,7 +68,7 @@ type CollectionsResponse struct {
 	CanLike              bool                      `json:"canLike"`
 	IsOwner              bool                      `json:"isOwner"`
 	CommentsCount        int64                     `json:"commentsCount"`
-	Album                []string                  `json:"album"`
+	PhotosCount          int64                     `json:"photosCount"`
 }
 
 type CollectionDataResponse struct {
@@ -96,7 +95,6 @@ type CollectionCreateRequest struct {
 	Transliteration string   `json:"transliteration"`
 	UserLogin       string   `json:"userLogin"`
 	Tags            []string `json:"tags"`
-	Album           []string `json:"album"`
 }
 
 type CollectionUpdateRequest struct {
@@ -107,5 +105,14 @@ type CollectionUpdateRequest struct {
 	Transliteration *string  `json:"transliteration"`
 	UserLogin       *string  `json:"userLogin"`
 	Tags            []string `json:"tags"`
-	Album           []string `json:"album"`
+}
+
+type CollectionShort struct {
+	Id              uuid.UUID `json:"id"`
+	Name            string    `json:"name"`
+	IsPrivate       bool      `json:"isPrivate"`
+	BannerUrl       string    `json:"bannerUrl"`
+	Transliteration string    `json:"transliteration"`
+	ShareString     string    `json:"shareString"`
+	UserLogin       string    `json:"userLogin"`
 }

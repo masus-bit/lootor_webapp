@@ -158,12 +158,19 @@ func (c *CommentsController) Dislike(ctx echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param id path string true "id"
+// @Param targetId query string true "target id"
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/comments/{id} [delete]
 func (c *CommentsController) Delete(ctx echo.Context) error {
 	id := ctx.Param("id")
+	targetId := ctx.QueryParam("targetId")
 
-	response, err := c.commentService.DeleteComment(ctx.Request().Context(), id)
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+
+	response, err := c.commentService.DeleteComment(ctx.Request().Context(), id, targetId, authUser)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

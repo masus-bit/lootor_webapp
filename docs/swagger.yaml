@@ -502,10 +502,6 @@ definitions:
     type: object
   models.CollectionCreateRequest:
     properties:
-      album:
-        items:
-          type: string
-        type: array
       bannerUrl:
         type: string
       description:
@@ -591,6 +587,23 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  models.CollectionShort:
+    properties:
+      bannerUrl:
+        type: string
+      id:
+        type: string
+      isPrivate:
+        type: boolean
+      name:
+        type: string
+      shareString:
+        type: string
+      transliteration:
+        type: string
+      userLogin:
+        type: string
     type: object
   models.DeleteTags:
     properties:
@@ -679,6 +692,54 @@ definitions:
         items:
           $ref: '#/definitions/models.Payments'
         type: array
+    type: object
+  models.PhotoCreate:
+    properties:
+      collectionId:
+        type: string
+      paths:
+        items:
+          type: string
+        type: array
+    type: object
+  models.PhotoDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.Photos'
+    type: object
+  models.Photos:
+    properties:
+      author:
+        $ref: '#/definitions/models.SubUsers'
+      collection:
+        $ref: '#/definitions/models.CollectionShort'
+      collectionId:
+        type: string
+      commentsCount:
+        type: integer
+      createdAt:
+        type: string
+      id:
+        type: integer
+      likes:
+        type: integer
+      path:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/models.ShortTags'
+        type: array
+      updatedAt:
+        type: string
+    type: object
+  models.PhotosDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Photos'
+        type: array
+      total:
+        type: integer
     type: object
   models.Platforms:
     properties:
@@ -1413,6 +1474,86 @@ paths:
       summary: получить изображение
       tags:
       - images
+  /public/photos/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.PhotoDataResponse'
+      summary: получить по ид
+      tags:
+      - photos
+  /public/photos/by_collection:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: collectionId
+        in: query
+        name: collectionId
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.PhotosDataResponse'
+      summary: получить по ид collection
+      tags:
+      - photos
+  /public/photos/by_user:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: user login
+        in: query
+        name: userLogin
+        required: true
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.PhotosDataResponse'
+      summary: получить все фото по логину юзера
+      tags:
+      - photos
   /public/posts:
     get:
       consumes:
@@ -1924,6 +2065,11 @@ paths:
         name: id
         required: true
         type: string
+      - description: target id
+        in: query
+        name: targetId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -2247,6 +2393,67 @@ paths:
       summary: Получить список платежей юзера
       tags:
       - payment
+  /secured/photos:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: необходимые поля
+        in: body
+        name: addRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.PhotoCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.PhotosDataResponse'
+      summary: Создать фотки
+      tags:
+      - photos
+  /secured/photos/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: удаление photo
+      tags:
+      - photos
+  /secured/photos/like/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: like
+      tags:
+      - photos
   /secured/platforms:
     get:
       consumes:

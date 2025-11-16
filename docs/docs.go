@@ -622,6 +622,127 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/photos/by_collection": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photos"
+                ],
+                "summary": "получить по ид collection",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "collectionId",
+                        "name": "collectionId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.PhotosDataResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/photos/by_user": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photos"
+                ],
+                "summary": "получить все фото по логину юзера",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user login",
+                        "name": "userLogin",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.PhotosDataResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/photos/{id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photos"
+                ],
+                "summary": "получить по ид",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.PhotoDataResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/public/posts": {
             "get": {
                 "consumes": [
@@ -1486,6 +1607,13 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "target id",
+                        "name": "targetId",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1897,6 +2025,101 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.PaymentsData"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/photos": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photos"
+                ],
+                "summary": "Создать фотки",
+                "parameters": [
+                    {
+                        "description": "необходимые поля",
+                        "name": "addRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.PhotoCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.PhotosDataResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/photos/like/{id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photos"
+                ],
+                "summary": "like",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/photos/{id}": {
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photos"
+                ],
+                "summary": "удаление photo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
                         }
                     }
                 }
@@ -3640,12 +3863,6 @@ const docTemplate = `{
         "models.CollectionCreateRequest": {
             "type": "object",
             "properties": {
-                "album": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "bannerUrl": {
                     "type": "string"
                 },
@@ -3774,6 +3991,32 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "models.CollectionShort": {
+            "type": "object",
+            "properties": {
+                "bannerUrl": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isPrivate": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "shareString": {
+                    "type": "string"
+                },
+                "transliteration": {
+                    "type": "string"
+                },
+                "userLogin": {
+                    "type": "string"
                 }
             }
         },
@@ -3910,6 +4153,80 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.Payments"
                     }
+                }
+            }
+        },
+        "models.PhotoCreate": {
+            "type": "object",
+            "properties": {
+                "collectionId": {
+                    "type": "string"
+                },
+                "paths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.PhotoDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.Photos"
+                }
+            }
+        },
+        "models.Photos": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/models.SubUsers"
+                },
+                "collection": {
+                    "$ref": "#/definitions/models.CollectionShort"
+                },
+                "collectionId": {
+                    "type": "string"
+                },
+                "commentsCount": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "likes": {
+                    "type": "integer"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ShortTags"
+                    }
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PhotosDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Photos"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

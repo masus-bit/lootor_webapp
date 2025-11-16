@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+import "google/protobuf/struct.proto";
+
+package photos;
+
+option go_package = "./gen/go/microservices";
+
+service PhotosService {
+  rpc CreatePhotos(CreatePhotosRequest) returns (PhotosResponse);
+  rpc FindByUser(FindByUserRequest) returns (PhotosResponse);
+  rpc DeletePhoto(DeletePhotoRequest) returns (DeletePhotoResponse);
+  rpc FindOneById(FindOneByIdRequest) returns (PhotoResponse);
+  rpc FindAllByCollectionId(FindByCollectionIdRequest) returns (PhotosResponse);
+  rpc LikePhoto(LikePhotoRequest) returns (DeletePhotoResponse);
+  rpc GetPhotosByCollectionsIds(GetPhotosByCollectionsIdsMapRequest) returns (GetPhotosByIdsMapResponse);
+  rpc GetPhotosByIds(GetByIdsRequest) returns (PhotosResponse);
+  rpc GetCountByCollection(CountRequestPhoto) returns (CountResponsePhoto);
+  rpc IncrementCommentsCount(CommentsCountRequestPhoto) returns (CommentsCountResponse);
+  rpc DecrementCommentsCount(CommentsCountRequestPhoto) returns (CommentsCountResponse);
+}
+
+message CommentsCountRequestPhoto {
+  uint64 photo_id = 1;
+}
+
+message CommentsCountResponse {
+  bool success = 1;
+}
+
+message CountRequestPhoto {
+  string collection_id = 1;
+}
+
+message CountResponsePhoto {
+  int64 count = 1;
+}
+
+message GetByIdsRequest {
+  repeated string ids = 1;
+  string auth_user_login = 2;
+}
+
+message LikePhotoRequest {
+  uint64 id = 1;
+  string initiator_login = 2;
+}
+
+message FindOneByIdRequest {
+  uint64 id = 1;
+  string auth_user_login = 2;
+}
+
+message FindByCollectionIdRequest {
+  string collection_id = 1;
+  string limit = 2;
+  string offset = 3;
+  string auth_user_login = 4;
+}
+
+message PhotoResponse {
+  PhotoItem data = 1;
+}
+
+message GetPhotosByCollectionsIdsMapRequest {
+  repeated string collectionsIds = 1;
+  string auth_user_login = 2;
+}
+
+message GetPhotosByIdsMapResponse {
+  map<string, PhotoItem> data = 1;
+}
+
+message CreatePhotosRequest {
+  string collection_id = 1;
+  string author = 2;
+  repeated string paths = 3;
+  string auth_user_login = 4;
+}
+
+message UpdatePostRequest {
+  uint64 id = 1;
+  google.protobuf.Struct content = 2;
+  bool is_draft = 3;
+  string title = 4;
+  string translit = 5;
+}
+
+message DeletePhotoRequest {
+  uint64 id = 1;
+}
+
+message DeletePhotoResponse {
+  bool success = 1;
+}
+
+message PhotosResponse {
+  repeated PhotoItem data = 1;
+  int64 total = 2;
+}
+
+message GetAllPostsRequest {
+  string offset = 2;
+  string limit = 3;
+  bool is_premium = 4;
+  string order = 5;
+  string auth_user_login = 6;
+}
+
+message FindByUserRequest {
+  string login = 1;
+  string offset = 2;
+  string limit = 3;
+  string auth_user_login = 4;
+}
+
+message GetAllPhotosResponse {
+  repeated PhotoItem data = 1;
+  string total = 2;
+}
+
+message PhotoItem {
+  uint64 id = 1;
+  string author = 2;
+  string collection_id = 3;
+  string path = 4;
+  string created_at = 5;
+  repeated string likes = 6;
+  bool can_like = 7;
+  int64 comments_count = 8;
+}

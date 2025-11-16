@@ -53,6 +53,7 @@ type Entities struct {
 	Posts           []Posts                   `json:"posts"`
 	CollectionItems []CollectionItemsResponse `json:"collectionItems"`
 	Collections     []CollectionsResponse     `json:"collections"`
+	Photos          []Photos                  `json:"photos"`
 }
 
 type TagLinks struct {

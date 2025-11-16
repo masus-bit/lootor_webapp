@@ -412,6 +412,12 @@ func (r *CiRepository) IncrementCommentsCount(id string, amount int) error {
 		Update("comments_count", gorm.Expr("COALESCE(comments_count, 0) + ?", amount)).Error
 }
 
+func (r *CiRepository) DecrementCommentsCount(id string, amount int) error {
+	return r.db.Model(&models.CollectionItems{}).
+		Where("id = ?", id).
+		Update("comments_count", gorm.Expr("GREATEST(COALESCE(comments_count, 0) - ?, 0)", amount)).Error
+}
+
 func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin string) (map[string]models.CollectionItemsResponse, error) {
 	var collectionItems []models.CollectionItems
 	err := r.db.Where("id IN (?)", ids).

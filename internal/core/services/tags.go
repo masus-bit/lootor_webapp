@@ -21,6 +21,7 @@ type TagsService struct {
 	tagsClient     *tagsclient.GRPCTagsClient
 	userRepo       *repositories.UsersRepository
 	postsService   *PostsService
+	photosService  *PhotosService
 	ciRepo         *repositories.CiRepository
 	collectionRepo *repositories.CollectionsRepository
 	eventsService  *EventsService
@@ -28,7 +29,7 @@ type TagsService struct {
 	es             *elasticsearch.ElasticService
 }
 
-func NewTagsService(tagsClient *tagsclient.GRPCTagsClient, userRepo *repositories.UsersRepository, postsService *PostsService, ciRepo *repositories.CiRepository, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService, itemTypeRepo *repositories.ItemTypesRepository, es *elasticsearch.ElasticService) *TagsService {
+func NewTagsService(tagsClient *tagsclient.GRPCTagsClient, userRepo *repositories.UsersRepository, postsService *PostsService, ciRepo *repositories.CiRepository, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService, itemTypeRepo *repositories.ItemTypesRepository, es *elasticsearch.ElasticService, photosService *PhotosService) *TagsService {
 	return &TagsService{
 		tagsClient:     tagsClient,
 		userRepo:       userRepo,
@@ -38,6 +39,7 @@ func NewTagsService(tagsClient *tagsclient.GRPCTagsClient, userRepo *repositorie
 		eventsService:  eventsService,
 		itemTypeRepo:   itemTypeRepo,
 		es:             es,
+		photosService:  photosService,
 	}
 }
 
@@ -616,6 +618,12 @@ func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entity
 			return nil, nil, err
 		}
 		entities.Collections = collections
+	} else if entityType == "photo" {
+		photos, err := s.photosService.FindPhotosByIds(context.Background(), entityIDs, authUserLogin)
+		if err != nil {
+			return nil, nil, err
+		}
+		entities.Photos = photos.Data
 	} else {
 		return nil, nil, fmt.Errorf("unknown entity type: %s", entityType)
 	}
@@ -637,6 +645,10 @@ func (s *TagsService) canActivate(authUser, role, entityID, entityType string) (
 	if entityType == "collectionItem" {
 		collectionItem, _ := s.ciRepo.GetCIByID(entityID)
 		authorLogin = collectionItem.UserLogin
+	}
+	if entityType == "photo" {
+		photo, _ := s.photosService.FindOneById(context.Background(), entityID)
+		authorLogin = photo.Data.Author.Login
 	}
 
 	if authorLogin != authUser {

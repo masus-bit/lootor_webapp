@@ -480,6 +480,14 @@ func (s *PostsService) IncrementCommentsCount(ctx context.Context, id uint64) (*
 	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
 }
 
+func (s *PostsService) DecrementCommentsCount(ctx context.Context, id uint64) (*dto.CommonResponse, error) {
+	resp, err := s.postsClient.DecrementCommentsCount(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
+}
+
 func (s *PostsService) GetCount(ctx context.Context, userLogin string) int64 {
 	count, err := s.postsClient.GetCount(ctx, userLogin)
 	if err != nil {

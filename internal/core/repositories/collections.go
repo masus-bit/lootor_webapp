@@ -757,6 +757,12 @@ func (r *CollectionsRepository) IncrementCommentsCount(id string, amount int) er
 		Update("comments_count", gorm.Expr("COALESCE(comments_count, 0) + ?", amount)).Error
 }
 
+func (r *CollectionsRepository) DecrementCommentsCount(id string, amount int) error {
+	return r.db.Model(&models.Collections{}).
+		Where("id = ?", id).
+		Update("comments_count", gorm.Expr("GREATEST(COALESCE(comments_count, 0) - ?, 0)", amount)).Error
+}
+
 func (r *CollectionsRepository) GetCollectionsCount(login string) (int64, error) {
 	var count int64
 	err := r.db.
@@ -789,6 +795,21 @@ func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[
 			temp.CanLike = !slices.Contains(collection.Likes, authorizedUser)
 		}
 
+		collectionsMap[collection.Id.String()] = temp
+	}
+	return collectionsMap, nil
+}
+
+func (r *CollectionsRepository) GetCollectionsByIdsMapForShort(ids []string) (map[string]models.CollectionShort, error) {
+	var collections []models.Collections
+	err := r.db.Where("id IN (?)", ids).Preload("User").Find(&collections).Error
+	if err != nil {
+		return nil, err
+	}
+	collectionsMap := make(map[string]models.CollectionShort, len(collections))
+	for _, collection := range collections {
+		var temp models.CollectionShort
+		err = mapstructure.Decode(collection, &temp)
 		collectionsMap[collection.Id.String()] = temp
 	}
 	return collectionsMap, nil

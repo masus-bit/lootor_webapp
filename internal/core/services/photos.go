@@ -1,0 +1,256 @@
+package services
+
+import (
+	"context"
+	"lootor/gen/go/microservices"
+	"lootor/internal/core/models"
+	"lootor/internal/core/repositories"
+	"lootor/internal/infrastructure/photosclient"
+	"lootor/internal/infrastructure/tagsclient"
+	"lootor/internal/pkg/dto"
+	"strconv"
+)
+
+type PhotosService struct {
+	photosClient   *photosclient.GRPCPhotosClient
+	userRepo       *repositories.UsersRepository
+	tagsClient     *tagsclient.GRPCTagsClient
+	collectionRepo *repositories.CollectionsRepository
+}
+
+func NewPhotosService(photosClient *photosclient.GRPCPhotosClient, userRepo *repositories.UsersRepository, tagsClient *tagsclient.GRPCTagsClient, collectionRepo *repositories.CollectionsRepository) *PhotosService {
+
+	return &PhotosService{
+		photosClient:   photosClient,
+		userRepo:       userRepo,
+		tagsClient:     tagsClient,
+		collectionRepo: collectionRepo,
+	}
+}
+
+func (s *PhotosService) IncrementCommentsCount(ctx context.Context, id string) (*dto.CommonResponse, error) {
+	resp, err := s.photosClient.IncrementCommentsCount(ctx, s.stringToUint64(id))
+	if err != nil {
+		return nil, err
+	}
+	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
+}
+
+func (s *PhotosService) DecrementCommentsCount(ctx context.Context, id string) (*dto.CommonResponse, error) {
+	resp, err := s.photosClient.DecrementCommentsCount(ctx, s.stringToUint64(id))
+	if err != nil {
+		return nil, err
+	}
+	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
+}
+
+func (s *PhotosService) CreatePhoto(ctx context.Context, req *models.PhotoCreateRequest, authUserLogin string) (*models.PhotosDataResponse, error) {
+	resp, err := s.photosClient.CreatePhotos(ctx, &microservices.CreatePhotosRequest{
+		CollectionId:  req.CollectionId,
+		Paths:         req.Paths,
+		Author:        req.Author,
+		AuthUserLogin: authUserLogin,
+	})
+	if err != nil {
+		return nil, err
+	}
+	result := s.convertProtoToModels(resp.GetData())
+	return &models.PhotosDataResponse{Data: result}, nil
+}
+
+func (s *PhotosService) GetByUser(ctx context.Context, userLogin, authUserLogin, limit, offset string) (*models.PhotosDataResponse, error) {
+	resp, err := s.photosClient.FindByUser(ctx, &microservices.FindByUserRequest{
+		AuthUserLogin: authUserLogin,
+		Login:         userLogin,
+		Offset:        offset,
+		Limit:         limit,
+	})
+	if err != nil {
+		return nil, err
+	}
+	result := s.convertProtoToModels(resp.GetData())
+	return &models.PhotosDataResponse{Data: result}, nil
+}
+
+func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.CommonResponse, error) {
+	resp, err := s.photosClient.DeletePhoto(ctx, &microservices.DeletePhotoRequest{
+		Id: s.stringToUint64(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+	go func() {
+		_, _ = s.tagsClient.RemoveEntityTags(context.Background(), &microservices.RemoveEntityTagsRequest{
+			EntityId: id,
+		})
+	}()
+	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
+}
+
+func (s *PhotosService) FindOneById(ctx context.Context, id string) (*models.PhotoDataResponse, error) {
+	resp, err := s.photosClient.FindOneById(ctx, &microservices.FindOneByIdRequest{
+		Id: s.stringToUint64(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+	photo := s.convertProtoToModel(resp.GetData())
+	return &models.PhotoDataResponse{Data: *photo}, nil
+}
+
+func (s *PhotosService) FindAllByCollectionId(ctx context.Context, collectionId, limit, offset, authUserLogin string) (*models.PhotosDataResponse, error) {
+	resp, err := s.photosClient.FindAllByCollectionId(ctx, &microservices.FindByCollectionIdRequest{
+		CollectionId:  collectionId,
+		Limit:         limit,
+		Offset:        offset,
+		AuthUserLogin: authUserLogin,
+	})
+	if err != nil {
+		return nil, err
+	}
+	photos := s.convertProtoToModels(resp.GetData())
+	return &models.PhotosDataResponse{Data: photos}, nil
+}
+
+func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin string) (*dto.CommonResponse, error) {
+	resp, err := s.photosClient.LikePhoto(ctx, &microservices.LikePhotoRequest{
+		Id:             s.stringToUint64(id),
+		InitiatorLogin: authUserLogin,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
+}
+
+func (s *PhotosService) FindPhotosByIds(ctx context.Context, ids []string, authUserLogin string) (*models.PhotosDataResponse, error) {
+	resp, err := s.photosClient.GetPhotosByIds(ctx, &microservices.GetByIdsRequest{
+		Ids:           ids,
+		AuthUserLogin: authUserLogin,
+	})
+	if err != nil {
+		return nil, err
+	}
+	photos := s.convertProtoToModels(resp.GetData())
+	return &models.PhotosDataResponse{Data: photos}, nil
+}
+
+func (s *PhotosService) GetCountByCollection(ctx context.Context, collectionId string) (int64, error) {
+	resp, err := s.photosClient.GetCountByCollection(ctx, &microservices.CountRequestPhoto{
+		CollectionId: collectionId,
+	})
+	if err != nil {
+		return 0, err
+	}
+	return resp.GetCount(), nil
+}
+
+func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem) []models.Photos {
+	var resultPhotos []models.Photos
+	var userLogins []string
+	var collectionIds []string
+	var photoIds []string
+	for i := range photos {
+		userLogins = append(userLogins, photos[i].GetAuthor())
+		collectionIds = append(collectionIds, photos[i].GetCollectionId())
+		id := strconv.Itoa(int(photos[i].GetId()))
+		photoIds = append(photoIds, id)
+	}
+	collectionsMap, err := s.collectionRepo.GetCollectionsByIdsMapForShort(collectionIds)
+	if err != nil {
+		return nil
+	}
+	usersMap, err := s.userRepo.GetForSubsMap(userLogins)
+	if err != nil {
+		return nil
+	}
+	tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+		EntityIds: photoIds,
+	})
+	if err != nil {
+		return nil
+	}
+	for i := range photos {
+		photoTags := tags.GetTags()[photoIds[i]]
+		var resultPhotoTags []models.ShortTags
+
+		for _, tag := range photoTags.GetTags() {
+			resultPhotoTags = append(resultPhotoTags, models.ShortTags{
+				ID:        tag.GetId(),
+				Name:      tag.GetName(),
+				Slug:      tag.GetSlug(),
+				PrimaryID: tag.GetPrimaryId(),
+				SeriesID:  tag.GetSeriesId(),
+			})
+		}
+
+		resultPhotos = append(resultPhotos, models.Photos{
+			Id:            photos[i].GetId(),
+			Author:        usersMap[photos[i].GetAuthor()],
+			CollectionId:  photos[i].GetCollectionId(),
+			Path:          photos[i].GetPath(),
+			Likes:         int64(len(photos[i].GetLikes())),
+			CommentsCount: photos[i].GetCommentsCount(),
+			CreatedAt:     photos[i].GetCreatedAt(),
+			Collection:    collectionsMap[photos[i].GetCollectionId()],
+			Tags:          resultPhotoTags,
+		})
+	}
+	return resultPhotos
+}
+
+func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem) *models.Photos {
+	var resultPhoto *models.Photos
+	var userLogins []string
+	var collectionIds []string
+	var photoIds []string
+	userLogins = append(userLogins, photo.GetAuthor())
+	collectionIds = append(collectionIds, photo.GetCollectionId())
+	id := strconv.Itoa(int(photo.GetId()))
+	photoIds = append(photoIds, id)
+	collectionsMap, err := s.collectionRepo.GetCollectionsByIdsMapForShort(collectionIds)
+	if err != nil {
+		return nil
+	}
+	usersMap, err := s.userRepo.GetForSubsMap(userLogins)
+	if err != nil {
+		return nil
+	}
+	tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+		EntityIds: photoIds,
+	})
+	if err != nil {
+		return nil
+	}
+	photoTags := tags.GetTags()[photoIds[0]]
+	var resultPhotoTags []models.ShortTags
+
+	for _, tag := range photoTags.GetTags() {
+		resultPhotoTags = append(resultPhotoTags, models.ShortTags{
+			ID:        tag.GetId(),
+			Name:      tag.GetName(),
+			Slug:      tag.GetSlug(),
+			PrimaryID: tag.GetPrimaryId(),
+			SeriesID:  tag.GetSeriesId(),
+		})
+	}
+
+	resultPhoto = &models.Photos{
+		Id:            photo.GetId(),
+		Author:        usersMap[photo.GetAuthor()],
+		CollectionId:  photo.GetCollectionId(),
+		Path:          photo.GetPath(),
+		Likes:         int64(len(photo.GetLikes())),
+		CommentsCount: photo.GetCommentsCount(),
+		CreatedAt:     photo.GetCreatedAt(),
+		Collection:    collectionsMap[photo.GetCollectionId()],
+		Tags:          resultPhotoTags,
+	}
+
+	return resultPhoto
+}
+
+func (s *PhotosService) stringToUint64(id string) uint64 {
+	val, _ := strconv.ParseUint(id, 10, 64)
+	return val
+}

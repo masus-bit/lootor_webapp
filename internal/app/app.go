@@ -20,6 +20,7 @@ import (
 	"lootor/internal/infrastructure/eventsclient"
 	"lootor/internal/infrastructure/newsclient"
 	"lootor/internal/infrastructure/notificationsclient"
+	"lootor/internal/infrastructure/photosclient"
 	"lootor/internal/infrastructure/postsclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/auth"
@@ -147,6 +148,10 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	if err != nil {
 		log.Fatal("failed to create tags client:", err)
 	}
+	photosClient, err := photosclient.NewGRPPhotosClient(os.Getenv("PHOTOS_SERVICE_ADDR"))
+	if err != nil {
+		log.Fatal("failed to create photos client:", err)
+	}
 
 	ciRepo := repositories.NewCiRepository(db, searchService)
 	colRepo := repositories.NewCollectionsRepository(db, searchService)
@@ -179,15 +184,16 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	notificationsService := services.NewNotificationsService(notificationsClient, userRepo, colRepo, ciRepo, postsClient)
 	eventsService := services.NewEventsService(userRepo, eventsClient, colRepo, ciRepo, postsClient, wlRepo, tagsClient)
 	postsService := services.NewPostsService(postsClient, userRepo, eventsService, notificationsService, tagsClient)
+	photosService := services.NewPhotosService(photosClient, userRepo, tagsClient, colRepo)
 
 	s3Service := s3.NewS3Service(redisClient)
 	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootor.me>`)
 	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsService, notificationsService, colRepo, postsService, tagsClient)
 	ciService := services.NewCiService(ciRepo, eventsService, colRepo, userRepo, platformRepo, s3Service, itemTypesRepo, notificationsService, tagsClient)
-	colService := services.NewCollectionService(colRepo, userRepo, eventsService, ciRepo, s3Service, notificationsService, tagsClient)
+	colService := services.NewCollectionService(colRepo, userRepo, eventsService, ciRepo, s3Service, notificationsService, tagsClient, photosClient)
 	platformsService := services.NewPlatformsService(platformRepo)
 	itemTypesService := services.NewItemTypesService(itemTypesRepo)
-	tagsService := services.NewTagsService(tagsClient, userRepo, postsService, ciRepo, colRepo, eventsService, itemTypesRepo, searchService)
+	tagsService := services.NewTagsService(tagsClient, userRepo, postsService, ciRepo, colRepo, eventsService, itemTypesRepo, searchService, photosService)
 	fbService := feedback.NewFeedbackService()
 	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsService)
 	enrichedCIService := utils.NewEnrichedCIService(ciService, tagsClient)
@@ -196,7 +202,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	captchaService := auth.NewRecaptchaService()
 	reportsService := feedback.NewReportsService(fbService, ciRepo, userRepo, colRepo, wlRepo)
 	feedService := services.NewFeedService(newsClient)
-	commentsService := services.NewCommentsService(commentsClient, likesClient, userRepo, notificationsService, colRepo, ciRepo, postsService)
+	commentsService := services.NewCommentsService(commentsClient, likesClient, userRepo, notificationsService, colRepo, ciRepo, postsService, photosService)
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -223,6 +229,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.CommentsRouter(e, jwtService, *commentsService)
 	routes.NotificationsRouter(e, jwtService, *notificationsService)
 	routes.PostsRouter(e, jwtService, *postsService)
+	routes.PhotosRouter(e, jwtService, *photosService)
 
 	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagsService).ReindexInternal(context.Background())
 	setupMonitoring(s3Service)

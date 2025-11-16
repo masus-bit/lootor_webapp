@@ -20,11 +20,12 @@ type CommentsService struct {
 	notificationsService *NotificationsService
 	collectionRepo       *repositories.CollectionsRepository
 	ciRepo               *repositories.CiRepository
+	photosService        *PhotosService
 }
 
-func NewCommentsService(commentsClient *commentsclient.GRPCCommentsClient, likesClient *commentsclient.GRPCLikesClient, userRepo *repositories.UsersRepository, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository, postService *PostsService) *CommentsService {
+func NewCommentsService(commentsClient *commentsclient.GRPCCommentsClient, likesClient *commentsclient.GRPCLikesClient, userRepo *repositories.UsersRepository, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository, postService *PostsService, photosService *PhotosService) *CommentsService {
 	return &CommentsService{
-		commentsClient: commentsClient, likesClient: likesClient, userRepo: userRepo, notificationsService: notificationsService, collectionRepo: collectionRepo, ciRepo: ciRepo, postsService: *postService}
+		commentsClient: commentsClient, likesClient: likesClient, userRepo: userRepo, notificationsService: notificationsService, collectionRepo: collectionRepo, ciRepo: ciRepo, postsService: *postService, photosService: photosService}
 }
 
 func (s *CommentsService) CreateComment(ctx context.Context, request *dto.CommentsRequest) (*dto.CommentDataResponse, error) {
@@ -149,6 +150,27 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 			Name:            post.Data.Title,
 			Transliteration: post.Data.Translit,
 			TargetType:      "post",
+		}
+	}
+
+	photo, err := s.photosService.FindOneById(ctx, request.TargetId)
+	if err == nil {
+		if *request.TargetUserLogin != "" {
+			targetUserLogin = *request.TargetUserLogin
+		} else {
+			targetUserLogin = photo.Data.Author.Login
+		}
+		_, err = s.photosService.IncrementCommentsCount(ctx, request.TargetId)
+		if err != nil {
+			return nil, err
+		}
+		ownerLogin = photo.Data.Author.Login
+
+		targetReq = &dto.TargetItem{
+			Id:              request.TargetId,
+			Name:            photo.Data.Path,
+			Transliteration: photo.Data.Path,
+			TargetType:      "photo",
 		}
 	}
 
@@ -313,8 +335,44 @@ func safeAtoi64(s string) int64 {
 	return val
 }
 
-func (s *CommentsService) DeleteComment(ctx context.Context, id string) (*dto.CommonResponse, error) {
-	_, err := s.commentsClient.DeleteComments(ctx, id)
+func (s *CommentsService) DeleteComment(ctx context.Context, id, targetId, authUserLogin string) (*dto.CommonResponse, error) {
+	_, err := s.collectionRepo.GetByIdWithoutCollectionItems(targetId)
+
+	if err == nil {
+		err = s.collectionRepo.DecrementCommentsCount(targetId, 1)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = s.ciRepo.GetCIByID(targetId)
+
+	if err == nil {
+		err = s.ciRepo.DecrementCommentsCount(targetId, 1)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	targetIdUint, _ := strconv.ParseUint(targetId, 10, 64)
+
+	_, err = s.postsService.GetPostById(ctx, targetIdUint, authUserLogin)
+
+	if err == nil {
+		_, err = s.postsService.DecrementCommentsCount(ctx, targetIdUint)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = s.photosService.FindOneById(ctx, targetId)
+	if err == nil {
+		_, err = s.photosService.DecrementCommentsCount(ctx, targetId)
+		if err != nil {
+			return nil, err
+		}
+	}
+	_, err = s.commentsClient.DeleteComments(ctx, id)
 	if err != nil {
 		return nil, err
 	}
