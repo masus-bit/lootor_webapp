@@ -16,15 +16,15 @@ service PhotosService {
   rpc GetPhotosByCollectionsIds(GetPhotosByCollectionsIdsMapRequest) returns (GetPhotosByIdsMapResponse);
   rpc GetPhotosByIds(GetByIdsRequest) returns (PhotosResponse);
   rpc GetCountByCollection(CountRequestPhoto) returns (CountResponsePhoto);
-  rpc IncrementCommentsCount(CommentsCountRequestPhoto) returns (CommentsCountResponse);
-  rpc DecrementCommentsCount(CommentsCountRequestPhoto) returns (CommentsCountResponse);
+  rpc IncrementCommentsCount(CommentsCountRequestPhoto) returns (CommentsCountResponsePhoto);
+  rpc DecrementCommentsCount(CommentsCountRequestPhoto) returns (CommentsCountResponsePhoto);
 }
 
 message CommentsCountRequestPhoto {
   uint64 photo_id = 1;
 }
 
-message CommentsCountResponse {
+message CommentsCountResponsePhoto {
   bool success = 1;
 }
 
@@ -78,14 +78,6 @@ message CreatePhotosRequest {
   string auth_user_login = 4;
 }
 
-message UpdatePostRequest {
-  uint64 id = 1;
-  google.protobuf.Struct content = 2;
-  bool is_draft = 3;
-  string title = 4;
-  string translit = 5;
-}
-
 message DeletePhotoRequest {
   uint64 id = 1;
 }
@@ -97,14 +89,6 @@ message DeletePhotoResponse {
 message PhotosResponse {
   repeated PhotoItem data = 1;
   int64 total = 2;
-}
-
-message GetAllPostsRequest {
-  string offset = 2;
-  string limit = 3;
-  bool is_premium = 4;
-  string order = 5;
-  string auth_user_login = 6;
 }
 
 message FindByUserRequest {
