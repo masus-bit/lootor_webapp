@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-import "google/protobuf/struct.proto";
-
 package photos;
 
 option go_package = "./gen/go/microservices";
@@ -18,6 +16,12 @@ service PhotosService {
   rpc GetCountByCollection(CountRequestPhoto) returns (CountResponsePhoto);
   rpc IncrementCommentsCount(CommentsCountRequestPhoto) returns (CommentsCountResponsePhoto);
   rpc DecrementCommentsCount(CommentsCountRequestPhoto) returns (CommentsCountResponsePhoto);
+  rpc UpdatePhoto(UpdatePhotoRequest) returns (PhotoResponse);
+}
+
+message UpdatePhotoRequest {
+  uint64 id = 1;
+  string description = 2;
 }
 
 message CommentsCountRequestPhoto {
@@ -112,4 +116,5 @@ message PhotoItem {
   repeated string likes = 6;
   bool can_like = 7;
   int64 comments_count = 8;
+  string description = 9;
 }

@@ -173,3 +173,32 @@ func (c *PhotosController) Like(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
+
+// Update
+// @Summary update
+// @Tags photos
+// @Accept  json
+// @Produce  json
+// @Param addRequest body models.PhotoUpdateRequest true "необходимые поля"
+// @Success 201 {object} models.PhotoDataResponse
+// @Router /secured/photos [patch]
+func (c *PhotosController) Update(ctx echo.Context) error {
+	var request models.PhotoUpdateRequest
+	if err := ctx.Bind(&request); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body",
+		})
+	}
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+
+	response, err := c.photosService.UpdatePhoto(context.Background(), &request, authUser)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}

@@ -104,6 +104,14 @@ func (c *GRPCPhotosClient) DecrementCommentsCount(ctx context.Context, id uint64
 	return c.client.DecrementCommentsCount(ctx, &microservices.CommentsCountRequestPhoto{PhotoId: id})
 }
 
+func (c *GRPCPhotosClient) UpdatePhoto(ctx context.Context, req *microservices.UpdatePhotoRequest) (*microservices.PhotoResponse, error) {
+	resp, err := c.client.UpdatePhoto(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (c *GRPCPhotosClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

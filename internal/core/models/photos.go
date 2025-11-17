@@ -40,6 +40,12 @@ type PhotoCreate struct {
 	Paths        []string `json:"paths"`
 }
 
+type PhotoUpdateRequest struct {
+	ID          string   `json:"id"`
+	Description string   `json:"description"`
+	Tags        []string `json:"tags"`
+}
+
 type FindPhotosByCollectionsIdsRequest struct {
 	CollectionIds []string `json:"collectionIds"`
 }

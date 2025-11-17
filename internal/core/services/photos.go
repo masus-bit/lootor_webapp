@@ -145,6 +145,35 @@ func (s *PhotosService) GetCountByCollection(ctx context.Context, collectionId s
 	return resp.GetCount(), nil
 }
 
+func (s *PhotosService) UpdatePhoto(ctx context.Context, req *models.PhotoUpdateRequest, authUserLogin string) (*models.PhotoDataResponse, error) {
+	resp, err := s.photosClient.UpdatePhoto(ctx, &microservices.UpdatePhotoRequest{
+		Id:          s.stringToUint64(req.ID),
+		Description: req.Description,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	dbCollection, err := s.collectionRepo.GetByIdWithoutCollectionItems(resp.GetData().GetCollectionId())
+	if err != nil {
+		return nil, err
+	}
+
+	if len(req.Tags) > 0 {
+		stringedUint := strconv.Itoa(int(resp.GetData().GetId()))
+		_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
+			EntityType: "photo",
+			EntityId:   stringedUint,
+			TagIds:     req.Tags,
+			Author:     authUserLogin,
+			ShowSearch: !dbCollection.IsPrivate,
+		})
+	}
+
+	photo := s.convertProtoToModel(resp.GetData())
+	return &models.PhotoDataResponse{Data: *photo}, nil
+}
+
 func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem) []models.Photos {
 	var resultPhotos []models.Photos
 	var userLogins []string
