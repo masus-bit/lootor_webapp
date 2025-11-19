@@ -17,6 +17,7 @@ service PhotosService {
   rpc IncrementCommentsCount(CommentsCountRequestPhoto) returns (CommentsCountResponsePhoto);
   rpc DecrementCommentsCount(CommentsCountRequestPhoto) returns (CommentsCountResponsePhoto);
   rpc UpdatePhoto(UpdatePhotoRequest) returns (PhotoResponse);
+  rpc GetPhotosByIdsMap(GetByIdsRequest) returns (GetPhotosByIdsMapResponse);
 }
 
 message UpdatePhotoRequest {

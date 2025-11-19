@@ -2,12 +2,15 @@ package services
 
 import (
 	"context"
+	"github.com/google/uuid"
+	"log"
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/photosclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/dto"
+	"lootor/internal/pkg/utils"
 	"strconv"
 )
 
@@ -16,15 +19,17 @@ type PhotosService struct {
 	userRepo       *repositories.UsersRepository
 	tagsClient     *tagsclient.GRPCTagsClient
 	collectionRepo *repositories.CollectionsRepository
+	eventsService  *EventsService
 }
 
-func NewPhotosService(photosClient *photosclient.GRPCPhotosClient, userRepo *repositories.UsersRepository, tagsClient *tagsclient.GRPCTagsClient, collectionRepo *repositories.CollectionsRepository) *PhotosService {
+func NewPhotosService(photosClient *photosclient.GRPCPhotosClient, userRepo *repositories.UsersRepository, tagsClient *tagsclient.GRPCTagsClient, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService) *PhotosService {
 
 	return &PhotosService{
 		photosClient:   photosClient,
 		userRepo:       userRepo,
 		tagsClient:     tagsClient,
 		collectionRepo: collectionRepo,
+		eventsService:  eventsService,
 	}
 }
 
@@ -53,6 +58,20 @@ func (s *PhotosService) CreatePhoto(ctx context.Context, req *models.PhotoCreate
 	})
 	if err != nil {
 		return nil, err
+	}
+	dbCollection, err := s.collectionRepo.GetByIdWithoutCollectionItems(req.CollectionId)
+	if err != nil {
+		return nil, err
+	}
+	if !dbCollection.IsPrivate {
+		for _, ph := range resp.GetData() {
+			stringId := strconv.Itoa(int(ph.GetId()))
+			uuidColID, _ := uuid.Parse(req.CollectionId)
+			eventError := s.eventsService.AddEvent(authUserLogin, utils.EventActionCreate, utils.EventTargetPhoto, ph.Path, &models.EventsParams{TargetPhotoID: stringId, TargetCollectionID: uuidColID})
+			if eventError != nil {
+				log.Default().Print(eventError)
+			}
+		}
 	}
 	result := s.convertProtoToModels(resp.GetData())
 	return &models.PhotosDataResponse{Data: result}, nil
@@ -83,6 +102,10 @@ func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.Common
 		_, _ = s.tagsClient.RemoveEntityTags(context.Background(), &microservices.RemoveEntityTagsRequest{
 			EntityId: id,
 		})
+		eventError := s.eventsService.AddEvent("", utils.EventActionDelete, utils.EventTargetPhoto, "", &models.EventsParams{TargetPhotoID: id})
+		if eventError != nil {
+			log.Default().Print(eventError)
+		}
 	}()
 	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
 }
@@ -159,6 +182,7 @@ func (s *PhotosService) UpdatePhoto(ctx context.Context, req *models.PhotoUpdate
 		return nil, err
 	}
 
+	photo := s.convertProtoToModel(resp.GetData())
 	if len(req.Tags) > 0 {
 		stringedUint := strconv.Itoa(int(resp.GetData().GetId()))
 		_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
@@ -168,9 +192,18 @@ func (s *PhotosService) UpdatePhoto(ctx context.Context, req *models.PhotoUpdate
 			Author:     authUserLogin,
 			ShowSearch: !dbCollection.IsPrivate,
 		})
+		if !dbCollection.IsPrivate {
+			for _, tag := range photo.Tags {
+				tagUUID, _ := uuid.Parse(tag.ID)
+				stringPhotoID := strconv.Itoa(int(resp.GetData().GetId()))
+				eventError := s.eventsService.AddEvent(authUserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TargetPhotoID: stringPhotoID, TagRelatedEntityType: utils.EventTargetPhoto})
+				if eventError != nil {
+					log.Default().Print(eventError)
+				}
+			}
+		}
 	}
 
-	photo := s.convertProtoToModel(resp.GetData())
 	return &models.PhotoDataResponse{Data: *photo}, nil
 }
 

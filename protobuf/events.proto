@@ -21,6 +21,7 @@ message Params {
   string target_wish_list_item_id = 4;
   string target_post_id = 5;
   string target_tag_id = 7;
+  string target_photo_id = 8;
 }
 
 message AddEventRequest {
@@ -49,6 +50,7 @@ message GetFilteredEventsRequest {
   string offset = 6;
   repeated string collection_item_ids = 7;
   string tag_id = 8;
+  string photo_id = 9;
 }
 message GetEventsResponse {
   repeated EventsItem items = 1;
@@ -69,4 +71,5 @@ message EventsItem {
   string target_post_id = 12;
   string target_tag_id = 13;
   string tag_related_entity_type = 14;
+  string target_photo_id = 15;
 }

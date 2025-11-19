@@ -3,7 +3,9 @@ package photosclient
 import (
 	"context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 	"lootor/gen/go/microservices"
 )
 
@@ -110,6 +112,19 @@ func (c *GRPCPhotosClient) UpdatePhoto(ctx context.Context, req *microservices.U
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (c *GRPCPhotosClient) GetPhotosByIdsMap(ctx context.Context, req *microservices.GetByIdsRequest) (*microservices.GetPhotosByIdsMapResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
+	}
+
+	photosResult, err := c.client.GetPhotosByIdsMap(ctx, req)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return photosResult, nil
 }
 
 func (c *GRPCPhotosClient) Close() {

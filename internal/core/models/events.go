@@ -20,6 +20,7 @@ type Events struct {
 	TargetWishListItemID string `gorm:"type:uuid" json:"targetWishListItemId"`
 	TargetPostId         string `json:"targetPostId"`
 	TargetTagID          string `json:"targetTagId"`
+	TargetPhotoID        string `json:"targetPhotoId"`
 
 	TargetUser         *SubUsers                `gorm:"-" json:"targetUser"`
 	TargetCollection   *CollectionsResponse     `gorm:"-" json:"targetCollection"`
@@ -27,6 +28,7 @@ type Events struct {
 	TargetWishListItem *WishListItemResponse    `gorm:"-" json:"targetWishListItem"`
 	TargetPost         *Posts                   `gorm:"-" json:"targetPost"`
 	TargetTag          *ShortTags               `gorm:"-" json:"targetTag"`
+	TargetPhoto        *Photos                  `gorm:"-" json:"targetPhoto"`
 
 	TagRelatedEntityType string `json:"tagRelatedEntityType"`
 }
@@ -44,6 +46,7 @@ type EventsParams struct {
 	TargetPostID         string
 	TargetTagID          uuid.UUID
 	TagRelatedEntityType string
+	TargetPhotoID        string
 }
 
 type EventsParamsStrings struct {
@@ -54,6 +57,7 @@ type EventsParamsStrings struct {
 	TargetPostID         string
 	TargetTagID          string
 	TagRelatedEntityType string
+	TargetPhotoID        string
 }
 
 type AddEventRequest struct {
@@ -86,4 +90,6 @@ type GetFilteredEventsRequest struct {
 	Limit             string   `json:"limit"`
 	Offset            string   `json:"offset"`
 	CollectionItemIds []string `json:"collectionItemIds"`
+	TagId             string   `json:"tagId"`
+	PhotoId           string   `json:"photoId"`
 }

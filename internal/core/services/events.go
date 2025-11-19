@@ -7,6 +7,7 @@ import (
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/eventsclient"
+	"lootor/internal/infrastructure/photosclient"
 	"lootor/internal/infrastructure/postsclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/utils"
@@ -22,9 +23,10 @@ type EventsService struct {
 	postService         *postsclient.GRPCPostsClient
 	wishListRepo        *repositories.WLRepository
 	tagsClient          *tagsclient.GRPCTagsClient
+	photosClient        *photosclient.GRPCPhotosClient
 }
 
-func NewEventsService(userRepo *repositories.UsersRepository, eventClient *eventsclient.GRPCEventsClient, collectionRepo *repositories.CollectionsRepository, collectionItemsRepo *repositories.CiRepository, postService *postsclient.GRPCPostsClient, wishListRepo *repositories.WLRepository, tagsClient *tagsclient.GRPCTagsClient) *EventsService {
+func NewEventsService(userRepo *repositories.UsersRepository, eventClient *eventsclient.GRPCEventsClient, collectionRepo *repositories.CollectionsRepository, collectionItemsRepo *repositories.CiRepository, postService *postsclient.GRPCPostsClient, wishListRepo *repositories.WLRepository, tagsClient *tagsclient.GRPCTagsClient, photosClient *photosclient.GRPCPhotosClient) *EventsService {
 	return &EventsService{
 		userRepo:            userRepo,
 		eventClient:         eventClient,
@@ -33,6 +35,7 @@ func NewEventsService(userRepo *repositories.UsersRepository, eventClient *event
 		postService:         postService,
 		wishListRepo:        wishListRepo,
 		tagsClient:          tagsClient,
+		photosClient:        photosClient,
 	}
 }
 
@@ -50,6 +53,7 @@ func (s *EventsService) AddEvent(userLogin, action, target, title string, params
 			TargetPostID:         params.TargetPostID,
 			TargetTagID:          params.TargetTagID.String(),
 			TagRelatedEntityType: params.TagRelatedEntityType,
+			TargetPhotoID:        params.TargetPhotoID,
 		},
 	})
 	if err != nil {
@@ -86,7 +90,7 @@ func (s *EventsService) GetEvents(authUserLogin, limit, offset string, eventTarg
 	return &models.EventsDataResponse{Data: events, Total: totalCount}, nil
 }
 
-func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionItem, wlId, limit, offset, authUserLogin string) (*models.EventsDataResponse, error) {
+func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionItem, wlId, limit, offset, authUserLogin, tagId, photoId string) (*models.EventsDataResponse, error) {
 	dbUser, _ := s.userRepo.GetUserByLogin(authUserLogin)
 	var collectionItemIDs []string
 	var err error
@@ -104,6 +108,8 @@ func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionIte
 		Limit:             limit,
 		Offset:            offset,
 		CollectionItemIds: collectionItemIDs,
+		TagId:             tagId,
+		PhotoId:           photoId,
 	})
 	if err != nil {
 		return nil, err
@@ -128,6 +134,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	var wlIDs []string
 	var postIDs []string
 	var tagIDs []string
+	var photoIDs []string
 
 	for _, event := range events {
 		if event.InitiatorLogin != "" {
@@ -157,7 +164,13 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 				itemIDs = append(itemIDs, event.TargetItemId)
 			case "post":
 				postIDs = append(postIDs, event.TargetPostId)
+			case "photo":
+				photoIDs = append(photoIDs, event.TargetPhotoId)
+
 			}
+		}
+		if event.TargetPhotoId != "" {
+			photoIDs = append(photoIDs, event.TargetPhotoId)
 		}
 	}
 
@@ -169,14 +182,16 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	var wlMap map[string]models.WishListItemResponse
 	var postsMap map[string]models.Posts
 	var tagsMap map[string]models.ShortTags
+	var photosMap map[string]models.Photos
 
-	var collectionsTagsMap, itemsTagsMap, postsTagsMap map[string][]models.ShortTags
+	var collectionsTagsMap, itemsTagsMap, postsTagsMap, photosTagsMap map[string][]models.ShortTags
 
 	collectionsTagsMap = make(map[string][]models.ShortTags)
 	itemsTagsMap = make(map[string][]models.ShortTags)
 	postsTagsMap = make(map[string][]models.ShortTags)
+	photosTagsMap = make(map[string][]models.ShortTags)
 
-	wg.Add(6)
+	wg.Add(7)
 
 	go func() {
 		defer wg.Done()
@@ -200,7 +215,6 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		counts, _ := s.collectionItemsRepo.GetCountCIByIDs(collectionIDsUUID)
 		totalPrices, _ := s.collectionItemsRepo.GetSumsByCollectionIDs(collectionIDsUUID)
 		shippingCosts, _ := s.collectionItemsRepo.GetShippingCostsByCollectionIDs(collectionIDsUUID)
-
 		collectionsMap, _ = s.collectionsRepo.GetCollectionsByIdsMap(collectionIDs, counts, totalPrices, shippingCosts, authUserLogin)
 	}()
 	go func() {
@@ -219,6 +233,46 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	go func() {
 		defer wg.Done()
 		wlMap, _ = s.wishListRepo.GetWLByIdsMap(wlIDs)
+	}()
+	go func() {
+		defer wg.Done()
+		photos, _ := s.photosClient.GetPhotosByIdsMap(context.Background(), &microservices.GetByIdsRequest{
+			Ids: photoIDs,
+		})
+		var authors []string
+		var collectionsPhotoIds []string
+		var collectionsPhotoMap map[string]models.CollectionShort
+		for _, ph := range photos.GetData() {
+			authors = append(authors, ph.GetAuthor())
+			collectionsPhotoIds = append(collectionsPhotoIds, ph.GetCollectionId())
+		}
+		collectionsPhotoMap, _ = s.collectionsRepo.GetCollectionsByIdsMapForShort(collectionsPhotoIds)
+		authorsShort, _ := s.userRepo.GetForSubsMap(authors)
+		photosMap = make(map[string]models.Photos)
+		if photos != nil && photos.GetData() != nil {
+			for key, photo := range photos.GetData() {
+
+				photosMap[key] = models.Photos{
+					Id:            photo.GetId(),
+					Author:        authorsShort[photo.GetAuthor()],
+					CollectionId:  photo.GetCollectionId(),
+					Path:          photo.GetPath(),
+					Likes:         int64(len(photo.GetLikes())),
+					CommentsCount: photo.GetCommentsCount(),
+					CreatedAt:     photo.GetCreatedAt(),
+					Collection:    collectionsPhotoMap[photo.GetCollectionId()],
+				}
+			}
+		}
+		tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+			EntityIds: itemIDs,
+		})
+		if err != nil {
+			return
+		}
+		for key, tag := range tags.GetTags() {
+			photosTagsMap[key] = toShortTags(tag.GetTags())
+		}
 	}()
 	go func() {
 		defer wg.Done()
@@ -319,6 +373,9 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	if tagsMap == nil {
 		tagsMap = make(map[string]models.ShortTags)
 	}
+	if photosMap == nil {
+		photosMap = make(map[string]models.Photos)
+	}
 
 	for _, event := range events {
 		normalizedEvent := models.Events{
@@ -335,6 +392,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 			TargetPostId:         event.TargetPostId,
 			TargetTagID:          event.TargetTagId,
 			TagRelatedEntityType: event.TagRelatedEntityType,
+			TargetPhotoID:        event.TargetPhotoId,
 		}
 
 		if user, exists := usersMap[event.TargetUserLogin]; exists {
@@ -347,12 +405,12 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		}
 
 		if collection, exists := collectionsMap[event.TargetCollectionId]; exists {
-			collection.Tags = postsTagsMap[collection.Id.String()]
+			collection.Tags = collectionsTagsMap[collection.Id.String()]
 			normalizedEvent.TargetCollection = &collection
 		}
 
 		if item, exists := itemsMap[event.TargetItemId]; exists {
-			item.Tags = postsTagsMap[item.Id.String()]
+			item.Tags = itemsTagsMap[item.Id.String()]
 			normalizedEvent.TargetItem = &item
 		}
 
@@ -363,6 +421,11 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		if post, exists := postsMap[event.TargetPostId]; exists {
 			post.Tags = postsTagsMap[strconv.FormatUint(post.Id, 10)]
 			normalizedEvent.TargetPost = &post
+		}
+
+		if photo, exists := photosMap[event.TargetPhotoId]; exists {
+			photo.Tags = photosTagsMap[strconv.FormatUint(photo.Id, 10)]
+			normalizedEvent.TargetPhoto = &photo
 		}
 
 		if initiator, exists := usersMap[event.InitiatorLogin]; exists {
@@ -386,6 +449,9 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 			case "post":
 				postRes := postsMap[normalizedEvent.TargetPostId]
 				normalizedEvent.TargetPost = &postRes
+			case "photos":
+				photoRes := photosMap[normalizedEvent.TargetPhotoID]
+				normalizedEvent.TargetPhoto = &photoRes
 			}
 		}
 

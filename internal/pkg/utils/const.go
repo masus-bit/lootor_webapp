@@ -7,6 +7,7 @@ const (
 	EventTargetWL             = "wishListItem"
 	EventTargetPost           = "post"
 	EventTargetTag            = "tag"
+	EventTargetPhoto          = "photo"
 )
 
 const (
