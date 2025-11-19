@@ -500,6 +500,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "tag id",
+                        "name": "tagId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "limit",
                         "name": "limit",
                         "in": "query",

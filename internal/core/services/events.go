@@ -90,7 +90,7 @@ func (s *EventsService) GetEvents(authUserLogin, limit, offset string, eventTarg
 	return &models.EventsDataResponse{Data: events, Total: totalCount}, nil
 }
 
-func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionItem, wlId, limit, offset, authUserLogin, tagId, photoId string) (*models.EventsDataResponse, error) {
+func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionItem, wlId, limit, offset, authUserLogin, tagId string) (*models.EventsDataResponse, error) {
 	dbUser, _ := s.userRepo.GetUserByLogin(authUserLogin)
 	var collectionItemIDs []string
 	var err error
@@ -109,7 +109,6 @@ func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionIte
 		Offset:            offset,
 		CollectionItemIds: collectionItemIDs,
 		TagId:             tagId,
-		PhotoId:           photoId,
 	})
 	if err != nil {
 		return nil, err

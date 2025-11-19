@@ -132,7 +132,7 @@ func (s *PhotosService) FindAllByCollectionId(ctx context.Context, collectionId,
 		return nil, err
 	}
 	photos := s.convertProtoToModels(resp.GetData())
-	return &models.PhotosDataResponse{Data: photos}, nil
+	return &models.PhotosDataResponse{Data: photos, Total: resp.GetTotal()}, nil
 }
 
 func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin string) (*dto.CommonResponse, error) {

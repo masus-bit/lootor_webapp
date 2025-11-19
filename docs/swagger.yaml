@@ -1400,6 +1400,10 @@ paths:
         in: query
         name: wishListItemId
         type: string
+      - description: tag id
+        in: query
+        name: tagId
+        type: string
       - description: limit
         in: query
         name: limit
