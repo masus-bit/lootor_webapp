@@ -230,6 +230,8 @@ definitions:
         type: object
       date:
         type: string
+      entityType:
+        type: string
       parentId:
         type: string
       targetId:
@@ -1337,6 +1339,11 @@ paths:
       - description: target id
         in: query
         name: targetId
+        required: true
+        type: string
+      - description: antity type
+        in: query
+        name: entityType
         required: true
         type: string
       produces:

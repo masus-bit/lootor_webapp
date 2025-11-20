@@ -75,6 +75,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 				Likes:         make([]models.SubUsers, 0),
 				Dislikes:      make([]models.SubUsers, 0),
 				DeletedAt:     deletedAtStr,
+				EntityType:    request.EntityType,
 			},
 			ChildrenComments: make([]dto.ChildrenComments, 0),
 			AnswersTotal:     0,
@@ -202,8 +203,8 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 	return &resultComment, nil
 }
 
-func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, offset string) (*dto.CommentsDataResponse, error) {
-	comments, err := s.commentsClient.GetAllComments(ctx, targetId, limit, offset)
+func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, offset, entityType string) (*dto.CommentsDataResponse, error) {
+	comments, err := s.commentsClient.GetAllComments(ctx, targetId, limit, offset, entityType)
 	if err != nil {
 		return nil, err
 	}
@@ -287,15 +288,16 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 			}
 			resultChildrenComments = append(resultChildrenComments, dto.ChildrenComments{
 				Comments: &dto.Comments{
-					Id:        c.Id,
-					Date:      c.Date,
-					TargetId:  targetId,
-					Author:    userStructCh,
-					ParentId:  c.ParentId,
-					Content:   contentChildren,
-					CreatedAt: createdAtAsTimeCh,
-					UpdatedAt: updatedAtAsTimeCh,
-					DeletedAt: deletedAtStrCh,
+					Id:         c.Id,
+					Date:       c.Date,
+					TargetId:   targetId,
+					Author:     userStructCh,
+					ParentId:   c.ParentId,
+					Content:    contentChildren,
+					CreatedAt:  createdAtAsTimeCh,
+					UpdatedAt:  updatedAtAsTimeCh,
+					DeletedAt:  deletedAtStrCh,
+					EntityType: c.EntityType,
 				},
 				Likes:         likesCh,
 				Dislikes:      dislikesCh,
@@ -319,6 +321,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 				Likes:         likes,
 				Dislikes:      dislikes,
 				DeletedAt:     deletedAtStr,
+				EntityType:    f.EntityType,
 			},
 			ChildrenComments: resultChildrenComments,
 			AnswersTotal:     int64(answerTotalInt),
@@ -465,14 +468,15 @@ func (s *CommentsService) LoadAnswers(ctx context.Context, id, limit, offset str
 
 		result = append(result, dto.AnswersItem{
 			Comments: &dto.Comments{
-				Id:        f.Id,
-				Date:      f.Date,
-				TargetId:  f.TargetId,
-				Author:    userStruct,
-				ParentId:  f.ParentId,
-				Content:   utils.NormalizeContent(f.Content),
-				CreatedAt: createdAt,
-				UpdatedAt: updatedAt,
+				Id:         f.Id,
+				Date:       f.Date,
+				TargetId:   f.TargetId,
+				Author:     userStruct,
+				ParentId:   f.ParentId,
+				Content:    utils.NormalizeContent(f.Content),
+				CreatedAt:  createdAt,
+				UpdatedAt:  updatedAt,
+				EntityType: f.EntityType,
 			},
 			LikesCount:    int(f.LikesCount),
 			DislikesCount: int(f.DislikesCount),

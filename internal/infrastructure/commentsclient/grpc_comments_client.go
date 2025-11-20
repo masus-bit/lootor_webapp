@@ -31,11 +31,12 @@ func (c *GRPCCommentsClient) CreateComment(ctx context.Context, dto *dto.Comment
 	normalizedContent, _ := utils.GormJSONToProtoStruct(dto.Content)
 
 	resp, err := c.client.CreateComment(ctx, &microservices.CreateCommentRequest{
-		Content:  normalizedContent,
-		Date:     dto.Date,
-		Author:   dto.Author,
-		ParentId: *dto.ParentId,
-		TargetId: dto.TargetId,
+		Content:    normalizedContent,
+		Date:       dto.Date,
+		Author:     dto.Author,
+		ParentId:   *dto.ParentId,
+		TargetId:   dto.TargetId,
+		EntityType: dto.EntityType,
 	})
 	if err != nil {
 		return nil, err
@@ -43,8 +44,8 @@ func (c *GRPCCommentsClient) CreateComment(ctx context.Context, dto *dto.Comment
 	return resp, nil
 }
 
-func (c *GRPCCommentsClient) GetAllComments(ctx context.Context, id, limit, offset string) (*microservices.GetAllCommentsResponse, error) {
-	return c.client.GetAllComments(ctx, &microservices.GetAllCommentsRequest{Limit: limit, Offset: offset, TargetId: id})
+func (c *GRPCCommentsClient) GetAllComments(ctx context.Context, id, limit, offset, entityType string) (*microservices.GetAllCommentsResponse, error) {
+	return c.client.GetAllComments(ctx, &microservices.GetAllCommentsRequest{Limit: limit, Offset: offset, TargetId: id, EntityType: entityType})
 }
 
 func (c *GRPCCommentsClient) DeleteComments(ctx context.Context, id string) (*microservices.DeleteCommentResponse, error) {

@@ -404,6 +404,13 @@ const docTemplate = `{
                         "name": "targetId",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "antity type",
+                        "name": "entityType",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -3483,6 +3490,9 @@ const docTemplate = `{
                     "additionalProperties": true
                 },
                 "date": {
+                    "type": "string"
+                },
+                "entityType": {
                     "type": "string"
                 },
                 "parentId": {

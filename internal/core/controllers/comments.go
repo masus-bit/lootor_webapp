@@ -60,13 +60,15 @@ func (c *CommentsController) CreateComment(ctx echo.Context) error {
 // @Param limit query string true "limit"
 // @Param offset query string true "offset"
 // @Param targetId query string true "target id"
+// @Param entityType query string true "antity type"
 // @Success 201 {object} dto.FeedDataResponseSwag
 // @Router /public/comments [get]
 func (c *CommentsController) GetAllComments(ctx echo.Context) error {
 	limit := ctx.QueryParam("limit")
 	offset := ctx.QueryParam("offset")
 	targetId := ctx.QueryParam("targetId")
-	response, err := c.commentService.GetAllComments(ctx.Request().Context(), targetId, limit, offset)
+	entityType := ctx.QueryParam("entityType")
+	response, err := c.commentService.GetAllComments(ctx.Request().Context(), targetId, limit, offset, entityType)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

@@ -22,6 +22,7 @@ message CreateCommentRequest {
   string author = 3;
   string target_id = 4;
   string parent_id = 5;
+  string entity_type = 6;
 }
 
 message DeleteCommentRequest {
@@ -45,6 +46,7 @@ message GetAllCommentsRequest {
   string target_id = 1;
   string offset = 2;
   string limit = 3;
+  string entity_type = 4;
 }
 
 message GetAllCommentsResponse {
@@ -72,6 +74,7 @@ message ChildrenComments {
   int64 dislikes_count = 11;
   repeated Likes dislikes = 12;
   string deleted_at = 13;
+  string entity_type = 14;
 }
 
 message CommentsItem {
@@ -90,6 +93,7 @@ message CommentsItem {
   int64 dislikes_count = 13;
   repeated Likes dislikes = 14;
   string deleted_at = 15;
+  string entity_type = 16;
 }
 
 message AnswersResponse {
@@ -118,4 +122,5 @@ message AnswersItem {
   int64 dislikes_count = 12;
   repeated Likes dislikes = 13;
   string deleted_at = 14;
+  string entity_type = 15;
 }

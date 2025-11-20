@@ -20,6 +20,7 @@ type Comments struct {
 	ParentId      string          `json:"parentId"`
 	LikesCount    int             `json:"likesCount"`
 	DislikesCount int             `json:"dislikesCount"`
+	EntityType    string          `json:"entityType"`
 
 	Likes    []models.SubUsers `gorm:"foreignKey:CommentId;references:Id;constraint:OnDelete:CASCADE;" json:"likes"`
 	Dislikes []models.SubUsers `gorm:"foreignKey:CommentId;references:Id;constraint:OnDelete:CASCADE;" json:"dislikes"`
@@ -52,15 +53,17 @@ type CommentsRequest struct {
 	Author          string  `json:"author"`
 	ParentId        *string `json:"parentId"`
 	TargetUserLogin *string `json:"targetUserLogin"`
+	EntityType      string  `json:"entityType"`
 
 	Content datatypes.JSON `json:"content"`
 }
 
 type CommentsRequestSwag struct {
-	Date     string    `json:"date"`
-	TargetId string    `json:"targetId"`
-	Author   string    `json:"author"`
-	ParentId uuid.UUID `json:"parentId"`
+	Date       string    `json:"date"`
+	TargetId   string    `json:"targetId"`
+	Author     string    `json:"author"`
+	ParentId   uuid.UUID `json:"parentId"`
+	EntityType string    `json:"entityType"`
 
 	Content map[string]interface{} `json:"content"`
 }
