@@ -24,6 +24,6 @@ func PhotosRouter(e *echo.Echo, jwtService *auth.JWTService, photosService servi
 		securedGroup.POST("/photos", controller.CreatePhotos)
 		securedGroup.DELETE("/photos/:id", controller.Delete)
 		securedGroup.GET("/photos/like/:id", controller.Like)
-		securedGroup.PATCH("/photos", controller.Update)
+		securedGroup.POST("/photos", controller.Update)
 	}
 }
