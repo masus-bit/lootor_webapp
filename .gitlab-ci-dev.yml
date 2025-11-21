@@ -34,12 +34,12 @@ build:
     DOCKER_CONFIG: "/kaniko/.docker"
   script:
     - echo "Building backend image with tag ${IMAGE_TAG}"
-    - /kaniko/executor \
-      --context "${CI_PROJECT_DIR}" \
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
-      --destination "${CI_REGISTRY_IMAGE}:${IMAGE_TAG}" \
-      --destination "${CI_REGISTRY_IMAGE}:latest" \
-      --cache=true \
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${IMAGE_TAG}"
+      --destination "${CI_REGISTRY_IMAGE}:latest"
+      --cache=true
       --cache-repo "${CI_REGISTRY_IMAGE}/cache"
 
 deploy:
