@@ -16,68 +16,85 @@ before_script:
 
 build_images:
   stage: build
-  tags:
-    - auc
+  tags: [auc]
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   variables:
     DOCKER_CONFIG: "/kaniko/.docker"
   script:
-    - echo "Building all microservices with tag ${IMAGE_TAG}"
+    - |
+      echo "Building all microservices with tag ${IMAGE_TAG}"
 
-    # backend
-    - /kaniko/executor --context "${CI_PROJECT_DIR}" \
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
-      --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_webapp:${IMAGE_TAG}"
+      # backend
+      /kaniko/executor \
+        --context "${CI_PROJECT_DIR}/backend_services/lootor_webapp" \
+        --dockerfile "${CI_PROJECT_DIR}/backend_services/lootor_webapp/Dockerfile" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_webapp:${IMAGE_TAG}" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_webapp:latest"
 
-    # news
-    - /kaniko/executor --context "${CI_PROJECT_DIR}" \
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
-      --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_news:${IMAGE_TAG}"
+      # news
+      /kaniko/executor \
+        --context "${CI_PROJECT_DIR}/backend_services/lootor_news" \
+        --dockerfile "${CI_PROJECT_DIR}/backend_services/lootor_news/Dockerfile" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_news:${IMAGE_TAG}" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_news:latest"
 
-    # comments
-    - /kaniko/executor --context "${CI_PROJECT_DIR}" \
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
-      --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_comments:${IMAGE_TAG}"
+      # comments
+      /kaniko/executor \
+        --context "${CI_PROJECT_DIR}/backend_services/lootor_comments" \
+        --dockerfile "${CI_PROJECT_DIR}/backend_services/lootor_comments/Dockerfile" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_comments:${IMAGE_TAG}" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_comments:latest"
 
-    # notifications
-    - /kaniko/executor --context "${CI_PROJECT_DIR}" \
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
-      --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_notifications:${IMAGE_TAG}"
+      # notifications
+      /kaniko/executor \
+        --context "${CI_PROJECT_DIR}/backend_services/lootor_notifications" \
+        --dockerfile "${CI_PROJECT_DIR}/backend_services/lootor_notifications/Dockerfile" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_notifications:${IMAGE_TAG}" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_notifications:latest"
 
-    # posts
-    - /kaniko/executor --context "${CI_PROJECT_DIR}" \
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
-      --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_posts:${IMAGE_TAG}"
+      # posts
+      /kaniko/executor \
+        --context "${CI_PROJECT_DIR}/backend_services/lootor_posts" \
+        --dockerfile "${CI_PROJECT_DIR}/backend_services/lootor_posts/Dockerfile" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_posts:${IMAGE_TAG}" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_posts:latest"
 
-    # events
-    - /kaniko/executor --context "${CI_PROJECT_DIR}" \
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
-      --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_events:${IMAGE_TAG}"
+      # events
+      /kaniko/executor \
+        --context "${CI_PROJECT_DIR}/backend_services/lootor_events" \
+        --dockerfile "${CI_PROJECT_DIR}/backend_services/lootor_events/Dockerfile" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_events:${IMAGE_TAG}" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_events:latest"
 
-    # tags
-    - /kaniko/executor --context "${CI_PROJECT_DIR}" \
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
-      --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_tags:${IMAGE_TAG}"
+      # tags
+      /kaniko/executor \
+        --context "${CI_PROJECT_DIR}/backend_services/lootor_tags" \
+        --dockerfile "${CI_PROJECT_DIR}/backend_services/lootor_tags/Dockerfile" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_tags:${IMAGE_TAG}" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_tags:latest"
 
-    # photos
-    - /kaniko/executor --context "${CI_PROJECT_DIR}" \
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
-      --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_photos:${IMAGE_TAG}"
+      # photos
+      /kaniko/executor \
+        --context "${CI_PROJECT_DIR}/backend_services/lootor_photos" \
+        --dockerfile "${CI_PROJECT_DIR}/backend_services/lootor_photos/Dockerfile" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_photos:${IMAGE_TAG}" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_photos:latest"
 
-    # frontend
-    - /kaniko/executor --context "${CI_PROJECT_DIR}" \
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
-      --destination "${CI_REGISTRY_IMAGE_BASE}/vgchub-frontend-core:${IMAGE_TAG}"
+      # frontend
+      /kaniko/executor \
+        --context "${CI_PROJECT_DIR}/frontend" \
+        --dockerfile "${CI_PROJECT_DIR}/frontend/Dockerfile" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/vgchub-frontend-core:${IMAGE_TAG}" \
+        --destination "${CI_REGISTRY_IMAGE_BASE}/vgchub-frontend-core:latest"
 
   only:
     - dev
 
 deploy_stack:
   stage: deploy
-  tags:
-    - auc
+  tags: [auc]
   image: alpine:latest
   before_script:
     - apk add --no-cache openssh-client docker-cli
@@ -87,22 +104,21 @@ deploy_stack:
     - ssh -o StrictHostKeyChecking=no root@185.43.4.23 "
       set -e;
       docker login -u $CI_DEPLOY_USERNAME -p $CI_DEPLOY_PASSWORD $CI_REGISTRY;
-      
+
       docker network create -d overlay --attachable lootor_network || true;
       docker volume create lootor_postgres_data || true;
       docker volume create redis_data || true;
       docker volume create elasticsearch_data || true;
       docker volume create portainer_data || true;
-      
+
       docker swarm init --advertise-addr 185.43.4.23 || true;
-      
+
       echo \"Using image tag ${CI_COMMIT_SHORT_SHA}\";
-      
       export IMAGE_TAG=${CI_COMMIT_SHORT_SHA};
-      
+
       cd /root/lootor;
-      
+
       docker stack deploy -c docker-compose.swarm.yml lootor;
-      "
+    "
   only:
     - dev
