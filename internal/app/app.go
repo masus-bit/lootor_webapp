@@ -83,6 +83,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 			echo.PUT,
 			echo.DELETE,
 			echo.OPTIONS,
+			echo.PATCH,
 		},
 		AllowHeaders: []string{
 			echo.HeaderOrigin,
