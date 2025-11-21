@@ -231,6 +231,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.NotificationsRouter(e, jwtService, *notificationsService)
 	routes.PostsRouter(e, jwtService, *postsService)
 	routes.PhotosRouter(e, jwtService, *photosService)
+	routes.HealthCheckRouter(e)
 
 	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagsService).ReindexInternal(context.Background())
 	setupMonitoring(s3Service)
