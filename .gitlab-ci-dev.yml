@@ -4,129 +4,84 @@ stages:
 
 variables:
   CI_REGISTRY: "registry.gitlab.com"
-  CI_REGISTRY_IMAGE_BASE: "${CI_REGISTRY}/${CI_PROJECT_PATH}"
+  CI_REGISTRY_IMAGE: "${CI_REGISTRY}/${CI_PROJECT_PATH}"
   IMAGE_TAG: "${CI_COMMIT_SHORT_SHA}"
   DOCKER_TLS_CERTDIR: ""
   GIT_STRATEGY: clone
 
-before_script:
-  - echo "Preparing docker auth..."
-  - mkdir -p /kaniko/.docker
-  - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(echo -n gitlab-ci-token:${CI_JOB_TOKEN} | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+.pre:
+  stage: prepare
+  tags:
+    - auc
+  image: alpine:latest
+  script:
+    - apk add --no-cache protobuf protobuf-dev
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(echo -n gitlab-ci-token:${CI_JOB_TOKEN} | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+  artifacts:
+    paths:
+      - /kaniko/.docker/config.json
+    expire_in: 1 hour
 
-build_images:
+build:
   stage: build
-  tags: [auc]
+  tags:
+    - auc
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   variables:
     DOCKER_CONFIG: "/kaniko/.docker"
   script:
-    - echo "Building all microservices with tag ${IMAGE_TAG}"
+    - echo "Building backend image with tag ${IMAGE_TAG}"
+    - /kaniko/executor \
+      --context "${CI_PROJECT_DIR}" \
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
+      --destination "${CI_REGISTRY_IMAGE}:${IMAGE_TAG}" \
+      --destination "${CI_REGISTRY_IMAGE}:latest" \
+      --cache=true \
+      --cache-repo "${CI_REGISTRY_IMAGE}/cache"
 
-    # =======================
-    # backend
-    /kaniko/executor \
-    --context "$CI_PROJECT_DIR" \
-    --dockerfile "Dockerfile" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_webapp:${IMAGE_TAG}" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_webapp:latest"
-
-    # =======================
-    # news
-    /kaniko/executor \
-    --context "$CI_PROJECT_DIR" \
-    --dockerfile "Dockerfile" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_news:${IMAGE_TAG}" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_news:latest"
-
-    # =======================
-    # comments
-    /kaniko/executor \
-    --context "$CI_PROJECT_DIR" \
-    --dockerfile "Dockerfile" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_comments:${IMAGE_TAG}" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_comments:latest"
-
-    # =======================
-    # notifications
-    /kaniko/executor \
-    --context "$CI_PROJECT_DIR" \
-    --dockerfile "Dockerfile" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_notifications:${IMAGE_TAG}" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_notifications:latest"
-
-    # =======================
-    # posts
-    /kaniko/executor \
-    --context "$CI_PROJECT_DIR" \
-    --dockerfile "Dockerfile" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_posts:${IMAGE_TAG}" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_posts:latest"
-
-    # =======================
-    # events
-    /kaniko/executor \
-    --context "$CI_PROJECT_DIR" \
-    --dockerfile "Dockerfile" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_events:${IMAGE_TAG}" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_events:latest"
-
-    # =======================
-    # tags
-    /kaniko/executor \
-    --context "$CI_PROJECT_DIR" \
-    --dockerfile "Dockerfile" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_tags:${IMAGE_TAG}" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_tags:latest"
-
-    # =======================
-    # photos
-    /kaniko/executor \
-    --context "$CI_PROJECT_DIR" \
-    --dockerfile "Dockerfile" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_photos:${IMAGE_TAG}" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_photos:latest"
-
-    # =======================
-    # frontend
-    /kaniko/executor \
-    --context "$CI_PROJECT_DIR" \
-    --dockerfile "Dockerfile" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/vgchub-frontend-core:${IMAGE_TAG}" \
-    --destination "${CI_REGISTRY_IMAGE_BASE}/vgchub-frontend-core:latest"
-
-  only:
-    - dev
-
-deploy_stack:
+deploy:
   stage: deploy
-  tags: [auc]
-  image: alpine:latest
+  tags:
+    - auc
+  image: docker:24.0
   before_script:
-    - apk add --no-cache openssh-client docker-cli
-  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY_DEV" | tr -d '\r' | ssh-add -
-    - ssh -o StrictHostKeyChecking=no root@185.43.4.23 "
-      set -e;
+    - echo "${SSH_PRIVATE_KEY_DEV}" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 600 ~/.ssh
+  script:
+    - echo "Deploying stack to Swarm"
+    - |
+      ssh -o StrictHostKeyChecking=no -t -t root@185.43.4.23 << EOF
+        set -e
 
-      docker login -u $CI_DEPLOY_USERNAME -p $CI_DEPLOY_PASSWORD $CI_REGISTRY;
+        docker login -u "$CI_DEPLOY_USERNAME" -p "$CI_DEPLOY_PASSWORD" registry.gitlab.com
 
-      docker network create -d overlay --attachable lootor_network || true;
-      docker volume create lootor_postgres_data || true;
-      docker volume create redis_data || true;
-      docker volume create elasticsearch_data || true;
-      docker volume create portainer_data || true;
+        export IMAGE_TAG=${CI_COMMIT_SHORT_SHA}
 
-      docker swarm init --advertise-addr 185.43.4.23 || true;
+        cd /root/lootor
 
-      echo \"Using image tag ${CI_COMMIT_SHORT_SHA}\";
-      export IMAGE_TAG=${CI_COMMIT_SHORT_SHA};
+        # Создаём overlay сеть и тома, если их нет
+        docker network create -d overlay --attachable lootor_network || true
+        docker volume create lootor_postgres_data || true
+        docker volume create redis_data || true
+        docker volume create elasticsearch_data || true
+        docker volume create portainer_data || true
 
-      cd /root/lootor;
+        # Инициализация Swarm (если ещё не инициализирован)
+        docker swarm init --advertise-addr 185.43.4.23 || true
 
-      docker stack deploy -c docker-compose.swarm.yml lootor;
+        # Деплой всего стека через docker stack
+        docker stack deploy -c docker-compose.swarm.yml lootor
+
+        # Логи для проверки
+        docker service logs lootor_backend --tail 50
+        docker service logs lootor_nginx --tail 20 || true
+      EOF
   only:
     - dev
