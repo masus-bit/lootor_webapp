@@ -38,7 +38,7 @@ build:
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}:${IMAGE_TAG}"
+      --destination "${CI_REGISTRY_IMAGE}:latest"
       --cache=true
       --cache-repo "${CI_REGISTRY_IMAGE}/cache"
 deploy:
@@ -70,14 +70,10 @@ deploy:
       
       if docker service inspect lootor_backend >/dev/null 2>&1; then
           echo "Updating backend service..."
-          docker service update --image registry.gitlab.com/auc2/backend_services/lootor_webapp:$IMAGE_TAG lootor_backend
+          docker service update --image registry.gitlab.com/auc2/backend_services/lootor_webapp:latest
       else
           echo "First deploy: deploying full stack..."
           docker network create -d overlay --attachable lootor_network || true
-          docker volume create lootor_postgres_data || true
-          docker volume create redis_data || true
-          docker volume create elasticsearch_data || true
-          docker volume create portainer_data || true
           docker swarm init --advertise-addr 185.43.4.23 || true
           docker stack deploy -c docker-compose.swarm.yml lootor
       fi
