@@ -28,47 +28,47 @@ build_images:
 
     # backend
     - /kaniko/executor --context "${CI_PROJECT_DIR}/backend" \
-      --dockerfile "${CI_PROJECT_DIR}/backend/Dockerfile" \
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
       --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_webapp:${IMAGE_TAG}"
 
     # news
     - /kaniko/executor --context "${CI_PROJECT_DIR}/news" \
-      --dockerfile "${CI_PROJECT_DIR}/news/Dockerfile" \
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
       --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_news:${IMAGE_TAG}"
 
     # comments
     - /kaniko/executor --context "${CI_PROJECT_DIR}/comments" \
-      --dockerfile "${CI_PROJECT_DIR}/comments/Dockerfile" \
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
       --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_comments:${IMAGE_TAG}"
 
     # notifications
     - /kaniko/executor --context "${CI_PROJECT_DIR}/notifications" \
-      --dockerfile "${CI_PROJECT_DIR}/notifications/Dockerfile" \
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
       --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_notifications:${IMAGE_TAG}"
 
     # posts
     - /kaniko/executor --context "${CI_PROJECT_DIR}/posts" \
-      --dockerfile "${CI_PROJECT_DIR}/posts/Dockerfile" \
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
       --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_posts:${IMAGE_TAG}"
 
     # events
     - /kaniko/executor --context "${CI_PROJECT_DIR}/events" \
-      --dockerfile "${CI_PROJECT_DIR}/events/Dockerfile" \
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
       --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_events:${IMAGE_TAG}"
 
     # tags
     - /kaniko/executor --context "${CI_PROJECT_DIR}/tags" \
-      --dockerfile "${CI_PROJECT_DIR}/tags/Dockerfile" \
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
       --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_tags:${IMAGE_TAG}"
 
     # photos
     - /kaniko/executor --context "${CI_PROJECT_DIR}/photos" \
-      --dockerfile "${CI_PROJECT_DIR}/photos/Dockerfile" \
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
       --destination "${CI_REGISTRY_IMAGE_BASE}/backend_services/lootor_photos:${IMAGE_TAG}"
 
     # frontend
     - /kaniko/executor --context "${CI_PROJECT_DIR}/frontend" \
-      --dockerfile "${CI_PROJECT_DIR}/frontend/Dockerfile" \
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
       --destination "${CI_REGISTRY_IMAGE_BASE}/vgchub-frontend-core:${IMAGE_TAG}"
 
   only:
