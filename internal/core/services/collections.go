@@ -357,11 +357,8 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 		temp.TotalPrice = totalPrices[dbCollection.Id]
 		temp.ShippingTotal = shippingCosts[dbCollection.Id]
 		temp.LikesCount = int64(len(dbCollection.Likes))
-		temp.CanLike = true
+		temp.CanLike = utils.CanLike(dbCollection.Likes, authorizedUser, dbCollection.UserLogin)
 		temp.IsOwner = authorizedUser == login
-		if authorizedUser != "" {
-			temp.CanLike = !slices.Contains(dbCollection.Likes, authorizedUser)
-		}
 
 		if err != nil {
 			return nil, err
@@ -410,11 +407,8 @@ func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit
 		temp.TotalPrice = totalPrices[dbCollection.Id]
 		temp.ShippingTotal = shippingCosts[dbCollection.Id]
 		temp.LikesCount = int64(len(dbCollection.Likes))
-		temp.CanLike = true
+		temp.CanLike = utils.CanLike(dbCollection.Likes, authorizedUser, dbCollection.UserLogin)
 		temp.IsOwner = authorizedUser == temp.User.Login
-		if authorizedUser != "" {
-			temp.CanLike = !slices.Contains(dbCollection.Likes, authorizedUser)
-		}
 
 		if err != nil {
 			return nil, err
@@ -463,7 +457,7 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	if err != nil {
 		return nil, err
 	}
-	photosCount, err := s.photosClient.GetCountByCollection(context.Background(), &microservices.CountRequestPhoto{CollectionId: id})
+	photosCount, err := s.photosClient.GetCountByCollection(context.Background(), &microservices.CountRequestPhoto{CollectionId: dbCollection.Id.String()})
 	if err != nil {
 		return nil, err
 	}
@@ -483,14 +477,12 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 
 		temp.Collection = finalCollection.Id
 		temp.LikesCount = int64(len(item.Likes))
-		temp.CanLike = true
+		temp.CanLike = utils.CanLike(item.Likes, authorizerUser, item.Owner.Login)
 		temp.CollectionTransliteration = finalCollection.Transliteration
 		if authorizerUser != "" {
 			if authorizerUser == item.Owner.Login {
-				temp.CanLike = true
 				temp.IsOwner = true
 			} else {
-				temp.CanLike = !slices.Contains(item.Likes, authorizerUser)
 				temp.IsOwner = false
 			}
 		}
@@ -513,7 +505,7 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	finalCollection.TotalPrice, _ = s.collectionItemRepo.Sum(dbCollection.Id)
 	finalCollection.ShippingTotal, _ = s.collectionItemRepo.SumShippingCost(dbCollection.Id)
 	finalCollection.LikesCount = int64(len(dbCollection.Likes))
-	finalCollection.CanLike = true
+	finalCollection.CanLike = utils.CanLike(dbCollection.Likes, authorizerUser, dbCollection.UserLogin)
 	finalCollection.IsOwner = authorizerUser == userLogin
 	finalCollection.PhotosCount = photosCount.GetCount()
 	if authUser != nil {
@@ -530,7 +522,6 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 		}
 		canSubscribe := !slices.Contains(lowerCasedUsers, strings.ToLower(userLogin))
 		finalCollection.User.CanSubscribe = canSubscribe
-		finalCollection.CanLike = !slices.Contains(dbCollection.Likes, authUser.Login)
 
 	}
 	return &models.CollectionDataResponse{Data: finalCollection}, nil

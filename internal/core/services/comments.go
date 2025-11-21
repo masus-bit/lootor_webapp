@@ -154,7 +154,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 		}
 	}
 
-	photo, err := s.photosService.FindOneById(ctx, request.TargetId)
+	photo, err := s.photosService.FindOneById(ctx, request.TargetId, request.Author)
 	if err == nil {
 		if *request.TargetUserLogin != "" {
 			targetUserLogin = *request.TargetUserLogin
@@ -368,7 +368,7 @@ func (s *CommentsService) DeleteComment(ctx context.Context, id, targetId, authU
 		}
 	}
 
-	_, err = s.photosService.FindOneById(ctx, targetId)
+	_, err = s.photosService.FindOneById(ctx, targetId, authUserLogin)
 	if err == nil {
 		_, err = s.photosService.DecrementCommentsCount(ctx, targetId)
 		if err != nil {

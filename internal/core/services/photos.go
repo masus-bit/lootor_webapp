@@ -73,7 +73,7 @@ func (s *PhotosService) CreatePhoto(ctx context.Context, req *models.PhotoCreate
 			}
 		}
 	}
-	result := s.convertProtoToModels(resp.GetData())
+	result := s.convertProtoToModels(resp.GetData(), authUserLogin)
 	return &models.PhotosDataResponse{Data: result}, nil
 }
 
@@ -87,7 +87,7 @@ func (s *PhotosService) GetByUser(ctx context.Context, userLogin, authUserLogin,
 	if err != nil {
 		return nil, err
 	}
-	result := s.convertProtoToModels(resp.GetData())
+	result := s.convertProtoToModels(resp.GetData(), authUserLogin)
 	return &models.PhotosDataResponse{Data: result}, nil
 }
 
@@ -110,14 +110,14 @@ func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.Common
 	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
 }
 
-func (s *PhotosService) FindOneById(ctx context.Context, id string) (*models.PhotoDataResponse, error) {
+func (s *PhotosService) FindOneById(ctx context.Context, id, authUserLogin string) (*models.PhotoDataResponse, error) {
 	resp, err := s.photosClient.FindOneById(ctx, &microservices.FindOneByIdRequest{
 		Id: s.stringToUint64(id),
 	})
 	if err != nil {
 		return nil, err
 	}
-	photo := s.convertProtoToModel(resp.GetData())
+	photo := s.convertProtoToModel(resp.GetData(), authUserLogin)
 	return &models.PhotoDataResponse{Data: *photo}, nil
 }
 
@@ -131,7 +131,7 @@ func (s *PhotosService) FindAllByCollectionId(ctx context.Context, collectionId,
 	if err != nil {
 		return nil, err
 	}
-	photos := s.convertProtoToModels(resp.GetData())
+	photos := s.convertProtoToModels(resp.GetData(), authUserLogin)
 	return &models.PhotosDataResponse{Data: photos, Total: resp.GetTotal()}, nil
 }
 
@@ -154,7 +154,7 @@ func (s *PhotosService) FindPhotosByIds(ctx context.Context, ids []string, authU
 	if err != nil {
 		return nil, err
 	}
-	photos := s.convertProtoToModels(resp.GetData())
+	photos := s.convertProtoToModels(resp.GetData(), authUserLogin)
 	return &models.PhotosDataResponse{Data: photos}, nil
 }
 
@@ -182,7 +182,7 @@ func (s *PhotosService) UpdatePhoto(ctx context.Context, req *models.PhotoUpdate
 		return nil, err
 	}
 
-	photo := s.convertProtoToModel(resp.GetData())
+	photo := s.convertProtoToModel(resp.GetData(), authUserLogin)
 	if len(req.Tags) > 0 {
 		stringedUint := strconv.Itoa(int(resp.GetData().GetId()))
 		_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
@@ -207,7 +207,7 @@ func (s *PhotosService) UpdatePhoto(ctx context.Context, req *models.PhotoUpdate
 	return &models.PhotoDataResponse{Data: *photo}, nil
 }
 
-func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem) []models.Photos {
+func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem, authUserLogin string) []models.Photos {
 	var resultPhotos []models.Photos
 	var userLogins []string
 	var collectionIds []string
@@ -245,23 +245,25 @@ func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem) 
 				SeriesID:  tag.GetSeriesId(),
 			})
 		}
-
+		canLike := utils.CanLike(photos[i].GetLikes(), authUserLogin, photos[i].GetAuthor())
 		resultPhotos = append(resultPhotos, models.Photos{
 			Id:            photos[i].GetId(),
 			Author:        usersMap[photos[i].GetAuthor()],
 			CollectionId:  photos[i].GetCollectionId(),
 			Path:          photos[i].GetPath(),
-			Likes:         int64(len(photos[i].GetLikes())),
+			LikesCount:    int64(len(photos[i].GetLikes())),
 			CommentsCount: photos[i].GetCommentsCount(),
 			CreatedAt:     photos[i].GetCreatedAt(),
 			Collection:    collectionsMap[photos[i].GetCollectionId()],
 			Tags:          resultPhotoTags,
+			CanLike:       canLike,
+			IsOwner:       authUserLogin == photos[i].GetAuthor(),
 		})
 	}
 	return resultPhotos
 }
 
-func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem) *models.Photos {
+func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem, authUserLogin string) *models.Photos {
 	var resultPhoto *models.Photos
 	var userLogins []string
 	var collectionIds []string
@@ -296,17 +298,19 @@ func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem) *mod
 			SeriesID:  tag.GetSeriesId(),
 		})
 	}
-
+	canLike := utils.CanLike(photo.GetLikes(), authUserLogin, photo.GetAuthor())
 	resultPhoto = &models.Photos{
 		Id:            photo.GetId(),
 		Author:        usersMap[photo.GetAuthor()],
 		CollectionId:  photo.GetCollectionId(),
 		Path:          photo.GetPath(),
-		Likes:         int64(len(photo.GetLikes())),
+		LikesCount:    int64(len(photo.GetLikes())),
 		CommentsCount: photo.GetCommentsCount(),
 		CreatedAt:     photo.GetCreatedAt(),
 		Collection:    collectionsMap[photo.GetCollectionId()],
 		Tags:          resultPhotoTags,
+		CanLike:       canLike,
+		IsOwner:       authUserLogin == photo.GetAuthor(),
 	}
 
 	return resultPhoto

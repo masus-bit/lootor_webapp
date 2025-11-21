@@ -522,17 +522,10 @@ func processCI(slice []models.CollectionItems, authUser string) ([]models.Collec
 		temp.Collection = item.Collections[0].Id
 		temp.Owner = item.Owner
 		temp.LikesCount = int64(len(item.Likes))
-		temp.CanLike = true
+		temp.CanLike = utils.CanLike(item.Likes, authUser, item.Owner.Login)
 		temp.IsOwner = authUser == item.Owner.Login
 		temp.CollectionTransliteration = item.Collections[0].Transliteration
-		if authUser != "" {
-			if authUser == item.Owner.Login {
-				temp.CanLike = true
-			} else {
-				temp.CanLike = !slices.Contains(item.Likes, authUser)
-			}
 
-		}
 		resultCollectionItems = append(resultCollectionItems, temp)
 	}
 	return resultCollectionItems, nil

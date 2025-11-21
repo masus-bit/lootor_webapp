@@ -409,3 +409,10 @@ func NormalizeTagsShort(tagsProto []*microservices.TagItemShort) []models.ShortT
 
 	return tempTags
 }
+
+func CanLike(likes []string, user, owner string) bool {
+	if user == "" || user == owner {
+		return true
+	}
+	return !slices.Contains(likes, user)
+}

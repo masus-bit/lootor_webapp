@@ -111,7 +111,12 @@ func (c *PhotosController) Delete(ctx echo.Context) error {
 func (c *PhotosController) GetById(ctx echo.Context) error {
 	id := ctx.Param("id")
 
-	response, err := c.photosService.FindOneById(context.Background(), id)
+	authInfo := ctx.Get("auth_info").(struct {
+		IsAuthenticated bool
+		UserLogin       string
+	})
+
+	response, err := c.photosService.FindOneById(context.Background(), id, authInfo.UserLogin)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

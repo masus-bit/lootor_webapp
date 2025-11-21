@@ -647,7 +647,7 @@ func (s *TagsService) canActivate(authUser, role, entityID, entityType string) (
 		authorLogin = collectionItem.UserLogin
 	}
 	if entityType == "photo" {
-		photo, _ := s.photosService.FindOneById(context.Background(), entityID)
+		photo, _ := s.photosService.FindOneById(context.Background(), entityID, authUser)
 		authorLogin = photo.Data.Author.Login
 	}
 

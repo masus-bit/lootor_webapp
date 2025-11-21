@@ -256,7 +256,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 					Author:        authorsShort[photo.GetAuthor()],
 					CollectionId:  photo.GetCollectionId(),
 					Path:          photo.GetPath(),
-					Likes:         int64(len(photo.GetLikes())),
+					LikesCount:    int64(len(photo.GetLikes())),
 					CommentsCount: photo.GetCommentsCount(),
 					CreatedAt:     photo.GetCreatedAt(),
 					Collection:    collectionsPhotoMap[photo.GetCollectionId()],

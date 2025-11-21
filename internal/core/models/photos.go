@@ -11,13 +11,15 @@ type Photos struct {
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
 	Id            uint64          `gorm:"type:uint;primaryKey;autoIncrement" json:"id"`
-	Likes         int64           `json:"likes"`
+	LikesCount    int64           `json:"likesCount"`
 	CollectionId  string          `json:"collectionId"`
 	Path          string          `json:"path"`
 	Author        SubUsers        `json:"author"`
 	Collection    CollectionShort `json:"collection"`
 	Tags          []ShortTags     `json:"tags"`
 	CommentsCount int64           `json:"commentsCount"`
+	CanLike       bool            `json:"canLike"`
+	IsOwner       bool            `json:"isOwner"`
 }
 
 type PhotosDataResponse struct {
