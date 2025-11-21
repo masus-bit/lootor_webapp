@@ -42,6 +42,13 @@ build:
       --cache=true
       --cache-repo "${CI_REGISTRY_IMAGE}/cache"
 
+deploy:
+  stage: deploy
+  tags:
+    - auc
+  image: docker:24.0
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
