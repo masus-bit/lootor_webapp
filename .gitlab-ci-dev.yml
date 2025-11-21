@@ -119,6 +119,5 @@ deploy_stack:
       cd /root/lootor;
 
       docker stack deploy -c docker-compose.swarm.yml lootor;
-    "
   only:
     - dev
