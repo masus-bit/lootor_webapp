@@ -5,8 +5,8 @@ stages:
 variables:
   CI_REGISTRY: "registry.gitlab.com"
   CI_REGISTRY_IMAGE: "${CI_REGISTRY}/${CI_PROJECT_PATH}"
-  IMAGE_TAG: "${CI_COMMIT_SHORT_SHA}"
   DOCKER_TLS_CERTDIR: ""
+  DOCKER_DRIVER: overlay2
   GIT_STRATEGY: clone
 
 .pre:
@@ -18,6 +18,7 @@ variables:
     - apk add --no-cache protobuf protobuf-dev
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(echo -n gitlab-ci-token:${CI_JOB_TOKEN} | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - echo "127.0.0.1 docker" > /etc/hosts
   artifacts:
     paths:
       - /kaniko/.docker/config.json
@@ -29,24 +30,24 @@ build:
     - auc
   image:
     name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [ "" ]
+    entrypoint: [""]
   variables:
     DOCKER_CONFIG: "/kaniko/.docker"
+    GODEBUG: "http2client=0"
   script:
-    - echo "Building backend image with tag ${IMAGE_TAG}"
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${IMAGE_TAG}"
-      --destination "${CI_REGISTRY_IMAGE}:latest"
       --cache=true
       --cache-repo "${CI_REGISTRY_IMAGE}/cache"
-
 deploy:
-  stage: deploy
   tags:
     - auc
+  stage: deploy
   image: docker:24.0
+  variables:
+    GODEBUG: "http2client=0"
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
@@ -55,15 +56,18 @@ deploy:
     - echo "${SSH_PRIVATE_KEY_DEV}" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 600 ~/.ssh
+    - echo "=================deploy to host================="
     - |
-      ssh -o StrictHostKeyChecking=no -t root@185.43.4.23 << 'EOF'
-      set -e
-      docker login -u "$CI_DEPLOY_USERNAME" -p "$CI_DEPLOY_PASSWORD" registry.gitlab.com
-
+      ssh -o StrictHostKeyChecking=no -t -t root@185.43.4.23 << EOF  # DEV хост
+      docker login -u "$CI_DEPLOY_USERNAME" -p "$CI_DEPLOY_PASSWORD" registry.gitlab.com || {
+        echo "ERROR: Docker login failed";
+        exit 1;
+      }
       export IMAGE_TAG=${CI_COMMIT_SHORT_SHA}
+  
+      # Переходим в папку проекта
       cd ../lootor
-
-      # Проверяем, есть ли backend сервис
+      
       if docker service inspect lootor_backend >/dev/null 2>&1; then
           echo "Updating backend service..."
           docker service update --image registry.gitlab.com/auc2/backend_services/lootor_webapp:$IMAGE_TAG lootor_backend
@@ -77,9 +81,14 @@ deploy:
           docker swarm init --advertise-addr 185.43.4.23 || true
           docker stack deploy -c docker-compose.swarm.yml lootor
       fi
-
-      # Проверка логов
+  
+      # Логи для проверки
       docker service logs lootor_backend --tail 50
+  
+      docker image prune -f
+      docker builder prune --all --force
+      docker image prune -a --force
+  
       exit
       EOF
   only:
