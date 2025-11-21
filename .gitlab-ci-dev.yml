@@ -9,6 +9,7 @@ variables:
   DOCKER_DRIVER: overlay2
   GIT_STRATEGY: clone
 
+
 .pre:
   stage: prepare
   tags:
@@ -30,7 +31,7 @@ build:
     - auc
   image:
     name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
+    entrypoint: [ "" ]
   variables:
     DOCKER_CONFIG: "/kaniko/.docker"
     GODEBUG: "http2client=0"
@@ -43,13 +44,8 @@ build:
       --cache-repo "${CI_REGISTRY_IMAGE}/cache"
 deploy:
   tags:
-    - auc
+    - deploy
   stage: deploy
-  image: docker:24.0
-  variables:
-    GODEBUG: "http2client=0"
-  before_script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
@@ -58,18 +54,16 @@ deploy:
     - chmod 600 ~/.ssh
     - echo "=================deploy to host================="
     - |
-      ssh -o StrictHostKeyChecking=no -t -t root@185.43.4.23 << 'EOF'
-      docker login -u "$CI_DEPLOY_USERNAME" -p "$CI_DEPLOY_PASSWORD" registry.gitlab.com
+      ssh -o StrictHostKeyChecking=no -t -t root@185.43.4.23 << EOF
+      docker login -u "$CI_DEPLOY_USERNAME" -p "$CI_DEPLOY_PASSWORD" registry.gitlab.com || {
+        echo "ERROR: Docker login failed";
+        exit 1;
+      }
       
-      cd ../lootor
+      docker pull registry.gitlab.com/auc2/backend_services/lootor_backend:latest
       
-      # 1. Обязательно тянем новый образ
-      echo "Pulling new image..."
-      docker pull registry.gitlab.com/auc2/backend_services/lootor_webapp:latest
+      docker stack deploy -c docker-compose.swarm.yml lootor
       
-      # 2. Всегда делаем полный деплой стека (проще и надежнее)
-      echo "Deploying stack..."
-      docker stack deploy -c docker-compose.swarm.yml lootor --with-registry-auth
       
       # 3. Ждем и проверяем
       echo "Waiting for services to start..."
