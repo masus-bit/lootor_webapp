@@ -42,13 +42,6 @@ build:
       --cache=true
       --cache-repo "${CI_REGISTRY_IMAGE}/cache"
 
-deploy:
-  stage: deploy
-  tags:
-    - auc
-  image: docker:24.0
-  before_script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
@@ -56,23 +49,30 @@ deploy:
     - mkdir -p ~/.ssh
     - chmod 600 ~/.ssh
     - |
-      ssh -o StrictHostKeyChecking=no -t root@185.43.4.23 << EOF
+      ssh -o StrictHostKeyChecking=no -t root@185.43.4.23 << 'EOF'
       set -e
       docker login -u "$CI_DEPLOY_USERNAME" -p "$CI_DEPLOY_PASSWORD" registry.gitlab.com
 
       export IMAGE_TAG=${CI_COMMIT_SHORT_SHA}
-
-      # Переходим в папку проекта
       cd ../lootor
 
-      # Обновляем только backend
-      docker service update \
-        --image registry.gitlab.com/auc2/backend_services/lootor_webapp:\$IMAGE_TAG \
-        lootor_backend
+      # Проверяем, есть ли backend сервис
+      if docker service inspect lootor_backend >/dev/null 2>&1; then
+          echo "Updating backend service..."
+          docker service update --image registry.gitlab.com/auc2/backend_services/lootor_webapp:$IMAGE_TAG lootor_backend
+      else
+          echo "First deploy: deploying full stack..."
+          docker network create -d overlay --attachable lootor_network || true
+          docker volume create lootor_postgres_data || true
+          docker volume create redis_data || true
+          docker volume create elasticsearch_data || true
+          docker volume create portainer_data || true
+          docker swarm init --advertise-addr 185.43.4.23 || true
+          docker stack deploy -c docker-compose.swarm.yml lootor
+      fi
 
       # Проверка логов
       docker service logs lootor_backend --tail 50
-
       exit
       EOF
   only:
