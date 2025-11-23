@@ -182,7 +182,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		time.Duration(refreshTtl)*time.Minute,
 		*userRepo,
 	)
-	notificationsService := services.NewNotificationsService(notificationsClient, userRepo, colRepo, ciRepo, postsClient)
+	notificationsService := services.NewNotificationsService(notificationsClient, userRepo, colRepo, ciRepo, postsClient, photosClient)
 	eventsService := services.NewEventsService(userRepo, eventsClient, colRepo, ciRepo, postsClient, wlRepo, tagsClient, photosClient)
 	postsService := services.NewPostsService(postsClient, userRepo, eventsService, notificationsService, tagsClient)
 	photosService := services.NewPhotosService(photosClient, userRepo, tagsClient, colRepo, eventsService)
