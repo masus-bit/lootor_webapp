@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"lootor/gen/go/microservices"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/notificationsclient"
+	"lootor/internal/infrastructure/photosclient"
 	"lootor/internal/infrastructure/postsclient"
 	"lootor/internal/pkg/dto"
 	"strconv"
@@ -15,11 +17,12 @@ type NotificationsService struct {
 	collectionRepo      *repositories.CollectionsRepository
 	ciRepo              *repositories.CiRepository
 	postsClient         *postsclient.GRPCPostsClient
+	photosClient        *photosclient.GRPCPhotosClient
 }
 
-func NewNotificationsService(notificationsClient *notificationsclient.GRPCNotificationsClient, userRepo *repositories.UsersRepository, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository, postsClient *postsclient.GRPCPostsClient) *NotificationsService {
+func NewNotificationsService(notificationsClient *notificationsclient.GRPCNotificationsClient, userRepo *repositories.UsersRepository, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository, postsClient *postsclient.GRPCPostsClient, photosClient *photosclient.GRPCPhotosClient) *NotificationsService {
 	return &NotificationsService{
-		notificationsClient: notificationsClient, userRepo: userRepo, collectionRepo: collectionRepo, ciRepo: ciRepo, postsClient: postsClient}
+		notificationsClient: notificationsClient, userRepo: userRepo, collectionRepo: collectionRepo, ciRepo: ciRepo, postsClient: postsClient, photosClient: photosClient}
 }
 
 func (s *NotificationsService) SendNotification(ctx context.Context, request *dto.NotificationsRequest, targetReq *dto.TargetItem) error {
@@ -152,6 +155,27 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 					Name:            ci.Name,
 					Transliteration: ci.Collections[0].Transliteration,
 					TargetType:      "collectionItem",
+				}
+				tempItem.Owner = dto.User{
+					Login:       owner.Login,
+					IsPremium:   owner.IsPremium,
+					AvatarUrl:   owner.AvatarUrl,
+					ProfileName: owner.ProfileName,
+				}
+			}
+		case "photo":
+			tId, _ := strconv.ParseUint(n.TargetId, 10, 64)
+			post, err := s.photosClient.FindOneById(ctx, &microservices.FindOneByIdRequest{
+				Id:            tId,
+				AuthUserLogin: login,
+			})
+			if err == nil {
+				owner, _ := s.userRepo.GetUserByLogin(post.Data.GetAuthor())
+				tempItem.Target = dto.TargetItem{
+					Id:              strconv.FormatUint(post.Data.Id, 10),
+					Name:            post.Data.Path,
+					Transliteration: post.Data.Path,
+					TargetType:      "photo",
 				}
 				tempItem.Owner = dto.User{
 					Login:       owner.Login,
