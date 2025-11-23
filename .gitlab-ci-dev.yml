@@ -60,7 +60,7 @@ deploy:
         exit 1;
       }
       
-      docker pull registry.gitlab.com/auc2/backend_services/lootor_backend:latest
+      docker pull registry.gitlab.com/auc2/backend_services/lootor_webapp:latest
       
       docker stack deploy -c docker-compose.swarm.yml lootor
       
@@ -72,9 +72,7 @@ deploy:
       # 4. Проверяем статус
       echo "=== Services status ==="
       docker service ls
-      
-      echo "=== Backend logs ==="
-      docker service logs lootor_backend --tail 10
+  
       
       docker image prune -f
       docker builder prune --all --force
