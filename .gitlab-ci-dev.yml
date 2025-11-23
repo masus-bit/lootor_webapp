@@ -62,8 +62,7 @@ deploy:
       
       docker pull registry.gitlab.com/auc2/backend_services/lootor_webapp:latest
       
-      docker stack deploy -c docker-compose.swarm.yml lootor
-      
+      docker service update --force --image registry.gitlab.com/auc2/backend_services/lootor_webapp:latest lootor_backend      
       
       # 3. Ждем и проверяем
       echo "Waiting for services to start..."
