@@ -6,7 +6,7 @@ import (
 )
 
 type Photos struct {
-	CreatedAt time.Time      `json:"createdAt"`
+	CreatedAt string         `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 

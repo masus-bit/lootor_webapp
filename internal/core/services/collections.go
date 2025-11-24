@@ -387,7 +387,7 @@ func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit
 	if err != nil {
 		return nil, err
 	}
-
+	photosCounts, _ := s.photosClient.GetCountsByCollectionsIdsMap(context.Background(), &microservices.GetCountsByCollectionsIdsMapRequest{CollectionsIds: collectionStringIds})
 	counts, _ := s.collectionItemRepo.GetCountCIByIDs(collectionIds)
 	totalPrices, _ := s.collectionItemRepo.GetSumsByCollectionIDs(collectionIds)
 	shippingCosts, _ := s.collectionItemRepo.GetShippingCostsByCollectionIDs(collectionIds)
@@ -409,6 +409,7 @@ func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit
 		temp.LikesCount = int64(len(dbCollection.Likes))
 		temp.CanLike = utils.CanLike(dbCollection.Likes, authorizedUser, dbCollection.UserLogin)
 		temp.IsOwner = authorizedUser == temp.User.Login
+		temp.PhotosCount = photosCounts.GetData()[dbCollection.Id.String()]
 
 		if err != nil {
 			return nil, err

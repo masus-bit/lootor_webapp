@@ -127,6 +127,19 @@ func (c *GRPCPhotosClient) GetPhotosByIdsMap(ctx context.Context, req *microserv
 	return photosResult, nil
 }
 
+func (c *GRPCPhotosClient) GetCountsByCollectionsIdsMap(ctx context.Context, req *microservices.GetCountsByCollectionsIdsMapRequest) (*microservices.GetCountsByCollectionsIdsMapResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
+	}
+
+	countsResult, err := c.client.GetCountsByCollectionsIdsMap(ctx, req)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return countsResult, nil
+}
+
 func (c *GRPCPhotosClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

@@ -246,7 +246,11 @@ func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem, 
 				SeriesID:  tag.GetSeriesId(),
 			})
 		}
-		createdAtAsTime, _ := time.Parse(time.RFC3339, photos[i].GetCreatedAt())
+
+		createdAtAsTime, err := parseDate(photos[i].GetCreatedAt())
+		if err != nil {
+			log.Printf("Error parsing date: %v", err)
+		}
 		canLike := utils.CanLike(photos[i].GetLikes(), authUserLogin, photos[i].GetAuthor())
 		resultPhotos = append(resultPhotos, models.Photos{
 			Id:            photos[i].GetId(),
@@ -301,7 +305,10 @@ func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem, auth
 		})
 	}
 	canLike := utils.CanLike(photo.GetLikes(), authUserLogin, photo.GetAuthor())
-	createdAtAsTime, _ := time.Parse(time.RFC3339, photo.GetCreatedAt())
+	createdAtAsTime, err := parseDate(photo.GetCreatedAt())
+	if err != nil {
+		log.Printf("Error parsing date: %v", err)
+	}
 	resultPhoto = &models.Photos{
 		Id:            photo.GetId(),
 		Author:        usersMap[photo.GetAuthor()],
@@ -322,4 +329,14 @@ func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem, auth
 func (s *PhotosService) stringToUint64(id string) uint64 {
 	val, _ := strconv.ParseUint(id, 10, 64)
 	return val
+}
+
+func parseDate(dateStr string) (string, error) {
+	layout := "2006-01-02 15:04:05.999999 -0700 MST"
+	t, err := time.Parse(layout, dateStr)
+	if err != nil {
+		return "", err
+	}
+
+	return t.UTC().Format(time.RFC3339), nil
 }

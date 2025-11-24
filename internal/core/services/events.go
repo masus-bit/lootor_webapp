@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"github.com/google/uuid"
+	"log"
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
@@ -13,7 +14,6 @@ import (
 	"lootor/internal/pkg/utils"
 	"strconv"
 	"sync"
-	"time"
 )
 
 type EventsService struct {
@@ -251,7 +251,10 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		photosMap = make(map[string]models.Photos)
 		if photos != nil && photos.GetData() != nil {
 			for key, photo := range photos.GetData() {
-				createdAtAsTime, _ := time.Parse(time.RFC3339, photo.GetCreatedAt())
+				createdAtAsTime, err := parseDate(photo.GetCreatedAt())
+				if err != nil {
+					log.Printf("Error parsing date: %v", err)
+				}
 				photosMap[key] = models.Photos{
 					Id:            photo.GetId(),
 					Author:        authorsShort[photo.GetAuthor()],

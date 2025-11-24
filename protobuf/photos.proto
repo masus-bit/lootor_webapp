@@ -18,6 +18,16 @@ service PhotosService {
   rpc DecrementCommentsCount(CommentsCountRequestPhoto) returns (CommentsCountResponsePhoto);
   rpc UpdatePhoto(UpdatePhotoRequest) returns (PhotoResponse);
   rpc GetPhotosByIdsMap(GetByIdsRequest) returns (GetPhotosByIdsMapResponse);
+  rpc GetCountsByCollectionsIdsMap(GetCountsByCollectionsIdsMapRequest) returns (GetCountsByCollectionsIdsMapResponse);
+}
+
+message GetCountsByCollectionsIdsMapRequest {
+  repeated string collectionsIds = 1;
+  string auth_user_login = 2;
+}
+
+message GetCountsByCollectionsIdsMapResponse {
+  map<string, int64> data = 1;
 }
 
 message UpdatePhotoRequest {
