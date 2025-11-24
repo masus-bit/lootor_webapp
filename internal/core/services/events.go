@@ -13,6 +13,7 @@ import (
 	"lootor/internal/pkg/utils"
 	"strconv"
 	"sync"
+	"time"
 )
 
 type EventsService struct {
@@ -250,7 +251,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		photosMap = make(map[string]models.Photos)
 		if photos != nil && photos.GetData() != nil {
 			for key, photo := range photos.GetData() {
-
+				createdAtAsTime, _ := time.Parse(time.RFC3339, photo.GetCreatedAt())
 				photosMap[key] = models.Photos{
 					Id:            photo.GetId(),
 					Author:        authorsShort[photo.GetAuthor()],
@@ -258,7 +259,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 					Path:          photo.GetPath(),
 					LikesCount:    int64(len(photo.GetLikes())),
 					CommentsCount: photo.GetCommentsCount(),
-					CreatedAt:     photo.GetCreatedAt(),
+					CreatedAt:     createdAtAsTime,
 					Collection:    collectionsPhotoMap[photo.GetCollectionId()],
 				}
 			}

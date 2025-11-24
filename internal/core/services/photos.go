@@ -12,6 +12,7 @@ import (
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/utils"
 	"strconv"
+	"time"
 )
 
 type PhotosService struct {
@@ -245,6 +246,7 @@ func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem, 
 				SeriesID:  tag.GetSeriesId(),
 			})
 		}
+		createdAtAsTime, _ := time.Parse(time.RFC3339, photos[i].GetCreatedAt())
 		canLike := utils.CanLike(photos[i].GetLikes(), authUserLogin, photos[i].GetAuthor())
 		resultPhotos = append(resultPhotos, models.Photos{
 			Id:            photos[i].GetId(),
@@ -253,7 +255,7 @@ func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem, 
 			Path:          photos[i].GetPath(),
 			LikesCount:    int64(len(photos[i].GetLikes())),
 			CommentsCount: photos[i].GetCommentsCount(),
-			CreatedAt:     photos[i].GetCreatedAt(),
+			CreatedAt:     createdAtAsTime,
 			Collection:    collectionsMap[photos[i].GetCollectionId()],
 			Tags:          resultPhotoTags,
 			CanLike:       canLike,
@@ -299,6 +301,7 @@ func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem, auth
 		})
 	}
 	canLike := utils.CanLike(photo.GetLikes(), authUserLogin, photo.GetAuthor())
+	createdAtAsTime, _ := time.Parse(time.RFC3339, photo.GetCreatedAt())
 	resultPhoto = &models.Photos{
 		Id:            photo.GetId(),
 		Author:        usersMap[photo.GetAuthor()],
@@ -306,7 +309,7 @@ func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem, auth
 		Path:          photo.GetPath(),
 		LikesCount:    int64(len(photo.GetLikes())),
 		CommentsCount: photo.GetCommentsCount(),
-		CreatedAt:     photo.GetCreatedAt(),
+		CreatedAt:     createdAtAsTime,
 		Collection:    collectionsMap[photo.GetCollectionId()],
 		Tags:          resultPhotoTags,
 		CanLike:       canLike,
