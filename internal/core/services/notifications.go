@@ -89,10 +89,6 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			collectionsOfPhotosIDs = append(collectionsOfPhotosIDs, n.GetTarget().GetTransliteration())
 		}
 	}
-	collectionsOfPhotos, err := s.collectionRepo.GetCollectionsByTranslitsMapForShort(collectionsOfPhotosIDs, authUser)
-	if err != nil {
-		return nil, err
-	}
 	var resultNotifications []dto.Notifications
 	for _, n := range notifications.Data {
 		initUser, _ := s.userRepo.GetUserByLogin(n.SenderLogin)
@@ -181,13 +177,17 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 				AuthUserLogin: login,
 			})
 			if err == nil {
+				photoCollecion, err := s.collectionRepo.GetCollectionByIdWithoutLimits(photo.GetData().GetCollectionId())
+				if err != nil {
+					return nil, err
+				}
 				owner, _ := s.userRepo.GetUserByLogin(photo.Data.GetAuthor())
 				tempItem.Target = dto.TargetItem{
 					Id:               strconv.FormatUint(photo.Data.Id, 10),
 					Name:             photo.Data.Path,
-					Transliteration:  collectionsOfPhotos[photo.GetData().GetCollectionId()].Transliteration,
+					Transliteration:  photoCollecion.Transliteration,
 					TargetType:       "photo",
-					TargetParentName: collectionsOfPhotos[photo.GetData().GetCollectionId()].Name,
+					TargetParentName: photoCollecion.Name,
 				}
 				tempItem.Owner = dto.User{
 					Login:       owner.Login,
