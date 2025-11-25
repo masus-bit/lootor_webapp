@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"lootor/gen/go/microservices"
+	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/notificationsclient"
 	"lootor/internal/infrastructure/photosclient"
@@ -83,14 +84,109 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		return nil, err
 	}
 	targetUser, _ := s.userRepo.GetUserByLogin(login)
-	var collectionsOfPhotosIDs []string
-	for _, n := range notifications.Data {
-		if n.TargetType == "photo" {
-			collectionsOfPhotosIDs = append(collectionsOfPhotosIDs, n.GetTarget().GetTransliteration())
+	var photosIDs []string
+	var collectionsIDs []string
+	var collectionItemsIDs []string
+	var postsIDs []string
+	var userLogins []string
+
+	var photosMap map[string]models.Photos
+	var collectionsMap map[string]models.Collections
+	var collectionItemsMap map[string]models.CollectionItems
+	var postsMap map[string]models.Posts
+	var resultNotifications []dto.Notifications
+	for _, n := range notifications.GetData() {
+		switch n.GetTargetType() {
+		case "photo":
+			photosIDs = append(photosIDs, n.GetTargetId())
+		case "collection":
+			collectionsIDs = append(collectionsIDs, n.GetTargetId())
+		case "collectionItem":
+			collectionItemsIDs = append(collectionItemsIDs, n.GetTargetId())
+		case "post":
+			postsIDs = append(postsIDs, n.GetTargetId())
 		}
 	}
-	var resultNotifications []dto.Notifications
-	for _, n := range notifications.Data {
+
+	if len(photosIDs) > 0 {
+		photos, err := s.photosClient.GetPhotosByIdsMap(ctx, &microservices.GetByIdsRequest{
+			Ids: photosIDs,
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, photo := range photos.GetData() {
+			userLogins = append(userLogins, photo.GetAuthor())
+			stringID := strconv.Itoa(int(photo.GetId()))
+			photosMap[stringID] = models.Photos{
+				Id:           photo.GetId(),
+				CollectionId: photo.GetCollectionId(),
+				Path:         photo.GetPath(),
+				Author: models.SubUsers{
+					Login: photo.GetAuthor(),
+				},
+			}
+		}
+	}
+
+	if len(collectionsIDs) > 0 {
+		collections, err := s.collectionRepo.GetCollectionsByIdsMapForShort(collectionsIDs)
+		if err != nil {
+			return nil, err
+		}
+		for _, collection := range collections {
+			userLogins = append(userLogins, collection.UserLogin)
+			collectionsMap[collection.Id.String()] = models.Collections{
+				Id:              collection.Id,
+				Name:            collection.Name,
+				Transliteration: collection.Transliteration,
+				UserLogin:       collection.UserLogin,
+			}
+		}
+	}
+
+	if len(collectionItemsIDs) > 0 {
+		collectionItems, err := s.ciRepo.GetCollectionItemsByIdsMap(collectionItemsIDs, authUser)
+		if err != nil {
+			return nil, err
+		}
+		for _, collectionItem := range collectionItems {
+			userLogins = append(userLogins, collectionItem.Owner.Login)
+			collectionItemsMap[collectionItem.Id.String()] = models.CollectionItems{
+				Id:              collectionItem.Id,
+				Name:            collectionItem.Name,
+				Transliteration: collectionItem.CollectionTransliteration,
+				UserLogin:       collectionItem.Owner.Login,
+				Description:     collectionItem.CollectionName,
+			}
+		}
+	}
+
+	if len(postsIDs) > 0 {
+		posts, err := s.postsClient.GetPostsByIds(ctx, postsIDs, authUser, false)
+		if err != nil {
+			return nil, err
+		}
+		for _, post := range posts.GetData() {
+			userLogins = append(userLogins, post.GetAuthor())
+			stringID := strconv.Itoa(int(post.GetId()))
+			postsMap[stringID] = models.Posts{
+				Id:       post.GetId(),
+				Title:    post.GetTitle(),
+				Translit: post.GetTranslit(),
+				Author: models.SubUsers{
+					Login: post.GetAuthor(),
+				},
+			}
+		}
+	}
+
+	users, err := s.userRepo.GetUsersByLogins(userLogins)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, n := range notifications.GetData() {
 		initUser, _ := s.userRepo.GetUserByLogin(n.SenderLogin)
 		tempItem := dto.Notifications{
 			Id:          n.Id,
@@ -119,83 +215,68 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		switch n.TargetType {
 		case "post":
 			tId, _ := strconv.ParseUint(n.TargetId, 10, 64)
-			post, err := s.postsClient.GetPostById(ctx, tId, false)
-			if err == nil {
-				owner, _ := s.userRepo.GetUserByLogin(post.Data.GetAuthor())
-				tempItem.Target = dto.TargetItem{
-					Id:              strconv.FormatUint(post.Data.Id, 10),
-					Name:            post.Data.Title,
-					Transliteration: post.Data.Translit,
-					TargetType:      "post",
-				}
-				tempItem.Owner = dto.User{
-					Login:       owner.Login,
-					IsPremium:   owner.IsPremium,
-					AvatarUrl:   owner.AvatarUrl,
-					ProfileName: owner.ProfileName,
-				}
+			post := postsMap[strconv.FormatUint(tId, 10)]
+			owner := users[post.Author.Login]
+			tempItem.Target = dto.TargetItem{
+				Id:              strconv.FormatUint(post.Id, 10),
+				Name:            post.Title,
+				Transliteration: post.Translit,
+				TargetType:      "post",
 			}
+			tempItem.Owner = dto.User{
+				Login:       owner.Login,
+				IsPremium:   owner.IsPremium,
+				AvatarUrl:   owner.AvatarUrl,
+				ProfileName: owner.ProfileName,
+			}
+
 		case "collection":
-			collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(n.TargetId)
-			if err == nil {
-				owner, _ := s.userRepo.GetUserByLogin(collection.UserLogin)
-				tempItem.Target = dto.TargetItem{
-					Id:              collection.Id.String(),
-					Name:            collection.Name,
-					Transliteration: collection.Transliteration,
-					TargetType:      "collection",
-				}
-				tempItem.Owner = dto.User{
-					Login:       owner.Login,
-					IsPremium:   owner.IsPremium,
-					AvatarUrl:   owner.AvatarUrl,
-					ProfileName: owner.ProfileName,
-				}
+			owner := users[collectionsMap[n.TargetId].UserLogin]
+			tempItem.Target = dto.TargetItem{
+				Id:              collectionsMap[n.TargetId].Id.String(),
+				Name:            collectionsMap[n.TargetId].Name,
+				Transliteration: collectionsMap[n.TargetId].Transliteration,
+				TargetType:      "collection",
+			}
+			tempItem.Owner = dto.User{
+				Login:       owner.Login,
+				IsPremium:   owner.IsPremium,
+				AvatarUrl:   owner.AvatarUrl,
+				ProfileName: owner.ProfileName,
 			}
 		case "collectionItem":
-			ci, err := s.ciRepo.GetCIByID(n.TargetId)
-			if err == nil {
-				owner, _ := s.userRepo.GetUserByLogin(ci.UserLogin)
-				tempItem.Target = dto.TargetItem{
-					Id:               ci.Id.String(),
-					Name:             ci.Name,
-					Transliteration:  ci.Collections[0].Transliteration,
-					TargetType:       "collectionItem",
-					TargetParentName: ci.Collections[0].Name,
-				}
-				tempItem.Owner = dto.User{
-					Login:       owner.Login,
-					IsPremium:   owner.IsPremium,
-					AvatarUrl:   owner.AvatarUrl,
-					ProfileName: owner.ProfileName,
-				}
+			owner := users[collectionItemsMap[n.TargetId].UserLogin]
+			tempItem.Target = dto.TargetItem{
+				Id:               collectionItemsMap[n.TargetId].Id.String(),
+				Name:             collectionItemsMap[n.TargetId].Name,
+				Transliteration:  collectionItemsMap[n.TargetId].Transliteration,
+				TargetType:       "collectionItem",
+				TargetParentName: collectionItemsMap[n.TargetId].Description,
 			}
+			tempItem.Owner = dto.User{
+				Login:       owner.Login,
+				IsPremium:   owner.IsPremium,
+				AvatarUrl:   owner.AvatarUrl,
+				ProfileName: owner.ProfileName,
+			}
+
 		case "photo":
-			tId, _ := strconv.ParseUint(n.TargetId, 10, 64)
-			photo, err := s.photosClient.FindOneById(ctx, &microservices.FindOneByIdRequest{
-				Id:            tId,
-				AuthUserLogin: login,
-			})
-			if err == nil {
-				photoCollecion, err := s.collectionRepo.GetCollectionByIdWithoutLimits(photo.GetData().GetCollectionId())
-				if err != nil {
-					return nil, err
-				}
-				owner, _ := s.userRepo.GetUserByLogin(photo.Data.GetAuthor())
-				tempItem.Target = dto.TargetItem{
-					Id:               strconv.FormatUint(photo.Data.Id, 10),
-					Name:             photo.Data.Path,
-					Transliteration:  photoCollecion.Transliteration,
-					TargetType:       "photo",
-					TargetParentName: photoCollecion.Name,
-				}
-				tempItem.Owner = dto.User{
-					Login:       owner.Login,
-					IsPremium:   owner.IsPremium,
-					AvatarUrl:   owner.AvatarUrl,
-					ProfileName: owner.ProfileName,
-				}
+			owner := users[photosMap[n.TargetId].Author.Login]
+			dbCollection, _ := s.collectionRepo.GetCollectionByIdWithoutLimits(photosMap[n.TargetId].CollectionId)
+			tempItem.Target = dto.TargetItem{
+				Id:               strconv.FormatUint(photosMap[n.TargetId].Id, 10),
+				Name:             photosMap[n.TargetId].Path,
+				Transliteration:  dbCollection.Transliteration,
+				TargetType:       "photo",
+				TargetParentName: dbCollection.Name,
 			}
+			tempItem.Owner = dto.User{
+				Login:       owner.Login,
+				IsPremium:   owner.IsPremium,
+				AvatarUrl:   owner.AvatarUrl,
+				ProfileName: owner.ProfileName,
+			}
+
 		}
 
 		resultNotifications = append(resultNotifications, tempItem)
