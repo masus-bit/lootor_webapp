@@ -62,10 +62,11 @@ type User struct {
 }
 
 type TargetItem struct {
-	Id              string `json:"id"`
-	Name            string `json:"name"`
-	Transliteration string `json:"transliteration"`
-	TargetType      string `json:"targetType"`
+	Id               string `json:"id"`
+	Name             string `json:"name"`
+	Transliteration  string `json:"transliteration"`
+	TargetType       string `json:"targetType"`
+	TargetParentName string `json:"targetParentName"`
 }
 type NotificationsResponse struct {
 	CreatedAt time.Time      `json:"createdAt"`

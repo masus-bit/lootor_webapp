@@ -78,6 +78,7 @@ message TargetItem {
   optional string name = 2;
   optional string transliteration = 3;
   optional string target_type = 4;
+  optional string targetParentName = 5;
 }
 
 message NotificationsItem {

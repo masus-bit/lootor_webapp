@@ -83,6 +83,16 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		return nil, err
 	}
 	targetUser, _ := s.userRepo.GetUserByLogin(login)
+	var collectionsOfPhotosIDs []string
+	for _, n := range notifications.Data {
+		if n.TargetType == "photo" {
+			collectionsOfPhotosIDs = append(collectionsOfPhotosIDs, n.TargetId)
+		}
+	}
+	collectionsOfPhotos, err := s.collectionRepo.GetCollectionsByIdsMapForShort(collectionsOfPhotosIDs)
+	if err != nil {
+		return nil, err
+	}
 	var resultNotifications []dto.Notifications
 	for _, n := range notifications.Data {
 		initUser, _ := s.userRepo.GetUserByLogin(n.SenderLogin)
@@ -151,10 +161,11 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			if err == nil {
 				owner, _ := s.userRepo.GetUserByLogin(ci.UserLogin)
 				tempItem.Target = dto.TargetItem{
-					Id:              ci.Id.String(),
-					Name:            ci.Name,
-					Transliteration: ci.Collections[0].Transliteration,
-					TargetType:      "collectionItem",
+					Id:               ci.Id.String(),
+					Name:             ci.Name,
+					Transliteration:  ci.Collections[0].Transliteration,
+					TargetType:       "collectionItem",
+					TargetParentName: ci.Collections[0].Name,
 				}
 				tempItem.Owner = dto.User{
 					Login:       owner.Login,
@@ -165,17 +176,18 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			}
 		case "photo":
 			tId, _ := strconv.ParseUint(n.TargetId, 10, 64)
-			post, err := s.photosClient.FindOneById(ctx, &microservices.FindOneByIdRequest{
+			photo, err := s.photosClient.FindOneById(ctx, &microservices.FindOneByIdRequest{
 				Id:            tId,
 				AuthUserLogin: login,
 			})
 			if err == nil {
-				owner, _ := s.userRepo.GetUserByLogin(post.Data.GetAuthor())
+				owner, _ := s.userRepo.GetUserByLogin(photo.Data.GetAuthor())
 				tempItem.Target = dto.TargetItem{
-					Id:              strconv.FormatUint(post.Data.Id, 10),
-					Name:            post.Data.Path,
-					Transliteration: post.Data.Path,
-					TargetType:      "photo",
+					Id:               strconv.FormatUint(photo.Data.Id, 10),
+					Name:             photo.Data.Path,
+					Transliteration:  collectionsOfPhotos[photo.GetData().GetCollectionId()].Transliteration,
+					TargetType:       "photo",
+					TargetParentName: collectionsOfPhotos[photo.GetData().GetCollectionId()].Name,
 				}
 				tempItem.Owner = dto.User{
 					Login:       owner.Login,

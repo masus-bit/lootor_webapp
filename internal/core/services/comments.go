@@ -123,10 +123,11 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 		ownerLogin = ci.UserLogin
 
 		targetReq = &dto.TargetItem{
-			Id:              ci.Id.String(),
-			Name:            ci.Name,
-			Transliteration: ci.Collections[0].Transliteration,
-			TargetType:      "collectionItem",
+			Id:               ci.Id.String(),
+			Name:             ci.Name,
+			Transliteration:  ci.Collections[0].Transliteration,
+			TargetType:       "collectionItem",
+			TargetParentName: ci.Collections[0].Name,
 		}
 	}
 
@@ -165,13 +166,18 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 		if err != nil {
 			return nil, err
 		}
+		collectionDb, err := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetId)
+		if err != nil {
+			return nil, err
+		}
 		ownerLogin = photo.Data.Author.Login
 
 		targetReq = &dto.TargetItem{
-			Id:              request.TargetId,
-			Name:            photo.Data.Path,
-			Transliteration: photo.Data.Path,
-			TargetType:      "photo",
+			Id:               request.TargetId,
+			Name:             photo.Data.Path,
+			Transliteration:  collectionDb.Transliteration,
+			TargetType:       "photo",
+			TargetParentName: collectionDb.Name,
 		}
 	}
 

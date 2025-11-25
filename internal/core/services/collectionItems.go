@@ -422,10 +422,11 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 			return nil, err
 		}
 		target := &dto.TargetItem{
-			Id:              id,
-			Name:            exists.Name,
-			Transliteration: exists.Transliteration,
-			TargetType:      "collectionItem",
+			Id:               id,
+			Name:             exists.Name,
+			Transliteration:  exists.Transliteration,
+			TargetType:       "collectionItem",
+			TargetParentName: exists.Collections[0].Name,
 		}
 		go func() {
 			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
