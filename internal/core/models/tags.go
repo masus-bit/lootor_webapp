@@ -23,6 +23,7 @@ type Tags struct {
 	TotalPosts           int64 `json:"totalPosts"`
 	TotalCollections     int64 `json:"totalCollections"`
 	TotalCollectionItems int64 `json:"totalCollectionItems"`
+	TotalPhotos          int64 `json:"totalPhotos"`
 
 	TagLinks []TagLinks `gorm:"foreignKey:TagID" json:"tagLinks"`
 	Synonyms []Tags     `gorm:"foreignKey:PrimaryID" json:"synonyms"`

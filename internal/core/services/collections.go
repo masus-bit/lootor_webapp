@@ -339,6 +339,7 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 	counts, _ := s.collectionItemRepo.GetCountCIByIDs(collectionIds)
 	totalPrices, _ := s.collectionItemRepo.GetSumsByCollectionIDs(collectionIds)
 	shippingCosts, _ := s.collectionItemRepo.GetShippingCostsByCollectionIDs(collectionIds)
+	photosCounts, _ := s.photosClient.GetCountsByCollectionsIdsMap(context.Background(), &microservices.GetCountsByCollectionsIdsMapRequest{CollectionsIds: collectionStringIds})
 
 	for _, dbCollection := range collections {
 		var temp models.CollectionsResponse
@@ -354,6 +355,7 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 
 		temp.ShareString = utils.DefineShareString(authorizedUser, login, &dbCollection)
 		temp.CollectionItemsCount = counts[dbCollection.Id]
+		temp.PhotosCount = photosCounts.GetData()[dbCollection.Id.String()]
 		temp.TotalPrice = totalPrices[dbCollection.Id]
 		temp.ShippingTotal = shippingCosts[dbCollection.Id]
 		temp.LikesCount = int64(len(dbCollection.Likes))

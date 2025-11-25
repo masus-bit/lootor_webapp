@@ -156,6 +156,7 @@ func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, aut
 	resultTag.TotalPosts = tag.GetTotalPosts()
 	resultTag.TotalCollections = tag.GetTotalCollections()
 	resultTag.TotalCollectionItems = tag.GetTotalCollectionItems()
+	resultTag.TotalPhotos = tag.GetTotalPhotos()
 	if author != nil {
 		resultTag.Author = models.SubUsers{
 			Login:       author.Login,
