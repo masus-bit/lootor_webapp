@@ -86,98 +86,99 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 	var ownerLogin string
 	var targetReq *dto.TargetItem
 
-	collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetId)
+	switch request.EntityType {
+	case "collection":
+		collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetId)
+		if err == nil {
+			if *request.TargetUserLogin != "" {
+				targetUserLogin = *request.TargetUserLogin
+			} else {
+				targetUserLogin = collection.UserLogin
+			}
+			err = s.collectionRepo.IncrementCommentsCount(request.TargetId, 1)
+			if err != nil {
+				return nil, err
+			}
+			ownerLogin = collection.UserLogin
 
-	if err == nil {
-		if *request.TargetUserLogin != "" {
-			targetUserLogin = *request.TargetUserLogin
-		} else {
-			targetUserLogin = collection.UserLogin
+			targetReq = &dto.TargetItem{
+				Id:              collection.Id.String(),
+				Name:            collection.Name,
+				Transliteration: collection.Transliteration,
+				TargetType:      "collection",
+			}
 		}
-		err = s.collectionRepo.IncrementCommentsCount(request.TargetId, 1)
-		if err != nil {
-			return nil, err
-		}
-		ownerLogin = collection.UserLogin
+	case "collectionItem":
+		ci, err := s.ciRepo.GetCIByID(request.TargetId)
+		if err == nil {
+			if *request.TargetUserLogin != "" {
+				targetUserLogin = *request.TargetUserLogin
+			} else {
+				targetUserLogin = ci.UserLogin
+			}
+			err = s.ciRepo.IncrementCommentsCount(request.TargetId, 1)
+			if err != nil {
+				return nil, err
+			}
+			ownerLogin = ci.UserLogin
 
-		targetReq = &dto.TargetItem{
-			Id:              collection.Id.String(),
-			Name:            collection.Name,
-			Transliteration: collection.Transliteration,
-			TargetType:      "collection",
+			targetReq = &dto.TargetItem{
+				Id:               ci.Id.String(),
+				Name:             ci.Name,
+				Transliteration:  ci.Collections[0].Transliteration,
+				TargetType:       "collectionItem",
+				TargetParentName: ci.Collections[0].Name,
+			}
 		}
-	}
+	case "post":
+		targetId, _ := strconv.ParseUint(request.TargetId, 10, 64)
 
-	ci, err := s.ciRepo.GetCIByID(request.TargetId)
+		post, err := s.postsService.GetPostById(ctx, targetId, request.Author)
 
-	if err == nil {
-		if *request.TargetUserLogin != "" {
-			targetUserLogin = *request.TargetUserLogin
-		} else {
-			targetUserLogin = ci.UserLogin
-		}
-		err = s.ciRepo.IncrementCommentsCount(request.TargetId, 1)
-		if err != nil {
-			return nil, err
-		}
-		ownerLogin = ci.UserLogin
+		if err == nil {
+			if *request.TargetUserLogin != "" {
+				targetUserLogin = *request.TargetUserLogin
+			} else {
+				targetUserLogin = post.Data.Author.Login
+			}
+			_, err = s.postsService.IncrementCommentsCount(ctx, targetId)
+			if err != nil {
+				return nil, err
+			}
+			ownerLogin = post.Data.Author.Login
 
-		targetReq = &dto.TargetItem{
-			Id:               ci.Id.String(),
-			Name:             ci.Name,
-			Transliteration:  ci.Collections[0].Transliteration,
-			TargetType:       "collectionItem",
-			TargetParentName: ci.Collections[0].Name,
+			targetReq = &dto.TargetItem{
+				Id:              post.Data.Translit,
+				Name:            post.Data.Title,
+				Transliteration: post.Data.Translit,
+				TargetType:      "post",
+			}
 		}
-	}
+	case "photo":
+		photo, err := s.photosService.FindOneById(ctx, request.TargetId, request.Author)
+		if err == nil {
+			if *request.TargetUserLogin != "" {
+				targetUserLogin = *request.TargetUserLogin
+			} else {
+				targetUserLogin = photo.Data.Author.Login
+			}
+			_, err = s.photosService.IncrementCommentsCount(ctx, request.TargetId)
+			if err != nil {
+				return nil, err
+			}
+			collectionDb, err := s.collectionRepo.GetByIdWithoutCollectionItems(photo.Data.CollectionId)
+			if err != nil {
+				return nil, err
+			}
+			ownerLogin = photo.Data.Author.Login
 
-	targetId, _ := strconv.ParseUint(request.TargetId, 10, 64)
-
-	post, err := s.postsService.GetPostById(ctx, targetId, request.Author)
-
-	if err == nil {
-		if *request.TargetUserLogin != "" {
-			targetUserLogin = *request.TargetUserLogin
-		} else {
-			targetUserLogin = post.Data.Author.Login
-		}
-		_, err = s.postsService.IncrementCommentsCount(ctx, targetId)
-		if err != nil {
-			return nil, err
-		}
-		ownerLogin = post.Data.Author.Login
-
-		targetReq = &dto.TargetItem{
-			Id:              post.Data.Translit,
-			Name:            post.Data.Title,
-			Transliteration: post.Data.Translit,
-			TargetType:      "post",
-		}
-	}
-
-	photo, err := s.photosService.FindOneById(ctx, request.TargetId, request.Author)
-	if err == nil {
-		if *request.TargetUserLogin != "" {
-			targetUserLogin = *request.TargetUserLogin
-		} else {
-			targetUserLogin = photo.Data.Author.Login
-		}
-		_, err = s.photosService.IncrementCommentsCount(ctx, request.TargetId)
-		if err != nil {
-			return nil, err
-		}
-		collectionDb, err := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetId)
-		if err != nil {
-			return nil, err
-		}
-		ownerLogin = photo.Data.Author.Login
-
-		targetReq = &dto.TargetItem{
-			Id:               request.TargetId,
-			Name:             photo.Data.Path,
-			Transliteration:  collectionDb.Transliteration,
-			TargetType:       "photo",
-			TargetParentName: collectionDb.Name,
+			targetReq = &dto.TargetItem{
+				Id:               request.TargetId,
+				Name:             photo.Data.Path,
+				Transliteration:  collectionDb.Transliteration,
+				TargetType:       "photo",
+				TargetParentName: collectionDb.Name,
+			}
 		}
 	}
 
