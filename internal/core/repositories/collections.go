@@ -815,6 +815,21 @@ func (r *CollectionsRepository) GetCollectionsByIdsMapForShort(ids []string) (ma
 	return collectionsMap, nil
 }
 
+func (r *CollectionsRepository) GetCollectionsByTranslitsMapForShort(ids []string, userLogin string) (map[string]models.CollectionShort, error) {
+	var collections []models.Collections
+	err := r.db.Where("id IN (?) AND user_login = ?", ids, userLogin).Preload("User").Find(&collections).Error
+	if err != nil {
+		return nil, err
+	}
+	collectionsMap := make(map[string]models.CollectionShort, len(collections))
+	for _, collection := range collections {
+		var temp models.CollectionShort
+		err = mapstructure.Decode(collection, &temp)
+		collectionsMap[collection.Id.String()] = temp
+	}
+	return collectionsMap, nil
+}
+
 func (r *CollectionsRepository) GetCollectionsByIds(ids []string, counts map[uuid.UUID]int64, totalPrices map[uuid.UUID]float64, shippingCosts map[uuid.UUID]float64, authorizedUser string, tagsMap map[string]*microservices.GetShortsResponse) ([]models.CollectionsResponse, error) {
 	var collections []models.Collections
 	err := r.db.Where("id IN (?)", ids).Preload("User").Find(&collections).Error

@@ -34,7 +34,7 @@ func (c *NotificationsController) GetAllByLogin(ctx echo.Context) error {
 	}
 
 	context := ctx.Request().Context()
-	response, err := c.notificationsService.GetAllNotifications(context, authUser, limit, offset)
+	response, err := c.notificationsService.GetAllNotifications(context, authUser, limit, offset, authUser)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

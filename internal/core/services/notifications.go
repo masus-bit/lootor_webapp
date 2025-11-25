@@ -77,7 +77,7 @@ func (s *NotificationsService) SendNotification(ctx context.Context, request *dt
 	return nil
 }
 
-func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, limit, offset string) (*dto.NotificationsDataResponse, error) {
+func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, limit, offset, authUser string) (*dto.NotificationsDataResponse, error) {
 	notifications, err := s.notificationsClient.GetAllNotifications(ctx, login, limit, offset)
 	if err != nil {
 		return nil, err
@@ -86,10 +86,10 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 	var collectionsOfPhotosIDs []string
 	for _, n := range notifications.Data {
 		if n.TargetType == "photo" {
-			collectionsOfPhotosIDs = append(collectionsOfPhotosIDs, n.TargetId)
+			collectionsOfPhotosIDs = append(collectionsOfPhotosIDs, n.GetTarget().GetTransliteration())
 		}
 	}
-	collectionsOfPhotos, err := s.collectionRepo.GetCollectionsByIdsMapForShort(collectionsOfPhotosIDs)
+	collectionsOfPhotos, err := s.collectionRepo.GetCollectionsByTranslitsMapForShort(collectionsOfPhotosIDs, authUser)
 	if err != nil {
 		return nil, err
 	}
