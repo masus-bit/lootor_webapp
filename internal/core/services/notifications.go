@@ -95,6 +95,10 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 	var collectionItemsMap map[string]models.CollectionItems
 	var postsMap map[string]models.Posts
 	var resultNotifications []dto.Notifications
+	photosMap = make(map[string]models.Photos)
+	collectionsMap = make(map[string]models.Collections)
+	collectionItemsMap = make(map[string]models.CollectionItems)
+	postsMap = make(map[string]models.Posts)
 	for _, n := range notifications.GetData() {
 		switch n.GetTargetType() {
 		case "photo":
@@ -107,7 +111,6 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			postsIDs = append(postsIDs, n.GetTargetId())
 		}
 	}
-
 	if len(photosIDs) > 0 {
 		photos, err := s.photosClient.GetPhotosByIdsMap(ctx, &microservices.GetByIdsRequest{
 			Ids: photosIDs,
