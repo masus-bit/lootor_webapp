@@ -99,6 +99,7 @@ message DeletePhotoRequest {
 
 message DeletePhotoResponse {
   bool success = 1;
+  string path = 2;
 }
 
 message PhotosResponse {

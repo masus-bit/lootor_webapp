@@ -185,9 +185,9 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	notificationsService := services.NewNotificationsService(notificationsClient, userRepo, colRepo, ciRepo, postsClient, photosClient)
 	eventsService := services.NewEventsService(userRepo, eventsClient, colRepo, ciRepo, postsClient, wlRepo, tagsClient, photosClient)
 	postsService := services.NewPostsService(postsClient, userRepo, eventsService, notificationsService, tagsClient)
-	photosService := services.NewPhotosService(photosClient, userRepo, tagsClient, colRepo, eventsService)
-
 	s3Service := s3.NewS3Service(redisClient)
+	photosService := services.NewPhotosService(photosClient, userRepo, tagsClient, colRepo, eventsService, s3Service)
+
 	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootor.me>`)
 	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsService, notificationsService, colRepo, postsService, tagsClient)
 	ciService := services.NewCiService(ciRepo, eventsService, colRepo, userRepo, platformRepo, s3Service, itemTypesRepo, notificationsService, tagsClient)

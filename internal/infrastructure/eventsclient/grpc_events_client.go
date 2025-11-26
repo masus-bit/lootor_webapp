@@ -38,6 +38,7 @@ func (c *GRPCEventsClient) AddEvent(ctx context.Context, req *models.AddEventReq
 			TargetWishListItemId: req.Params.TargetWLID,
 			TargetPostId:         req.Params.TargetPostID,
 			TargetTagId:          req.Params.TargetTagID,
+			TargetPhotoId:        req.Params.TargetPhotoID,
 		},
 		TagRelatedEntityType: req.Params.TagRelatedEntityType,
 	})

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"github.com/google/uuid"
 	"log"
 	"lootor/gen/go/microservices"
@@ -10,6 +11,7 @@ import (
 	"lootor/internal/infrastructure/photosclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/dto"
+	"lootor/internal/pkg/s3"
 	"lootor/internal/pkg/utils"
 	"strconv"
 	"time"
@@ -21,9 +23,10 @@ type PhotosService struct {
 	tagsClient     *tagsclient.GRPCTagsClient
 	collectionRepo *repositories.CollectionsRepository
 	eventsService  *EventsService
+	s3Service      *s3.S3Service
 }
 
-func NewPhotosService(photosClient *photosclient.GRPCPhotosClient, userRepo *repositories.UsersRepository, tagsClient *tagsclient.GRPCTagsClient, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService) *PhotosService {
+func NewPhotosService(photosClient *photosclient.GRPCPhotosClient, userRepo *repositories.UsersRepository, tagsClient *tagsclient.GRPCTagsClient, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService, s3Service *s3.S3Service) *PhotosService {
 
 	return &PhotosService{
 		photosClient:   photosClient,
@@ -31,6 +34,7 @@ func NewPhotosService(photosClient *photosclient.GRPCPhotosClient, userRepo *rep
 		tagsClient:     tagsClient,
 		collectionRepo: collectionRepo,
 		eventsService:  eventsService,
+		s3Service:      s3Service,
 	}
 }
 
@@ -98,6 +102,14 @@ func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.Common
 	})
 	if err != nil {
 		return nil, err
+	}
+	paths := []string{resp.GetPath()}
+	ok, err := s.s3Service.DeleteFiles(ctx, s3.DeleteFilesRequest{Keys: paths})
+	if err != nil {
+		return nil, err
+	}
+	if !ok.Success {
+		return nil, errors.New("failed to delete photo")
 	}
 	go func() {
 		_, _ = s.tagsClient.RemoveEntityTags(context.Background(), &microservices.RemoveEntityTagsRequest{
