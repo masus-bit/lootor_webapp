@@ -20,6 +20,7 @@ type Photos struct {
 	CommentsCount int64           `json:"commentsCount"`
 	CanLike       bool            `json:"canLike"`
 	IsOwner       bool            `json:"isOwner"`
+	Description   string          `json:"description"`
 }
 
 type PhotosDataResponse struct {

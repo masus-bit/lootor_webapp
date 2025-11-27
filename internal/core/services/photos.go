@@ -195,7 +195,6 @@ func (s *PhotosService) UpdatePhoto(ctx context.Context, req *models.PhotoUpdate
 		return nil, err
 	}
 
-	photo := s.convertProtoToModel(resp.GetData(), authUserLogin)
 	if len(req.Tags) > 0 {
 		stringedUint := strconv.Itoa(int(resp.GetData().GetId()))
 		_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
@@ -205,6 +204,11 @@ func (s *PhotosService) UpdatePhoto(ctx context.Context, req *models.PhotoUpdate
 			Author:     authUserLogin,
 			ShowSearch: !dbCollection.IsPrivate,
 		})
+	}
+
+	photo := s.convertProtoToModel(resp.GetData(), authUserLogin)
+
+	if len(req.Tags) > 0 {
 		if !dbCollection.IsPrivate {
 			for _, tag := range photo.Tags {
 				tagUUID, _ := uuid.Parse(tag.ID)
@@ -276,6 +280,7 @@ func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem, 
 			Tags:          resultPhotoTags,
 			CanLike:       canLike,
 			IsOwner:       authUserLogin == photos[i].GetAuthor(),
+			Description:   photos[i].GetDescription(),
 		})
 	}
 	return resultPhotos
@@ -333,6 +338,7 @@ func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem, auth
 		Tags:          resultPhotoTags,
 		CanLike:       canLike,
 		IsOwner:       authUserLogin == photo.GetAuthor(),
+		Description:   photo.GetDescription(),
 	}
 
 	return resultPhoto
