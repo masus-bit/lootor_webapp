@@ -73,7 +73,11 @@ func SendRequest[T any](options RequestOptions) (T, error) {
 		if err != nil {
 			return result, fmt.Errorf("failed to copy file: %w", err)
 		}
-		writer.Close()
+
+		if err := writer.Close(); err != nil {
+			return result, fmt.Errorf("failed to close multipart writer: %w", err)
+		}
+
 		req, err = http.NewRequest(options.Method, modifiedURL, &fileBody)
 		if err != nil {
 			return result, fmt.Errorf("failed to create request: %w", err)
