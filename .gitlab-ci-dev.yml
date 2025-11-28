@@ -38,11 +38,20 @@ sast_gosec:
   script:
     - go install github.com/securego/gosec/v2/cmd/gosec@latest
     - |
-      if $(go env GOPATH)/bin/gosec ./... 2>&1 | grep -q "Issues : 0"; then
+      # Сохраняем вывод
+      $(go env GOPATH)/bin/gosec ./... 2>&1 | tee gosec_output.txt
+      
+      echo "=========================================="
+      
+      # Проверяем наличие Issues: 0 (игнорируя ошибки grep)
+      if grep "Issues : 0" gosec_output.txt; then
         echo "✅ GOSEC CHECK PASSED - No security issues found!"
         exit 0
       else
-        echo "❌ GOSEC CHECK FAILED"
+        echo "❌ GOSEC CHECK FAILED - Security issues detected or check failed"
+        # Показываем последние строки для отладки
+        echo "Last lines of output:"
+        tail -10 gosec_output.txt
         exit 1
       fi
   allow_failure: false
