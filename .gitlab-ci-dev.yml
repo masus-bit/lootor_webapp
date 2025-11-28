@@ -27,7 +27,6 @@ variables:
       - /kaniko/.docker/config.json
     expire_in: 1 hour
 
-
 sast_gosec:
   stage: security
   tags:
@@ -38,20 +37,18 @@ sast_gosec:
   script:
     - go install github.com/securego/gosec/v2/cmd/gosec@latest
     - |
-      # Сохраняем вывод
-      $(go env GOPATH)/bin/gosec ./... 2>&1 | tee gosec_output.txt
+      # Запускаем gosec и проверяем результат
+      set +e  # Отключаем exit on error
+      OUTPUT=$($(go env GOPATH)/bin/gosec ./... 2>&1)
+      set -e
       
-      echo "=========================================="
+      echo "$OUTPUT" | tail -5  # Показываем только итоги
       
-      # Проверяем наличие Issues: 0 (игнорируя ошибки grep)
-      if grep "Issues : 0" gosec_output.txt; then
+      if echo "$OUTPUT" | grep -q "Issues: 0"; then
         echo "✅ GOSEC CHECK PASSED - No security issues found!"
         exit 0
       else
-        echo "❌ GOSEC CHECK FAILED - Security issues detected or check failed"
-        # Показываем последние строки для отладки
-        echo "Last lines of output:"
-        tail -10 gosec_output.txt
+        echo "❌ GOSEC CHECK FAILED"
         exit 1
       fi
   allow_failure: false
