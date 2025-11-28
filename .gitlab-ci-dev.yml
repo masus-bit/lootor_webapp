@@ -50,10 +50,10 @@ sast_gosec:
       
       echo "=========================================="
       # Проверяем разные варианты
-      if grep -q "Issues: 0" gosec_output.txt; then
+      if grep -q "Issues : 0" gosec_output.txt; then
         echo "✅ GOSEC CHECK PASSED - No security issues found!"
         exit 0
-      elif grep -q "Issues: 0" gosec_output.txt; then
+      elif grep -q "Issues : 0" gosec_output.txt; then
         echo "✅ GOSEC CHECK PASSED - No issues found!"
         exit 0
       elif grep -q "No issues found" gosec_output.txt; then
