@@ -28,6 +28,7 @@ const (
 	NotificationTypePost           = "post"
 	NotificationTypeComment        = "comment"
 	NotificationTypeAnswer         = "answer"
+	NotificationTypePhoto          = "photo"
 )
 
 const (

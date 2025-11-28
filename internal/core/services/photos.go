@@ -18,23 +18,25 @@ import (
 )
 
 type PhotosService struct {
-	photosClient   *photosclient.GRPCPhotosClient
-	userRepo       *repositories.UsersRepository
-	tagsClient     *tagsclient.GRPCTagsClient
-	collectionRepo *repositories.CollectionsRepository
-	eventsService  *EventsService
-	s3Service      *s3.S3Service
+	photosClient         *photosclient.GRPCPhotosClient
+	userRepo             *repositories.UsersRepository
+	tagsClient           *tagsclient.GRPCTagsClient
+	collectionRepo       *repositories.CollectionsRepository
+	eventsService        *EventsService
+	s3Service            *s3.S3Service
+	notificationsService *NotificationsService
 }
 
-func NewPhotosService(photosClient *photosclient.GRPCPhotosClient, userRepo *repositories.UsersRepository, tagsClient *tagsclient.GRPCTagsClient, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService, s3Service *s3.S3Service) *PhotosService {
+func NewPhotosService(photosClient *photosclient.GRPCPhotosClient, userRepo *repositories.UsersRepository, tagsClient *tagsclient.GRPCTagsClient, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService, s3Service *s3.S3Service, notificationsService *NotificationsService) *PhotosService {
 
 	return &PhotosService{
-		photosClient:   photosClient,
-		userRepo:       userRepo,
-		tagsClient:     tagsClient,
-		collectionRepo: collectionRepo,
-		eventsService:  eventsService,
-		s3Service:      s3Service,
+		photosClient:         photosClient,
+		userRepo:             userRepo,
+		tagsClient:           tagsClient,
+		collectionRepo:       collectionRepo,
+		eventsService:        eventsService,
+		s3Service:            s3Service,
+		notificationsService: notificationsService,
 	}
 }
 
@@ -155,6 +157,34 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 	})
 	if err != nil {
 		return nil, err
+	}
+	if resp.GetIsLike() {
+		dbCollection, err := s.collectionRepo.GetByIdWithoutCollectionItems(resp.GetCollectionId())
+		if err != nil {
+			return nil, err
+		}
+		target := &dto.TargetItem{
+			Id:               id,
+			Name:             resp.GetPath(),
+			Transliteration:  dbCollection.Transliteration,
+			TargetType:       "photo",
+			TargetParentName: dbCollection.Name,
+		}
+		go func() {
+			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
+				Login:       dbCollection.UserLogin,
+				TargetId:    id,
+				SenderLogin: authUserLogin,
+				Type:        utils.NotificationTypePhoto,
+				Action:      utils.NotificationActionLike,
+				Date:        time.Now().Format(time.RFC3339),
+				OwnerLogin:  dbCollection.UserLogin,
+			}, target)
+		}()
+	} else {
+		go func() {
+			_ = s.notificationsService.DeleteNotification(context.Background(), id, authUserLogin)
+		}()
 	}
 	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
 }
