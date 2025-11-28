@@ -35,23 +35,13 @@ variables:
 # LINT (качество кода)
 # ----------------------------------------------
 
-golangci_lint:
-  stage: lint
-  tags:
-    - auc
-  image: golangci/golangci-lint:v1.59
-  script:
-    - golangci-lint run ./...
-  allow_failure: true
-
 go_vet:
   stage: lint
   tags:
     - auc
-  image: golang:1.22
+  image: golang:1.24
   script:
     - go vet ./...
-  allow_failure: true
 
 # ----------------------------------------------
 # SECURITY (SAST)
@@ -61,10 +51,12 @@ sast_gosec:
   stage: security
   tags:
     - auc
-  image: securego/gosec:latest
+  image: golang:1.24
+  before_script:
+    - cd $CI_PROJECT_DIR
   script:
-    - gosec ./...
-  allow_failure: true
+    - go install github.com/securego/gosec/v2/cmd/gosec@latest
+    - $(go env GOPATH)/bin/gosec ./...
 
 # ----------------------------------------------
 # BUILD (как было)
@@ -101,7 +93,6 @@ container_scanning:
     - build
   script:
     - trivy image --exit-code 0 --severity HIGH,CRITICAL "${CI_REGISTRY_IMAGE}:latest"
-  allow_failure: true
 
 # ----------------------------------------------
 # DEPLOY (как было)
