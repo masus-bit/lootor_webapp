@@ -12,10 +12,6 @@ variables:
   DOCKER_DRIVER: overlay2
   GIT_STRATEGY: clone
 
-# ----------------------------------------------
-# PREPARE (как было)
-# ----------------------------------------------
-
 .pre:
   stage: prepare
   tags:
@@ -31,10 +27,6 @@ variables:
       - /kaniko/.docker/config.json
     expire_in: 1 hour
 
-# ----------------------------------------------
-# SECURITY (SAST)
-# ----------------------------------------------
-
 sast_gosec:
   stage: security
   tags:
@@ -46,9 +38,6 @@ sast_gosec:
     - go install github.com/securego/gosec/v2/cmd/gosec@latest
     - $(go env GOPATH)/bin/gosec ./...
   allow_failure: true
-# ----------------------------------------------
-# BUILD (как было)
-# ----------------------------------------------
 
 build:
   stage: build
@@ -68,22 +57,15 @@ build:
       --cache=true
       --cache-repo "${CI_REGISTRY_IMAGE}/cache"
 
-# ----------------------------------------------
-# CONTAINER SCANNING (Trivy)
-# ----------------------------------------------
-
 container_scanning:
   stage: container_scanning
   tags:
     - auc
   image: aquasec/trivy:latest
+  entrypoint: [""]
   script:
     - trivy image --severity HIGH,CRITICAL --exit-code 1 --no-progress "${CI_REGISTRY_IMAGE}:latest"
   allow_failure: true
-
-# ----------------------------------------------
-# DEPLOY (как было)
-# ----------------------------------------------
 
 deploy:
   tags:

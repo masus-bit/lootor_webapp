@@ -65,7 +65,10 @@ func IsAlive() bool {
 func Reconnect(cfg *config.DatabaseConfig) error {
 	if DB != nil {
 		if sqlDB, err := DB.DB(); err == nil {
-			sqlDB.Close()
+			err = sqlDB.Close()
+			if err != nil {
+				return err
+			}
 		}
 	}
 

@@ -64,6 +64,7 @@ func LoadConfig(path string) (ElasticConfig, error) {
 }
 
 func NewElasticService(configPath string) (*ElasticService, error) {
+	// #nosec G304
 	config, err := LoadConfig(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)

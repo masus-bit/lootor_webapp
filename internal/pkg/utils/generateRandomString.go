@@ -3,8 +3,7 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/hex"
-	random "math/rand"
-	"time"
+	"math/big"
 )
 
 func GenerateRandomString(length int) (string, error) {
@@ -15,13 +14,16 @@ func GenerateRandomString(length int) (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-func GenerateRandomStringNoHex(length int) string {
+func GenerateRandomStringNoHex(length int) (string, error) {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	seededRand := random.New(random.NewSource(time.Now().UnixNano()))
 
 	b := make([]byte, length)
 	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			return "", err
+		}
+		b[i] = charset[n.Int64()]
 	}
-	return string(b)
+	return string(b), nil
 }

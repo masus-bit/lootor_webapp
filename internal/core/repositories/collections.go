@@ -813,6 +813,9 @@ func (r *CollectionsRepository) GetCollectionsByIdsMapForShort(ids []string) (ma
 	for _, collection := range collections {
 		var temp models.CollectionShort
 		err = mapstructure.Decode(collection, &temp)
+		if err != nil {
+			return nil, err
+		}
 		collectionsMap[collection.ID.String()] = temp
 	}
 	return collectionsMap, nil
@@ -828,6 +831,9 @@ func (r *CollectionsRepository) GetCollectionsByTranslitsMapForShort(ids []strin
 	for _, collection := range collections {
 		var temp models.CollectionShort
 		err = mapstructure.Decode(collection, &temp)
+		if err != nil {
+			return nil, err
+		}
 		collectionsMap[collection.ID.String()] = temp
 	}
 	return collectionsMap, nil
@@ -843,6 +849,9 @@ func (r *CollectionsRepository) GetCollectionsByIds(ids []string, counts map[uui
 	for _, collection := range collections {
 		var temp models.CollectionsResponse
 		err = mapstructure.Decode(collection, &temp)
+		if err != nil {
+			return nil, err
+		}
 		temp.CollectionItemsCount = counts[collection.ID]
 		temp.TotalPrice = totalPrices[collection.ID]
 		temp.ShippingTotal = shippingCosts[collection.ID]

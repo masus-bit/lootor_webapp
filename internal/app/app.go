@@ -51,8 +51,15 @@ func setupMonitoring(s3Service *s3.StorageService) {
 	})
 
 	go func() {
+		srv := &http.Server{
+			Addr:         ":8081",
+			Handler:      nil,
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 10 * time.Second,
+			IdleTimeout:  120 * time.Second,
+		}
 		log.Println("Monitoring server started on :8081")
-		log.Fatal(http.ListenAndServe(":8081", nil))
+		log.Fatal(srv.ListenAndServe())
 	}()
 }
 

@@ -143,7 +143,15 @@ func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, aut
 	} else {
 		isPremium = false
 	}
-	intLimit, _ := strconv.Atoi(limit)
+	const maxInt32 = 1<<31 - 1
+
+	intLimit, err := strconv.Atoi(limit)
+	if err != nil {
+		return nil, err
+	}
+	if intLimit > maxInt32 {
+		return nil, fmt.Errorf("limit too large")
+	}
 	intOffset, _ := strconv.Atoi(offset)
 	tag, err := s.tagsClient.FindAllEntitiesByTag(context.Background(), &microservices.GetEntitiesByTagRequest{TagId: tagID, EntityType: entityType, Limit: int64(intLimit), Offset: int64(intOffset)})
 	if err != nil {
@@ -336,7 +344,15 @@ func (s *TagsService) Subscribe(id, userLogin string) (*dto.CommonResponse, erro
 }
 
 func (s *TagsService) SearchSmartTags(query string, limit string) (*models.SearchResponse, error) {
-	intLimit, _ := strconv.Atoi(limit)
+	const maxInt32 = 1<<31 - 1
+
+	intLimit, err := strconv.Atoi(limit)
+	if err != nil {
+		return nil, err
+	}
+	if intLimit > maxInt32 {
+		return nil, fmt.Errorf("limit too large")
+	}
 	resp, err := s.tagsClient.SearchGameTitles(context.Background(), &microservices.SearchGameTitlesRequest{
 		Query: query,
 		Limit: int32(intLimit),
@@ -408,7 +424,15 @@ func (s *TagsService) RecordUserChoice(req *models.UserChoiceRequest) (*dto.Comm
 }
 
 func (s *TagsService) GetSuggestions(query, limit string) (*models.SearchSuggestionResponse, error) {
-	intLimit, _ := strconv.Atoi(limit)
+	const maxInt32 = 1<<31 - 1
+
+	intLimit, err := strconv.Atoi(limit)
+	if err != nil {
+		return nil, err
+	}
+	if intLimit > maxInt32 {
+		return nil, fmt.Errorf("limit too large")
+	}
 	resp, err := s.tagsClient.GetSearchSuggestions(context.Background(), &microservices.GetSearchSuggestionsRequest{
 		Query: query,
 		Limit: int32(intLimit),
