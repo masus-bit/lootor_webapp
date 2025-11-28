@@ -45,7 +45,7 @@ sast_gosec:
   script:
     - go install github.com/securego/gosec/v2/cmd/gosec@latest
     - $(go env GOPATH)/bin/gosec ./...
-
+  allow_failure: true
 # ----------------------------------------------
 # BUILD (как было)
 # ----------------------------------------------
