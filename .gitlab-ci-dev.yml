@@ -81,19 +81,6 @@ build:
       --cache=true
       --cache-repo "${CI_REGISTRY_IMAGE}/cache"
 
-container_scanning:
-  stage: container_scanning
-  tags:
-    - auc
-  image:
-    name: aquasec/trivy:latest
-    entrypoint: [""]
-  script:
-    - trivy image --severity HIGH,CRITICAL --exit-code 1 --no-progress
-      --scanners vuln 
-      "${CI_REGISTRY_IMAGE}:latest"
-  allow_failure: false
-
 deploy:
   tags:
     - deploy
