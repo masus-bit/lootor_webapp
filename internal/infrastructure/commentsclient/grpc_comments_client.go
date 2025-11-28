@@ -34,7 +34,7 @@ func (c *GRPCCommentsClient) CreateComment(ctx context.Context, dto *dto.Comment
 		Content:    normalizedContent,
 		Date:       dto.Date,
 		Author:     dto.Author,
-		ParentId:   *dto.ParentId,
+		ParentID:   *dto.ParentID,
 		TargetID:   dto.TargetID,
 		EntityType: dto.EntityType,
 	})

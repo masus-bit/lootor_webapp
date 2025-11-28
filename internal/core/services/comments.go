@@ -54,7 +54,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 
 	userStruct := models.SubUsers{
 		Login:       user.Login,
-		AvatarUrl:   user.AvatarUrl,
+		AvatarURL:   user.AvatarURL,
 		ProfileName: user.ProfileName,
 		IsPremium:   user.IsPremium,
 	}
@@ -66,7 +66,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 				Date:          comment.Data.Date,
 				TargetID:      request.TargetID,
 				Author:        userStruct,
-				ParentId:      comment.Data.ParentId,
+				ParentID:      comment.Data.ParentID,
 				LikesCount:    int(comment.Data.LikesCount),
 				DislikesCount: int(comment.Data.DislikesCount),
 				Content:       content,
@@ -184,7 +184,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 
 	var typeComment string
 
-	if *request.ParentId != "" {
+	if *request.ParentID != "" {
 		typeComment = utils.NotificationTypeAnswer
 	} else {
 		typeComment = utils.NotificationTypeComment
@@ -253,7 +253,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 
 		userStruct := models.SubUsers{
 			Login:       user.Login,
-			AvatarUrl:   user.AvatarUrl,
+			AvatarURL:   user.AvatarURL,
 			ProfileName: user.ProfileName,
 			IsPremium:   user.IsPremium,
 		}
@@ -289,7 +289,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 
 			userStructCh := models.SubUsers{
 				Login:       userCh.Login,
-				AvatarUrl:   userCh.AvatarUrl,
+				AvatarURL:   userCh.AvatarURL,
 				ProfileName: userCh.ProfileName,
 				IsPremium:   userCh.IsPremium,
 			}
@@ -299,7 +299,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 					Date:       c.Date,
 					TargetID:   targetId,
 					Author:     userStructCh,
-					ParentId:   c.ParentId,
+					ParentID:   c.ParentID,
 					Content:    contentChildren,
 					CreatedAt:  createdAtAsTimeCh,
 					UpdatedAt:  updatedAtAsTimeCh,
@@ -319,7 +319,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 				Date:          f.Date,
 				TargetID:      targetId,
 				Author:        userStruct,
-				ParentId:      f.ParentId,
+				ParentID:      f.ParentID,
 				LikesCount:    int(f.LikesCount),
 				DislikesCount: int(f.DislikesCount),
 				Content:       content,
@@ -468,7 +468,7 @@ func (s *CommentsService) LoadAnswers(ctx context.Context, id, limit, offset str
 
 		userStruct := models.SubUsers{
 			Login:       user.Login,
-			AvatarUrl:   user.AvatarUrl,
+			AvatarURL:   user.AvatarURL,
 			ProfileName: user.ProfileName,
 			IsPremium:   user.IsPremium,
 		}
@@ -479,7 +479,7 @@ func (s *CommentsService) LoadAnswers(ctx context.Context, id, limit, offset str
 				Date:       f.Date,
 				TargetID:   f.TargetID,
 				Author:     userStruct,
-				ParentId:   f.ParentId,
+				ParentID:   f.ParentID,
 				Content:    utils.NormalizeContent(f.Content),
 				CreatedAt:  createdAt,
 				UpdatedAt:  updatedAt,

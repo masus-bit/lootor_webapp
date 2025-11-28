@@ -270,7 +270,7 @@ func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonR
 			}
 		}
 		go func() {
-			_ = s.notificationsService.DeleteAllNotificationsByTargetId(context.Background(), id)
+			_ = s.notificationsService.DeleteAllNotificationsByTargetID(context.Background(), id)
 		}()
 
 	}

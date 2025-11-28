@@ -145,7 +145,7 @@ func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, aut
 	}
 	intLimit, _ := strconv.Atoi(limit)
 	intOffset, _ := strconv.Atoi(offset)
-	tag, err := s.tagsClient.FindAllEntitiesByTag(context.Background(), &microservices.GetEntitiesByTagRequest{TagId: tagID, EntityType: entityType, Limit: int64(intLimit), Offset: int64(intOffset)})
+	tag, err := s.tagsClient.FindAllEntitiesByTag(context.Background(), &microservices.GetEntitiesByTagRequest{TagID: tagID, EntityType: entityType, Limit: int64(intLimit), Offset: int64(intOffset)})
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
 	}
@@ -160,7 +160,7 @@ func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, aut
 	if author != nil {
 		resultTag.Author = models.SubUsers{
 			Login:       author.Login,
-			AvatarUrl:   author.AvatarUrl,
+			AvatarURL:   author.AvatarURL,
 			ProfileName: author.ProfileName,
 			IsPremium:   author.IsPremium,
 		}
@@ -431,7 +431,7 @@ func (s *TagsService) GetSuggestions(query, limit string) (*models.SearchSuggest
 
 func (s *TagsService) DeleteTags(req *models.DeleteTags) (*dto.CommonResponse, error) {
 	_, err := s.tagsClient.DeleteTags(context.Background(), &microservices.GetTagsByIDsRequest{
-		Ids: req.IDs,
+		IDs: req.IDs,
 	})
 	if err != nil {
 		return nil, err
@@ -511,7 +511,7 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 		if author != nil {
 			authorTag = &models.SubUsers{
 				Login:       author.Login,
-				AvatarUrl:   author.AvatarUrl,
+				AvatarURL:   author.AvatarURL,
 				ProfileName: author.ProfileName,
 				IsPremium:   author.IsPremium,
 			}

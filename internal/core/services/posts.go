@@ -113,7 +113,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 			Date: post.Data.Date,
 			Author: models.SubUsers{
 				Login:       user.Login,
-				AvatarUrl:   user.AvatarUrl,
+				AvatarURL:   user.AvatarURL,
 				ProfileName: user.ProfileName,
 				IsPremium:   user.IsPremium,
 			},
@@ -197,7 +197,7 @@ func (s *PostsService) DeletePost(ctx context.Context, id uint64, authUser strin
 			}
 		}()
 		go func() {
-			_ = s.notificationsService.DeleteAllNotificationsByTargetId(context.Background(), strconv.FormatUint(id, 10))
+			_ = s.notificationsService.DeleteAllNotificationsByTargetID(context.Background(), strconv.FormatUint(id, 10))
 		}()
 		go func() {
 			err = s.userRepo.DecrementExperience(user.Login, int(utils.PostCreateExp+result.ReactCount))
@@ -672,7 +672,7 @@ func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, react
 		Date: p.GetDate(),
 		Author: models.SubUsers{
 			Login:       user.Login,
-			AvatarUrl:   user.AvatarUrl,
+			AvatarURL:   user.AvatarURL,
 			ProfileName: user.ProfileName,
 			IsPremium:   user.IsPremium,
 		},

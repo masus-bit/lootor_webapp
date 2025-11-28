@@ -44,19 +44,19 @@ func (c *GRPCNotificationsClient) AddNotification(ctx context.Context, dto *dto.
 		TargetUser: &microservices.User{
 			Login:       &dto.TargetUser.Login,
 			IsPremium:   &dto.TargetUser.IsPremium,
-			AvatarUrl:   &dto.TargetUser.AvatarUrl,
+			AvatarURL:   &dto.TargetUser.AvatarURL,
 			ProfileName: &dto.TargetUser.ProfileName,
 		},
 		SenderUser: &microservices.User{
 			Login:       &dto.SenderUser.Login,
 			IsPremium:   &dto.SenderUser.IsPremium,
-			AvatarUrl:   &dto.SenderUser.AvatarUrl,
+			AvatarURL:   &dto.SenderUser.AvatarURL,
 			ProfileName: &dto.SenderUser.ProfileName,
 		},
 		Owner: &microservices.User{
 			Login:       &dto.Owner.Login,
 			IsPremium:   &dto.Owner.IsPremium,
-			AvatarUrl:   &dto.Owner.AvatarUrl,
+			AvatarURL:   &dto.Owner.AvatarURL,
 			ProfileName: &dto.Owner.ProfileName,
 		},
 	})
@@ -72,14 +72,14 @@ func (c *GRPCNotificationsClient) GetAllNotifications(ctx context.Context, login
 
 func (c *GRPCNotificationsClient) ReadNotifications(ctx context.Context, ids []string) (*microservices.ReadResponse, error) {
 	return c.client.ReadNotifications(ctx, &microservices.ReadRequest{
-		Ids:    ids,
+		IDs:    ids,
 		IsRead: true,
 	})
 }
 
-func (c *GRPCNotificationsClient) DeleteNotification(ctx context.Context, targetId, senderLogin string) (*microservices.DeleteNotificationResponse, error) {
+func (c *GRPCNotificationsClient) DeleteNotification(ctx context.Context, targetID, senderLogin string) (*microservices.DeleteNotificationResponse, error) {
 	notification, err := c.client.RemoveNotification(ctx, &microservices.DeleteNotificationRequest{
-		TargetID:  targetId,
+		TargetID:  targetID,
 		UserLogin: senderLogin,
 	})
 	if err != nil {
@@ -88,9 +88,9 @@ func (c *GRPCNotificationsClient) DeleteNotification(ctx context.Context, target
 	return notification, nil
 }
 
-func (c *GRPCNotificationsClient) DeleteAllNotificationsByTargetId(ctx context.Context, targetId string) (*microservices.DeleteNotificationResponse, error) {
+func (c *GRPCNotificationsClient) DeleteAllNotificationsByTargetID(ctx context.Context, targetID string) (*microservices.DeleteNotificationResponse, error) {
 	return c.client.RemoveAllNotificationsByTargetId(ctx, &microservices.DeleteNotificationRequest{
-		TargetID: targetId,
+		TargetID: targetID,
 	})
 }
 

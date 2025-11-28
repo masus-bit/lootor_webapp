@@ -47,7 +47,7 @@ type App struct {
 func setupMonitoring(s3Service *s3.StorageService) {
 	http.HandleFunc("/debug/stats", func(w http.ResponseWriter, r *http.Request) {
 		stats := s3Service.GetStats()
-		json.NewEncoder(w).Encode(stats)
+		_ = json.NewEncoder(w).Encode(stats)
 	})
 
 	go func() {
@@ -233,7 +233,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.PhotosRouter(e, jwtService, *photosService)
 	routes.HealthCheckRouter(e)
 
-	controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagsService).ReindexInternal(context.Background())
+	_ = controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagsService).ReindexInternal(context.Background())
 	setupMonitoring(s3Service)
 
 	if err = migrator.RunMigrations(db); err != nil {

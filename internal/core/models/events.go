@@ -86,10 +86,10 @@ type GetFilteredEventsRequest struct {
 	UserLogin         string   `json:"userLogin"`
 	CollectionID      string   `json:"collectionId"`
 	CollectionItemID  string   `json:"collectionItemId"`
-	WishListItemId    string   `json:"wishListItemId"`
+	WishListItemID    string   `json:"wishListItemId"`
 	Limit             string   `json:"limit"`
 	Offset            string   `json:"offset"`
-	CollectionItemIds []string `json:"collectionItemIds"`
-	TagId             string   `json:"tagId"`
-	PhotoId           string   `json:"photoId"`
+	CollectionItemIDs []string `json:"collectionItemIds"`
+	TagID             string   `json:"tagId"`
+	PhotoID           string   `json:"photoId"`
 }

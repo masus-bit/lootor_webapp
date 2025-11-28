@@ -17,13 +17,13 @@ type Comments struct {
 	Date          string          `json:"date"`
 	TargetID      string          `json:"targetId"`
 	Author        models.SubUsers `json:"author"`
-	ParentId      string          `json:"parentId"`
+	ParentID      string          `json:"parentId"`
 	LikesCount    int             `json:"likesCount"`
 	DislikesCount int             `json:"dislikesCount"`
 	EntityType    string          `json:"entityType"`
 
-	Likes    []models.SubUsers `gorm:"foreignKey:CommentId;references:ID;constraint:OnDelete:CASCADE;" json:"likes"`
-	Dislikes []models.SubUsers `gorm:"foreignKey:CommentId;references:ID;constraint:OnDelete:CASCADE;" json:"dislikes"`
+	Likes    []models.SubUsers `gorm:"foreignKey:CommentID;references:ID;constraint:OnDelete:CASCADE;" json:"likes"`
+	Dislikes []models.SubUsers `gorm:"foreignKey:CommentID;references:ID;constraint:OnDelete:CASCADE;" json:"dislikes"`
 
 	Content datatypes.JSON `gorm:"type:jsonb" json:"content"`
 }
@@ -51,7 +51,7 @@ type CommentsRequest struct {
 	Date            string  `json:"date"`
 	TargetID        string  `json:"targetId"`
 	Author          string  `json:"author"`
-	ParentId        *string `json:"parentId"`
+	ParentID        *string `json:"parentId"`
 	TargetUserLogin *string `json:"targetUserLogin"`
 	EntityType      string  `json:"entityType"`
 
@@ -62,7 +62,7 @@ type CommentsRequestSwag struct {
 	Date       string    `json:"date"`
 	TargetID   string    `json:"targetId"`
 	Author     string    `json:"author"`
-	ParentId   uuid.UUID `json:"parentId"`
+	ParentID   uuid.UUID `json:"parentId"`
 	EntityType string    `json:"entityType"`
 
 	Content map[string]interface{} `json:"content"`
@@ -79,8 +79,8 @@ type Likes struct {
 
 	ID        string          `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	Author    models.SubUsers `json:"author"`
-	CommentId string          `json:"commentID"`
-	Comment   Comments        `gorm:"foreignKey:CommentId;references:ID;constraint:OnDelete:CASCADE;"`
+	CommentID string          `json:"commentID"`
+	Comment   Comments        `gorm:"foreignKey:CommentID;references:ID;constraint:OnDelete:CASCADE;"`
 }
 
 type AnswersItem struct {

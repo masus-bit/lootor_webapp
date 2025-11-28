@@ -49,6 +49,6 @@ type PhotoUpdateRequest struct {
 	Tags        []string `json:"tags"`
 }
 
-type FindPhotosByCollectionsIdsRequest struct {
-	CollectionIds []string `json:"collectionIds"`
+type FindPhotosByCollectionsIDsRequest struct {
+	CollectionIDs []string `json:"collectionIds"`
 }

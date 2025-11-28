@@ -109,7 +109,7 @@ type CollectionItemsDataResponseWithCount struct {
 type CollectionItemsCopyOrMoveRequest struct {
 	ID                  string   `json:"id"`
 	TargetCollectionIDs []string `json:"targetCollectionIds"`
-	SourceCollectionId  string   `json:"sourceCollectionId"`
+	SourceCollectionID  string   `json:"sourceCollectionId"`
 }
 
 type CollectionItemsSortedResponse struct {

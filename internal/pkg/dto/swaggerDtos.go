@@ -10,14 +10,14 @@ import (
 type UserResponseSwagger struct {
 	Login                   string   `json:"login"`
 	UserName                string   `json:"userName"`
-	VkId                    string   `json:"vkId"`
-	TelegramId              string   `json:"telegramId"`
+	VkID                    string   `json:"vkId"`
+	TelegramID              string   `json:"telegramId"`
 	Email                   string   `json:"email"`
 	Created                 string   `json:"created"`
 	Likes                   int      `json:"likes"`
 	Dislikes                int      `json:"dislikes"`
-	AvatarUrl               string   `json:"avatarUrl"`
-	BackgroundUrl           string   `json:"backgroundUrl"`
+	AvatarURL               string   `json:"avatarUrl"`
+	BackgroundURL           string   `json:"backgroundUrl"`
 	Subscribers             int      `json:"subscribers"`
 	Subscriptions           []string `json:"subscriptions"`
 	CollectionSubscriptions []string `json:"collectionSubscriptions"`
@@ -75,14 +75,14 @@ type UsersSwagger struct {
 	UserName                string   `json:"userName"`
 	Password                string   `gorm:"-" json:"-"`
 	PasswordHash            string   `gorm:"column:password" json:"-"`
-	VkId                    string   `json:"vkId"`
-	TelegramId              string   `json:"telegramId"`
+	VkID                    string   `json:"vkId"`
+	TelegramID              string   `json:"telegramId"`
 	Email                   string   `json:"email"`
 	Created                 string   `json:"created"`
 	Likes                   int      `json:"likes"`
 	Dislikes                int      `json:"dislikes"`
-	AvatarUrl               string   `json:"avatarUrl"`
-	BackgroundUrl           string   `json:"backgroundUrl"`
+	AvatarURL               string   `json:"avatarUrl"`
+	BackgroundURL           string   `json:"backgroundUrl"`
 	VerificationToken       string   `json:"verificationToken"`
 	Subscribers             int      `json:"subscribers"`
 	Subscriptions           []string `gorm:"type:text[]" json:"subscriptions"`

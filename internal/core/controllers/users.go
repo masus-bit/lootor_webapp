@@ -263,7 +263,7 @@ func (c *UserController) VkOauth(ctx echo.Context) error {
 	request := models.VkOauthRequest{
 		Code:         code,
 		CodeVerifier: codeVerifier,
-		DeviceId:     deviceId,
+		DeviceID:     deviceId,
 		State:        state,
 	}
 	switch "" {
@@ -277,7 +277,7 @@ func (c *UserController) VkOauth(ctx echo.Context) error {
 		})
 	case deviceId:
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "DeviceId parameter is required",
+			"error": "DeviceID parameter is required",
 		})
 	case state:
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
@@ -299,7 +299,7 @@ func (c *UserController) TelegramOauth(ctx echo.Context) error {
 
 	err := ctx.Bind(&request)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, map[string]string{
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error бля": err.Error(),
 		})
 	}

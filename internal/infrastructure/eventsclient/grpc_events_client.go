@@ -61,8 +61,8 @@ func (c *GRPCEventsClient) GetFilteredEvents(ctx context.Context, req *models.Ge
 		UserLogin:         req.UserLogin,
 		CollectionID:      req.CollectionID,
 		CollectionItemID:  req.CollectionItemID,
-		WishListItemId:    req.WishListItemId,
-		CollectionItemIds: req.CollectionItemIds,
+		WishListItemID:    req.WishListItemID,
+		CollectionItemIDs: req.CollectionItemIDs,
 	})
 }
 

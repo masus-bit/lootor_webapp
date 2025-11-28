@@ -191,7 +191,7 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 
 func (s *PhotosService) FindPhotosByIds(ctx context.Context, ids []string, authUserLogin string) (*models.PhotosDataResponse, error) {
 	resp, err := s.photosClient.GetPhotosByIDs(ctx, &microservices.GetByIdsRequest{
-		Ids:           ids,
+		IDs:           ids,
 		AuthUserLogin: authUserLogin,
 	})
 	if err != nil {

@@ -34,21 +34,21 @@ func (s *NotificationsService) SendNotification(ctx context.Context, request *dt
 	targetUserReq := dto.User{
 		Login:       targetUser.Login,
 		IsPremium:   targetUser.IsPremium,
-		AvatarUrl:   targetUser.AvatarUrl,
+		AvatarURL:   targetUser.AvatarURL,
 		ProfileName: targetUser.ProfileName,
 	}
 
 	senderUserReq := dto.User{
 		Login:       senderUser.Login,
 		IsPremium:   senderUser.IsPremium,
-		AvatarUrl:   senderUser.AvatarUrl,
+		AvatarURL:   senderUser.AvatarURL,
 		ProfileName: senderUser.ProfileName,
 	}
 
 	ownerUserReq := dto.User{
 		Login:       owner.Login,
 		IsPremium:   owner.IsPremium,
-		AvatarUrl:   owner.AvatarUrl,
+		AvatarURL:   owner.AvatarURL,
 		ProfileName: owner.ProfileName,
 	}
 
@@ -113,7 +113,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 	}
 	if len(photosIDs) > 0 {
 		photos, err := s.photosClient.GetPhotosByIDsMap(ctx, &microservices.GetByIdsRequest{
-			Ids: photosIDs,
+			IDs: photosIDs,
 		})
 		if err != nil {
 			return nil, err
@@ -205,13 +205,13 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			TargetUser: dto.User{
 				Login:       targetUser.Login,
 				IsPremium:   targetUser.IsPremium,
-				AvatarUrl:   targetUser.AvatarUrl,
+				AvatarURL:   targetUser.AvatarURL,
 				ProfileName: targetUser.ProfileName,
 			},
 			SenderUser: dto.User{
 				Login:       initUser.Login,
 				IsPremium:   initUser.IsPremium,
-				AvatarUrl:   initUser.AvatarUrl,
+				AvatarURL:   initUser.AvatarURL,
 				ProfileName: initUser.ProfileName,
 			},
 		}
@@ -229,7 +229,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			tempItem.Owner = dto.User{
 				Login:       owner.Login,
 				IsPremium:   owner.IsPremium,
-				AvatarUrl:   owner.AvatarUrl,
+				AvatarURL:   owner.AvatarURL,
 				ProfileName: owner.ProfileName,
 			}
 
@@ -244,7 +244,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			tempItem.Owner = dto.User{
 				Login:       owner.Login,
 				IsPremium:   owner.IsPremium,
-				AvatarUrl:   owner.AvatarUrl,
+				AvatarURL:   owner.AvatarURL,
 				ProfileName: owner.ProfileName,
 			}
 		case "collectionItem":
@@ -259,7 +259,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			tempItem.Owner = dto.User{
 				Login:       owner.Login,
 				IsPremium:   owner.IsPremium,
-				AvatarUrl:   owner.AvatarUrl,
+				AvatarURL:   owner.AvatarURL,
 				ProfileName: owner.ProfileName,
 			}
 
@@ -276,7 +276,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			tempItem.Owner = dto.User{
 				Login:       owner.Login,
 				IsPremium:   owner.IsPremium,
-				AvatarUrl:   owner.AvatarUrl,
+				AvatarURL:   owner.AvatarURL,
 				ProfileName: owner.ProfileName,
 			}
 
@@ -304,8 +304,8 @@ func (s *NotificationsService) DeleteNotification(ctx context.Context, targetId,
 	return nil
 }
 
-func (s *NotificationsService) DeleteAllNotificationsByTargetId(ctx context.Context, targetId string) error {
-	_, err := s.notificationsClient.DeleteAllNotificationsByTargetId(ctx, targetId)
+func (s *NotificationsService) DeleteAllNotificationsByTargetID(ctx context.Context, targetId string) error {
+	_, err := s.notificationsClient.DeleteAllNotificationsByTargetID(ctx, targetId)
 	if err != nil {
 		return err
 	}

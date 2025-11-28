@@ -106,11 +106,11 @@ func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionIte
 		UserLogin:         userLogin,
 		CollectionID:      collectionId,
 		CollectionItemID:  collectionItem,
-		WishListItemId:    wlId,
+		WishListItemID:    wlId,
 		Limit:             limit,
 		Offset:            offset,
-		CollectionItemIds: collectionItemIDs,
-		TagId:             tagId,
+		CollectionItemIDs: collectionItemIDs,
+		TagID:             tagId,
 	})
 	if err != nil {
 		return nil, err
@@ -238,7 +238,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	go func() {
 		defer wg.Done()
 		photos, _ := s.photosClient.GetPhotosByIDsMap(context.Background(), &microservices.GetByIdsRequest{
-			Ids: photoIDs,
+			IDs: photoIDs,
 		})
 		var authors []string
 		var collectionsPhotoIds []string
@@ -328,7 +328,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		go func() {
 			defer wg.Done()
 			tagsRaw, err := s.tagsClient.GetTagsByIdsMap(context.Background(), &microservices.GetTagsByIDsRequest{
-				Ids: tagIDs,
+				IDs: tagIDs,
 			})
 			if err != nil {
 				return
@@ -403,7 +403,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		if user, exists := usersMap[event.TargetUserLogin]; exists {
 			normalizedEvent.TargetUser = &models.SubUsers{
 				Login:       user.Login,
-				AvatarUrl:   user.AvatarUrl,
+				AvatarURL:   user.AvatarURL,
 				ProfileName: user.ProfileName,
 				IsPremium:   user.IsPremium,
 			}
@@ -436,7 +436,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		if initiator, exists := usersMap[event.InitiatorLogin]; exists {
 			normalizedEvent.Initiator = &models.SubUsers{
 				Login:       initiator.Login,
-				AvatarUrl:   initiator.AvatarUrl,
+				AvatarURL:   initiator.AvatarURL,
 				ProfileName: initiator.ProfileName,
 				IsPremium:   initiator.IsPremium,
 			}

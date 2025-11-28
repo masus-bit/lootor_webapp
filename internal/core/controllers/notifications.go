@@ -58,7 +58,7 @@ func (c *NotificationsController) ReadNotifications(ctx echo.Context) error {
 			"error": "Invalid request body",
 		})
 	}
-	response, err := c.notificationsService.ReadNotification(ctx.Request().Context(), request.Ids)
+	response, err := c.notificationsService.ReadNotification(ctx.Request().Context(), request.IDs)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

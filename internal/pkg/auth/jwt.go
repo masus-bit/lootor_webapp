@@ -24,14 +24,14 @@ type TokenPair struct {
 type Claims struct {
 	Login             string            `json:"login"`
 	UserName          string            `json:"userName"`
-	VkId              string            `json:"vkId"`
-	TelegramId        string            `json:"telegramId"`
+	VkID              string            `json:"vkId"`
+	TelegramID        string            `json:"telegramId"`
 	Email             string            `json:"email"`
 	Created           string            `json:"created"`
 	Likes             int               `json:"likes"`
 	Dislikes          int               `json:"dislikes"`
-	AvatarUrl         string            `json:"avatarUrl"`
-	BackgroundUrl     string            `json:"backgroundUrl"`
+	AvatarURL         string            `json:"avatarUrl"`
+	BackgroundURL     string            `json:"backgroundUrl"`
 	Subscribers       int               `json:"subscribers"`
 	Bio               string            `json:"bio"`
 	City              string            `json:"city"`
@@ -85,14 +85,14 @@ func (s *JWTService) generateToken(user TokenData, exp time.Duration, subLogins,
 	claims := Claims{
 		Login:             user.GetLogin(),
 		UserName:          user.GetUserName(),
-		VkId:              user.GetVkId(),
-		TelegramId:        user.GetTelegramId(),
+		VkID:              user.GetVkID(),
+		TelegramID:        user.GetTelegramID(),
 		Email:             user.GetEmail(),
 		Created:           user.GetCreated(),
 		Likes:             user.GetLikes(),
 		Dislikes:          user.GetDislikes(),
-		AvatarUrl:         user.GetAvatarUrl(),
-		BackgroundUrl:     user.GetBackgroundUrl(),
+		AvatarURL:         user.GetAvatarURL(),
+		BackgroundURL:     user.GetBackgroundURL(),
 		Subscribers:       user.GetSubscribers(),
 		Bio:               user.GetBio(),
 		City:              user.GetCity(),

@@ -340,7 +340,7 @@ func fillPost(p *microservices.PostItem, content []byte, reacts *models.ReactRes
 		Date: p.GetDate(),
 		Author: models.SubUsers{
 			Login:       user.Login,
-			AvatarUrl:   user.AvatarUrl,
+			AvatarURL:   user.AvatarURL,
 			ProfileName: user.ProfileName,
 			IsPremium:   user.IsPremium,
 		},

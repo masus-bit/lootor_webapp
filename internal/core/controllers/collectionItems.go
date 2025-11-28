@@ -153,7 +153,7 @@ func (c *CIController) CopyOrMoveCollectionItem(ctx echo.Context) error {
 		})
 	}
 
-	value, err := c.ciService.CopyOrMove(request.ID, request.TargetCollectionIDs, request.SourceCollectionId)
+	value, err := c.ciService.CopyOrMove(request.ID, request.TargetCollectionIDs, request.SourceCollectionID)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

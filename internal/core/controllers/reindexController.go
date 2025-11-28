@@ -73,9 +73,9 @@ func (c *ReindexController) getUserData() ([]map[string]interface{}, error) {
 			"login":       user.Login,
 			"userName":    user.UserName,
 			"email":       user.Email,
-			"vkId":        user.VkId,
-			"tgId":        user.TelegramId,
-			"avatarUrl":   user.AvatarUrl,
+			"vkId":        user.VkID,
+			"tgId":        user.TelegramID,
+			"avatarUrl":   user.AvatarURL,
 			"isPremium":   user.IsPremium,
 			"profileName": user.ProfileName,
 		}

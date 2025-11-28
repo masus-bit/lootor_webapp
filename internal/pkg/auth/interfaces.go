@@ -3,14 +3,14 @@ package auth
 type TokenData interface {
 	GetLogin() string
 	GetUserName() string
-	GetVkId() string
-	GetTelegramId() string
+	GetVkID() string
+	GetTelegramID() string
 	GetEmail() string
 	GetCreated() string
 	GetLikes() int
 	GetDislikes() int
-	GetAvatarUrl() string
-	GetBackgroundUrl() string
+	GetAvatarURL() string
+	GetBackgroundURL() string
 	GetSubscribers() int
 	GetBio() string
 	GetCity() string

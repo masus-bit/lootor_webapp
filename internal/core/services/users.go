@@ -116,8 +116,8 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	response.TotalDonations = donationsString
 	response.PostCount = int(postsCount)
 	e := mapstructure.Decode(dbUser, &response)
-	response.VkId = ""
-	response.TelegramId = ""
+	response.VkID = ""
+	response.TelegramID = ""
 	if e != nil {
 		return nil, e
 	}
@@ -132,7 +132,7 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	if err != nil {
 		return nil, err
 	}
-	subTags, _ := s.tagsClient.GetTagsByIDs(context.Background(), &microservices.GetTagsByIDsRequest{Ids: dbUser.TagsSubscriptions})
+	subTags, _ := s.tagsClient.GetTagsByIDs(context.Background(), &microservices.GetTagsByIDsRequest{IDs: dbUser.TagsSubscriptions})
 	var resultTags []models.SubTags
 	resultTags = make([]models.SubTags, 0)
 	if len(subTags.GetTags()) > 0 || subTags != nil {
@@ -400,7 +400,7 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		"code":          dto.Code,
 		"code_verifier": dto.CodeVerifier,
 		"redirect_uri":  os.Getenv("FRONTEND_URL"),
-		"device_id":     dto.DeviceId,
+		"device_id":     dto.DeviceID,
 		"state":         dto.State,
 	}
 
@@ -458,18 +458,18 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 	}
 
 	newUser := models.Users{
-		VkId:         newId,
+		VkID:         newId,
 		Login:        userInfo.FirstName + "@" + newId,
 		Email:        userInfo.Email,
 		UserName:     userInfo.FirstName,
-		AvatarUrl:    userInfo.AvatarUrl,
+		AvatarURL:    userInfo.AvatarURL,
 		Created:      time.Now().Format(time.RFC3339),
 		TmpLogin:     true,
 		PasswordHash: passwordHash,
 		ProfileName:  userInfo.FirstName,
 	}
 
-	if userInfo.AvatarUrl != "" {
+	if userInfo.AvatarURL != "" {
 		err = s.repo.IncrementExperience(userInfo.FirstName+"@"+newId, utils.AvatarAddExt)
 		if err != nil {
 			return nil, fmt.Errorf("increment experience error: %w", err)
@@ -480,7 +480,7 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 	if err2 != nil {
 		return nil, fmt.Errorf("db error: %w", err)
 	}
-	user, err := s.repo.GetByVkId(newUser.VkId)
+	user, err := s.repo.GetByVkId(newUser.VkID)
 	if err != nil {
 		return nil, fmt.Errorf("db error: %w", err)
 	}
@@ -529,8 +529,8 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 	if dto.FirstName != "" {
 		data = append(data, fmt.Sprintf("first_name=%s", dto.FirstName))
 	}
-	if dto.PhotoUrl != "" {
-		data = append(data, fmt.Sprintf("photo_url=%s", dto.PhotoUrl))
+	if dto.PhotoURL != "" {
+		data = append(data, fmt.Sprintf("photo_url=%s", dto.PhotoURL))
 	}
 	hash := dto.Hash
 
@@ -585,17 +585,17 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 	}
 
 	newUser := models.Users{
-		TelegramId:   newId,
+		TelegramID:   newId,
 		Login:        dto.Username + newId,
 		UserName:     dto.FirstName + " " + dto.LastName,
-		AvatarUrl:    dto.PhotoUrl,
+		AvatarURL:    dto.PhotoURL,
 		Created:      time.Now().Format(time.RFC3339),
 		PasswordHash: passwordHash,
 		TmpLogin:     true,
 		ProfileName:  dto.Username,
 	}
 
-	if dto.PhotoUrl != "" {
+	if dto.PhotoURL != "" {
 		err = s.repo.IncrementExperience(dto.Username+newId, utils.AvatarAddExt)
 		if err != nil {
 			return nil, fmt.Errorf("increment experience error: %w", err)
@@ -693,15 +693,15 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 
 	var exp int
 
-	if existsUser.AvatarUrl == "" && *user.AvatarUrl != "" {
+	if existsUser.AvatarURL == "" && *user.AvatarURL != "" {
 		exp += utils.AvatarAddExt
-	} else if existsUser.AvatarUrl != "" && *user.AvatarUrl == "" {
+	} else if existsUser.AvatarURL != "" && *user.AvatarURL == "" {
 		exp -= utils.AvatarAddExt
 	}
 
-	if existsUser.BackgroundUrl == "" && *user.BackgroundUrl != "" {
+	if existsUser.BackgroundURL == "" && *user.BackgroundURL != "" {
 		exp += utils.BannerAddExp
-	} else if existsUser.BackgroundUrl != "" && *user.BackgroundUrl == "" {
+	} else if existsUser.BackgroundURL != "" && *user.BackgroundURL == "" {
 		exp -= utils.BannerAddExp
 	}
 
@@ -766,15 +766,15 @@ func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, ta
 
 	var exp int
 
-	if existsUser.AvatarUrl == "" && *data.AvatarUrl != "" {
+	if existsUser.AvatarURL == "" && *data.AvatarURL != "" {
 		exp += utils.AvatarAddExt
-	} else if existsUser.AvatarUrl != "" && *data.AvatarUrl == "" {
+	} else if existsUser.AvatarURL != "" && *data.AvatarURL == "" {
 		exp -= utils.AvatarAddExt
 	}
 
-	if existsUser.BackgroundUrl == "" && *data.BackgroundUrl != "" {
+	if existsUser.BackgroundURL == "" && *data.BackgroundURL != "" {
 		exp += utils.BannerAddExp
-	} else if existsUser.BackgroundUrl != "" && *data.BackgroundUrl == "" {
+	} else if existsUser.BackgroundURL != "" && *data.BackgroundURL == "" {
 		exp -= utils.BannerAddExp
 	}
 
@@ -789,8 +789,8 @@ func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, ta
 	existsUser.Login = *data.Login
 	existsUser.UserName = *data.UserName
 	existsUser.Email = *data.Email
-	existsUser.AvatarUrl = *data.AvatarUrl
-	existsUser.BackgroundUrl = *data.BackgroundUrl
+	existsUser.AvatarURL = *data.AvatarURL
+	existsUser.BackgroundURL = *data.BackgroundURL
 	existsUser.City = *data.City
 	existsUser.Bio = *data.Bio
 	existsUser.TmpLogin = false

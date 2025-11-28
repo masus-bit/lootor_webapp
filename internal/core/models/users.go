@@ -13,14 +13,14 @@ type Users struct {
 	TmpLogin          bool            `gorm:"default:false" json:"tmpLogin"`
 	Password          string          `gorm:"-" json:"-"`
 	PasswordHash      string          `gorm:"column:password" json:"-"`
-	VkId              string          `json:"vkId"`
-	TelegramId        string          `json:"telegramId"`
+	VkID              string          `json:"vkId"`
+	TelegramID        string          `json:"telegramId"`
 	Email             string          `json:"email"`
 	Created           string          `json:"created"`
 	Likes             int             `json:"likes"`
 	Dislikes          int             `json:"dislikes"`
-	AvatarUrl         string          `json:"avatarUrl"`
-	BackgroundUrl     string          `json:"backgroundUrl"`
+	AvatarURL         string          `json:"avatarUrl"`
+	BackgroundURL     string          `json:"backgroundUrl"`
 	VerificationToken string          `json:"verificationToken"`
 	ResetToken        string          `json:"resetToken"`
 	Subscribers       int             `json:"subscribers"`
@@ -76,7 +76,7 @@ type ChangePasswordReset struct {
 
 type SubUsers struct {
 	Login       string `json:"login"`
-	AvatarUrl   string `json:"avatarUrl" gorm:"column:avatar_url"`
+	AvatarURL   string `json:"avatarUrl" gorm:"column:avatar_url"`
 	ProfileName string `json:"profileName" gorm:"column:profile_name"`
 	IsPremium   bool   `json:"isPremium" gorm:"column:is_premium"`
 }
@@ -86,13 +86,13 @@ type UserResponse struct {
 	UserName              string          `json:"userName"`
 	City                  string          `json:"city"`
 	Bio                   string          `json:"bio"`
-	VkId                  string          `json:"vkId"`
-	TelegramId            string          `json:"telegramId"`
+	VkID                  string          `json:"vkId"`
+	TelegramID            string          `json:"telegramId"`
 	Created               string          `json:"created"`
 	Likes                 int             `json:"likes"`
 	Dislikes              int             `json:"dislikes"`
-	AvatarUrl             string          `json:"avatarUrl"`
-	BackgroundUrl         string          `json:"backgroundUrl"`
+	AvatarURL             string          `json:"avatarUrl"`
+	BackgroundURL         string          `json:"backgroundUrl"`
 	Subscribers           int             `json:"subscribers"`
 	Subscriptions         []string        `json:"subscriptions"`
 	TagsSubscriptions     []string        `json:"tagsSubscriptions"`
@@ -118,13 +118,13 @@ type UserResponseForSingleUser struct {
 	UserName             string          `json:"userName"`
 	City                 string          `json:"city"`
 	Bio                  string          `json:"bio"`
-	VkId                 string          `json:"vkId"`
-	TelegramId           string          `json:"telegramId"`
+	VkID                 string          `json:"vkId"`
+	TelegramID           string          `json:"telegramId"`
 	Created              string          `json:"created"`
 	Likes                int             `json:"likes"`
 	Dislikes             int             `json:"dislikes"`
-	AvatarUrl            string          `json:"avatarUrl"`
-	BackgroundUrl        string          `json:"backgroundUrl"`
+	AvatarURL            string          `json:"avatarUrl"`
+	BackgroundURL        string          `json:"backgroundUrl"`
 	SubscribersLogins    []SubUsers      `json:"subscribersLogins" mapstructure:"-"`
 	Subscribers          int             `json:"subscribers"`
 	Subscriptions        []SubUsers      `json:"subscriptions" mapstructure:"-"`
@@ -146,8 +146,8 @@ type UserResponseForSingleUser struct {
 type UserRequestUpdate struct {
 	UserName      *string `json:"userName,omitempty"`
 	Email         *string `json:"email,omitempty"`
-	AvatarUrl     *string `json:"avatarUrl,omitempty"`
-	BackgroundUrl *string `json:"backgroundUrl,omitempty"`
+	AvatarURL     *string `json:"avatarUrl,omitempty"`
+	BackgroundURL *string `json:"backgroundUrl,omitempty"`
 	City          *string `json:"city,omitempty"`
 	Bio           *string `json:"bio,omitempty"`
 	ProfileName   *string `json:"profileName"`
@@ -157,8 +157,8 @@ type UserRequestUpdateFirstTime struct {
 	Login         *string `json:"login,omitempty"`
 	UserName      *string `json:"userName,omitempty"`
 	Email         *string `json:"email,omitempty"`
-	AvatarUrl     *string `json:"avatarUrl,omitempty"`
-	BackgroundUrl *string `json:"backgroundUrl,omitempty"`
+	AvatarURL     *string `json:"avatarUrl,omitempty"`
+	BackgroundURL *string `json:"backgroundUrl,omitempty"`
 	City          *string `json:"city,omitempty"`
 	Bio           *string `json:"bio,omitempty"`
 	ProfileName   *string `json:"profileName"`
@@ -169,7 +169,7 @@ type UserResponseForCollection struct {
 	UserName      string         `json:"userName"`
 	City          string         `json:"city"`
 	Bio           string         `json:"bio"`
-	AvatarUrl     string         `json:"avatarUrl"`
+	AvatarURL     string         `json:"avatarUrl"`
 	Subscriptions pq.StringArray `json:"subscriptions"`
 	ProfileName   string         `json:"profileName"`
 }
@@ -209,7 +209,7 @@ type SignUpResponse struct {
 type VkOauthRequest struct {
 	Code          string `json:"code" validate:"required"`
 	CodeVerifier  string `json:"codeVerifier" validate:"required"`
-	DeviceId      string `json:"deviceId" validate:"required"`
+	DeviceID      string `json:"deviceId" validate:"required"`
 	State         string `json:"state" validate:"required"`
 	CodeChallenge string `json:"codeChallenge" validate:"required"`
 }
@@ -219,8 +219,8 @@ type VkAuthRequest struct {
 	ClientID     string `json:"client_id"`
 	Code         string `json:"code"`
 	CodeVerifier string `json:"code_verifier"`
-	RedirectUri  string `json:"redirect_uri"`
-	DeviceId     string `json:"device_id"`
+	RedirectURI  string `json:"redirect_uri"`
+	DeviceID     string `json:"device_id"`
 	State        string `json:"state"`
 }
 
@@ -232,7 +232,7 @@ type VkAuthGetUserInfo struct {
 	ID        int64  `json:"id"`
 	Email     string `json:"email"`
 	FirstName string `json:"first_name"`
-	AvatarUrl string `json:"photo_200"`
+	AvatarURL string `json:"photo_200"`
 }
 
 type VkAuthGetUserInfoResponse struct {
@@ -244,7 +244,7 @@ type TelegramOauthRequest struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Username  string `json:"username"`
-	PhotoUrl  string `json:"photo_url"`
+	PhotoURL  string `json:"photo_url"`
 	AuthDate  int64  `json:"auth_date"`
 	Hash      string `json:"hash"`
 }
@@ -257,14 +257,14 @@ type SubTags struct {
 
 func (u *Users) GetLogin() string               { return u.Login }
 func (u *Users) GetUserName() string            { return u.UserName }
-func (u *Users) GetVkId() string                { return u.VkId }
-func (u *Users) GetTelegramId() string          { return u.TelegramId }
+func (u *Users) GetVkID() string                { return u.VkID }
+func (u *Users) GetTelegramID() string          { return u.TelegramID }
 func (u *Users) GetEmail() string               { return u.Email }
 func (u *Users) GetCreated() string             { return u.Created }
 func (u *Users) GetLikes() int                  { return u.Likes }
 func (u *Users) GetDislikes() int               { return u.Dislikes }
-func (u *Users) GetAvatarUrl() string           { return u.AvatarUrl }
-func (u *Users) GetBackgroundUrl() string       { return u.BackgroundUrl }
+func (u *Users) GetAvatarURL() string           { return u.AvatarURL }
+func (u *Users) GetBackgroundURL() string       { return u.BackgroundURL }
 func (u *Users) GetSubscribers() int            { return u.Subscribers }
 func (u *Users) GetBio() string                 { return u.Bio }
 func (u *Users) GetCity() string                { return u.City }

@@ -26,7 +26,7 @@ type Notifications struct {
 }
 
 type NotificationsReadRequest struct {
-	Ids []string `json:"ids"`
+	IDs []string `json:"ids"`
 }
 
 type NotificationsRequest struct {
@@ -57,7 +57,7 @@ type NotificationsRestRequest struct {
 type User struct {
 	Login       string `json:"login"`
 	IsPremium   bool   `json:"isPremium"`
-	AvatarUrl   string `json:"avatarUrl"`
+	AvatarURL   string `json:"avatarUrl"`
 	ProfileName string `json:"profileName"`
 }
 

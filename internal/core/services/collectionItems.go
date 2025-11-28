@@ -178,7 +178,7 @@ func (s *CiService) Delete(id string, ctx context.Context) (*dto.CommonResponse,
 				log.Default().Print(eventError)
 			}
 			go func() {
-				_ = s.notificationsService.DeleteAllNotificationsByTargetId(context.Background(), id)
+				_ = s.notificationsService.DeleteAllNotificationsByTargetID(context.Background(), id)
 			}()
 		}
 		go func() {
