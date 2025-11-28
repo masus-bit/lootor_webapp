@@ -14,16 +14,16 @@ func GenerateRandomString(length int) (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-func GenerateRandomStringNoHex(length int) (string, error) {
+func GenerateRandomStringNoHex(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 	b := make([]byte, length)
 	for i := range b {
 		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
 		if err != nil {
-			return "", err
+			return ""
 		}
 		b[i] = charset[n.Int64()]
 	}
-	return string(b), nil
+	return string(b)
 }

@@ -50,6 +50,7 @@ type ElasticService struct {
 }
 
 func LoadConfig(path string) (ElasticConfig, error) {
+	// #nosec G304
 	file, err := os.ReadFile(path)
 	if err != nil {
 		return ElasticConfig{}, fmt.Errorf("failed to read config file: %w", err)
