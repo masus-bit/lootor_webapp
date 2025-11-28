@@ -27,6 +27,7 @@ variables:
       - /kaniko/.docker/config.json
     expire_in: 1 hour
 
+
 sast_gosec:
   stage: security
   tags:
@@ -37,21 +38,15 @@ sast_gosec:
   script:
     - go install github.com/securego/gosec/v2/cmd/gosec@latest
     - |
-      OUTPUT=$($(go env GOPATH)/bin/gosec ./... 2>&1)
-      
-      CLEAN_OUTPUT=$(echo "$OUTPUT" | grep -v "could not import" | grep -v "invalid package name" | grep -v "Error building the SSA representation")
-      
-      echo "$CLEAN_OUTPUT"
-      
-      echo "=========================================="
-      if echo "$OUTPUT" | grep -q "Issues: 0"; then
+      if $(go env GOPATH)/bin/gosec ./... 2>&1 | grep -q "Issues: 0"; then
         echo "✅ GOSEC CHECK PASSED - No security issues found!"
         exit 0
       else
-        echo "❌ GOSEC CHECK FAILED - Security issues detected!"
+        echo "❌ GOSEC CHECK FAILED"
         exit 1
       fi
   allow_failure: false
+
 build:
   stage: build
   tags:
