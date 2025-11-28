@@ -34,7 +34,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 		return nil, err
 	}
 
-	id, err := uuid.Parse(comment.Data.ID)
+	id, err := uuid.Parse(comment.Data.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 				Date:          comment.Data.Date,
 				TargetID:      request.TargetID,
 				Author:        userStruct,
-				ParentID:      comment.Data.ParentID,
+				ParentID:      comment.Data.ParentId,
 				LikesCount:    int(comment.Data.LikesCount),
 				DislikesCount: int(comment.Data.DislikesCount),
 				Content:       content,
@@ -217,7 +217,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 	}
 	var resultComments []dto.CommentsResponse
 	for _, f := range comments.Data {
-		parsedId, err := uuid.Parse(f.ID)
+		parsedId, err := uuid.Parse(f.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -295,11 +295,11 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 			}
 			resultChildrenComments = append(resultChildrenComments, dto.ChildrenComments{
 				Comments: &dto.Comments{
-					ID:         c.ID,
+					ID:         c.Id,
 					Date:       c.Date,
 					TargetID:   targetId,
 					Author:     userStructCh,
-					ParentID:   c.ParentID,
+					ParentID:   c.ParentId,
 					Content:    contentChildren,
 					CreatedAt:  createdAtAsTimeCh,
 					UpdatedAt:  updatedAtAsTimeCh,
@@ -319,7 +319,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 				Date:          f.Date,
 				TargetID:      targetId,
 				Author:        userStruct,
-				ParentID:      f.ParentID,
+				ParentID:      f.ParentId,
 				LikesCount:    int(f.LikesCount),
 				DislikesCount: int(f.DislikesCount),
 				Content:       content,
@@ -475,11 +475,11 @@ func (s *CommentsService) LoadAnswers(ctx context.Context, id, limit, offset str
 
 		result = append(result, dto.AnswersItem{
 			Comments: &dto.Comments{
-				ID:         f.ID,
+				ID:         f.Id,
 				Date:       f.Date,
-				TargetID:   f.TargetID,
+				TargetID:   f.TargetId,
 				Author:     userStruct,
-				ParentID:   f.ParentID,
+				ParentID:   f.ParentId,
 				Content:    utils.NormalizeContent(f.Content),
 				CreatedAt:  createdAt,
 				UpdatedAt:  updatedAt,

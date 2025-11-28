@@ -153,8 +153,8 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		if event.TargetWishListItemId != "" {
 			wlIDs = append(wlIDs, event.TargetWishListItemId)
 		}
-		if event.TargetPostID != "" {
-			postIDs = append(postIDs, event.TargetPostID)
+		if event.TargetPostId != "" {
+			postIDs = append(postIDs, event.TargetPostId)
 		}
 		if event.TargetTagId != "" {
 			tagIDs = append(tagIDs, event.TargetTagId)
@@ -164,7 +164,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 			case "item":
 				itemIDs = append(itemIDs, event.TargetItemId)
 			case "post":
-				postIDs = append(postIDs, event.TargetPostID)
+				postIDs = append(postIDs, event.TargetPostId)
 			case "photo":
 				photoIDs = append(photoIDs, event.TargetPhotoId)
 
@@ -238,7 +238,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	go func() {
 		defer wg.Done()
 		photos, _ := s.photosClient.GetPhotosByIDsMap(context.Background(), &microservices.GetByIdsRequest{
-			IDs: photoIDs,
+			Ids: photoIDs,
 		})
 		var authors []string
 		var collectionsPhotoIds []string
@@ -328,7 +328,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		go func() {
 			defer wg.Done()
 			tagsRaw, err := s.tagsClient.GetTagsByIdsMap(context.Background(), &microservices.GetTagsByIDsRequest{
-				IDs: tagIDs,
+				Ids: tagIDs,
 			})
 			if err != nil {
 				return
@@ -384,7 +384,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	for _, event := range events {
 		fmt.Println(event)
 		normalizedEvent := models.Events{
-			ID:                   event.ID,
+			ID:                   event.Id,
 			Date:                 event.Date,
 			Action:               event.Action,
 			EventTargetType:      event.EventTargetType,
@@ -394,7 +394,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 			TargetCollectionID:   event.TargetCollectionId,
 			TargetItemID:         event.TargetItemId,
 			TargetWishListItemID: event.TargetWishListItemId,
-			TargetPostID:         event.TargetPostID,
+			TargetPostID:         event.TargetPostId,
 			TargetTagID:          event.TargetTagId,
 			TagRelatedEntityType: event.TagRelatedEntityType,
 			TargetPhotoID:        event.TargetPhotoId,
@@ -423,7 +423,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 			normalizedEvent.TargetWishListItem = &wlItem
 		}
 
-		if post, exists := postsMap[event.TargetPostID]; exists {
+		if post, exists := postsMap[event.TargetPostId]; exists {
 			post.Tags = postsTagsMap[strconv.FormatUint(post.ID, 10)]
 			normalizedEvent.TargetPost = &post
 		}

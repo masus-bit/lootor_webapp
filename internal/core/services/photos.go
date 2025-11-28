@@ -58,7 +58,7 @@ func (s *PhotosService) DecrementCommentsCount(ctx context.Context, id string) (
 
 func (s *PhotosService) CreatePhoto(ctx context.Context, req *models.PhotoCreateRequest, authUserLogin string) (*models.PhotosDataResponse, error) {
 	resp, err := s.photosClient.CreatePhotos(ctx, &microservices.CreatePhotosRequest{
-		CollectionID:  req.CollectionID,
+		CollectionId:  req.CollectionID,
 		Paths:         req.Paths,
 		Author:        req.Author,
 		AuthUserLogin: authUserLogin,
@@ -100,7 +100,7 @@ func (s *PhotosService) GetByUser(ctx context.Context, userLogin, authUserLogin,
 
 func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.CommonResponse, error) {
 	resp, err := s.photosClient.DeletePhoto(ctx, &microservices.DeletePhotoRequest{
-		ID: s.stringToUint64(id),
+		Id: s.stringToUint64(id),
 	})
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.Common
 
 func (s *PhotosService) FindOneByID(ctx context.Context, id, authUserLogin string) (*models.PhotoDataResponse, error) {
 	resp, err := s.photosClient.FindOneByID(ctx, &microservices.FindOneByIdRequest{
-		ID: s.stringToUint64(id),
+		Id: s.stringToUint64(id),
 	})
 	if err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func (s *PhotosService) FindOneByID(ctx context.Context, id, authUserLogin strin
 
 func (s *PhotosService) FindAllByCollectionID(ctx context.Context, collectionId, limit, offset, authUserLogin string) (*models.PhotosDataResponse, error) {
 	resp, err := s.photosClient.FindAllByCollectionID(ctx, &microservices.FindByCollectionIdRequest{
-		CollectionID:  collectionId,
+		CollectionId:  collectionId,
 		Limit:         limit,
 		Offset:        offset,
 		AuthUserLogin: authUserLogin,
@@ -152,7 +152,7 @@ func (s *PhotosService) FindAllByCollectionID(ctx context.Context, collectionId,
 
 func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin string) (*dto.CommonResponse, error) {
 	resp, err := s.photosClient.LikePhoto(ctx, &microservices.LikePhotoRequest{
-		ID:             s.stringToUint64(id),
+		Id:             s.stringToUint64(id),
 		InitiatorLogin: authUserLogin,
 	})
 	if err != nil {
@@ -191,7 +191,7 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 
 func (s *PhotosService) FindPhotosByIds(ctx context.Context, ids []string, authUserLogin string) (*models.PhotosDataResponse, error) {
 	resp, err := s.photosClient.GetPhotosByIDs(ctx, &microservices.GetByIdsRequest{
-		IDs:           ids,
+		Ids:           ids,
 		AuthUserLogin: authUserLogin,
 	})
 	if err != nil {
@@ -203,7 +203,7 @@ func (s *PhotosService) FindPhotosByIds(ctx context.Context, ids []string, authU
 
 func (s *PhotosService) GetCountByCollection(ctx context.Context, collectionId string) (int64, error) {
 	resp, err := s.photosClient.GetCountByCollection(ctx, &microservices.CountRequestPhoto{
-		CollectionID: collectionId,
+		CollectionId: collectionId,
 	})
 	if err != nil {
 		return 0, err
@@ -213,7 +213,7 @@ func (s *PhotosService) GetCountByCollection(ctx context.Context, collectionId s
 
 func (s *PhotosService) UpdatePhoto(ctx context.Context, req *models.PhotoUpdateRequest, authUserLogin string) (*models.PhotoDataResponse, error) {
 	resp, err := s.photosClient.UpdatePhoto(ctx, &microservices.UpdatePhotoRequest{
-		ID:          s.stringToUint64(req.ID),
+		Id:          s.stringToUint64(req.ID),
 		Description: req.Description,
 	})
 	if err != nil {

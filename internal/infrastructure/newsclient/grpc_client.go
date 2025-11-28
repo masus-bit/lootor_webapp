@@ -42,7 +42,7 @@ func (c *GRPCClient) CreateNews(ctx context.Context, feedType, date string, cont
 
 func (c *GRPCClient) GetNews(ctx context.Context, id string) (*microservices.GetNewsByIdResponse, error) {
 	return c.client.GetNewsById(ctx, &microservices.GetNewsByIdRequest{
-		ID: id,
+		Id: id,
 	})
 }
 
@@ -52,7 +52,7 @@ func (c *GRPCClient) GetAllNews(ctx context.Context, limit, offset string) (*mic
 
 func (c *GRPCClient) DeleteNews(ctx context.Context, id string) (*microservices.DeleteNewsResponse, error) {
 	return c.client.DeleteNews(ctx, &microservices.DeleteNewsRequest{
-		ID: id,
+		Id: id,
 	})
 }
 
@@ -61,7 +61,7 @@ func (c *GRPCClient) UpdateNews(ctx context.Context, id, feedType, date string, 
 	return c.client.UpdateNews(ctx, &microservices.UpdateNewsRequest{
 		Content: normalizedContent,
 		Date:    date,
-		ID:      id,
+		Id:      id,
 		Type:    feedType,
 	})
 }

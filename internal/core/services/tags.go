@@ -145,7 +145,7 @@ func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, aut
 	}
 	intLimit, _ := strconv.Atoi(limit)
 	intOffset, _ := strconv.Atoi(offset)
-	tag, err := s.tagsClient.FindAllEntitiesByTag(context.Background(), &microservices.GetEntitiesByTagRequest{TagID: tagID, EntityType: entityType, Limit: int64(intLimit), Offset: int64(intOffset)})
+	tag, err := s.tagsClient.FindAllEntitiesByTag(context.Background(), &microservices.GetEntitiesByTagRequest{TagId: tagID, EntityType: entityType, Limit: int64(intLimit), Offset: int64(intOffset)})
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
 	}
@@ -224,7 +224,7 @@ func (s *TagsService) RemoveTagsFromEntity(req *models.RemoveTagsRequest, authUs
 
 func (s *TagsService) UpdateTag(req *models.TagUpdateRequest) (*models.TagDataResponse, error) {
 	tag, err := s.tagsClient.UpdateTag(context.Background(), &microservices.UpdateTagRequest{
-		ID:          req.ID,
+		Id:          req.ID,
 		Name:        req.Name,
 		Slug:        req.Slug,
 		Description: req.Description,
@@ -299,7 +299,7 @@ func (s *TagsService) Subscribe(id, userLogin string) (*dto.CommonResponse, erro
 	if err != nil {
 		return nil, err
 	}
-	tag, err := s.tagsClient.GetTag(context.Background(), &microservices.GetTagRequest{ID: id})
+	tag, err := s.tagsClient.GetTag(context.Background(), &microservices.GetTagRequest{Id: id})
 	if err != nil {
 		return nil, err
 	}
@@ -431,7 +431,7 @@ func (s *TagsService) GetSuggestions(query, limit string) (*models.SearchSuggest
 
 func (s *TagsService) DeleteTags(req *models.DeleteTags) (*dto.CommonResponse, error) {
 	_, err := s.tagsClient.DeleteTags(context.Background(), &microservices.GetTagsByIDsRequest{
-		IDs: req.IDs,
+		Ids: req.IDs,
 	})
 	if err != nil {
 		return nil, err
@@ -518,7 +518,7 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 		}
 
 		return &models.Tags{
-			ID:                   tag.ID,
+			ID:                   tag.Id,
 			Name:                 tag.Name,
 			Slug:                 tag.Slug,
 			Description:          tag.Description,

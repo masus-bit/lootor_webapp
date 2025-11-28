@@ -113,7 +113,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 	}
 	if len(photosIDs) > 0 {
 		photos, err := s.photosClient.GetPhotosByIDsMap(ctx, &microservices.GetByIdsRequest{
-			IDs: photosIDs,
+			Ids: photosIDs,
 		})
 		if err != nil {
 			return nil, err
@@ -192,13 +192,13 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 	for _, n := range notifications.GetData() {
 		initUser, _ := s.userRepo.GetUserByLogin(n.SenderLogin)
 		tempItem := dto.Notifications{
-			ID:          n.ID,
+			ID:          n.Id,
 			CreatedAt:   n.CreatedAt,
 			UpdatedAt:   n.UpdatedAt,
 			UserLogin:   n.UserLogin,
 			Type:        n.Type,
 			SenderLogin: n.SenderLogin,
-			TargetID:    n.TargetID,
+			TargetID:    n.TargetId,
 			IsRead:      n.IsRead,
 			Date:        n.Date,
 			Action:      n.Action,
@@ -217,7 +217,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		}
 		switch n.TargetType {
 		case "post":
-			tId, _ := strconv.ParseUint(n.TargetID, 10, 64)
+			tId, _ := strconv.ParseUint(n.TargetId, 10, 64)
 			post := postsMap[strconv.FormatUint(tId, 10)]
 			owner := users[post.Author.Login]
 			tempItem.Target = dto.TargetItem{
@@ -234,11 +234,11 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			}
 
 		case "collection":
-			owner := users[collectionsMap[n.TargetID].UserLogin]
+			owner := users[collectionsMap[n.TargetId].UserLogin]
 			tempItem.Target = dto.TargetItem{
-				ID:              collectionsMap[n.TargetID].ID.String(),
-				Name:            collectionsMap[n.TargetID].Name,
-				Transliteration: collectionsMap[n.TargetID].Transliteration,
+				ID:              collectionsMap[n.TargetId].ID.String(),
+				Name:            collectionsMap[n.TargetId].Name,
+				Transliteration: collectionsMap[n.TargetId].Transliteration,
 				TargetType:      "collection",
 			}
 			tempItem.Owner = dto.User{
@@ -248,13 +248,13 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 				ProfileName: owner.ProfileName,
 			}
 		case "collectionItem":
-			owner := users[collectionItemsMap[n.TargetID].UserLogin]
+			owner := users[collectionItemsMap[n.TargetId].UserLogin]
 			tempItem.Target = dto.TargetItem{
-				ID:               collectionItemsMap[n.TargetID].ID.String(),
-				Name:             collectionItemsMap[n.TargetID].Name,
-				Transliteration:  collectionItemsMap[n.TargetID].Transliteration,
+				ID:               collectionItemsMap[n.TargetId].ID.String(),
+				Name:             collectionItemsMap[n.TargetId].Name,
+				Transliteration:  collectionItemsMap[n.TargetId].Transliteration,
 				TargetType:       "collectionItem",
-				TargetParentName: collectionItemsMap[n.TargetID].Description,
+				TargetParentName: collectionItemsMap[n.TargetId].Description,
 			}
 			tempItem.Owner = dto.User{
 				Login:       owner.Login,
@@ -264,11 +264,11 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			}
 
 		case "photo":
-			owner := users[photosMap[n.TargetID].Author.Login]
-			dbCollection, _ := s.collectionRepo.GetCollectionByIdWithoutLimits(photosMap[n.TargetID].CollectionID)
+			owner := users[photosMap[n.TargetId].Author.Login]
+			dbCollection, _ := s.collectionRepo.GetCollectionByIdWithoutLimits(photosMap[n.TargetId].CollectionID)
 			tempItem.Target = dto.TargetItem{
-				ID:               strconv.FormatUint(photosMap[n.TargetID].ID, 10),
-				Name:             photosMap[n.TargetID].Path,
+				ID:               strconv.FormatUint(photosMap[n.TargetId].ID, 10),
+				Name:             photosMap[n.TargetId].Path,
 				Transliteration:  dbCollection.Transliteration,
 				TargetType:       "photo",
 				TargetParentName: dbCollection.Name,

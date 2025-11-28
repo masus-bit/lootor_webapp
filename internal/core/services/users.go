@@ -132,13 +132,13 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	if err != nil {
 		return nil, err
 	}
-	subTags, _ := s.tagsClient.GetTagsByIDs(context.Background(), &microservices.GetTagsByIDsRequest{IDs: dbUser.TagsSubscriptions})
+	subTags, _ := s.tagsClient.GetTagsByIDs(context.Background(), &microservices.GetTagsByIDsRequest{Ids: dbUser.TagsSubscriptions})
 	var resultTags []models.SubTags
 	resultTags = make([]models.SubTags, 0)
 	if len(subTags.GetTags()) > 0 || subTags != nil {
 		for _, tag := range subTags.GetTags() {
 			resultTags = append(resultTags, models.SubTags{
-				ID:   tag.ID,
+				ID:   tag.Id,
 				Name: tag.Name,
 				Slug: tag.Slug,
 			})

@@ -24,7 +24,7 @@ func (s *FeedService) CreateFeed(ctx context.Context, request *dto.FeedRequest) 
 		return nil, err
 	}
 
-	id, err := uuid.Parse(feed.Data.ID)
+	id, err := uuid.Parse(feed.Data.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (s *FeedService) GetFeed(ctx context.Context, id string) (*dto.FeedResponse
 		return nil, err
 	}
 
-	parsedId, err := uuid.Parse(feed.Data.ID)
+	parsedId, err := uuid.Parse(feed.Data.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (s *FeedService) GetAllFeed(ctx context.Context, limit, offset string) (*dt
 
 	var resultFeed []dto.Feed
 	for _, f := range feed.Data {
-		parsedId, err := uuid.Parse(f.ID)
+		parsedId, err := uuid.Parse(f.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -119,7 +119,7 @@ func (s *FeedService) UpdateFeed(ctx context.Context, id string, request *dto.Fe
 		return nil, err
 	}
 
-	parsedId, err := uuid.Parse(feed.Data.ID)
+	parsedId, err := uuid.Parse(feed.Data.Id)
 	if err != nil {
 		return nil, err
 	}

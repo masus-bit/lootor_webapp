@@ -110,7 +110,7 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	if tags != nil {
 		for _, tag := range tags.Tags {
 			resultTags = append(resultTags, models.ShortTags{
-				ID:   tag.ID,
+				ID:   tag.Id,
 				Name: tag.Name,
 				Slug: tag.Slug,
 			})
@@ -457,7 +457,7 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	if err != nil {
 		return nil, err
 	}
-	photosCount, err := s.photosClient.GetCountByCollection(context.Background(), &microservices.CountRequestPhoto{CollectionID: dbCollection.ID.String()})
+	photosCount, err := s.photosClient.GetCountByCollection(context.Background(), &microservices.CountRequestPhoto{CollectionId: dbCollection.ID.String()})
 	if err != nil {
 		return nil, err
 	}
