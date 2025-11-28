@@ -46,7 +46,6 @@ sast_gosec:
       echo "$OUTPUT"
       echo "=== END OUTPUT ==="
       
-      # Проверяем разными способами
       if echo "$OUTPUT" | grep "Issues : 0" > /dev/null; then
         echo "✅ GOSEC CHECK PASSED (method 1)"
         exit 0
@@ -90,8 +89,10 @@ container_scanning:
     name: aquasec/trivy:latest
     entrypoint: [""]
   script:
-    - trivy image --severity HIGH,CRITICAL --exit-code 1 --no-progress "${CI_REGISTRY_IMAGE}:latest"
-  allow_failure: true
+    - trivy image --severity HIGH,CRITICAL --exit-code 1 --no-progress
+      --scanners vuln 
+      "${CI_REGISTRY_IMAGE}:latest"
+  allow_failure: false
 
 deploy:
   tags:
