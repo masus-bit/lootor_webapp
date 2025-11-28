@@ -25,7 +25,7 @@ func RemoveByValue(slice []string, value string) []string {
 
 func RemoveByValueStruct(slice []models.CollectionItems, id uuid.UUID) []models.CollectionItems {
 	for i, v := range slice {
-		if v.Id == id {
+		if v.ID == id {
 			return append(slice[:i], slice[i+1:]...)
 		}
 	}
@@ -49,7 +49,6 @@ func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsR
 				return cmp.Compare(b.Name, a.Name)
 			}
 		})
-		break
 	case "created":
 		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
 			if order == "asc" {
@@ -58,7 +57,6 @@ func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsR
 				return cmp.Compare(b.CreatedAt.UnixNano(), a.CreatedAt.UnixNano())
 			}
 		})
-		break
 	case "totalPrice":
 		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
 			if order == "asc" {
@@ -67,7 +65,6 @@ func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsR
 				return cmp.Compare(b.TotalPrice, a.TotalPrice)
 			}
 		})
-		break
 	case "collectionItemsCount":
 		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
 			if order == "asc" {
@@ -76,7 +73,6 @@ func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsR
 				return cmp.Compare(b.CollectionItemsCount, a.CollectionItemsCount)
 			}
 		})
-		break
 	case "likesCount":
 		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
 			if order == "asc" {
@@ -85,7 +81,6 @@ func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsR
 				return cmp.Compare(b.LikesCount, a.LikesCount)
 			}
 		})
-		break
 	default:
 		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
 			return cmp.Compare(b.LikesCount, a.LikesCount)
@@ -110,38 +105,32 @@ func GetCIOrderString(orderBy string, order string) *CiOrder {
 			result.Order = "platforms.name DESC"
 		}
 		result.Order = "platforms.name ASC"
-		break
 	case "type":
 		result.Joins = "LEFT JOIN item_types ON item_types.id = collection_items.item_type_id"
 		if order == "desc" {
 			result.Order = "item_types.ru_name DESC"
 		}
 		result.Order = "item_types.ru_name ASC"
-		break
 	case "name":
 		if order == "desc" {
 			result.Order = "name DESC"
 		}
 		result.Order = "name ASC"
-		break
 	case "rating":
 		if order == "desc" {
 			result.Order = "rating DESC"
 		}
 		result.Order = "rating ASC"
-		break
 	case "purchaseDate":
 		if order == "desc" {
 			result.Order = "purchase_date DESC"
 		}
 		result.Order = "purchase_date ASC"
-		break
 	case "purchasePrice":
 		if order == "desc" {
 			result.Order = "purchase_price DESC"
 		}
 		result.Order = "purchase_price ASC"
-		break
 	default:
 		result.Order = "purchase_date DESC"
 	}
@@ -324,12 +313,12 @@ func FormatReacts(post *microservices.PostItem, users []models.SubUsers, reactLe
 		}
 
 		for _, r := range post.GetReactions() {
-			reactUUID, err := uuid.Parse(r.Id)
+			reactUUID, err := uuid.Parse(r.ID)
 			if err != nil {
 				return nil, err
 			}
 			reacts[r.GetReaction()] = append(reacts[r.GetReaction()], models.React{
-				Id:       reactUUID.String(),
+				ID:       reactUUID.String(),
 				User:     fullReactUsers[r.UserLogin],
 				Reaction: models.ReactionType(r.Reaction),
 			})
@@ -347,7 +336,7 @@ func FormatReacts(post *microservices.PostItem, users []models.SubUsers, reactLe
 
 func fillPost(p *microservices.PostItem, content []byte, reacts *models.ReactResponse, user *models.Users) *models.Posts {
 	return &models.Posts{
-		Id:   p.GetId(),
+		ID:   p.GetId(),
 		Date: p.GetDate(),
 		Author: models.SubUsers{
 			Login:       user.Login,
@@ -379,16 +368,16 @@ func fillPost(p *microservices.PostItem, content []byte, reacts *models.ReactRes
 }
 
 func getType(tagProto *microservices.TagItemShort) string {
-	primaryId := tagProto.GetPrimaryId()
-	seriesId := tagProto.GetSeriesId()
+	primaryID := tagProto.GetPrimaryId()
+	seriesID := tagProto.GetSeriesId()
 
-	if primaryId == "" {
-		if seriesId == "" {
+	if primaryID == "" {
+		if seriesID == "" {
 			return "series"
 		}
 		return "primarySeriesChild"
 	}
-	if seriesId == "" {
+	if seriesID == "" {
 		return "synonymSeries"
 	}
 	return "synonymSeriesChild"

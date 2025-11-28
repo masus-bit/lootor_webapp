@@ -6,19 +6,19 @@ import (
 	"os"
 )
 
-type MailService struct {
+type PostService struct {
 	dialer *gomail.Dialer
 	from   string
 }
 
-func NewMailService(host string, port int, username, password, from string) *MailService {
-	return &MailService{
+func NewMailService(host string, port int, username, password, from string) *PostService {
+	return &PostService{
 		dialer: gomail.NewDialer(host, port, username, password),
 		from:   from,
 	}
 }
 
-func (s *MailService) SendConfirmationEmail(email, token string) error {
+func (s *PostService) SendConfirmationEmail(email, token string) error {
 
 	domain := os.Getenv("DOMAIN")
 
@@ -33,7 +33,7 @@ func (s *MailService) SendConfirmationEmail(email, token string) error {
 	return s.dialer.DialAndSend(m)
 }
 
-func (s *MailService) SendResetPasswordEmail(email, token string) error {
+func (s *PostService) SendResetPasswordEmail(email, token string) error {
 	domain := os.Getenv("DOMAIN")
 
 	subject := "Восстановление пароля на Lootor"

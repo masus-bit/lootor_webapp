@@ -3556,7 +3556,7 @@ const docTemplate = `{
         "dto.EventsSwagger": {
             "type": "object",
             "properties": {
-                "Id": {
+                "ID": {
                     "type": "string"
                 },
                 "action": {

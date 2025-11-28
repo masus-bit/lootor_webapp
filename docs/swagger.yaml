@@ -271,7 +271,7 @@ definitions:
     type: object
   dto.EventsSwagger:
     properties:
-      Id:
+      ID:
         type: string
       action:
         type: string

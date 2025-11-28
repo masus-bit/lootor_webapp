@@ -50,16 +50,16 @@ func (c *GRPCPhotosClient) DeletePhoto(ctx context.Context, req *microservices.D
 	return resp, nil
 }
 
-func (c *GRPCPhotosClient) FindOneById(ctx context.Context, req *microservices.FindOneByIdRequest) (*microservices.PhotoResponse, error) {
-	resp, err := c.client.FindOneById(ctx, req)
+func (c *GRPCPhotosClient) FindOneByID(ctx context.Context, req *microservices.FindOneByIdRequest) (*microservices.PhotoResponse, error) {
+	resp, err := c.client.FindOneByID(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *GRPCPhotosClient) FindAllByCollectionId(ctx context.Context, req *microservices.FindByCollectionIdRequest) (*microservices.PhotosResponse, error) {
-	resp, err := c.client.FindAllByCollectionId(ctx, req)
+func (c *GRPCPhotosClient) FindAllByCollectionID(ctx context.Context, req *microservices.FindByCollectionIdRequest) (*microservices.PhotosResponse, error) {
+	resp, err := c.client.FindAllByCollectionID(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +82,8 @@ func (c *GRPCPhotosClient) GetPhotosByCollectionsIds(ctx context.Context, req *m
 	return resp, nil
 }
 
-func (c *GRPCPhotosClient) GetPhotosByIds(ctx context.Context, req *microservices.GetByIdsRequest) (*microservices.PhotosResponse, error) {
-	resp, err := c.client.GetPhotosByIds(ctx, req)
+func (c *GRPCPhotosClient) GetPhotosByIDs(ctx context.Context, req *microservices.GetByIdsRequest) (*microservices.PhotosResponse, error) {
+	resp, err := c.client.GetPhotosByIDs(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -114,12 +114,12 @@ func (c *GRPCPhotosClient) UpdatePhoto(ctx context.Context, req *microservices.U
 	return resp, nil
 }
 
-func (c *GRPCPhotosClient) GetPhotosByIdsMap(ctx context.Context, req *microservices.GetByIdsRequest) (*microservices.GetPhotosByIdsMapResponse, error) {
+func (c *GRPCPhotosClient) GetPhotosByIDsMap(ctx context.Context, req *microservices.GetByIdsRequest) (*microservices.GetPhotosByIdsMapResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
 	}
 
-	photosResult, err := c.client.GetPhotosByIdsMap(ctx, req)
+	photosResult, err := c.client.GetPhotosByIDsMap(ctx, req)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -127,12 +127,12 @@ func (c *GRPCPhotosClient) GetPhotosByIdsMap(ctx context.Context, req *microserv
 	return photosResult, nil
 }
 
-func (c *GRPCPhotosClient) GetCountsByCollectionsIdsMap(ctx context.Context, req *microservices.GetCountsByCollectionsIdsMapRequest) (*microservices.GetCountsByCollectionsIdsMapResponse, error) {
+func (c *GRPCPhotosClient) GetCountsByCollectionsIDsMap(ctx context.Context, req *microservices.GetCountsByCollectionsIdsMapRequest) (*microservices.GetCountsByCollectionsIdsMapResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
 	}
 
-	countsResult, err := c.client.GetCountsByCollectionsIdsMap(ctx, req)
+	countsResult, err := c.client.GetCountsByCollectionsIDsMap(ctx, req)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

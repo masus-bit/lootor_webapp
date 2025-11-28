@@ -24,7 +24,7 @@ func (s *FeedService) CreateFeed(ctx context.Context, request *dto.FeedRequest) 
 		return nil, err
 	}
 
-	id, err := uuid.Parse(feed.Data.Id)
+	id, err := uuid.Parse(feed.Data.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (s *FeedService) CreateFeed(ctx context.Context, request *dto.FeedRequest) 
 	updatedAtAsTime, _ := time.Parse(time.RFC3339, feed.Data.UpdatedAt)
 
 	resultFeed := dto.Feed{
-		Id:        id,
+		ID:        id,
 		Type:      feed.Data.Type,
 		Date:      feed.Data.Date,
 		Content:   content,
@@ -51,7 +51,7 @@ func (s *FeedService) GetFeed(ctx context.Context, id string) (*dto.FeedResponse
 		return nil, err
 	}
 
-	parsedId, err := uuid.Parse(feed.Data.Id)
+	parsedId, err := uuid.Parse(feed.Data.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (s *FeedService) GetFeed(ctx context.Context, id string) (*dto.FeedResponse
 	updatedAtAsTime, _ := time.Parse(time.RFC3339, feed.Data.UpdatedAt)
 
 	resultFeed := dto.Feed{
-		Id:        parsedId,
+		ID:        parsedId,
 		Type:      feed.Data.Type,
 		Date:      feed.Data.Date,
 		Content:   content,
@@ -81,7 +81,7 @@ func (s *FeedService) GetAllFeed(ctx context.Context, limit, offset string) (*dt
 
 	var resultFeed []dto.Feed
 	for _, f := range feed.Data {
-		parsedId, err := uuid.Parse(f.Id)
+		parsedId, err := uuid.Parse(f.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -91,7 +91,7 @@ func (s *FeedService) GetAllFeed(ctx context.Context, limit, offset string) (*dt
 		updatedAtAsTime, _ := time.Parse(time.RFC3339, f.UpdatedAt)
 
 		resultFeed = append(resultFeed, dto.Feed{
-			Id:        parsedId,
+			ID:        parsedId,
 			Type:      f.Type,
 			Date:      f.Date,
 			Content:   content,
@@ -119,7 +119,7 @@ func (s *FeedService) UpdateFeed(ctx context.Context, id string, request *dto.Fe
 		return nil, err
 	}
 
-	parsedId, err := uuid.Parse(feed.Data.Id)
+	parsedId, err := uuid.Parse(feed.Data.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func (s *FeedService) UpdateFeed(ctx context.Context, id string, request *dto.Fe
 	updatedAtAsTime, _ := time.Parse(time.RFC3339, feed.Data.UpdatedAt)
 
 	resultFeed := dto.Feed{
-		Id:        parsedId,
+		ID:        parsedId,
 		Type:      feed.Data.Type,
 		Date:      feed.Data.Date,
 		Content:   content,

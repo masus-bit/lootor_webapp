@@ -10,9 +10,9 @@ type Photos struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Id            uint64          `gorm:"type:uint;primaryKey;autoIncrement" json:"id"`
+	ID            uint64          `gorm:"type:uint;primaryKey;autoIncrement" json:"id"`
 	LikesCount    int64           `json:"likesCount"`
-	CollectionId  string          `json:"collectionId"`
+	CollectionID  string          `json:"collectionId"`
 	Path          string          `json:"path"`
 	Author        SubUsers        `json:"author"`
 	Collection    CollectionShort `json:"collection"`
@@ -33,13 +33,13 @@ type PhotoDataResponse struct {
 }
 
 type PhotoCreateRequest struct {
-	CollectionId string   `json:"collectionId"`
+	CollectionID string   `json:"collectionId"`
 	Paths        []string `json:"paths"`
 	Author       string   `json:"author"`
 }
 
 type PhotoCreate struct {
-	CollectionId string   `json:"collectionId"`
+	CollectionID string   `json:"collectionId"`
 	Paths        []string `json:"paths"`
 }
 

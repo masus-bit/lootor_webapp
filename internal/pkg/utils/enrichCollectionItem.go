@@ -25,7 +25,7 @@ func NewEnrichedCIService(service EnrichedCI, tagsClient *tagsclient.GRPCTagsCli
 
 func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser string) (*models.CollectionItemsResponse, error) {
 	var response models.CollectionItemsResponse
-	protoTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: item.Id.String()})
+	protoTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: item.ID.String()})
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser s
 
 	response.Tags = resultTags
 
-	response.Collection = item.Collections[0].Id
+	response.Collection = item.Collections[0].ID
 	response.Owner = item.Owner
 	response.LikesCount = int64(len(item.Likes))
 	response.IsOwner = authUser == item.Owner.Login
@@ -62,16 +62,15 @@ func (s *EnrichingCIService) enrichAnyItems(items []models.CollectionItems, auth
 			return nil, err
 		}
 
-		protoTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: item.Id.String()})
+		protoTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: item.ID.String()})
 		if err != nil {
 			return nil, err
 		}
 
-		var resultTags []models.ShortTags
-		resultTags = NormalizeTagsShort(protoTags.GetTags())
+		var resultTags []models.ShortTags = NormalizeTagsShort(protoTags.GetTags())
 		temp.Tags = resultTags
 
-		temp.Collection = item.Collections[0].Id
+		temp.Collection = item.Collections[0].ID
 		temp.Owner = item.Owner
 		temp.LikesCount = int64(len(item.Likes))
 		temp.CanLike = true

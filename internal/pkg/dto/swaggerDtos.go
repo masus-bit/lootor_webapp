@@ -50,12 +50,12 @@ type CollectionsSwagger struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Id               uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	ID               uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	Name             string    `json:"name"`
 	Description      string    `json:"description"`
 	Created          string    `json:"created"`
 	IsPrivate        bool      `json:"isPrivate"`
-	BannerUrl        string    `json:"bannerUrl"`
+	BannerURL        string    `json:"bannerUrl"`
 	Likes            []string  `gorm:"type:text[]" json:"likes"`
 	Deleted          bool
 	Transliteration  string                   `json:"transliteration"`
@@ -98,12 +98,12 @@ func (TagsCollectionsCollections) TableName() string {
 }
 
 type CollectionsResponseSwagger struct {
-	Id                   uuid.UUID                        `json:"id"`
+	ID                   uuid.UUID                        `json:"id"`
 	Name                 string                           `json:"name"`
 	Description          string                           `json:"description"`
 	Created              string                           `json:"created"`
 	IsPrivate            bool                             `json:"isPrivate"`
-	BannerUrl            string                           `json:"bannerUrl"`
+	BannerURL            string                           `json:"bannerUrl"`
 	Deleted              bool                             `json:"deleted"`
 	Transliteration      string                           `json:"transliteration"`
 	SubscribersCount     int64                            `json:"subscribersCount"`
@@ -123,7 +123,7 @@ type CollectionsResponseSwagger struct {
 }
 
 type CollectionItemsResponseSwagger struct {
-	Id            uuid.UUID         `json:"id"`
+	ID            uuid.UUID         `json:"id"`
 	Name          string            `json:"name"`
 	Description   string            `json:"description"`
 	Images        []string          `json:"images"`
@@ -154,7 +154,7 @@ type CollectionCreateRequest struct {
 	Name            string   `json:"name"`
 	Description     string   `json:"description"`
 	IsPrivate       bool     `json:"isPrivate"`
-	BannerUrl       string   `json:"bannerUrl"`
+	BannerURL       string   `json:"bannerUrl"`
 	Transliteration string   `json:"transliteration"`
 	UserLogin       string   `json:"userLogin"`
 	Tags            []string `json:"tags"`
@@ -165,7 +165,7 @@ type EntitiesSwagger struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Id             uuid.UUID                `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	ID             uuid.UUID                `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	Name           string                   `json:"name"`
 	CollectionItem []CollectionItemsSwagger `gorm:"many2many:entities_collection_item_collection_items;constraint:OnDelete:CASCADE;" json:"collectionItem"`
 }
@@ -186,7 +186,7 @@ type CollectionItemsSwagger struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Id              uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	ID              uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	Name            string
 	Description     string
 	Images          []string `gorm:"type:text[]"`
@@ -201,8 +201,8 @@ type CollectionItemsSwagger struct {
 	Transliteration string
 	Collections     []CollectionsSwagger `gorm:"many2many:collections_collection_items_collection_items;constraint:OnDelete:CASCADE;"`
 	Owner           UsersSwagger         `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
-	Platform        *models.Platforms    `gorm:"foreignKey:PlatformID;references:Id;constraint:OnDelete:SET NULL;"`
-	ItemType        *models.ItemTypes    `gorm:"foreignKey:ItemTypeID;references:Id;constraint:OnDelete:SET NULL;"`
+	Platform        *models.Platforms    `gorm:"foreignKey:PlatformID;references:ID;constraint:OnDelete:SET NULL;"`
+	ItemType        *models.ItemTypes    `gorm:"foreignKey:ItemTypeID;references:ID;constraint:OnDelete:SET NULL;"`
 	Entities        []EntitiesSwagger    `gorm:"many2many:entities_collection_item_collection_items;constraint:OnDelete:CASCADE;"`
 	UserLogin       string               `gorm:"type:varchar(255);index"`
 	PlatformID      *uuid.UUID           `gorm:"type:uuid;index"`
@@ -214,13 +214,13 @@ type TagsSwagger struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Id          uuid.UUID            `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	ID          uuid.UUID            `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	Name        string               `json:"name"`
 	Collections []CollectionsSwagger `gorm:"many2many:collection_tags_collection;constraint:OnDelete:CASCADE;" json:"collections"`
 }
 
 type EventsSwagger struct {
-	Id              uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"Id"`
+	ID              uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"ID"`
 	Date            string    `json:"date"`
 	Action          string    `gorm:"type:varchar(100);not null" json:"action"`
 	EventTargetType string    `gorm:"type:varchar(50);not null" json:"eventTargetType"` // "collection", "user" или "item"
@@ -251,12 +251,12 @@ type WishListItemsSwagger struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Id        uuid.UUID    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	ID        uuid.UUID    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	UserLogin string       `gorm:"type:varchar(255);index"`
 	User      UsersSwagger `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
 
 	CollectionItemID *uuid.UUID              `gorm:"type:uuid;index"`
-	CollectionItem   *CollectionItemsSwagger `gorm:"foreignKey:CollectionItemID;references:Id;constraint:OnDelete:SET NULL;"`
+	CollectionItem   *CollectionItemsSwagger `gorm:"foreignKey:CollectionItemID;references:ID;constraint:OnDelete:SET NULL;"`
 
 	PurchaseLinks []string `gorm:"type:text[]"`
 	Priority      int64

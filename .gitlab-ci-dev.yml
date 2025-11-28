@@ -77,10 +77,9 @@ container_scanning:
   tags:
     - auc
   image: aquasec/trivy:latest
-  dependencies:
-    - build
   script:
-    - trivy image --exit-code 0 --severity HIGH,CRITICAL "${CI_REGISTRY_IMAGE}:latest"
+    - trivy image --severity HIGH,CRITICAL --exit-code 1 --no-progress "${CI_REGISTRY_IMAGE}:latest"
+  allow_failure: true
 
 # ----------------------------------------------
 # DEPLOY (как было)

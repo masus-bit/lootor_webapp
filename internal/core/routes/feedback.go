@@ -7,7 +7,7 @@ import (
 	"lootor/internal/pkg/feedback"
 )
 
-func FeedbackRouter(e *echo.Echo, jwtService *auth.JWTService, service feedback.FeedbackService) {
+func FeedbackRouter(e *echo.Echo, jwtService *auth.JWTService, service feedback.FBService) {
 	controller := controllers.NewFeedbackController(&service)
 
 	securedGroup := e.Group("/secured")

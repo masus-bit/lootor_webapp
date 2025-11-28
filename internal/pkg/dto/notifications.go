@@ -11,11 +11,11 @@ type Notifications struct {
 	UpdatedAt string         `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Id          string     `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	ID          string     `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	UserLogin   string     `json:"userLogin"`
 	Type        string     `json:"type"`
 	SenderLogin string     `json:"senderLogin"`
-	TargetId    string     `json:"targetId"`
+	TargetID    string     `json:"targetId"`
 	IsRead      bool       `json:"isRead"`
 	Date        string     `json:"date"`
 	TargetUser  User       `json:"targetUser"`
@@ -31,7 +31,7 @@ type NotificationsReadRequest struct {
 
 type NotificationsRequest struct {
 	Login       string     `json:"login"`
-	TargetId    string     `json:"targetId"`
+	TargetID    string     `json:"targetId"`
 	Type        string     `json:"type"`
 	SenderLogin string     `json:"senderLogin"`
 	Date        string     `json:"date"`
@@ -45,7 +45,7 @@ type NotificationsRequest struct {
 
 type NotificationsRestRequest struct {
 	Login       string     `json:"login"`
-	TargetId    string     `json:"targetId"`
+	TargetID    string     `json:"targetId"`
 	Type        string     `json:"type"`
 	SenderLogin string     `json:"senderLogin"`
 	Date        string     `json:"date"`
@@ -62,7 +62,7 @@ type User struct {
 }
 
 type TargetItem struct {
-	Id               string `json:"id"`
+	ID               string `json:"id"`
 	Name             string `json:"name"`
 	Transliteration  string `json:"transliteration"`
 	TargetType       string `json:"targetType"`
@@ -73,12 +73,12 @@ type NotificationsResponse struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Id          uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	ID          uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	UserLogin   string    `json:"userLogin"`
 	Type        string    `json:"type"`
 	SenderLogin string    `json:"senderLogin"`
 	OwnerLogin  string    `json:"ownerLogin"`
-	TargetId    string    `json:"targetId"`
+	TargetID    string    `json:"targetId"`
 	IsRead      bool      `json:"isRead"`
 	Date        string    `json:"date"`
 	Action      string    `json:"action"`

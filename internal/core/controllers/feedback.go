@@ -7,10 +7,10 @@ import (
 )
 
 type FeedbackController struct {
-	feedService *feedback.FeedbackService
+	feedService *feedback.FBService
 }
 
-func NewFeedbackController(feedService *feedback.FeedbackService) *FeedbackController {
+func NewFeedbackController(feedService *feedback.FBService) *FeedbackController {
 	return &FeedbackController{feedService: feedService}
 }
 

@@ -31,7 +31,7 @@ type UserService struct {
 	repo                 *repositories.UsersRepository
 	jwtService           *auth.JWTService
 	ciRepo               *repositories.CiRepository
-	mailService          *mail.MailService
+	mailService          *mail.PostService
 	eventsService        *EventsService
 	notificationsService *NotificationsService
 	collectionRepo       *repositories.CollectionsRepository
@@ -39,7 +39,7 @@ type UserService struct {
 	tagsClient           *tagsclient.GRPCTagsClient
 }
 
-func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.MailService, eventsService *EventsService, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, postsService *PostsService, tagsClient *tagsclient.GRPCTagsClient) *UserService {
+func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.PostService, eventsService *EventsService, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, postsService *PostsService, tagsClient *tagsclient.GRPCTagsClient) *UserService {
 	_ = godotenv.Load()
 	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, eventsService: eventsService, notificationsService: notificationsService, collectionRepo: collectionRepo, postsService: postsService, tagsClient: tagsClient}
 }
@@ -138,7 +138,7 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	if len(subTags.GetTags()) > 0 || subTags != nil {
 		for _, tag := range subTags.GetTags() {
 			resultTags = append(resultTags, models.SubTags{
-				ID:   tag.Id,
+				ID:   tag.ID,
 				Name: tag.Name,
 				Slug: tag.Slug,
 			})
@@ -224,9 +224,8 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 				fmt.Println(err)
 			}
 		}()
-		var target dto.TargetItem
-		target = dto.TargetItem{
-			Id:              targetUserLogin,
+		var target dto.TargetItem = dto.TargetItem{
+			ID:              targetUserLogin,
 			Name:            subscriptionTargetUser.ProfileName,
 			Transliteration: "",
 			TargetType:      "user",
@@ -234,7 +233,7 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		go func() {
 			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
 				Login:       targetUserLogin,
-				TargetId:    targetUserLogin,
+				TargetID:    targetUserLogin,
 				SenderLogin: authUserLogin,
 				Type:        utils.NotificationTypeUser,
 				Action:      utils.NotificationActionSubscribe,
@@ -304,11 +303,11 @@ func (s *UserService) SignIn(dto *models.SignInRequest) (*models.SignInResponse,
 func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*models.SignUpResponse, error) {
 	userByMail, _ := s.repo.GetByEmailForSignUp(dto.Email)
 	if userByMail != nil {
-		return nil, errors.New("Email должен быть уникальным")
+		return nil, errors.New("email должен быть уникальным")
 	}
 	userByLogin, _ := s.repo.GetUserByLoginForSignUp(dto.Login)
 	if userByLogin != nil {
-		return nil, errors.New("Логин должен быть уникальным")
+		return nil, errors.New("логин должен быть уникальным")
 	}
 
 	passwordHash, errorHash := auth.HashPassword(dto.Password)
@@ -420,11 +419,11 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		return nil, fmt.Errorf("failed to get user info: %w", err)
 	}
 
-	newId := fmt.Sprintf("%d", userInfo.Id)
+	newId := fmt.Sprintf("%d", userInfo.ID)
 
 	existsUser, _ := s.repo.GetByVkId(newId)
 
-	fmt.Println(fmt.Sprintf("user%+v", existsUser))
+	fmt.Println(fmt.Printf("user%+v", existsUser))
 	if existsUser != nil && !existsUser.TmpLogin {
 
 		if existsUser.VerificationToken != "" {
@@ -519,7 +518,7 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 
 	}
 	data := []string{
-		fmt.Sprintf("id=%d", dto.Id),
+		fmt.Sprintf("id=%d", dto.ID),
 		fmt.Sprintf("username=%s", dto.Username),
 		fmt.Sprintf("auth_date=%d", dto.AuthDate),
 	}
@@ -548,10 +547,10 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 
 	computedHash := hex.EncodeToString(hashBytes)
 	if hash != computedHash {
-		return nil, fmt.Errorf("Проблемы с хэшем")
+		return nil, fmt.Errorf("проблемы с хэшем")
 	}
 
-	newId := fmt.Sprintf("%d", dto.Id)
+	newId := fmt.Sprintf("%d", dto.ID)
 
 	existUser, _ := s.repo.GetByTgId(newId)
 
@@ -746,7 +745,7 @@ func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, ta
 	}
 	emailUser, err := s.repo.GetByEmail(*data.Email)
 	if err != nil {
-		fmt.Errorf("failed to check user existence: %w", err)
+		_ = fmt.Errorf("failed to check user existence: %w", err)
 	}
 
 	if emailUser != nil && emailUser.Email == *data.Email {

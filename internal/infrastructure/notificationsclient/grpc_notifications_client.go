@@ -29,14 +29,14 @@ func (c *GRPCNotificationsClient) AddNotification(ctx context.Context, dto *dto.
 
 	resp, err := c.client.CreateNotification(ctx, &microservices.CreateNotificationRequest{
 		Date:        dto.Date,
-		TargetId:    dto.TargetId,
+		TargetID:    dto.TargetID,
 		UserLogin:   dto.Login,
 		Type:        dto.Type,
 		SenderLogin: dto.SenderLogin,
 		Action:      dto.Action,
 		TargetType:  dto.TargetItem.TargetType,
 		Target: &microservices.TargetItem{
-			Id:              &dto.TargetItem.Id,
+			ID:              &dto.TargetItem.ID,
 			Name:            &dto.TargetItem.Name,
 			Transliteration: &dto.TargetItem.Transliteration,
 			TargetType:      &dto.TargetItem.TargetType,
@@ -79,7 +79,7 @@ func (c *GRPCNotificationsClient) ReadNotifications(ctx context.Context, ids []s
 
 func (c *GRPCNotificationsClient) DeleteNotification(ctx context.Context, targetId, senderLogin string) (*microservices.DeleteNotificationResponse, error) {
 	notification, err := c.client.RemoveNotification(ctx, &microservices.DeleteNotificationRequest{
-		TargetId:  targetId,
+		TargetID:  targetId,
 		UserLogin: senderLogin,
 	})
 	if err != nil {
@@ -90,7 +90,7 @@ func (c *GRPCNotificationsClient) DeleteNotification(ctx context.Context, target
 
 func (c *GRPCNotificationsClient) DeleteAllNotificationsByTargetId(ctx context.Context, targetId string) (*microservices.DeleteNotificationResponse, error) {
 	return c.client.RemoveAllNotificationsByTargetId(ctx, &microservices.DeleteNotificationRequest{
-		TargetId: targetId,
+		TargetID: targetId,
 	})
 }
 

@@ -6,7 +6,7 @@ import (
 )
 
 type Subscription struct {
-	Id        uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	UserLogin string    `gorm:"index"`
 	Type      string    // monthly, yearly
 	StartedAt time.Time

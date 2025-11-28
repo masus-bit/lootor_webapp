@@ -22,12 +22,12 @@ type Collections struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Id               uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	ID               uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	Name             string         `json:"name"`
 	Description      string         `json:"description"`
 	Created          string         `json:"created"`
 	IsPrivate        bool           `json:"isPrivate"`
-	BannerUrl        string         `json:"bannerUrl"`
+	BannerURL        string         `json:"bannerUrl"`
 	Likes            pq.StringArray `gorm:"type:text[]" json:"likes"`
 	Deleted          bool
 	Transliteration  string            `json:"transliteration"`
@@ -47,12 +47,12 @@ func (CollectionsCollectionItemsCollectionItems) TableName() string {
 }
 
 type CollectionsResponse struct {
-	Id                   uuid.UUID                 `json:"id"`
+	ID                   uuid.UUID                 `json:"id"`
 	Name                 string                    `json:"name"`
 	Description          string                    `json:"description"`
 	Created              string                    `json:"created"`
 	IsPrivate            bool                      `json:"isPrivate"`
-	BannerUrl            string                    `json:"bannerUrl"`
+	BannerURL            string                    `json:"bannerUrl"`
 	Deleted              bool                      `json:"deleted"`
 	Transliteration      string                    `json:"transliteration"`
 	SubscribersCount     int64                     `json:"subscribersCount"`
@@ -91,7 +91,7 @@ type CollectionCreateRequest struct {
 	Name            string   `json:"name"`
 	Description     string   `json:"description"`
 	IsPrivate       bool     `json:"isPrivate"`
-	BannerUrl       string   `json:"bannerUrl"`
+	BannerURL       string   `json:"bannerUrl"`
 	Transliteration string   `json:"transliteration"`
 	UserLogin       string   `json:"userLogin"`
 	Tags            []string `json:"tags"`
@@ -101,17 +101,17 @@ type CollectionUpdateRequest struct {
 	Name            *string  `json:"name"`
 	Description     *string  `json:"description"`
 	IsPrivate       *bool    `json:"isPrivate"`
-	BannerUrl       *string  `json:"bannerUrl"`
+	BannerURL       *string  `json:"bannerUrl"`
 	Transliteration *string  `json:"transliteration"`
 	UserLogin       *string  `json:"userLogin"`
 	Tags            []string `json:"tags"`
 }
 
 type CollectionShort struct {
-	Id              uuid.UUID `json:"id"`
+	ID              uuid.UUID `json:"id"`
 	Name            string    `json:"name"`
 	IsPrivate       bool      `json:"isPrivate"`
-	BannerUrl       string    `json:"bannerUrl"`
+	BannerURL       string    `json:"bannerUrl"`
 	Transliteration string    `json:"transliteration"`
 	ShareString     string    `json:"shareString"`
 	UserLogin       string    `json:"userLogin"`

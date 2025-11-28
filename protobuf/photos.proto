@@ -8,17 +8,17 @@ service PhotosService {
   rpc CreatePhotos(CreatePhotosRequest) returns (PhotosResponse);
   rpc FindByUser(FindByUserRequest) returns (PhotosResponse);
   rpc DeletePhoto(DeletePhotoRequest) returns (DeletePhotoResponse);
-  rpc FindOneById(FindOneByIdRequest) returns (PhotoResponse);
-  rpc FindAllByCollectionId(FindByCollectionIdRequest) returns (PhotosResponse);
+  rpc FindOneByID(FindOneByIdRequest) returns (PhotoResponse);
+  rpc FindAllByCollectionID(FindByCollectionIdRequest) returns (PhotosResponse);
   rpc LikePhoto(LikePhotoRequest) returns (DeletePhotoResponse);
   rpc GetPhotosByCollectionsIds(GetPhotosByCollectionsIdsMapRequest) returns (GetPhotosByIdsMapResponse);
-  rpc GetPhotosByIds(GetByIdsRequest) returns (PhotosResponse);
+  rpc GetPhotosByIDs(GetByIdsRequest) returns (PhotosResponse);
   rpc GetCountByCollection(CountRequestPhoto) returns (CountResponsePhoto);
   rpc IncrementCommentsCount(CommentsCountRequestPhoto) returns (CommentsCountResponsePhoto);
   rpc DecrementCommentsCount(CommentsCountRequestPhoto) returns (CommentsCountResponsePhoto);
   rpc UpdatePhoto(UpdatePhotoRequest) returns (PhotoResponse);
-  rpc GetPhotosByIdsMap(GetByIdsRequest) returns (GetPhotosByIdsMapResponse);
-  rpc GetCountsByCollectionsIdsMap(GetCountsByCollectionsIdsMapRequest) returns (GetCountsByCollectionsIdsMapResponse);
+  rpc GetPhotosByIDsMap(GetByIdsRequest) returns (GetPhotosByIdsMapResponse);
+  rpc GetCountsByCollectionsIDsMap(GetCountsByCollectionsIdsMapRequest) returns (GetCountsByCollectionsIdsMapResponse);
 }
 
 message GetCountsByCollectionsIdsMapRequest {

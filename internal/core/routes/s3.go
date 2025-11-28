@@ -7,7 +7,7 @@ import (
 	"lootor/internal/pkg/s3"
 )
 
-func S3Router(e *echo.Echo, jwtService *auth.JWTService, s3Service s3.S3Service) {
+func S3Router(e *echo.Echo, jwtService *auth.JWTService, s3Service s3.StorageService) {
 	controller := controllers.NewFilesController(&s3Service)
 
 	publicGroup := e.Group("/public")

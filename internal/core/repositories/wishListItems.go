@@ -20,7 +20,7 @@ func (r *WLRepository) AddItem(item *models.WishListItems) (*models.WishListItem
 		return nil, err.Error
 	}
 
-	err = r.db.Where("id = ?", item.Id).Preload("User").Preload("CollectionItem").
+	err = r.db.Where("id = ?", item.ID).Preload("User").Preload("CollectionItem").
 		Preload("CollectionItem.Platform").
 		Preload("CollectionItem.Entities").
 		Preload("CollectionItem.Owner").
@@ -93,7 +93,7 @@ func (r *WLRepository) UpdateItem(item *models.WishListItems) (*models.WishListI
 	}
 
 	var updated models.WishListItems
-	err := r.db.Where("id = ?", item.Id).Preload("User").Preload("CollectionItem").First(&updated).Error
+	err := r.db.Where("id = ?", item.ID).Preload("User").Preload("CollectionItem").First(&updated).Error
 
 	return &updated, err
 }
@@ -111,7 +111,7 @@ func (r *WLRepository) GetWLByIdsMap(ids []string) (map[string]models.WishListIt
 		if err != nil {
 			return nil, err
 		}
-		itemsMap[item.Id.String()] = resultItem
+		itemsMap[item.ID.String()] = resultItem
 	}
 	return itemsMap, nil
 }

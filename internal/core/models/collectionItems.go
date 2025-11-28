@@ -12,7 +12,7 @@ type CollectionItems struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Id              uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	ID              uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	Name            string
 	Description     string
 	Images          pq.StringArray `gorm:"type:text[]"`
@@ -28,8 +28,8 @@ type CollectionItems struct {
 	Transliteration string
 	Collections     []Collections `gorm:"many2many:collections_collection_items_collection_items;constraint:OnDelete:CASCADE;"`
 	Owner           Users         `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
-	Platform        *Platforms    `gorm:"foreignKey:PlatformID;references:Id;constraint:OnDelete:SET NULL;"`
-	ItemType        *ItemTypes    `gorm:"foreignKey:ItemTypeID;references:Id;constraint:OnDelete:SET NULL;"`
+	Platform        *Platforms    `gorm:"foreignKey:PlatformID;references:ID;constraint:OnDelete:SET NULL;"`
+	ItemType        *ItemTypes    `gorm:"foreignKey:ItemTypeID;references:ID;constraint:OnDelete:SET NULL;"`
 	UserLogin       string        `gorm:"type:varchar(255);index"`
 	PlatformID      *uuid.UUID    `gorm:"type:uuid;index"`
 	ItemTypeID      *uuid.UUID    `gorm:"type:uuid;index"`
@@ -37,7 +37,7 @@ type CollectionItems struct {
 	CommentsCount   int64         `json:"commentsCount"`
 }
 type CollectionItemsResponse struct {
-	Id                        uuid.UUID   `json:"id"`
+	ID                        uuid.UUID   `json:"id"`
 	Name                      string      `json:"name"`
 	Description               string      `json:"description"`
 	Images                    []string    `json:"images"`
@@ -107,8 +107,8 @@ type CollectionItemsDataResponseWithCount struct {
 }
 
 type CollectionItemsCopyOrMoveRequest struct {
-	Id                  string   `json:"id"`
-	TargetCollectionIds []string `json:"targetCollectionIds"`
+	ID                  string   `json:"id"`
+	TargetCollectionIDs []string `json:"targetCollectionIds"`
 	SourceCollectionId  string   `json:"sourceCollectionId"`
 }
 

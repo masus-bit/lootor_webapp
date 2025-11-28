@@ -112,8 +112,8 @@ func (s *PayService) EndTransaction(data *Notification) {
 	if subType == "donate" {
 		payment := models.Payments{
 			Amount:        data.Object.Amount.Value,
-			InnerOrderId:  data.Object.Metadata.OrderID,
-			TransactionId: data.Object.ID,
+			InnerOrderID:  data.Object.Metadata.OrderID,
+			TransactionID: data.Object.ID,
 			UserLogin:     userLogin,
 			PaymentType:   subType,
 		}
@@ -144,8 +144,8 @@ func (s *PayService) EndTransaction(data *Notification) {
 	}
 	payment := models.Payments{
 		Amount:        data.Object.Amount.Value,
-		InnerOrderId:  data.Object.Metadata.OrderID,
-		TransactionId: data.Object.ID,
+		InnerOrderID:  data.Object.Metadata.OrderID,
+		TransactionID: data.Object.ID,
 		UserLogin:     userLogin,
 		PaymentType:   subType,
 	}

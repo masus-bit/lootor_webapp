@@ -26,13 +26,13 @@ type CollectionService struct {
 	userRepo             *repositories.UsersRepository
 	eventsService        *EventsService
 	collectionItemRepo   *repositories.CiRepository
-	s3Service            *s3.S3Service
+	s3Service            *s3.StorageService
 	notificationsService *NotificationsService
 	tagsClient           *tagsclient.GRPCTagsClient
 	photosClient         *photosclient.GRPCPhotosClient
 }
 
-func NewCollectionService(repo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, eventsService *EventsService, collectionItemRepo *repositories.CiRepository, seService *s3.S3Service, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient, photosClient *photosclient.GRPCPhotosClient) *CollectionService {
+func NewCollectionService(repo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, eventsService *EventsService, collectionItemRepo *repositories.CiRepository, seService *s3.StorageService, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient, photosClient *photosclient.GRPCPhotosClient) *CollectionService {
 	return &CollectionService{repo: repo, userRepo: userRepo, eventsService: eventsService, collectionItemRepo: collectionItemRepo, s3Service: seService, notificationsService: notificationsService, tagsClient: tagsClient, photosClient: photosClient}
 }
 
@@ -49,7 +49,7 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	dbCollection := &models.Collections{
 		Name:            dto.Name,
 		Description:     dto.Description,
-		BannerUrl:       dto.BannerUrl,
+		BannerURL:       dto.BannerURL,
 		IsPrivate:       dto.IsPrivate,
 		Transliteration: dto.Transliteration,
 		User:            dtoUser,
@@ -72,7 +72,7 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	}
 
 	if !dto.IsPrivate {
-		eventError := s.eventsService.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, &models.EventsParams{TargetCollectionID: res.Id})
+		eventError := s.eventsService.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, &models.EventsParams{TargetCollectionID: res.ID})
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
@@ -82,14 +82,14 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	var response models.CollectionsResponse
 
 	e := mapstructure.Decode(res, &response)
-	response.Id = res.Id
+	response.ID = res.ID
 
 	var tags *microservices.GetShortsResponse
 
 	if len(dto.Tags) > 0 {
 		tags, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
 			EntityType: "collection",
-			EntityId:   res.Id.String(),
+			EntityId:   res.ID.String(),
 			TagIds:     dto.Tags,
 			Author:     dto.UserLogin,
 			ShowSearch: !dto.IsPrivate,
@@ -97,7 +97,7 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 		if !dto.IsPrivate {
 			for _, tag := range tags.GetTags() {
 				tagUUID, _ := uuid.Parse(tag.GetId())
-				eventError := s.eventsService.AddEvent(dto.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TargetCollectionID: res.Id, TagRelatedEntityType: utils.EventTargetCollection})
+				eventError := s.eventsService.AddEvent(dto.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TargetCollectionID: res.ID, TagRelatedEntityType: utils.EventTargetCollection})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -110,7 +110,7 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	if tags != nil {
 		for _, tag := range tags.Tags {
 			resultTags = append(resultTags, models.ShortTags{
-				ID:   tag.Id,
+				ID:   tag.ID,
 				Name: tag.Name,
 				Slug: tag.Slug,
 			})
@@ -168,7 +168,7 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 			utils.EventActionUpdate,
 			utils.EventTargetCollection,
 			*dto.Name,
-			&models.EventsParams{TargetCollectionID: resultCollection.Id},
+			&models.EventsParams{TargetCollectionID: resultCollection.ID},
 		)
 		if eventError != nil {
 			log.Default().Print(eventError)
@@ -258,13 +258,13 @@ func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonR
 	exists, _ := s.repo.GetCollectionByIdWithoutLimits(id)
 	if !exists.IsPrivate {
 		go func() {
-			eventError := s.eventsService.AddEvent(exists.User.Login, utils.EventActionDelete, utils.EventTargetCollection, exists.Name, &models.EventsParams{TargetCollectionID: exists.Id})
+			eventError := s.eventsService.AddEvent(exists.User.Login, utils.EventActionDelete, utils.EventTargetCollection, exists.Name, &models.EventsParams{TargetCollectionID: exists.ID})
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
 		}()
-		if exists.BannerUrl != "" {
-			_, err := s.s3Service.DeleteFiles(ctx, s3.DeleteFilesRequest{Keys: []string{exists.BannerUrl}})
+		if exists.BannerURL != "" {
+			_, err := s.s3Service.DeleteFiles(ctx, s3.DeleteFilesRequest{Keys: []string{exists.BannerURL}})
 			if err != nil {
 				return nil, err
 			}
@@ -328,8 +328,8 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 	collectionIds := make([]uuid.UUID, 0)
 	collectionStringIds := make([]string, 0)
 	for _, dbCollection := range collections {
-		collectionIds = append(collectionIds, dbCollection.Id)
-		collectionStringIds = append(collectionStringIds, dbCollection.Id.String())
+		collectionIds = append(collectionIds, dbCollection.ID)
+		collectionStringIds = append(collectionStringIds, dbCollection.ID.String())
 	}
 
 	tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{EntityIds: collectionStringIds})
@@ -339,25 +339,23 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 	counts, _ := s.collectionItemRepo.GetCountCIByIDs(collectionIds)
 	totalPrices, _ := s.collectionItemRepo.GetSumsByCollectionIDs(collectionIds)
 	shippingCosts, _ := s.collectionItemRepo.GetShippingCostsByCollectionIDs(collectionIds)
-	photosCounts, _ := s.photosClient.GetCountsByCollectionsIdsMap(context.Background(), &microservices.GetCountsByCollectionsIdsMapRequest{CollectionsIds: collectionStringIds})
+	photosCounts, _ := s.photosClient.GetCountsByCollectionsIDsMap(context.Background(), &microservices.GetCountsByCollectionsIdsMapRequest{CollectionsIds: collectionStringIds})
 
 	for _, dbCollection := range collections {
 		var temp models.CollectionsResponse
 		err = mapstructure.Decode(dbCollection, &temp)
 
-		itemTags := tags.GetTags()[dbCollection.Id.String()]
+		itemTags := tags.GetTags()[dbCollection.ID.String()]
 
-		var resultTags []models.ShortTags
-
-		resultTags = utils.NormalizeTagsShort(itemTags.GetTags())
+		var resultTags []models.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
 
 		temp.Tags = resultTags
 
 		temp.ShareString = utils.DefineShareString(authorizedUser, login, &dbCollection)
-		temp.CollectionItemsCount = counts[dbCollection.Id]
-		temp.PhotosCount = photosCounts.GetData()[dbCollection.Id.String()]
-		temp.TotalPrice = totalPrices[dbCollection.Id]
-		temp.ShippingTotal = shippingCosts[dbCollection.Id]
+		temp.CollectionItemsCount = counts[dbCollection.ID]
+		temp.PhotosCount = photosCounts.GetData()[dbCollection.ID.String()]
+		temp.TotalPrice = totalPrices[dbCollection.ID]
+		temp.ShippingTotal = shippingCosts[dbCollection.ID]
 		temp.LikesCount = int64(len(dbCollection.Likes))
 		temp.CanLike = utils.CanLike(dbCollection.Likes, authorizedUser, dbCollection.UserLogin)
 		temp.IsOwner = authorizedUser == login
@@ -381,15 +379,15 @@ func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit
 	collectionIds := make([]uuid.UUID, 0)
 	collectionStringIds := make([]string, 0)
 	for _, dbCollection := range collections {
-		collectionIds = append(collectionIds, dbCollection.Id)
-		collectionStringIds = append(collectionStringIds, dbCollection.Id.String())
+		collectionIds = append(collectionIds, dbCollection.ID)
+		collectionStringIds = append(collectionStringIds, dbCollection.ID.String())
 	}
 
 	tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{EntityIds: collectionStringIds})
 	if err != nil {
 		return nil, err
 	}
-	photosCounts, _ := s.photosClient.GetCountsByCollectionsIdsMap(context.Background(), &microservices.GetCountsByCollectionsIdsMapRequest{CollectionsIds: collectionStringIds})
+	photosCounts, _ := s.photosClient.GetCountsByCollectionsIDsMap(context.Background(), &microservices.GetCountsByCollectionsIdsMapRequest{CollectionsIds: collectionStringIds})
 	counts, _ := s.collectionItemRepo.GetCountCIByIDs(collectionIds)
 	totalPrices, _ := s.collectionItemRepo.GetSumsByCollectionIDs(collectionIds)
 	shippingCosts, _ := s.collectionItemRepo.GetShippingCostsByCollectionIDs(collectionIds)
@@ -398,20 +396,19 @@ func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit
 		var temp models.CollectionsResponse
 		err = mapstructure.Decode(dbCollection, &temp)
 
-		itemTags := tags.GetTags()[dbCollection.Id.String()]
+		itemTags := tags.GetTags()[dbCollection.ID.String()]
 
-		var resultTags []models.ShortTags
-		resultTags = utils.NormalizeTagsShort(itemTags.GetTags())
+		var resultTags []models.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
 
 		temp.Tags = resultTags
 
-		temp.CollectionItemsCount = counts[dbCollection.Id]
-		temp.TotalPrice = totalPrices[dbCollection.Id]
-		temp.ShippingTotal = shippingCosts[dbCollection.Id]
+		temp.CollectionItemsCount = counts[dbCollection.ID]
+		temp.TotalPrice = totalPrices[dbCollection.ID]
+		temp.ShippingTotal = shippingCosts[dbCollection.ID]
 		temp.LikesCount = int64(len(dbCollection.Likes))
 		temp.CanLike = utils.CanLike(dbCollection.Likes, authorizedUser, dbCollection.UserLogin)
 		temp.IsOwner = authorizedUser == temp.User.Login
-		temp.PhotosCount = photosCounts.GetData()[dbCollection.Id.String()]
+		temp.PhotosCount = photosCounts.GetData()[dbCollection.ID.String()]
 
 		if err != nil {
 			return nil, err
@@ -453,14 +450,14 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 
 	collectionItemIds := make([]string, 0)
 	for _, item := range dbCollection.CollectionItems {
-		collectionItemIds = append(collectionItemIds, item.Id.String())
+		collectionItemIds = append(collectionItemIds, item.ID.String())
 	}
 
 	ciTags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{EntityIds: collectionItemIds})
 	if err != nil {
 		return nil, err
 	}
-	photosCount, err := s.photosClient.GetCountByCollection(context.Background(), &microservices.CountRequestPhoto{CollectionId: dbCollection.Id.String()})
+	photosCount, err := s.photosClient.GetCountByCollection(context.Background(), &microservices.CountRequestPhoto{CollectionID: dbCollection.ID.String()})
 	if err != nil {
 		return nil, err
 	}
@@ -472,13 +469,12 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 			return nil, itemErr
 		}
 
-		itemTags := ciTags.GetTags()[item.Id.String()]
+		itemTags := ciTags.GetTags()[item.ID.String()]
 
-		var resultTags []models.ShortTags
-		resultTags = utils.NormalizeTagsShort(itemTags.GetTags())
+		var resultTags []models.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
 		temp.Tags = resultTags
 
-		temp.Collection = finalCollection.Id
+		temp.Collection = finalCollection.ID
 		temp.LikesCount = int64(len(item.Likes))
 		temp.CanLike = utils.CanLike(item.Likes, authorizerUser, item.Owner.Login)
 		temp.CollectionTransliteration = finalCollection.Transliteration
@@ -492,21 +488,20 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 		collectionItems = append(collectionItems, temp)
 	}
 
-	protoTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: dbCollection.Id.String()})
+	protoTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: dbCollection.ID.String()})
 	if err != nil {
 		return nil, err
 	}
 
-	var resultTags []models.ShortTags
-	resultTags = utils.NormalizeTagsShort(protoTags.GetTags())
+	var resultTags []models.ShortTags = utils.NormalizeTagsShort(protoTags.GetTags())
 
 	finalCollection.Tags = resultTags
 
 	finalCollection.CollectionItems = collectionItems
 	finalCollection.ShareString = utils.DefineShareString(authorizerUser, userLogin, dbCollection)
-	finalCollection.CollectionItemsCount, _ = s.collectionItemRepo.GetCountCI(dbCollection.Id)
-	finalCollection.TotalPrice, _ = s.collectionItemRepo.Sum(dbCollection.Id)
-	finalCollection.ShippingTotal, _ = s.collectionItemRepo.SumShippingCost(dbCollection.Id)
+	finalCollection.CollectionItemsCount, _ = s.collectionItemRepo.GetCountCI(dbCollection.ID)
+	finalCollection.TotalPrice, _ = s.collectionItemRepo.Sum(dbCollection.ID)
+	finalCollection.ShippingTotal, _ = s.collectionItemRepo.SumShippingCost(dbCollection.ID)
 	finalCollection.LikesCount = int64(len(dbCollection.Likes))
 	finalCollection.CanLike = utils.CanLike(dbCollection.Likes, authorizerUser, dbCollection.UserLogin)
 	finalCollection.IsOwner = authorizerUser == userLogin
@@ -541,7 +536,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.IsPrivate {
 			go func() {
-				eventError := s.eventsService.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollection, exists.Name, &models.EventsParams{TargetCollectionID: exists.Id})
+				eventError := s.eventsService.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollection, exists.Name, &models.EventsParams{TargetCollectionID: exists.ID})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -553,7 +548,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 			return nil, err
 		}
 		target := &dto.TargetItem{
-			Id:              id,
+			ID:              id,
 			Name:            exists.Name,
 			Transliteration: exists.Transliteration,
 			TargetType:      "collection",
@@ -561,7 +556,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		go func() {
 			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
 				Login:       exists.UserLogin,
-				TargetId:    id,
+				TargetID:    id,
 				SenderLogin: userLogin,
 				Type:        utils.NotificationTypeCollection,
 				Action:      utils.NotificationActionLike,
@@ -573,7 +568,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
 		if !exists.IsPrivate {
 			go func() {
-				eventError := s.eventsService.AddEvent(userLogin, utils.EventActionDislike, utils.EventTargetCollection, exists.Name, &models.EventsParams{TargetCollectionID: exists.Id})
+				eventError := s.eventsService.AddEvent(userLogin, utils.EventActionDislike, utils.EventTargetCollection, exists.Name, &models.EventsParams{TargetCollectionID: exists.ID})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -622,7 +617,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 //		subscriber.CollectionSubscriptions = append(subscriber.CollectionSubscriptions, targetId)
 //		dbCollection.SubscribersCount = dbCollection.SubscribersCount + 1
 //		go func() {
-//			eventError := s.eventsService.AddEvent(userLogin, utils.EventActionSubscribe, utils.EventTargetCollection, dbCollection.Name, &models.EventsParams{TargetCollectionID: dbCollection.Id})
+//			eventError := s.eventsService.AddEvent(userLogin, utils.EventActionSubscribe, utils.EventTargetCollection, dbCollection.Name, &models.EventsParams{TargetCollectionID: dbCollection.ID})
 //			if eventError != nil {
 //				log.Default().Print(eventError)
 //			}
@@ -632,7 +627,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 //			return nil, err
 //		}
 //		target := &dto.TargetItem{
-//			Id:              targetId,
+//			ID:              targetId,
 //			Name:            dbCollection.Name,
 //			Transliteration: dbCollection.Transliteration,
 //			TargetType:      "collection",
@@ -640,7 +635,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 //		go func() {
 //			_ = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
 //				Login:       dbCollection.UserLogin,
-//				TargetId:    targetId,
+//				TargetID:    targetId,
 //				SenderLogin: userLogin,
 //				Type:        utils.NotificationTypeCollection,
 //				Action:      utils.NotificationActionSubscribe,

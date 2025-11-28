@@ -11,10 +11,10 @@ type Payments struct {
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Id            uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	ID            uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	Amount        string    `json:"amount"`
-	TransactionId string    `json:"transactionId"`
-	InnerOrderId  string    `json:"innerOrderId"`
+	TransactionID string    `json:"transactionId"`
+	InnerOrderID  string    `json:"innerOrderId"`
 	UserLogin     string    `json:"userLogin"`
 	PaymentType   string    `json:"paymentType"`
 }

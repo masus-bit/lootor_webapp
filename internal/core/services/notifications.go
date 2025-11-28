@@ -59,7 +59,7 @@ func (s *NotificationsService) SendNotification(ctx context.Context, request *dt
 
 	finalRequest := dto.NotificationsRequest{
 		Login:       request.Login,
-		TargetId:    request.TargetId,
+		TargetID:    request.TargetID,
 		Type:        request.Type,
 		SenderLogin: request.SenderLogin,
 		Date:        request.Date,
@@ -112,7 +112,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		}
 	}
 	if len(photosIDs) > 0 {
-		photos, err := s.photosClient.GetPhotosByIdsMap(ctx, &microservices.GetByIdsRequest{
+		photos, err := s.photosClient.GetPhotosByIDsMap(ctx, &microservices.GetByIdsRequest{
 			Ids: photosIDs,
 		})
 		if err != nil {
@@ -122,8 +122,8 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			userLogins = append(userLogins, photo.GetAuthor())
 			stringID := strconv.Itoa(int(photo.GetId()))
 			photosMap[stringID] = models.Photos{
-				Id:           photo.GetId(),
-				CollectionId: photo.GetCollectionId(),
+				ID:           photo.GetId(),
+				CollectionID: photo.GetCollectionId(),
 				Path:         photo.GetPath(),
 				Author: models.SubUsers{
 					Login: photo.GetAuthor(),
@@ -139,8 +139,8 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		}
 		for _, collection := range collections {
 			userLogins = append(userLogins, collection.UserLogin)
-			collectionsMap[collection.Id.String()] = models.Collections{
-				Id:              collection.Id,
+			collectionsMap[collection.ID.String()] = models.Collections{
+				ID:              collection.ID,
 				Name:            collection.Name,
 				Transliteration: collection.Transliteration,
 				UserLogin:       collection.UserLogin,
@@ -155,8 +155,8 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		}
 		for _, collectionItem := range collectionItems {
 			userLogins = append(userLogins, collectionItem.Owner.Login)
-			collectionItemsMap[collectionItem.Id.String()] = models.CollectionItems{
-				Id:              collectionItem.Id,
+			collectionItemsMap[collectionItem.ID.String()] = models.CollectionItems{
+				ID:              collectionItem.ID,
 				Name:            collectionItem.Name,
 				Transliteration: collectionItem.CollectionTransliteration,
 				UserLogin:       collectionItem.Owner.Login,
@@ -174,7 +174,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			userLogins = append(userLogins, post.GetAuthor())
 			stringID := strconv.Itoa(int(post.GetId()))
 			postsMap[stringID] = models.Posts{
-				Id:       post.GetId(),
+				ID:       post.GetId(),
 				Title:    post.GetTitle(),
 				Translit: post.GetTranslit(),
 				Author: models.SubUsers{
@@ -192,13 +192,13 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 	for _, n := range notifications.GetData() {
 		initUser, _ := s.userRepo.GetUserByLogin(n.SenderLogin)
 		tempItem := dto.Notifications{
-			Id:          n.Id,
+			ID:          n.ID,
 			CreatedAt:   n.CreatedAt,
 			UpdatedAt:   n.UpdatedAt,
 			UserLogin:   n.UserLogin,
 			Type:        n.Type,
 			SenderLogin: n.SenderLogin,
-			TargetId:    n.TargetId,
+			TargetID:    n.TargetID,
 			IsRead:      n.IsRead,
 			Date:        n.Date,
 			Action:      n.Action,
@@ -217,11 +217,11 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		}
 		switch n.TargetType {
 		case "post":
-			tId, _ := strconv.ParseUint(n.TargetId, 10, 64)
+			tId, _ := strconv.ParseUint(n.TargetID, 10, 64)
 			post := postsMap[strconv.FormatUint(tId, 10)]
 			owner := users[post.Author.Login]
 			tempItem.Target = dto.TargetItem{
-				Id:              strconv.FormatUint(post.Id, 10),
+				ID:              strconv.FormatUint(post.ID, 10),
 				Name:            post.Title,
 				Transliteration: post.Translit,
 				TargetType:      "post",
@@ -234,11 +234,11 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			}
 
 		case "collection":
-			owner := users[collectionsMap[n.TargetId].UserLogin]
+			owner := users[collectionsMap[n.TargetID].UserLogin]
 			tempItem.Target = dto.TargetItem{
-				Id:              collectionsMap[n.TargetId].Id.String(),
-				Name:            collectionsMap[n.TargetId].Name,
-				Transliteration: collectionsMap[n.TargetId].Transliteration,
+				ID:              collectionsMap[n.TargetID].ID.String(),
+				Name:            collectionsMap[n.TargetID].Name,
+				Transliteration: collectionsMap[n.TargetID].Transliteration,
 				TargetType:      "collection",
 			}
 			tempItem.Owner = dto.User{
@@ -248,13 +248,13 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 				ProfileName: owner.ProfileName,
 			}
 		case "collectionItem":
-			owner := users[collectionItemsMap[n.TargetId].UserLogin]
+			owner := users[collectionItemsMap[n.TargetID].UserLogin]
 			tempItem.Target = dto.TargetItem{
-				Id:               collectionItemsMap[n.TargetId].Id.String(),
-				Name:             collectionItemsMap[n.TargetId].Name,
-				Transliteration:  collectionItemsMap[n.TargetId].Transliteration,
+				ID:               collectionItemsMap[n.TargetID].ID.String(),
+				Name:             collectionItemsMap[n.TargetID].Name,
+				Transliteration:  collectionItemsMap[n.TargetID].Transliteration,
 				TargetType:       "collectionItem",
-				TargetParentName: collectionItemsMap[n.TargetId].Description,
+				TargetParentName: collectionItemsMap[n.TargetID].Description,
 			}
 			tempItem.Owner = dto.User{
 				Login:       owner.Login,
@@ -264,11 +264,11 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			}
 
 		case "photo":
-			owner := users[photosMap[n.TargetId].Author.Login]
-			dbCollection, _ := s.collectionRepo.GetCollectionByIdWithoutLimits(photosMap[n.TargetId].CollectionId)
+			owner := users[photosMap[n.TargetID].Author.Login]
+			dbCollection, _ := s.collectionRepo.GetCollectionByIdWithoutLimits(photosMap[n.TargetID].CollectionID)
 			tempItem.Target = dto.TargetItem{
-				Id:               strconv.FormatUint(photosMap[n.TargetId].Id, 10),
-				Name:             photosMap[n.TargetId].Path,
+				ID:               strconv.FormatUint(photosMap[n.TargetID].ID, 10),
+				Name:             photosMap[n.TargetID].Path,
 				Transliteration:  dbCollection.Transliteration,
 				TargetType:       "photo",
 				TargetParentName: dbCollection.Name,

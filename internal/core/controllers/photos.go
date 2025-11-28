@@ -38,7 +38,7 @@ func (c *PhotosController) CreatePhotos(ctx echo.Context) error {
 	}
 
 	req := models.PhotoCreateRequest{
-		CollectionId: request.CollectionId,
+		CollectionID: request.CollectionID,
 		Paths:        request.Paths,
 		Author:       authUser,
 	}
@@ -116,7 +116,7 @@ func (c *PhotosController) GetById(ctx echo.Context) error {
 		UserLogin       string
 	})
 
-	response, err := c.photosService.FindOneById(context.Background(), id, authInfo.UserLogin)
+	response, err := c.photosService.FindOneByID(context.Background(), id, authInfo.UserLogin)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -125,7 +125,7 @@ func (c *PhotosController) GetById(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
-// FindAllByCollectionId
+// FindAllByCollectionID
 // @Summary получить по ид collection
 // @Tags photos
 // @Accept  json
@@ -135,7 +135,7 @@ func (c *PhotosController) GetById(ctx echo.Context) error {
 // @Param offset query string true "offset"
 // @Success 201 {object} models.PhotosDataResponse
 // @Router /public/photos/by_collection [get]
-func (c *PhotosController) FindAllByCollectionId(ctx echo.Context) error {
+func (c *PhotosController) FindAllByCollectionID(ctx echo.Context) error {
 	collectionId := ctx.QueryParam("collectionId")
 	limit := ctx.QueryParam("limit")
 	offset := ctx.QueryParam("offset")
@@ -145,7 +145,7 @@ func (c *PhotosController) FindAllByCollectionId(ctx echo.Context) error {
 		UserLogin       string
 	})
 
-	response, err := c.photosService.FindAllByCollectionId(context.Background(), collectionId, limit, offset, authInfo.UserLogin)
+	response, err := c.photosService.FindAllByCollectionID(context.Background(), collectionId, limit, offset, authInfo.UserLogin)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

@@ -8,15 +8,15 @@ import (
 	"os"
 )
 
-type FeedbackService struct {
+type FBService struct {
 }
 
-func NewFeedbackService() *FeedbackService {
+func NewFeedbackService() *FBService {
 	_ = godotenv.Load()
-	return &FeedbackService{}
+	return &FBService{}
 }
 
-func (s *FeedbackService) AddIssue(title string, description string, file []byte, authUserLogin string) (*dto.CommonResponse, error) {
+func (s *FBService) AddIssue(title string, description string, file []byte, authUserLogin string) (*dto.CommonResponse, error) {
 
 	description = description + "\n\n\n__________\n\nЛогин пользователя: " + authUserLogin
 	response, err := s.SendTextTicket(title, description, false)
@@ -26,9 +26,9 @@ func (s *FeedbackService) AddIssue(title string, description string, file []byte
 
 	if file != nil {
 
-		attachReqUrl := fmt.Sprintf("%s/%s/attachments",
+		attachReqURL := fmt.Sprintf("%s/%s/attachments",
 			os.Getenv("TRELLO_API_URL"),
-			response.Id,
+			response.ID,
 		)
 
 		attachReqParams := map[string]string{
@@ -36,7 +36,7 @@ func (s *FeedbackService) AddIssue(title string, description string, file []byte
 			"token": os.Getenv("TRELLO_TOKEN"),
 		}
 
-		_, attachErr := utils.SendRequest[any](utils.RequestOptions{Method: "POST", URL: attachReqUrl, Headers: map[string]string{}, QueryParams: attachReqParams, Body: map[string]string{}, File: file, BasicAuth: nil})
+		_, attachErr := utils.SendRequest[any](utils.RequestOptions{Method: "POST", URL: attachReqURL, Headers: map[string]string{}, QueryParams: attachReqParams, Body: map[string]string{}, File: file, BasicAuth: nil})
 
 		if attachErr != nil {
 			return nil, fmt.Errorf("failed to request attach: %w", err)
@@ -46,19 +46,19 @@ func (s *FeedbackService) AddIssue(title string, description string, file []byte
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *FeedbackService) SendTextTicket(title string, description string, isReports bool) (*struct {
-	Id string `json:"id"`
+func (s *FBService) SendTextTicket(title string, description string, isReports bool) (*struct {
+	ID string `json:"id"`
 }, error) {
 
-	var listId string
+	var listID string
 	if isReports {
-		listId = os.Getenv("TRELLO_REPORTS_LIST_ID")
+		listID = os.Getenv("TRELLO_REPORTS_LIST_ID")
 	} else {
-		listId = os.Getenv("TRELLO_LIST_ID")
+		listID = os.Getenv("TRELLO_LIST_ID")
 	}
 
 	reqParams := map[string]string{
-		"idList": listId,
+		"idList": listID,
 		"key":    os.Getenv("TRELLO_API_KEY"),
 		"token":  os.Getenv("TRELLO_TOKEN"),
 	}
@@ -73,7 +73,7 @@ func (s *FeedbackService) SendTextTicket(title string, description string, isRep
 	}
 
 	response, err := utils.SendRequest[struct {
-		Id string `json:"id"`
+		ID string `json:"id"`
 	}](utils.RequestOptions{Method: "POST", URL: os.Getenv("TRELLO_API_URL"), Headers: headers, QueryParams: reqParams, Body: reqBody, File: []byte{}, BasicAuth: nil})
 
 	if err != nil {

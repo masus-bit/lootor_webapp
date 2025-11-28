@@ -27,13 +27,13 @@ import (
 	"github.com/rwcarlsen/goexif/exif"
 )
 
-type S3Service struct {
+type StorageService struct {
 	endpoint        string
-	accessKeyId     string
+	accessKeyID     string
 	secretAccessKey string
 	bucketName      string
 	region          string
-	cacheTtl        int
+	cacheTTL        int
 	redisClient     *redis.Client
 	logger          *log.Logger
 	localCache      *cache.Cache
@@ -81,8 +81,8 @@ type DeleteFilesResponse struct {
 	NotFound []string `json:"notFound,omitempty"`
 }
 
-func NewS3Service(redisClient *redis.Client) *S3Service {
-	logger := log.New(os.Stdout, "[S3Service] ", log.LstdFlags|log.Lshortfile)
+func NewS3Service(redisClient *redis.Client) *StorageService {
+	logger := log.New(os.Stdout, "[StorageService] ", log.LstdFlags|log.Lshortfile)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -93,13 +93,13 @@ func NewS3Service(redisClient *redis.Client) *S3Service {
 		logger.Println("Redis connected successfully")
 	}
 
-	return &S3Service{
+	return &StorageService{
 		endpoint:        "https://lootor.storage.yandexcloud.net",
-		accessKeyId:     os.Getenv("YC_ACCESS_KEY"),
+		accessKeyID:     os.Getenv("YC_ACCESS_KEY"),
 		secretAccessKey: os.Getenv("YC_SECRET_KEY"),
 		bucketName:      os.Getenv("YC_BUCKET_NAME"),
 		region:          os.Getenv("YC_REGION"),
-		cacheTtl:        36000,
+		cacheTTL:        36000,
 		redisClient:     redisClient,
 		logger:          logger,
 		localCache:      cache.New(5*time.Minute, 10*time.Minute),
@@ -115,7 +115,7 @@ func NewS3Service(redisClient *redis.Client) *S3Service {
 	}
 }
 
-func (s *S3Service) logMetrics(ctx context.Context, key string, metrics *RequestMetrics) {
+func (s *StorageService) logMetrics(_ context.Context, key string, metrics *RequestMetrics) {
 	s.logger.Printf("[METRICS] key=%s cache_hit=%v cache_latency=%dµs redis_latency=%dµs s3_latency=%dµs total=%dµs size=%d error=%q",
 		key,
 		metrics.CacheHit,
@@ -129,7 +129,7 @@ func (s *S3Service) logMetrics(ctx context.Context, key string, metrics *Request
 
 }
 
-func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
+func (s *StorageService) GetFile(ctx context.Context, key string) ([]byte, error) {
 	type result struct {
 		data []byte
 		err  error
@@ -198,37 +198,7 @@ func (s *S3Service) GetFile(ctx context.Context, key string) ([]byte, error) {
 	}
 }
 
-func (s *S3Service) getFileAsync(ctx context.Context, key string) ([]byte, error) {
-	if data, found := s.localCache.Get(key); found {
-		return data.([]byte), nil
-	}
-
-	val, _ := s.inflight.LoadOrStore(key, new(sync.WaitGroup))
-	wg := val.(*sync.WaitGroup)
-	wg.Add(1)
-	defer wg.Done()
-	defer s.inflight.Delete(key)
-
-	data, err := s.redisClient.Get(ctx, key).Bytes()
-	if err == nil {
-		s.localCache.SetDefault(key, data)
-		return data, nil
-	}
-
-	s.sem <- struct{}{}
-	defer func() { <-s.sem }()
-
-	s3Data, err := s.downloadFromS3Optimized(ctx, key)
-	if err != nil {
-		return nil, err
-	}
-
-	go s.updateCaches(key, s3Data)
-
-	return s3Data, nil
-}
-
-func (s *S3Service) updateCaches(key string, data []byte) {
+func (s *StorageService) updateCaches(key string, data []byte) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -242,13 +212,13 @@ func (s *S3Service) updateCaches(key string, data []byte) {
 
 	go func() {
 		defer wg.Done()
-		s.redisClient.Set(ctx, key, data, time.Duration(s.cacheTtl)*time.Second)
+		s.redisClient.Set(ctx, key, data, time.Duration(s.cacheTTL)*time.Second)
 	}()
 
 	wg.Wait()
 }
 
-func (s *S3Service) downloadFromS3Optimized(ctx context.Context, key string) ([]byte, error) {
+func (s *StorageService) downloadFromS3Optimized(ctx context.Context, key string) ([]byte, error) {
 	start := time.Now()
 	defer func() {
 		s.logger.Printf("[S3_DOWNLOAD] key=%s duration=%v", key, time.Since(start))
@@ -300,34 +270,7 @@ func (s *S3Service) downloadFromS3Optimized(ctx context.Context, key string) ([]
 	return data, err
 }
 
-func (s *S3Service) downloadFromS3(ctx context.Context, key string) ([]byte, error) {
-	signed, err := s.signS3Request(ctx, "GET", "/images/"+key, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, signed.method, signed.url, nil)
-	if err != nil {
-		return nil, err
-	}
-	for k, v := range signed.headers {
-		req.Header.Set(k, v)
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to download file: %s", resp.Status)
-	}
-
-	return io.ReadAll(resp.Body)
-}
-
-func (s *S3Service) GetStats() map[string]string {
+func (s *StorageService) GetStats() map[string]string {
 	stats := make(map[string]string)
 
 	stats["local_cache_items"] = strconv.Itoa(s.localCache.ItemCount())
@@ -369,7 +312,7 @@ func extractRedisStat(info, key string) string {
 	return "0"
 }
 
-func (s *S3Service) signS3Request(ctx context.Context, method, path string, headers map[string]string, body []byte) (struct {
+func (s *StorageService) signS3Request(_ context.Context, method, path string, headers map[string]string, body []byte) (struct {
 	url     string
 	headers map[string]string
 	method  string
@@ -403,7 +346,7 @@ func (s *S3Service) signS3Request(ctx context.Context, method, path string, head
 	signature := hex.EncodeToString(hmacSHA256(signingKey, []byte(stringToSign)))
 
 	authorizationHeader := fmt.Sprintf("AWS4-HMAC-SHA256 Credential=%s/%s, SignedHeaders=%s, Signature=%s",
-		s.accessKeyId,
+		s.accessKeyID,
 		credentialScope,
 		signedHeaders,
 		signature)
@@ -451,7 +394,7 @@ func getSignatureKey(key, dateStamp, regionName, serviceName string) []byte {
 	return kSigning
 }
 
-func (s *S3Service) UploadFile(ctx context.Context, file []byte, key, contentType string) error {
+func (s *StorageService) UploadFile(ctx context.Context, file []byte, key, contentType string) error {
 	path := "/" + key
 	signed, err := s.signS3Request(ctx, "PUT", path, map[string]string{
 		"Content-Type": contentType,
@@ -481,7 +424,7 @@ func (s *S3Service) UploadFile(ctx context.Context, file []byte, key, contentTyp
 	return nil
 }
 
-func (s *S3Service) UploadOptimizedImages(ctx context.Context, files [][]byte, options UploadOptions) ([]string, error) {
+func (s *StorageService) UploadOptimizedImages(ctx context.Context, files [][]byte, options UploadOptions) ([]string, error) {
 	var keys []string
 
 	for _, file := range files {
@@ -495,7 +438,7 @@ func (s *S3Service) UploadOptimizedImages(ctx context.Context, files [][]byte, o
 	return keys, nil
 }
 
-func (s *S3Service) UploadOptimizedImage(ctx context.Context, file []byte, filename string, options UploadOptions) (string, error) {
+func (s *StorageService) UploadOptimizedImage(ctx context.Context, file []byte, filename string, options UploadOptions) (string, error) {
 	width := options.Width
 	if width == 0 {
 		width = 1920
@@ -572,7 +515,7 @@ func decodeImageWithOrientation(data []byte) (image.Image, error) {
 	return img, nil
 }
 
-func (s *S3Service) DeleteFiles(ctx context.Context, req DeleteFilesRequest) (DeleteFilesResponse, error) {
+func (s *StorageService) DeleteFiles(ctx context.Context, req DeleteFilesRequest) (DeleteFilesResponse, error) {
 	var deleted []string
 	var notFound []string
 
@@ -622,7 +565,7 @@ func (s *S3Service) DeleteFiles(ctx context.Context, req DeleteFilesRequest) (De
 	}, nil
 }
 
-func (s *S3Service) GenerateThumbnail(ctx context.Context, filename string, width, height, quality int) ([]byte, error) {
+func (s *StorageService) GenerateThumbnail(ctx context.Context, filename string, width, height, quality int) ([]byte, error) {
 	originalKey := filename
 	thumbKey := fmt.Sprintf("thumbs/%dx%d/%s", width, height, filename)
 
@@ -665,7 +608,7 @@ func (s *S3Service) GenerateThumbnail(ctx context.Context, filename string, widt
 	return thumbData, nil
 }
 
-func (s *S3Service) FileExists(ctx context.Context, key string) (bool, error) {
+func (s *StorageService) FileExists(ctx context.Context, key string) (bool, error) {
 	signed, err := s.signS3Request(ctx, "HEAD", key, nil, nil)
 	if err != nil {
 		return false, err
@@ -689,7 +632,7 @@ func (s *S3Service) FileExists(ctx context.Context, key string) (bool, error) {
 	return resp.StatusCode == http.StatusOK, nil
 }
 
-func (s *S3Service) deleteRelatedThumbnails(ctx context.Context, keys []string) {
+func (s *StorageService) deleteRelatedThumbnails(ctx context.Context, keys []string) {
 	for _, key := range keys {
 		sizes := []struct{ w, h int }{
 			{100, 0}, {120, 0}, {150, 0}, {180, 0},
@@ -707,10 +650,10 @@ func (s *S3Service) deleteRelatedThumbnails(ctx context.Context, keys []string) 
 	}
 }
 
-func (s *S3Service) GetOriginalKey(filename string) string {
+func (s *StorageService) GetOriginalKey(filename string) string {
 	return "images/" + filename
 }
 
-func (s *S3Service) GetThumbnailKey(filename string, width, height int) string {
+func (s *StorageService) GetThumbnailKey(filename string, width, _ int) string {
 	return fmt.Sprintf("thumbs/%dx0/%s", width, filename)
 }

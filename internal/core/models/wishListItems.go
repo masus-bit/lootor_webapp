@@ -12,12 +12,12 @@ type WishListItems struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Id        uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	UserLogin string    `gorm:"type:varchar(255);index"`
 	User      Users     `gorm:"foreignKey:UserLogin;references:Login;constraint:OnDelete:CASCADE;"`
 
 	CollectionItemID *uuid.UUID       `gorm:"type:uuid;index"`
-	CollectionItem   *CollectionItems `gorm:"foreignKey:CollectionItemID;references:Id;constraint:OnDelete:SET NULL;"`
+	CollectionItem   *CollectionItems `gorm:"foreignKey:CollectionItemID;references:ID;constraint:OnDelete:SET NULL;"`
 
 	ItemName string
 	Images   pq.StringArray `gorm:"type:text[]"`
@@ -39,7 +39,7 @@ type WishListSingleDataResponse struct {
 }
 
 type WishListCreateRequest struct {
-	CollectionItemId string   `json:"collectionItemId,omitempty"`
+	CollectionItemID string   `json:"collectionItemId,omitempty"`
 	PurchaseLinks    []string `json:"purchaseLinks"`
 	Notes            string   `json:"notes"`
 	Priority         int64    `json:"priority"`
@@ -48,7 +48,7 @@ type WishListCreateRequest struct {
 }
 
 type WishListUpdateRequest struct {
-	CollectionItemId *string  `json:"collectionItemId"`
+	CollectionItemID *string  `json:"collectionItemId"`
 	PurchaseLinks    []string `json:"purchaseLinks"`
 	Notes            *string  `json:"notes"`
 	Priority         *int64   `json:"priority"`
@@ -57,7 +57,7 @@ type WishListUpdateRequest struct {
 }
 
 type WishListItemResponse struct {
-	Id             uuid.UUID                `json:"id"`
+	ID             uuid.UUID                `json:"id"`
 	User           UserResponse             `json:"user"`
 	CollectionItem *CollectionItemsResponse `json:"collectionItem"`
 	PurchaseLinks  []string                 `json:"purchaseLinks"`

@@ -46,7 +46,7 @@ func (c *CollectionsController) DeleteCollection(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	if id == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Id parameter is required",
+			"error": "ID parameter is required",
 		})
 	}
 
@@ -208,7 +208,7 @@ func (c *CollectionsController) Like(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	if id == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Id parameter is required",
+			"error": "ID parameter is required",
 		})
 	}
 	authUser, ok := ctx.Get("user_login").(string)
@@ -240,7 +240,7 @@ func (c *CollectionsController) Like(ctx echo.Context) error {
 //	isSubscribe := ctx.QueryParam("isSubscribe")
 //	if id == "" {
 //		return ctx.JSON(http.StatusBadRequest, map[string]string{
-//			"error": "Id parameter is required",
+//			"error": "ID parameter is required",
 //		})
 //	}
 //	authUser, ok := ctx.Get("user_login").(string)

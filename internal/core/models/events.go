@@ -5,7 +5,7 @@ import (
 )
 
 type Events struct {
-	Id              string `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	ID              string `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	Date            string `json:"date"`
 	Action          string `gorm:"type:varchar(100);not null" json:"action"`
 	EventTargetType string `gorm:"type:varchar(50);not null" json:"eventTargetType"`
@@ -18,7 +18,7 @@ type Events struct {
 	TargetCollectionID   string `gorm:"type:uuid" json:"targetCollectionId"`
 	TargetItemID         string `gorm:"type:uuid" json:"targetItemId"`
 	TargetWishListItemID string `gorm:"type:uuid" json:"targetWishListItemId"`
-	TargetPostId         string `json:"targetPostId"`
+	TargetPostID         string `json:"targetPostId"`
 	TargetTagID          string `json:"targetTagId"`
 	TargetPhotoID        string `json:"targetPhotoId"`
 
@@ -84,8 +84,8 @@ type GetEventsRequestForAll struct {
 
 type GetFilteredEventsRequest struct {
 	UserLogin         string   `json:"userLogin"`
-	CollectionId      string   `json:"collectionId"`
-	CollectionItemId  string   `json:"collectionItemId"`
+	CollectionID      string   `json:"collectionId"`
+	CollectionItemID  string   `json:"collectionItemId"`
 	WishListItemId    string   `json:"wishListItemId"`
 	Limit             string   `json:"limit"`
 	Offset            string   `json:"offset"`

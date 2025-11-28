@@ -173,7 +173,7 @@ func (c *PostsController) React(ctx echo.Context) error {
 	uintId, _ := strconv.ParseUint(id, 10, 64)
 
 	request := models.ReactRequest{
-		PostId:    uintId,
+		PostID:    uintId,
 		Reaction:  reaction,
 		UserLogin: authUser,
 	}
@@ -204,7 +204,7 @@ func (c *PostsController) DeleteReact(ctx echo.Context) error {
 	uintId, _ := strconv.ParseUint(id, 10, 64)
 
 	request := models.ReactRequest{
-		PostId:    uintId,
+		PostID:    uintId,
 		UserLogin: authUser,
 		Reaction:  reaction,
 	}
@@ -260,7 +260,7 @@ func (c *PostsController) UpdatePost(ctx echo.Context) error {
 	}
 	uintId, _ := strconv.ParseUint(id, 10, 64)
 
-	request.Id = uintId
+	request.ID = uintId
 	response, err := c.postService.UpdatePost(ctx.Request().Context(), &request)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{

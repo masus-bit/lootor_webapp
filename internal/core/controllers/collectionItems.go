@@ -60,7 +60,7 @@ func (c *CIController) DeleteCollectionItem(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	if id == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Id parameter is required",
+			"error": "ID parameter is required",
 		})
 	}
 
@@ -118,7 +118,7 @@ func (c *CIController) GetCollectionItem(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	if id == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Id parameter is required",
+			"error": "ID parameter is required",
 		})
 	}
 	authInfo := ctx.Get("auth_info").(struct {
@@ -153,7 +153,7 @@ func (c *CIController) CopyOrMoveCollectionItem(ctx echo.Context) error {
 		})
 	}
 
-	value, err := c.ciService.CopyOrMove(request.Id, request.TargetCollectionIds, request.SourceCollectionId)
+	value, err := c.ciService.CopyOrMove(request.ID, request.TargetCollectionIDs, request.SourceCollectionId)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -174,7 +174,7 @@ func (c *CIController) Like(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	if id == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Id parameter is required",
+			"error": "ID parameter is required",
 		})
 	}
 	authUser, ok := ctx.Get("user_login").(string)

@@ -33,11 +33,11 @@ func (r *CollectionsRepository) CreateCollection(collection *models.Collections)
 
 	if !collection.IsPrivate {
 		doc := map[string]interface{}{
-			"id":          collection.Id.String(),
+			"id":          collection.ID.String(),
 			"name":        collection.Name,
 			"description": collection.Description,
 			"isPrivate":   collection.IsPrivate,
-			"bannerUrl":   collection.BannerUrl,
+			"bannerUrl":   collection.BannerURL,
 		}
 
 		if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
@@ -552,15 +552,15 @@ func (r *CollectionsRepository) UpdateCollection(existsCollection *models.Collec
 	}
 
 	var result models.Collections
-	err := r.db.First(&result, existsCollection.Id).Error
+	err := r.db.First(&result, existsCollection.ID).Error
 
 	if !result.IsPrivate {
 		doc := map[string]interface{}{
-			"id":          result.Id.String(),
+			"id":          result.ID.String(),
 			"name":        result.Name,
 			"description": result.Description,
 			"isPrivate":   result.IsPrivate,
-			"bannerUrl":   result.BannerUrl,
+			"bannerUrl":   result.BannerURL,
 		}
 
 		if err = r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
@@ -606,17 +606,17 @@ func (r *CollectionsRepository) UpdateCollectionFull(existsCollection *models.Co
 
 	if err = r.db.
 		Preload("User").
-		First(&result, "id = ?", existsCollection.Id).
+		First(&result, "id = ?", existsCollection.ID).
 		Error; err != nil {
 		return nil, err
 	}
 	if !result.IsPrivate {
 		doc := map[string]interface{}{
-			"id":          result.Id.String(),
+			"id":          result.ID.String(),
 			"name":        result.Name,
 			"description": result.Description,
 			"isPrivate":   result.IsPrivate,
-			"bannerUrl":   result.BannerUrl,
+			"bannerUrl":   result.BannerURL,
 		}
 
 		if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
@@ -785,9 +785,12 @@ func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[
 
 		var temp models.CollectionsResponse
 		err = mapstructure.Decode(collection, &temp)
-		temp.CollectionItemsCount = counts[collection.Id]
-		temp.TotalPrice = totalPrices[collection.Id]
-		temp.ShippingTotal = shippingCosts[collection.Id]
+		if err != nil {
+			return nil, err
+		}
+		temp.CollectionItemsCount = counts[collection.ID]
+		temp.TotalPrice = totalPrices[collection.ID]
+		temp.ShippingTotal = shippingCosts[collection.ID]
 		temp.LikesCount = int64(len(collection.Likes))
 		temp.CanLike = false
 		temp.IsOwner = authorizedUser == temp.User.Login
@@ -795,7 +798,7 @@ func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[
 			temp.CanLike = !slices.Contains(collection.Likes, authorizedUser)
 		}
 
-		collectionsMap[collection.Id.String()] = temp
+		collectionsMap[collection.ID.String()] = temp
 	}
 	return collectionsMap, nil
 }
@@ -810,7 +813,7 @@ func (r *CollectionsRepository) GetCollectionsByIdsMapForShort(ids []string) (ma
 	for _, collection := range collections {
 		var temp models.CollectionShort
 		err = mapstructure.Decode(collection, &temp)
-		collectionsMap[collection.Id.String()] = temp
+		collectionsMap[collection.ID.String()] = temp
 	}
 	return collectionsMap, nil
 }
@@ -825,7 +828,7 @@ func (r *CollectionsRepository) GetCollectionsByTranslitsMapForShort(ids []strin
 	for _, collection := range collections {
 		var temp models.CollectionShort
 		err = mapstructure.Decode(collection, &temp)
-		collectionsMap[collection.Id.String()] = temp
+		collectionsMap[collection.ID.String()] = temp
 	}
 	return collectionsMap, nil
 }
@@ -840,9 +843,9 @@ func (r *CollectionsRepository) GetCollectionsByIds(ids []string, counts map[uui
 	for _, collection := range collections {
 		var temp models.CollectionsResponse
 		err = mapstructure.Decode(collection, &temp)
-		temp.CollectionItemsCount = counts[collection.Id]
-		temp.TotalPrice = totalPrices[collection.Id]
-		temp.ShippingTotal = shippingCosts[collection.Id]
+		temp.CollectionItemsCount = counts[collection.ID]
+		temp.TotalPrice = totalPrices[collection.ID]
+		temp.ShippingTotal = shippingCosts[collection.ID]
 		temp.LikesCount = int64(len(collection.Likes))
 		temp.CanLike = true
 		temp.IsOwner = authorizedUser == temp.User.Login
@@ -850,7 +853,7 @@ func (r *CollectionsRepository) GetCollectionsByIds(ids []string, counts map[uui
 			temp.CanLike = !slices.Contains(collection.Likes, authorizedUser)
 		}
 		if len(tagsMap) > 0 {
-			tagsProto := tagsMap[collection.Id.String()].Tags
+			tagsProto := tagsMap[collection.ID.String()].Tags
 			tempTags := utils.NormalizeTagsShort(tagsProto)
 			temp.Tags = tempTags
 		}
@@ -861,7 +864,6 @@ func (r *CollectionsRepository) GetCollectionsByIds(ids []string, counts map[uui
 }
 
 func (r *CollectionsRepository) GetCollectionItemsIds(collectionId string) ([]string, error) {
-	var collectionItems []models.CollectionItems
 	var itemIDs []string
 	collectionItemsIds := r.db.Table("collections_collection_items_collection_items").Where("collections_id = ?", collectionId).Select("collection_items_id").Unscoped().
 		Pluck("collection_items_id", &itemIDs)
@@ -870,10 +872,6 @@ func (r *CollectionsRepository) GetCollectionItemsIds(collectionId string) ([]st
 		return nil, collectionItemsIds.Error
 	}
 
-	var ids []string
-	for _, item := range collectionItems {
-		ids = append(ids, item.Id.String())
-	}
 	return itemIDs, nil
 
 }

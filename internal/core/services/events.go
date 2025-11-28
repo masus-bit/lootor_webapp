@@ -104,8 +104,8 @@ func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionIte
 	}
 	evs, err := s.eventClient.GetFilteredEvents(context.Background(), &models.GetFilteredEventsRequest{
 		UserLogin:         userLogin,
-		CollectionId:      collectionId,
-		CollectionItemId:  collectionItem,
+		CollectionID:      collectionId,
+		CollectionItemID:  collectionItem,
 		WishListItemId:    wlId,
 		Limit:             limit,
 		Offset:            offset,
@@ -153,8 +153,8 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		if event.TargetWishListItemId != "" {
 			wlIDs = append(wlIDs, event.TargetWishListItemId)
 		}
-		if event.TargetPostId != "" {
-			postIDs = append(postIDs, event.TargetPostId)
+		if event.TargetPostID != "" {
+			postIDs = append(postIDs, event.TargetPostID)
 		}
 		if event.TargetTagId != "" {
 			tagIDs = append(tagIDs, event.TargetTagId)
@@ -164,7 +164,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 			case "item":
 				itemIDs = append(itemIDs, event.TargetItemId)
 			case "post":
-				postIDs = append(postIDs, event.TargetPostId)
+				postIDs = append(postIDs, event.TargetPostID)
 			case "photo":
 				photoIDs = append(photoIDs, event.TargetPhotoId)
 
@@ -237,7 +237,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	}()
 	go func() {
 		defer wg.Done()
-		photos, _ := s.photosClient.GetPhotosByIdsMap(context.Background(), &microservices.GetByIdsRequest{
+		photos, _ := s.photosClient.GetPhotosByIDsMap(context.Background(), &microservices.GetByIdsRequest{
 			Ids: photoIDs,
 		})
 		var authors []string
@@ -257,9 +257,9 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 					log.Printf("Error parsing date: %v", err)
 				}
 				photosMap[key] = models.Photos{
-					Id:            photo.GetId(),
+					ID:            photo.GetId(),
 					Author:        authorsShort[photo.GetAuthor()],
-					CollectionId:  photo.GetCollectionId(),
+					CollectionID:  photo.GetCollectionId(),
 					Path:          photo.GetPath(),
 					LikesCount:    int64(len(photo.GetLikes())),
 					CommentsCount: photo.GetCommentsCount(),
@@ -301,7 +301,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 				}
 
 				postsMap[key] = models.Posts{
-					Id:             postFormatted.Data.Id,
+					ID:             postFormatted.Data.ID,
 					Title:          postFormatted.Data.Title,
 					Author:         postFormatted.Data.Author,
 					Translit:       postFormatted.Data.Translit,
@@ -384,7 +384,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	for _, event := range events {
 		fmt.Println(event)
 		normalizedEvent := models.Events{
-			Id:                   event.Id,
+			ID:                   event.ID,
 			Date:                 event.Date,
 			Action:               event.Action,
 			EventTargetType:      event.EventTargetType,
@@ -394,7 +394,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 			TargetCollectionID:   event.TargetCollectionId,
 			TargetItemID:         event.TargetItemId,
 			TargetWishListItemID: event.TargetWishListItemId,
-			TargetPostId:         event.TargetPostId,
+			TargetPostID:         event.TargetPostID,
 			TargetTagID:          event.TargetTagId,
 			TagRelatedEntityType: event.TagRelatedEntityType,
 			TargetPhotoID:        event.TargetPhotoId,
@@ -410,12 +410,12 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		}
 
 		if collection, exists := collectionsMap[event.TargetCollectionId]; exists {
-			collection.Tags = collectionsTagsMap[collection.Id.String()]
+			collection.Tags = collectionsTagsMap[collection.ID.String()]
 			normalizedEvent.TargetCollection = &collection
 		}
 
 		if item, exists := itemsMap[event.TargetItemId]; exists {
-			item.Tags = itemsTagsMap[item.Id.String()]
+			item.Tags = itemsTagsMap[item.ID.String()]
 			normalizedEvent.TargetItem = &item
 		}
 
@@ -423,13 +423,13 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 			normalizedEvent.TargetWishListItem = &wlItem
 		}
 
-		if post, exists := postsMap[event.TargetPostId]; exists {
-			post.Tags = postsTagsMap[strconv.FormatUint(post.Id, 10)]
+		if post, exists := postsMap[event.TargetPostID]; exists {
+			post.Tags = postsTagsMap[strconv.FormatUint(post.ID, 10)]
 			normalizedEvent.TargetPost = &post
 		}
 
 		if photo, exists := photosMap[event.TargetPhotoId]; exists {
-			photo.Tags = photosTagsMap[strconv.FormatUint(photo.Id, 10)]
+			photo.Tags = photosTagsMap[strconv.FormatUint(photo.ID, 10)]
 			normalizedEvent.TargetPhoto = &photo
 		}
 
@@ -452,7 +452,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 				itemRes := itemsMap[normalizedEvent.TargetItemID]
 				normalizedEvent.TargetItem = &itemRes
 			case "post":
-				postRes := postsMap[normalizedEvent.TargetPostId]
+				postRes := postsMap[normalizedEvent.TargetPostID]
 				normalizedEvent.TargetPost = &postRes
 			case "photos":
 				photoRes := photosMap[normalizedEvent.TargetPhotoID]

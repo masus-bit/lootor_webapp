@@ -307,7 +307,7 @@ func (c *UserController) TelegramOauth(ctx echo.Context) error {
 	response, err := c.userService.TelegramOauth(&request)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, map[string]string{
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error бля": err.Error(),
 		})
 	}
@@ -355,13 +355,13 @@ func (c *UserController) ChangeResetPassword(ctx echo.Context) error {
 	var request models.ChangePasswordReset
 	err := ctx.Bind(&request)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, map[string]string{
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": err.Error(),
 		})
 	}
 	response, err := c.userService.ChangeResetPassword(&request)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, map[string]string{
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": err.Error(),
 		})
 	}
@@ -380,7 +380,7 @@ func (c *UserController) UpdateUser(ctx echo.Context) error {
 	var request models.UserRequestUpdate
 	err := ctx.Bind(&request)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, map[string]string{
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": err.Error(),
 		})
 	}
@@ -391,7 +391,7 @@ func (c *UserController) UpdateUser(ctx echo.Context) error {
 
 	response, err := c.userService.UpdateUser(&request, authUser)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, map[string]string{
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": err.Error(),
 		})
 	}
@@ -410,7 +410,7 @@ func (c *UserController) UpdateLogin(ctx echo.Context) error {
 	var request models.UserRequestUpdateFirstTime
 	err := ctx.Bind(&request)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, map[string]string{
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": err.Error(),
 		})
 	}
@@ -421,7 +421,7 @@ func (c *UserController) UpdateLogin(ctx echo.Context) error {
 
 	response, err := c.userService.UpdateOnlyOnce(&request, authUser)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, map[string]string{
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": err.Error(),
 		})
 	}
@@ -443,7 +443,7 @@ func (c *UserController) DeleteUser(ctx echo.Context) error {
 
 	response, err := c.userService.DeleteUser(authUser)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, map[string]string{
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": err.Error(),
 		})
 	}

@@ -70,6 +70,9 @@ func SendRequest[T any](options RequestOptions) (T, error) {
 
 	if len(options.File) > 0 {
 		_, err = io.Copy(part, bytes.NewReader(options.File))
+		if err != nil {
+			return result, fmt.Errorf("failed to copy file: %w", err)
+		}
 		writer.Close()
 		req, err = http.NewRequest(options.Method, modifiedUrl, &fileBody)
 		if err != nil {

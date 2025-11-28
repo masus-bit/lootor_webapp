@@ -44,7 +44,7 @@ type App struct {
 	Echo *echo.Echo
 }
 
-func setupMonitoring(s3Service *s3.S3Service) {
+func setupMonitoring(s3Service *s3.StorageService) {
 	http.HandleFunc("/debug/stats", func(w http.ResponseWriter, r *http.Request) {
 		stats := s3Service.GetStats()
 		json.NewEncoder(w).Encode(stats)

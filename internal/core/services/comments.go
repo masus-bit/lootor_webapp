@@ -34,7 +34,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 		return nil, err
 	}
 
-	id, err := uuid.Parse(comment.Data.Id)
+	id, err := uuid.Parse(comment.Data.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -62,9 +62,9 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 	resultComment := dto.CommentDataResponse{
 		Data: dto.CommentsResponse{
 			Comments: &dto.Comments{
-				Id:            id.String(),
+				ID:            id.String(),
 				Date:          comment.Data.Date,
-				TargetId:      request.TargetId,
+				TargetID:      request.TargetID,
 				Author:        userStruct,
 				ParentId:      comment.Data.ParentId,
 				LikesCount:    int(comment.Data.LikesCount),
@@ -88,42 +88,42 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 
 	switch request.EntityType {
 	case "collection":
-		collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetId)
+		collection, err := s.collectionRepo.GetByIdWithoutCollectionItems(request.TargetID)
 		if err == nil {
 			if *request.TargetUserLogin != "" {
 				targetUserLogin = *request.TargetUserLogin
 			} else {
 				targetUserLogin = collection.UserLogin
 			}
-			err = s.collectionRepo.IncrementCommentsCount(request.TargetId, 1)
+			err = s.collectionRepo.IncrementCommentsCount(request.TargetID, 1)
 			if err != nil {
 				return nil, err
 			}
 			ownerLogin = collection.UserLogin
 
 			targetReq = &dto.TargetItem{
-				Id:              collection.Id.String(),
+				ID:              collection.ID.String(),
 				Name:            collection.Name,
 				Transliteration: collection.Transliteration,
 				TargetType:      "collection",
 			}
 		}
 	case "collectionItem":
-		ci, err := s.ciRepo.GetCIByID(request.TargetId)
+		ci, err := s.ciRepo.GetCIByID(request.TargetID)
 		if err == nil {
 			if *request.TargetUserLogin != "" {
 				targetUserLogin = *request.TargetUserLogin
 			} else {
 				targetUserLogin = ci.UserLogin
 			}
-			err = s.ciRepo.IncrementCommentsCount(request.TargetId, 1)
+			err = s.ciRepo.IncrementCommentsCount(request.TargetID, 1)
 			if err != nil {
 				return nil, err
 			}
 			ownerLogin = ci.UserLogin
 
 			targetReq = &dto.TargetItem{
-				Id:               ci.Id.String(),
+				ID:               ci.ID.String(),
 				Name:             ci.Name,
 				Transliteration:  ci.Collections[0].Transliteration,
 				TargetType:       "collectionItem",
@@ -131,7 +131,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 			}
 		}
 	case "post":
-		targetId, _ := strconv.ParseUint(request.TargetId, 10, 64)
+		targetId, _ := strconv.ParseUint(request.TargetID, 10, 64)
 
 		post, err := s.postsService.GetPostById(ctx, targetId, request.Author)
 
@@ -148,32 +148,32 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 			ownerLogin = post.Data.Author.Login
 
 			targetReq = &dto.TargetItem{
-				Id:              post.Data.Translit,
+				ID:              post.Data.Translit,
 				Name:            post.Data.Title,
 				Transliteration: post.Data.Translit,
 				TargetType:      "post",
 			}
 		}
 	case "photo":
-		photo, err := s.photosService.FindOneById(ctx, request.TargetId, request.Author)
+		photo, err := s.photosService.FindOneByID(ctx, request.TargetID, request.Author)
 		if err == nil {
 			if *request.TargetUserLogin != "" {
 				targetUserLogin = *request.TargetUserLogin
 			} else {
 				targetUserLogin = photo.Data.Author.Login
 			}
-			_, err = s.photosService.IncrementCommentsCount(ctx, request.TargetId)
+			_, err = s.photosService.IncrementCommentsCount(ctx, request.TargetID)
 			if err != nil {
 				return nil, err
 			}
-			collectionDb, err := s.collectionRepo.GetByIdWithoutCollectionItems(photo.Data.CollectionId)
+			collectionDb, err := s.collectionRepo.GetByIdWithoutCollectionItems(photo.Data.CollectionID)
 			if err != nil {
 				return nil, err
 			}
 			ownerLogin = photo.Data.Author.Login
 
 			targetReq = &dto.TargetItem{
-				Id:               request.TargetId,
+				ID:               request.TargetID,
 				Name:             photo.Data.Path,
 				Transliteration:  collectionDb.Transliteration,
 				TargetType:       "photo",
@@ -193,7 +193,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 	go func() {
 		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
 			Login:       targetUserLogin,
-			TargetId:    request.TargetId,
+			TargetID:    request.TargetID,
 			SenderLogin: user.Login,
 			Type:        typeComment,
 			Action:      utils.NotificationActionComment,
@@ -217,7 +217,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 	}
 	var resultComments []dto.CommentsResponse
 	for _, f := range comments.Data {
-		parsedId, err := uuid.Parse(f.Id)
+		parsedId, err := uuid.Parse(f.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -295,9 +295,9 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 			}
 			resultChildrenComments = append(resultChildrenComments, dto.ChildrenComments{
 				Comments: &dto.Comments{
-					Id:         c.Id,
+					ID:         c.ID,
 					Date:       c.Date,
-					TargetId:   targetId,
+					TargetID:   targetId,
 					Author:     userStructCh,
 					ParentId:   c.ParentId,
 					Content:    contentChildren,
@@ -315,9 +315,9 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 
 		resultComments = append(resultComments, dto.CommentsResponse{
 			Comments: &dto.Comments{
-				Id:            parsedId.String(),
+				ID:            parsedId.String(),
 				Date:          f.Date,
-				TargetId:      targetId,
+				TargetID:      targetId,
 				Author:        userStruct,
 				ParentId:      f.ParentId,
 				LikesCount:    int(f.LikesCount),
@@ -375,7 +375,7 @@ func (s *CommentsService) DeleteComment(ctx context.Context, id, targetId, authU
 		}
 	}
 
-	_, err = s.photosService.FindOneById(ctx, targetId, authUserLogin)
+	_, err = s.photosService.FindOneByID(ctx, targetId, authUserLogin)
 	if err == nil {
 		_, err = s.photosService.DecrementCommentsCount(ctx, targetId)
 		if err != nil {
@@ -433,7 +433,7 @@ func (s *CommentsService) LoadAnswers(ctx context.Context, id, limit, offset str
 	offsetInt, _ := strconv.Atoi(offset)
 
 	request := &dto.AnswersRequest{
-		Id:     id,
+		ID:     id,
 		Limit:  limitInt,
 		Offset: offsetInt,
 	}
@@ -475,9 +475,9 @@ func (s *CommentsService) LoadAnswers(ctx context.Context, id, limit, offset str
 
 		result = append(result, dto.AnswersItem{
 			Comments: &dto.Comments{
-				Id:         f.Id,
+				ID:         f.ID,
 				Date:       f.Date,
-				TargetId:   f.TargetId,
+				TargetID:   f.TargetID,
 				Author:     userStruct,
 				ParentId:   f.ParentId,
 				Content:    utils.NormalizeContent(f.Content),
@@ -493,11 +493,4 @@ func (s *CommentsService) LoadAnswers(ctx context.Context, id, limit, offset str
 	}
 	return &dto.AnswersDataResponse{Data: result, Total: safeAtoi64(response.Total)}, nil
 
-}
-
-func formatTimeOrEmpty(t time.Time) string {
-	if t.IsZero() {
-		return ""
-	}
-	return t.Format(time.RFC3339)
 }

@@ -48,9 +48,7 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 
 	var newSlice []models.WishListItems
 
-	for _, tmpItem := range allUsersItems {
-		newSlice = append(newSlice, tmpItem)
-	}
+	newSlice = append(newSlice, allUsersItems...)
 
 	for _, wlItem := range newSlice {
 		wlItem.Priority++
@@ -60,8 +58,8 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 		}
 	}
 
-	if requestDto.CollectionItemId != "" {
-		collectionItem, err = s.ciRepo.GetCIByID(requestDto.CollectionItemId)
+	if requestDto.CollectionItemID != "" {
+		collectionItem, err = s.ciRepo.GetCIByID(requestDto.CollectionItemID)
 		if err != nil {
 			return nil, fmt.Errorf("collection item not found")
 		}
@@ -72,7 +70,7 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 		wishListItem = models.WishListItems{
 			UserLogin:        userLogin,
 			User:             *user,
-			CollectionItemID: &collectionItem.Id,
+			CollectionItemID: &collectionItem.ID,
 			CollectionItem:   collectionItem,
 			PurchaseLinks:    requestDto.PurchaseLinks,
 			Priority:         1,
@@ -108,7 +106,7 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 		utils.EventActionCreate,
 		utils.EventTargetWL,
 		name,
-		&models.EventsParams{TargetWLID: wlItem.Id})
+		&models.EventsParams{TargetWLID: wlItem.ID})
 
 	if err != nil {
 		return nil, err
@@ -120,7 +118,7 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 		return nil, err
 	}
 	if collectionItem != nil {
-		resultItem.CollectionItem.Collection = wlItem.CollectionItem.Collections[0].Id
+		resultItem.CollectionItem.Collection = wlItem.CollectionItem.Collections[0].ID
 	}
 
 	return &models.WishListSingleDataResponse{Data: resultItem}, nil
@@ -170,7 +168,7 @@ func (s *WLService) UpdatePriority(id string, dto models.WishListItemUpdatePrior
 	var found bool
 
 	for idx, item := range allUsersItems {
-		if item.Id.String() == id {
+		if item.ID.String() == id {
 			targetItem = item
 			targetIndex = idx
 			found = true

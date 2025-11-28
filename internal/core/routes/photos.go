@@ -15,7 +15,7 @@ func PhotosRouter(e *echo.Echo, jwtService *auth.JWTService, photosService servi
 	{
 		publicGroup.GET("/photos/:id", controller.GetById)
 		publicGroup.GET("/photos/by_user", controller.GetByUserLogin)
-		publicGroup.GET("/photos/by_collection", controller.FindAllByCollectionId)
+		publicGroup.GET("/photos/by_collection", controller.FindAllByCollectionID)
 	}
 
 	securedGroup := e.Group("/secured")

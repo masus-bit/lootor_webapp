@@ -33,7 +33,7 @@ func (r *CiRepository) CreateCI(ci *models.CollectionItems) (*models.CollectionI
 	}
 
 	doc := map[string]interface{}{
-		"id":          ci.Id.String(),
+		"id":          ci.ID.String(),
 		"name":        ci.Name,
 		"description": ci.Description,
 		"images":      ci.Images,
@@ -104,7 +104,7 @@ func (r *CiRepository) UpdateCI(existsItem *models.CollectionItems, updated *mod
 	}
 
 	doc := map[string]interface{}{
-		"id":          updated.Id.String(),
+		"id":          updated.ID.String(),
 		"name":        updated.Name,
 		"description": updated.Description,
 		"images":      updated.Images,
@@ -116,7 +116,7 @@ func (r *CiRepository) UpdateCI(existsItem *models.CollectionItems, updated *mod
 	}
 
 	var result models.CollectionItems
-	err := r.db.Preload("Platform").Preload("Collections").Preload("ItemType").First(&result, existsItem.Id).Error
+	err := r.db.Preload("Platform").Preload("Collections").Preload("ItemType").First(&result, existsItem.ID).Error
 	return &result, err
 
 }
@@ -161,7 +161,7 @@ func (r *CiRepository) UpdateCIFull(existsItem *models.CollectionItems) (*models
 			Preload("Collections").
 			Preload("ItemType").
 			Preload("Owner").
-			First(&result, "id = ?", existsItem.Id).
+			First(&result, "id = ?", existsItem.ID).
 			Error
 	})
 
@@ -171,7 +171,7 @@ func (r *CiRepository) UpdateCIFull(existsItem *models.CollectionItems) (*models
 
 	go func() {
 		doc := map[string]interface{}{
-			"id":          result.Id.String(),
+			"id":          result.ID.String(),
 			"name":        result.Name,
 			"description": result.Description,
 			"images":      result.Images,
@@ -317,7 +317,7 @@ func (r *CiRepository) GetCountCIByIDs(collectionIDs []uuid.UUID) (map[uuid.UUID
 
 func (r *CiRepository) GetSumsByCollectionIDs(collectionIDs []uuid.UUID) (map[uuid.UUID]float64, error) {
 	var results []struct {
-		CollectionId uuid.UUID
+		CollectionID uuid.UUID
 		Sum          float64
 	}
 	err := r.db.Model(&models.CollectionItems{}).
@@ -334,7 +334,7 @@ func (r *CiRepository) GetSumsByCollectionIDs(collectionIDs []uuid.UUID) (map[uu
 
 	sums := make(map[uuid.UUID]float64)
 	for _, result := range results {
-		sums[result.CollectionId] = result.Sum
+		sums[result.CollectionID] = result.Sum
 	}
 
 	for _, id := range collectionIDs {
@@ -348,7 +348,7 @@ func (r *CiRepository) GetSumsByCollectionIDs(collectionIDs []uuid.UUID) (map[uu
 
 func (r *CiRepository) GetShippingCostsByCollectionIDs(collectionIDs []uuid.UUID) (map[uuid.UUID]float64, error) {
 	var results []struct {
-		CollectionId uuid.UUID
+		CollectionID uuid.UUID
 		Sum          float64
 	}
 
@@ -366,7 +366,7 @@ func (r *CiRepository) GetShippingCostsByCollectionIDs(collectionIDs []uuid.UUID
 
 	sums := make(map[uuid.UUID]float64)
 	for _, result := range results {
-		sums[result.CollectionId] = result.Sum
+		sums[result.CollectionID] = result.Sum
 	}
 
 	for _, id := range collectionIDs {
@@ -439,7 +439,7 @@ func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin st
 		}
 
 		if len(collectionItem.Collections) > 0 {
-			temp.Collection = collectionItem.Collections[0].Id
+			temp.Collection = collectionItem.Collections[0].ID
 			temp.CollectionTransliteration = collectionItem.Collections[0].Transliteration
 			temp.CollectionName = collectionItem.Collections[0].Name
 		} else {
@@ -464,7 +464,7 @@ func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin st
 			}
 
 		}
-		collectionItemsMap[collectionItem.Id.String()] = temp
+		collectionItemsMap[collectionItem.ID.String()] = temp
 	}
 	return collectionItemsMap, nil
 }
@@ -493,13 +493,13 @@ func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin, filt
 			return nil, err
 		}
 		if len(tagsMap) > 0 {
-			tagsProto := tagsMap[collectionItem.Id.String()].Tags
+			tagsProto := tagsMap[collectionItem.ID.String()].Tags
 			tempTags := utils.NormalizeTagsShort(tagsProto)
 			temp.Tags = tempTags
 		}
 
 		if len(collectionItem.Collections) > 0 {
-			temp.Collection = collectionItem.Collections[0].Id
+			temp.Collection = collectionItem.Collections[0].ID
 			temp.CollectionTransliteration = collectionItem.Collections[0].Transliteration
 			temp.CollectionName = collectionItem.Collections[0].Name
 		} else {

@@ -229,7 +229,7 @@ type VkAuthGetTokenData struct {
 }
 
 type VkAuthGetUserInfo struct {
-	Id        int64  `json:"id"`
+	ID        int64  `json:"id"`
 	Email     string `json:"email"`
 	FirstName string `json:"first_name"`
 	AvatarUrl string `json:"photo_200"`
@@ -240,7 +240,7 @@ type VkAuthGetUserInfoResponse struct {
 }
 
 type TelegramOauthRequest struct {
-	Id        int64  `json:"id"`
+	ID        int64  `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Username  string `json:"username"`

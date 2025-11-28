@@ -35,7 +35,7 @@ func (c *GRPCCommentsClient) CreateComment(ctx context.Context, dto *dto.Comment
 		Date:       dto.Date,
 		Author:     dto.Author,
 		ParentId:   *dto.ParentId,
-		TargetId:   dto.TargetId,
+		TargetID:   dto.TargetID,
 		EntityType: dto.EntityType,
 	})
 	if err != nil {
@@ -45,18 +45,18 @@ func (c *GRPCCommentsClient) CreateComment(ctx context.Context, dto *dto.Comment
 }
 
 func (c *GRPCCommentsClient) GetAllComments(ctx context.Context, id, limit, offset, entityType string) (*microservices.GetAllCommentsResponse, error) {
-	return c.client.GetAllComments(ctx, &microservices.GetAllCommentsRequest{Limit: limit, Offset: offset, TargetId: id, EntityType: entityType})
+	return c.client.GetAllComments(ctx, &microservices.GetAllCommentsRequest{Limit: limit, Offset: offset, TargetID: id, EntityType: entityType})
 }
 
 func (c *GRPCCommentsClient) DeleteComments(ctx context.Context, id string) (*microservices.DeleteCommentResponse, error) {
 	return c.client.DeleteComment(ctx, &microservices.DeleteCommentRequest{
-		Id: id,
+		ID: id,
 	})
 }
 
 func (c *GRPCCommentsClient) LoadAnswers(ctx context.Context, dto *dto.AnswersRequest) (*microservices.AnswersResponse, error) {
 	return c.client.LoadAnswers(ctx, &microservices.AnswersRequest{
-		Id:     dto.Id,
+		ID:     dto.ID,
 		Limit:  strconv.Itoa(dto.Limit),
 		Offset: strconv.Itoa(dto.Offset),
 	})

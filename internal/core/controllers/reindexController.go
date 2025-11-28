@@ -93,11 +93,11 @@ func (c *ReindexController) getCollectionData() ([]map[string]interface{}, error
 	for i, collection := range collections {
 		if !collection.IsPrivate {
 			result[i] = map[string]interface{}{
-				"id":          collection.Id.String(),
+				"id":          collection.ID.String(),
 				"name":        collection.Name,
 				"description": collection.Description,
 				"isPrivate":   collection.IsPrivate,
-				"bannerUrl":   collection.BannerUrl,
+				"bannerUrl":   collection.BannerURL,
 			}
 		}
 		continue
@@ -114,7 +114,7 @@ func (c *ReindexController) getCollectionItemData() ([]map[string]interface{}, e
 	result := make([]map[string]interface{}, len(items))
 	for i, item := range items {
 		result[i] = map[string]interface{}{
-			"id":          item.Id.String(),
+			"id":          item.ID.String(),
 			"name":        item.Name,
 			"description": item.Description,
 			"images":      item.Images,

@@ -171,21 +171,6 @@ func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string,
 	return &SearchResultFormatted{Result: filteredHits}, nil
 }
 
-func getIndexPosition(index string) int {
-	switch index {
-	case "users":
-		return 0
-	case "collections":
-		return 1
-	case "tags":
-		return 2
-	case "collection_items":
-		return 3
-	default:
-		return -1
-	}
-}
-
 func (es *ElasticService) deleteIndexIfExists(indexName string) error {
 	res, err := es.client.Indices.Exists([]string{indexName})
 	if err != nil {

@@ -224,7 +224,7 @@ func (s *TagsService) RemoveTagsFromEntity(req *models.RemoveTagsRequest, authUs
 
 func (s *TagsService) UpdateTag(req *models.TagUpdateRequest) (*models.TagDataResponse, error) {
 	tag, err := s.tagsClient.UpdateTag(context.Background(), &microservices.UpdateTagRequest{
-		Id:          req.ID,
+		ID:          req.ID,
 		Name:        req.Name,
 		Slug:        req.Slug,
 		Description: req.Description,
@@ -299,7 +299,7 @@ func (s *TagsService) Subscribe(id, userLogin string) (*dto.CommonResponse, erro
 	if err != nil {
 		return nil, err
 	}
-	tag, err := s.tagsClient.GetTag(context.Background(), &microservices.GetTagRequest{Id: id})
+	tag, err := s.tagsClient.GetTag(context.Background(), &microservices.GetTagRequest{ID: id})
 	if err != nil {
 		return nil, err
 	}
@@ -518,7 +518,7 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 		}
 
 		return &models.Tags{
-			ID:                   tag.Id,
+			ID:                   tag.ID,
 			Name:                 tag.Name,
 			Slug:                 tag.Slug,
 			Description:          tag.Description,
@@ -541,8 +541,7 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 
 func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entityIDs []string, isPremium bool, filter string, tagsMap map[string]*microservices.GetShortsResponse) (*models.Entities, *models.CollectionItemsProps, error) {
 	var entities models.Entities
-	var collectionItemsProps *models.CollectionItemsProps
-	collectionItemsProps = &models.CollectionItemsProps{}
+	var collectionItemsProps *models.CollectionItemsProps = &models.CollectionItemsProps{}
 	var filterId string
 	if entityType == "post" {
 		posts, err := s.postsService.GetPostsByIDs(context.Background(), entityIDs, authUserLogin, isPremium)
@@ -563,18 +562,18 @@ func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entity
 		typeMap := make(map[string]*int64)
 		for _, itemType := range itemTypes {
 			if filter == itemType.Slug {
-				filterId = itemType.Id.String()
+				filterId = itemType.ID.String()
 			}
 
-			if itemType.Id.String() != "" {
-				typeMap[itemType.Id.String()] = nil
+			if itemType.ID.String() != "" {
+				typeMap[itemType.ID.String()] = nil
 			}
 		}
 
 		for key, item := range counts {
 			if _, exists := typeMap[key]; exists {
 				for _, it := range itemTypes {
-					if it.Id.String() != "" && it.Id.String() == key {
+					if it.ID.String() != "" && it.ID.String() == key {
 						switch it.Slug {
 						case "books":
 							collectionItemsProps.Books = item
@@ -648,7 +647,7 @@ func (s *TagsService) canActivate(authUser, role, entityID, entityType string) (
 		authorLogin = collectionItem.UserLogin
 	}
 	if entityType == "photo" {
-		photo, _ := s.photosService.FindOneById(context.Background(), entityID, authUser)
+		photo, _ := s.photosService.FindOneByID(context.Background(), entityID, authUser)
 		authorLogin = photo.Data.Author.Login
 	}
 

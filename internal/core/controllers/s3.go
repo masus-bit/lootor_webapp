@@ -9,10 +9,10 @@ import (
 )
 
 type FilesController struct {
-	s3 *s3.S3Service
+	s3 *s3.StorageService
 }
 
-func NewFilesController(s3 *s3.S3Service) *FilesController {
+func NewFilesController(s3 *s3.StorageService) *FilesController {
 	return &FilesController{s3: s3}
 }
 

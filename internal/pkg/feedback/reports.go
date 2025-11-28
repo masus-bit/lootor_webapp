@@ -7,7 +7,7 @@ import (
 )
 
 type ReportsService struct {
-	feedService    *FeedbackService
+	feedService    *FBService
 	ciRepo         *repositories.CiRepository
 	userRepo       *repositories.UsersRepository
 	collectionRepo *repositories.CollectionsRepository
@@ -15,7 +15,7 @@ type ReportsService struct {
 }
 
 func NewReportsService(
-	feedService *FeedbackService,
+	feedService *FBService,
 	ciRepo *repositories.CiRepository,
 	userRepo *repositories.UsersRepository,
 	collectionRepo *repositories.CollectionsRepository,
@@ -47,7 +47,7 @@ func (s *ReportsService) ReportAnything(id string) (*dto.CommonResponse, error) 
 
 	if collection != nil {
 		if collection.ReportsCount == 2 {
-			description = description + "\n\n\n__________\n\nКоллекция: " + collection.Id.String() + "\n\nTransliteration: " + collection.Transliteration + "\n\nВладелец: " + collection.User.Login
+			description = description + "\n\n\n__________\n\nКоллекция: " + collection.ID.String() + "\n\nTransliteration: " + collection.Transliteration + "\n\nВладелец: " + collection.User.Login
 			_, err = s.feedService.SendTextTicket(title, description, true)
 			if err != nil {
 				return nil, err
@@ -69,7 +69,7 @@ func (s *ReportsService) ReportAnything(id string) (*dto.CommonResponse, error) 
 
 	if collectionItem != nil {
 		if collectionItem.ReportsCount == 2 {
-			description = description + "\n\n\n__________\n\nЭкземпляр коллекции: " + collectionItem.Id.String() + "\n\nВладелец: " + collectionItem.Owner.Login
+			description = description + "\n\n\n__________\n\nЭкземпляр коллекции: " + collectionItem.ID.String() + "\n\nВладелец: " + collectionItem.Owner.Login
 			_, err = s.feedService.SendTextTicket(title, description, true)
 			if err != nil {
 				return nil, err
@@ -113,7 +113,7 @@ func (s *ReportsService) ReportAnything(id string) (*dto.CommonResponse, error) 
 
 	if wishListItem != nil {
 		if wishListItem.ReportsCount == 2 {
-			description = description + "\n\n\n__________\n\nЭкземпляр вишлиста: " + wishListItem.Id.String() + "\n\nВладелец: " + wishListItem.User.Login
+			description = description + "\n\n\n__________\n\nЭкземпляр вишлиста: " + wishListItem.ID.String() + "\n\nВладелец: " + wishListItem.User.Login
 			_, err = s.feedService.SendTextTicket(title, description, true)
 			if err != nil {
 				return nil, err
