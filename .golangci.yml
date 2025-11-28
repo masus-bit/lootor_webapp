@@ -20,3 +20,8 @@ linters-settings:
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
+  exclude-dirs:
+    - internal/infrastructure    # пропускать всю папку
+  exclude-files:
+    - ".*\\.pb\\.go"             # пропускать все .pb.go файлы
+    - ".*\\.proto"               # пропускать все .proto файлы

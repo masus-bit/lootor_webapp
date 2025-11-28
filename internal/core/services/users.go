@@ -495,7 +495,7 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 	}, nil
 }
 func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo, error) {
-	baseUrl := "https://api.vk.com/method/users.get"
+	baseURL := "https://api.vk.com/method/users.get"
 
 	parameters := map[string]string{
 		"access_token": accessToken,
@@ -504,7 +504,7 @@ func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo
 	}
 	response, err := utils.SendRequest[struct {
 		Response []models.VkAuthGetUserInfo `json:"response"`
-	}](utils.RequestOptions{Method: "GET", URL: baseUrl, Headers: map[string]string{}, Body: map[string]string{}, QueryParams: parameters, File: []byte{}, BasicAuth: nil})
+	}](utils.RequestOptions{Method: "GET", URL: baseURL, Headers: map[string]string{}, Body: map[string]string{}, QueryParams: parameters, File: []byte{}, BasicAuth: nil})
 
 	if err != nil {
 		return nil, err

@@ -126,7 +126,7 @@ func (c *CIController) GetCollectionItem(ctx echo.Context) error {
 		UserLogin       string
 	})
 
-	response, err := c.enrichedService.GetById(id, authInfo.UserLogin)
+	response, err := c.enrichedService.GetByID(id, authInfo.UserLogin)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),

@@ -39,13 +39,13 @@ func SendRequest[T any](options RequestOptions) (T, error) {
 		return result, err
 	}
 
-	modifiedUrl := options.URL
+	modifiedURL := options.URL
 
 	if len(options.QueryParams) > 0 {
 		for key, value := range options.QueryParams {
 			queryParams.Add(key, value)
 		}
-		modifiedUrl = options.URL + "?" + queryParams.Encode()
+		modifiedURL = options.URL + "?" + queryParams.Encode()
 	}
 
 	switch body := options.Body.(type) {
@@ -74,13 +74,13 @@ func SendRequest[T any](options RequestOptions) (T, error) {
 			return result, fmt.Errorf("failed to copy file: %w", err)
 		}
 		writer.Close()
-		req, err = http.NewRequest(options.Method, modifiedUrl, &fileBody)
+		req, err = http.NewRequest(options.Method, modifiedURL, &fileBody)
 		if err != nil {
 			return result, fmt.Errorf("failed to create request: %w", err)
 		}
 		req.Header.Set("Content-Type", writer.FormDataContentType())
 	} else {
-		req, err = http.NewRequest(options.Method, modifiedUrl, reqBody)
+		req, err = http.NewRequest(options.Method, modifiedURL, reqBody)
 		if err != nil {
 			return result, fmt.Errorf("failed to create request: %w", err)
 		}

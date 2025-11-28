@@ -99,11 +99,11 @@ func (c *GRPCPhotosClient) GetCountByCollection(ctx context.Context, req *micros
 }
 
 func (c *GRPCPhotosClient) IncrementCommentsCount(ctx context.Context, id uint64) (*microservices.CommentsCountResponsePhoto, error) {
-	return c.client.IncrementCommentsCount(ctx, &microservices.CommentsCountRequestPhoto{PhotoID: id})
+	return c.client.IncrementCommentsCount(ctx, &microservices.CommentsCountRequestPhoto{PhotoId: id})
 }
 
 func (c *GRPCPhotosClient) DecrementCommentsCount(ctx context.Context, id uint64) (*microservices.CommentsCountResponsePhoto, error) {
-	return c.client.DecrementCommentsCount(ctx, &microservices.CommentsCountRequestPhoto{PhotoID: id})
+	return c.client.DecrementCommentsCount(ctx, &microservices.CommentsCountRequestPhoto{PhotoId: id})
 }
 
 func (c *GRPCPhotosClient) UpdatePhoto(ctx context.Context, req *microservices.UpdatePhotoRequest) (*microservices.PhotoResponse, error) {

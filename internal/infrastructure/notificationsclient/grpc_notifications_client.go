@@ -29,14 +29,14 @@ func (c *GRPCNotificationsClient) AddNotification(ctx context.Context, dto *dto.
 
 	resp, err := c.client.CreateNotification(ctx, &microservices.CreateNotificationRequest{
 		Date:        dto.Date,
-		TargetID:    dto.TargetID,
+		TargetId:    dto.TargetID,
 		UserLogin:   dto.Login,
 		Type:        dto.Type,
 		SenderLogin: dto.SenderLogin,
 		Action:      dto.Action,
 		TargetType:  dto.TargetItem.TargetType,
 		Target: &microservices.TargetItem{
-			ID:              &dto.TargetItem.ID,
+			Id:              &dto.TargetItem.ID,
 			Name:            &dto.TargetItem.Name,
 			Transliteration: &dto.TargetItem.Transliteration,
 			TargetType:      &dto.TargetItem.TargetType,
@@ -44,19 +44,19 @@ func (c *GRPCNotificationsClient) AddNotification(ctx context.Context, dto *dto.
 		TargetUser: &microservices.User{
 			Login:       &dto.TargetUser.Login,
 			IsPremium:   &dto.TargetUser.IsPremium,
-			AvatarURL:   &dto.TargetUser.AvatarURL,
+			AvatarUrl:   &dto.TargetUser.AvatarURL,
 			ProfileName: &dto.TargetUser.ProfileName,
 		},
 		SenderUser: &microservices.User{
 			Login:       &dto.SenderUser.Login,
 			IsPremium:   &dto.SenderUser.IsPremium,
-			AvatarURL:   &dto.SenderUser.AvatarURL,
+			AvatarUrl:   &dto.SenderUser.AvatarURL,
 			ProfileName: &dto.SenderUser.ProfileName,
 		},
 		Owner: &microservices.User{
 			Login:       &dto.Owner.Login,
 			IsPremium:   &dto.Owner.IsPremium,
-			AvatarURL:   &dto.Owner.AvatarURL,
+			AvatarUrl:   &dto.Owner.AvatarURL,
 			ProfileName: &dto.Owner.ProfileName,
 		},
 	})
@@ -72,14 +72,14 @@ func (c *GRPCNotificationsClient) GetAllNotifications(ctx context.Context, login
 
 func (c *GRPCNotificationsClient) ReadNotifications(ctx context.Context, ids []string) (*microservices.ReadResponse, error) {
 	return c.client.ReadNotifications(ctx, &microservices.ReadRequest{
-		IDs:    ids,
+		Ids:    ids,
 		IsRead: true,
 	})
 }
 
 func (c *GRPCNotificationsClient) DeleteNotification(ctx context.Context, targetID, senderLogin string) (*microservices.DeleteNotificationResponse, error) {
 	notification, err := c.client.RemoveNotification(ctx, &microservices.DeleteNotificationRequest{
-		TargetID:  targetID,
+		TargetId:  targetID,
 		UserLogin: senderLogin,
 	})
 	if err != nil {
@@ -90,7 +90,7 @@ func (c *GRPCNotificationsClient) DeleteNotification(ctx context.Context, target
 
 func (c *GRPCNotificationsClient) DeleteAllNotificationsByTargetID(ctx context.Context, targetID string) (*microservices.DeleteNotificationResponse, error) {
 	return c.client.RemoveAllNotificationsByTargetId(ctx, &microservices.DeleteNotificationRequest{
-		TargetID: targetID,
+		TargetId: targetID,
 	})
 }
 

@@ -233,7 +233,7 @@ func (s *WLService) Update(id string, req models.WishListUpdateRequest, login st
 		return nil, errors.New("not authorized")
 	}
 
-	existsItem, err := s.wlRepo.GetById(id)
+	existsItem, err := s.wlRepo.GetByID(id)
 
 	if err != nil {
 		return nil, err

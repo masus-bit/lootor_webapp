@@ -461,11 +461,11 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateReq
 
 func (s *PostsService) IncrementViews(ctx context.Context, req *models.IncrementRequestInput) (*dto.CommonResponse, error) {
 	var uintIds []uint64
-	for _, id := range req.PostIds {
+	for _, id := range req.PostIDs {
 		idInt, _ := strconv.ParseUint(id, 10, 64)
 		uintIds = append(uintIds, idInt)
 	}
-	resp, err := s.postsClient.IncrementViews(ctx, &models.IncrementRequest{PostIds: uintIds})
+	resp, err := s.postsClient.IncrementViews(ctx, &models.IncrementRequest{PostIDs: uintIds})
 	if err != nil {
 		return nil, err
 	}

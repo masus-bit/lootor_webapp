@@ -54,7 +54,7 @@ func (s *PayService) StartTransaction(login string, subType string, amount strin
 		Capture: true,
 		Confirmation: Confirmation{
 			Type:      "redirect",
-			ReturnUrl: "https://lootor.me/payment-success",
+			ReturnURL: "https://lootor.me/payment-success",
 		},
 		Description: description,
 		Receipt: Receipt{
@@ -70,7 +70,7 @@ func (s *PayService) StartTransaction(login string, subType string, amount strin
 
 	idempotenceKey, _ := utils.GenerateRandomString(10)
 
-	baseUrl := os.Getenv("YOOKASSA_URL")
+	baseURL := os.Getenv("YOOKASSA_URL")
 
 	headers := map[string]string{
 		"Idempotence-Key": idempotenceKey,
@@ -84,7 +84,7 @@ func (s *PayService) StartTransaction(login string, subType string, amount strin
 		Password: os.Getenv("YOOKASSA_SECRET_KEY"),
 	}
 
-	response, err := utils.SendRequest[PayResponse](utils.RequestOptions{Method: "POST", URL: baseUrl, Headers: headers, Body: payment, QueryParams: nil, File: nil, BasicAuth: basicAuth})
+	response, err := utils.SendRequest[PayResponse](utils.RequestOptions{Method: "POST", URL: baseURL, Headers: headers, Body: payment, QueryParams: nil, File: nil, BasicAuth: basicAuth})
 
 	if err != nil {
 		return nil, err
@@ -123,12 +123,11 @@ func (s *PayService) EndTransaction(data *Notification) {
 		}
 
 		return
+	}
+	if subType == "monthly" {
+		months = 1
 	} else {
-		if subType == "monthly" {
-			months = 1
-		} else {
-			years = 1
-		}
+		years = 1
 	}
 
 	if data.Object.Paid && data.Object.Status == "succeeded" {

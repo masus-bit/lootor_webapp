@@ -45,41 +45,41 @@ func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsR
 		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
 			if order == "asc" {
 				return cmp.Compare(a.Name, b.Name)
-			} else {
-				return cmp.Compare(b.Name, a.Name)
 			}
+			return cmp.Compare(b.Name, a.Name)
+
 		})
 	case "created":
 		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
 			if order == "asc" {
 				return cmp.Compare(a.CreatedAt.UnixNano(), b.CreatedAt.UnixNano())
-			} else {
-				return cmp.Compare(b.CreatedAt.UnixNano(), a.CreatedAt.UnixNano())
 			}
+			return cmp.Compare(b.CreatedAt.UnixNano(), a.CreatedAt.UnixNano())
+
 		})
 	case "totalPrice":
 		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
 			if order == "asc" {
 				return cmp.Compare(a.TotalPrice, b.TotalPrice)
-			} else {
-				return cmp.Compare(b.TotalPrice, a.TotalPrice)
 			}
+			return cmp.Compare(b.TotalPrice, a.TotalPrice)
+
 		})
 	case "collectionItemsCount":
 		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
 			if order == "asc" {
 				return cmp.Compare(a.CollectionItemsCount, b.CollectionItemsCount)
-			} else {
-				return cmp.Compare(b.CollectionItemsCount, a.CollectionItemsCount)
 			}
+			return cmp.Compare(b.CollectionItemsCount, a.CollectionItemsCount)
+
 		})
 	case "likesCount":
 		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
 			if order == "asc" {
 				return cmp.Compare(a.LikesCount, b.LikesCount)
-			} else {
-				return cmp.Compare(b.LikesCount, a.LikesCount)
 			}
+			return cmp.Compare(b.LikesCount, a.LikesCount)
+
 		})
 	default:
 		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
@@ -313,7 +313,7 @@ func FormatReacts(post *microservices.PostItem, users []models.SubUsers, reactLe
 		}
 
 		for _, r := range post.GetReactions() {
-			reactUUID, err := uuid.Parse(r.ID)
+			reactUUID, err := uuid.Parse(r.Id)
 			if err != nil {
 				return nil, err
 			}

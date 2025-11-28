@@ -41,7 +41,7 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 	var itemTypeID *uuid.UUID
 
 	if dto.Platform != "" {
-		foundPlatform, err := s.platformsRepo.GetPlatformById(dto.Platform)
+		foundPlatform, err := s.platformsRepo.GetPlatformByID(dto.Platform)
 		if err != nil {
 			return nil, fmt.Errorf("error getting platform: %v", err)
 		}
@@ -53,7 +53,7 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 	}
 
 	if dto.ItemType != "" {
-		foundItemType, err := s.itemTypeRepo.GetTypeById(dto.ItemType)
+		foundItemType, err := s.itemTypeRepo.GetTypeByID(dto.ItemType)
 		if err != nil {
 			return nil, fmt.Errorf("error getting item type: %v", err)
 		}
@@ -294,7 +294,7 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 	var itemTypeID *uuid.UUID
 
 	if dto.Platform != nil && *dto.Platform != "" {
-		foundPlatform, err := s.platformsRepo.GetPlatformById(*dto.Platform)
+		foundPlatform, err := s.platformsRepo.GetPlatformByID(*dto.Platform)
 		if err != nil {
 			return nil, fmt.Errorf("error getting platform: %v", err)
 		}
@@ -306,7 +306,7 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 	}
 
 	if dto.ItemType != nil && *dto.ItemType != "" {
-		foundItemType, err := s.itemTypeRepo.GetTypeById(*dto.ItemType)
+		foundItemType, err := s.itemTypeRepo.GetTypeByID(*dto.ItemType)
 		if err != nil {
 			return nil, fmt.Errorf("error getting item type: %v", err)
 		}
@@ -334,7 +334,7 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 	return result, nil
 }
 
-func (s *CiService) GetById(id string, authUser string) (*models.CollectionItems, error) {
+func (s *CiService) GetByID(id string, authUser string) (*models.CollectionItems, error) {
 	exists, err := s.repo.GetCIByID(id)
 	if err != nil {
 		return nil, err

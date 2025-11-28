@@ -19,7 +19,7 @@ func (r *PlatformsRepository) FindAllPlatforms() ([]models.Platforms, error) {
 	return platforms, err
 }
 
-func (r *PlatformsRepository) GetPlatformById(id string) (*models.Platforms, error) {
+func (r *PlatformsRepository) GetPlatformByID(id string) (*models.Platforms, error) {
 	var platform models.Platforms
 	err := r.db.Where("id = ?", id).First(&platform).Error
 	return &platform, err

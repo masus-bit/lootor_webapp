@@ -13,7 +13,7 @@ func PhotosRouter(e *echo.Echo, jwtService *auth.JWTService, photosService servi
 	publicGroup := e.Group("/public")
 	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
-		publicGroup.GET("/photos/:id", controller.GetById)
+		publicGroup.GET("/photos/:id", controller.GetByID)
 		publicGroup.GET("/photos/by_user", controller.GetByUserLogin)
 		publicGroup.GET("/photos/by_collection", controller.FindAllByCollectionID)
 	}

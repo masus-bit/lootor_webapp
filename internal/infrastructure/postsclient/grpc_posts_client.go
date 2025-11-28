@@ -111,7 +111,7 @@ func (c *GRPCPostsClient) GetPostByTranslit(ctx context.Context, translit string
 
 func (c *GRPCPostsClient) IncrementViews(ctx context.Context, req *models.IncrementRequest) (*microservices.ViewsResponse, error) {
 	return c.client.IncrementViews(ctx, &microservices.ViewsRequest{
-		PostIds: req.PostIds,
+		PostIDs: req.PostIDs,
 	})
 }
 
@@ -128,7 +128,7 @@ func (c *GRPCPostsClient) GetCount(ctx context.Context, userLogin string) (*micr
 }
 
 func (c *GRPCPostsClient) GetPostsByIds(ctx context.Context, ids []string, authUserLogin string, authUserIsPremium bool) (*microservices.GetPostsByIdsMapResponse, error) {
-	return c.client.GetPostsByIds(ctx, &microservices.GetPostsByIdsMapRequest{PostIds: ids, AuthUserLogin: authUserLogin, IsPremium: authUserIsPremium})
+	return c.client.GetPostsByIds(ctx, &microservices.GetPostsByIdsMapRequest{PostIDs: ids, AuthUserLogin: authUserLogin, IsPremium: authUserIsPremium})
 }
 
 func (c *GRPCPostsClient) Close() {

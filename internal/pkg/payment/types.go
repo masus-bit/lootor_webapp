@@ -50,7 +50,7 @@ type Recipient struct {
 
 type Confirmation struct {
 	Type      string `json:"type"`
-	ReturnUrl string `json:"return_url"`
+	ReturnURL string `json:"return_url"`
 }
 
 type ItemCustomer struct {

@@ -59,7 +59,7 @@ func (r *WLRepository) GetAllByUserLogin(userLogin string) ([]models.WishListIte
 
 }
 
-func (r *WLRepository) GetById(id string) (*models.WishListItems, error) {
+func (r *WLRepository) GetByID(id string) (*models.WishListItems, error) {
 	var item models.WishListItems
 	err := r.db.Where("id = ?", id).Preload("User").Preload("CollectionItem").First(&item).Error
 
@@ -98,7 +98,7 @@ func (r *WLRepository) UpdateItem(item *models.WishListItems) (*models.WishListI
 	return &updated, err
 }
 
-func (r *WLRepository) GetWLByIdsMap(ids []string) (map[string]models.WishListItemResponse, error) {
+func (r *WLRepository) GetWLByIDsMap(ids []string) (map[string]models.WishListItemResponse, error) {
 	var items []models.WishListItems
 	err := r.db.Where("id IN (?)", ids).Preload("User").Preload("CollectionItem").Find(&items).Error
 	if err != nil {

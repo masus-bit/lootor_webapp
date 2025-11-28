@@ -233,7 +233,7 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	}()
 	go func() {
 		defer wg.Done()
-		wlMap, _ = s.wishListRepo.GetWLByIdsMap(wlIDs)
+		wlMap, _ = s.wishListRepo.GetWLByIDsMap(wlIDs)
 	}()
 	go func() {
 		defer wg.Done()

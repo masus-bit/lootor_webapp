@@ -40,7 +40,7 @@ func (s *ReportsService) ReportAnything(id string) (*dto.CommonResponse, error) 
 	if err != nil {
 		user = nil
 	}
-	wishListItem, err := s.wlRepo.GetById(id)
+	wishListItem, err := s.wlRepo.GetByID(id)
 	if err != nil {
 		wishListItem = nil
 	}

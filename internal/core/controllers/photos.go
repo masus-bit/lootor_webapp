@@ -100,7 +100,7 @@ func (c *PhotosController) Delete(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
-// GetById
+// GetByID
 // @Summary получить по ид
 // @Tags photos
 // @Accept  json
@@ -108,7 +108,7 @@ func (c *PhotosController) Delete(ctx echo.Context) error {
 // @Param id path string true "id"
 // @Success 201 {object} models.PhotoDataResponse
 // @Router /public/photos/{id} [get]
-func (c *PhotosController) GetById(ctx echo.Context) error {
+func (c *PhotosController) GetByID(ctx echo.Context) error {
 	id := ctx.Param("id")
 
 	authInfo := ctx.Get("auth_info").(struct {

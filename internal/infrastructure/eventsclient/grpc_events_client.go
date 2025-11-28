@@ -36,7 +36,7 @@ func (c *GRPCEventsClient) AddEvent(ctx context.Context, req *models.AddEventReq
 			TargetCollectionId:   req.Params.TargetCollectionID,
 			TargetItemId:         req.Params.TargetItemID,
 			TargetWishListItemId: req.Params.TargetWLID,
-			TargetPostID:         req.Params.TargetPostID,
+			TargetPostId:         req.Params.TargetPostID,
 			TargetTagId:          req.Params.TargetTagID,
 			TargetPhotoId:        req.Params.TargetPhotoID,
 		},
@@ -59,10 +59,10 @@ func (c *GRPCEventsClient) GetFilteredEvents(ctx context.Context, req *models.Ge
 		Limit:             req.Limit,
 		Offset:            req.Offset,
 		UserLogin:         req.UserLogin,
-		CollectionID:      req.CollectionID,
-		CollectionItemID:  req.CollectionItemID,
-		WishListItemID:    req.WishListItemID,
-		CollectionItemIDs: req.CollectionItemIDs,
+		CollectionId:      req.CollectionID,
+		CollectionItemId:  req.CollectionItemID,
+		WishListItemId:    req.WishListItemID,
+		CollectionItemIds: req.CollectionItemIDs,
 	})
 }
 

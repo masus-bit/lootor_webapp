@@ -19,7 +19,7 @@ func (r *ItemTypesRepository) FindAllTypes() ([]models.ItemTypes, error) {
 	return types, err
 }
 
-func (r *ItemTypesRepository) GetTypeById(id string) (*models.ItemTypes, error) {
+func (r *ItemTypesRepository) GetTypeByID(id string) (*models.ItemTypes, error) {
 	var itemType models.ItemTypes
 	err := r.db.Where("id = ?", id).First(&itemType).Error
 	return &itemType, err
