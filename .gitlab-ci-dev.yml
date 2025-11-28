@@ -36,8 +36,8 @@ sast_gosec:
     - cd $CI_PROJECT_DIR
   script:
     - go install github.com/securego/gosec/v2/cmd/gosec@latest
-    - $(go env GOPATH)/bin/gosec --exclude-dir=gen --exclude-dir=internal/infrastructure ./...
-  allow_failure: true
+    - $(go env GOPATH)/bin/gosec -quiet ./...
+  allow_failure: false
 
 build:
   stage: build
