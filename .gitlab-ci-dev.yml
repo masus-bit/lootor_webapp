@@ -1,5 +1,8 @@
 stages:
+  - lint
+  - security
   - build
+  - container_scanning
   - deploy
 
 variables:
@@ -9,6 +12,9 @@ variables:
   DOCKER_DRIVER: overlay2
   GIT_STRATEGY: clone
 
+# ----------------------------------------------
+# PREPARE (как было)
+# ----------------------------------------------
 
 .pre:
   stage: prepare
@@ -24,6 +30,45 @@ variables:
     paths:
       - /kaniko/.docker/config.json
     expire_in: 1 hour
+
+# ----------------------------------------------
+# LINT (качество кода)
+# ----------------------------------------------
+
+golangci_lint:
+  stage: lint
+  tags:
+    - auc
+  image: golangci/golangci-lint:v1.59
+  script:
+    - golangci-lint run ./...
+  allow_failure: true
+
+go_vet:
+  stage: lint
+  tags:
+    - auc
+  image: golang:1.22
+  script:
+    - go vet ./...
+  allow_failure: true
+
+# ----------------------------------------------
+# SECURITY (SAST)
+# ----------------------------------------------
+
+sast_gosec:
+  stage: security
+  tags:
+    - auc
+  image: securego/gosec:latest
+  script:
+    - gosec ./...
+  allow_failure: true
+
+# ----------------------------------------------
+# BUILD (как было)
+# ----------------------------------------------
 
 build:
   stage: build
@@ -42,6 +87,26 @@ build:
       --destination "${CI_REGISTRY_IMAGE}:latest"
       --cache=true
       --cache-repo "${CI_REGISTRY_IMAGE}/cache"
+
+# ----------------------------------------------
+# CONTAINER SCANNING (Trivy)
+# ----------------------------------------------
+
+container_scanning:
+  stage: container_scanning
+  tags:
+    - auc
+  image: aquasec/trivy:latest
+  dependencies:
+    - build
+  script:
+    - trivy image --exit-code 0 --severity HIGH,CRITICAL "${CI_REGISTRY_IMAGE}:latest"
+  allow_failure: true
+
+# ----------------------------------------------
+# DEPLOY (как было)
+# ----------------------------------------------
+
 deploy:
   tags:
     - deploy
@@ -64,14 +129,11 @@ deploy:
       
       docker service update --force --image registry.gitlab.com/auc2/backend_services/lootor_webapp:latest lootor_backend      
       
-      # 3. Ждем и проверяем
       echo "Waiting for services to start..."
       sleep 30
       
-      # 4. Проверяем статус
       echo "=== Services status ==="
       docker service ls
-  
       
       docker image prune -f
       docker builder prune --all --force
