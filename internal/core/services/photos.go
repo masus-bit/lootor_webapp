@@ -159,6 +159,7 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 		return nil, err
 	}
 	if resp.GetIsLike() {
+		err = s.userRepo.IncrementExperience(authUserLogin, utils.CISelfLikeExp)
 		dbCollection, err := s.collectionRepo.GetByIdWithoutCollectionItems(resp.GetCollectionId())
 		if err != nil {
 			return nil, err
@@ -182,6 +183,7 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 			}, target)
 		}()
 	} else {
+		err = s.userRepo.DecrementExperience(authUserLogin, utils.CISelfLikeExp)
 		go func() {
 			_ = s.notificationsService.DeleteNotification(context.Background(), id, authUserLogin)
 		}()
