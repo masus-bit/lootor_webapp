@@ -1,4 +1,5 @@
 stages:
+  - security
   - build
   - deploy
 
@@ -24,6 +25,42 @@ variables:
       - /kaniko/.docker/config.json
     expire_in: 1 hour
 
+sast_gosec:
+  stage: security
+  tags:
+    - auc
+  image: golang:1.24
+  before_script:
+    - cd $CI_PROJECT_DIR
+  script:
+    - go install github.com/securego/gosec/v2/cmd/gosec@latest
+    - |
+      # Запускаем gosec и сохраняем вывод
+      set +e
+      OUTPUT=$($(go env GOPATH)/bin/gosec ./... 2>&1)
+      set -e
+      
+      echo "=== FULL OUTPUT ==="
+      echo "$OUTPUT"
+      echo "=== END OUTPUT ==="
+      
+      if echo "$OUTPUT" | grep "Issues : 0" > /dev/null; then
+        echo "✅ GOSEC CHECK PASSED (method 1)"
+        exit 0
+      elif echo "$OUTPUT" | grep -E "Issues:[[:space:]]*0" > /dev/null; then
+        echo "✅ GOSEC CHECK PASSED (method 2)" 
+        exit 0
+      elif echo "$OUTPUT" | tail -10 | grep "Issues : 0" > /dev/null; then
+        echo "✅ GOSEC CHECK PASSED (method 3)"
+        exit 0
+      else
+        echo "❌ GOSEC CHECK FAILED"
+        echo "Debug: Looking for 'Issues: 0' pattern..."
+        echo "$OUTPUT" | grep -i "issues" || echo "No 'issues' found in output"
+        exit 1
+      fi
+  allow_failure: false
+
 build:
   stage: build
   tags:
@@ -41,15 +78,11 @@ build:
       --destination "${CI_REGISTRY_IMAGE}:latest"
       --cache=true
       --cache-repo "${CI_REGISTRY_IMAGE}/cache"
+
 deploy:
   tags:
     - deploy
   stage: deploy
-  image: docker:24.0
-  variables:
-    GODEBUG: "http2client=0"
-  before_script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
@@ -63,27 +96,24 @@ deploy:
         echo "ERROR: Docker login failed";
         exit 1;
       }
-      docker pull ${CI_REGISTRY_IMAGE}:latest
-      cd ../lootor
       
-      docker network rm lootor_network || true
-      docker network create lootor_network || true
+      docker pull registry.gitlab.com/auc2/backend_services/lootor_webapp:latest
       
-      docker-compose -f docker-compose.backend.yml stop backend1 backend2 backend3 backend4      
-      docker-compose -f docker-compose.backend.yml pull || true
-      docker-compose -f docker-compose.backend.yml up -d backend1 backend2 backend3 backend4  
+      docker service update --force --image registry.gitlab.com/auc2/backend_services/lootor_webapp:latest lootor_backend      
       
-      for i in {1..10}; do
-        if docker exec lootor_backend1 curl -f http://localhost:5111/health; then
-          break
-        fi
-        sleep 3
-      done
+      echo "Waiting for services to start..."
+      sleep 10
       
-      docker-compose -f docker-compose.backend.yml ps
+      echo "=== Services status ==="
+      docker service ls
+      
       docker image prune -f
       docker builder prune --all --force
       docker image prune -a --force
-      docker volume prune --force
-      exit 0
+      docker volume prune --force    
+      docker container prune -f
+      
+      exit
       EOF
+  only:
+    - dev

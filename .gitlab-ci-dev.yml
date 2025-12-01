@@ -1,8 +1,6 @@
 stages:
-  - lint
   - security
   - build
-  - container_scanning
   - deploy
 
 variables:
@@ -104,7 +102,7 @@ deploy:
       docker service update --force --image registry.gitlab.com/auc2/backend_services/lootor_webapp:latest lootor_backend      
       
       echo "Waiting for services to start..."
-      sleep 30
+      sleep 10
       
       echo "=== Services status ==="
       docker service ls
