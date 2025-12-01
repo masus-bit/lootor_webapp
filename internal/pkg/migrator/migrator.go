@@ -22,6 +22,7 @@ var migrationList = []struct {
 	{"065_set_all_roles", migrations.SetAllRoles},
 	{"066_entity_id_to_string", migrations.EntityIDToString},
 	{"007_uppercase_tags_names", migrations.UppercaseTagsNames},
+	{"008_delete_tags_duplicates", migrations.DeleteTagsDuplicates},
 }
 
 func RunMigrations(db *gorm.DB) error {
