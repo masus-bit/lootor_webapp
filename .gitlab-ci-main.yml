@@ -115,5 +115,3 @@ deploy:
       
       exit
       EOF
-  only:
-    - dev
