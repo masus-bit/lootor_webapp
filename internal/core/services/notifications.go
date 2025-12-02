@@ -111,6 +111,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 			postsIDs = append(postsIDs, n.GetTargetId())
 		}
 	}
+
 	if len(photosIDs) > 0 {
 		photos, err := s.photosClient.GetPhotosByIDsMap(ctx, &microservices.GetByIdsRequest{
 			Ids: photosIDs,
@@ -266,6 +267,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		case "photo":
 			owner := users[photosMap[n.TargetId].Author.Login]
 			dbCollection, _ := s.collectionRepo.GetCollectionByIdWithoutLimits(photosMap[n.TargetId].CollectionID)
+
 			tempItem.Target = dto.TargetItem{
 				ID:               strconv.FormatUint(photosMap[n.TargetId].ID, 10),
 				Name:             photosMap[n.TargetId].Path,
@@ -273,6 +275,7 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 				TargetType:       "photo",
 				TargetParentName: dbCollection.Name,
 			}
+
 			tempItem.Owner = dto.User{
 				Login:       owner.Login,
 				IsPremium:   owner.IsPremium,
