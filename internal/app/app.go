@@ -16,6 +16,7 @@ import (
 	"lootor/internal/core/repositories"
 	"lootor/internal/core/routes"
 	"lootor/internal/core/services"
+	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/commentsclient"
 	"lootor/internal/infrastructure/eventsclient"
 	"lootor/internal/infrastructure/newsclient"
@@ -160,6 +161,10 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	if err != nil {
 		log.Fatal("failed to create photos client:", err)
 	}
+	achievementsClient, err := achievementsclient.NewGRPCAchievementsClient(os.Getenv("ACHIEVEMENTS_SERVICE_ADDR"))
+	if err != nil {
+		log.Fatal("failed to create ach client:", err)
+	}
 
 	ciRepo := repositories.NewCiRepository(db, searchService)
 	colRepo := repositories.NewCollectionsRepository(db, searchService)
@@ -191,22 +196,23 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	)
 	notificationsService := services.NewNotificationsService(notificationsClient, userRepo, colRepo, ciRepo, postsClient, photosClient)
 	eventsService := services.NewEventsService(userRepo, eventsClient, colRepo, ciRepo, postsClient, wlRepo, tagsClient, photosClient)
-	postsService := services.NewPostsService(postsClient, userRepo, eventsService, notificationsService, tagsClient)
+	postsService := services.NewPostsService(postsClient, userRepo, eventsService, notificationsService, tagsClient, achievementsClient)
 	s3Service := s3.NewS3Service(redisClient)
-	photosService := services.NewPhotosService(photosClient, userRepo, tagsClient, colRepo, eventsService, s3Service, notificationsService)
+	photosService := services.NewPhotosService(photosClient, userRepo, tagsClient, colRepo, eventsService, s3Service, notificationsService, achievementsClient)
+	achievementsService := services.NewAchievementsService(achievementsClient, userRepo, tagsClient, colRepo, eventsService)
 
 	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootor.me>`)
-	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsService, notificationsService, colRepo, postsService, tagsClient)
-	ciService := services.NewCiService(ciRepo, eventsService, colRepo, userRepo, platformRepo, s3Service, itemTypesRepo, notificationsService, tagsClient)
-	colService := services.NewCollectionService(colRepo, userRepo, eventsService, ciRepo, s3Service, notificationsService, tagsClient, photosClient)
+	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsService, notificationsService, colRepo, postsService, tagsClient, achievementsClient)
+	ciService := services.NewCiService(ciRepo, eventsService, colRepo, userRepo, platformRepo, s3Service, itemTypesRepo, notificationsService, tagsClient, achievementsClient)
+	colService := services.NewCollectionService(colRepo, userRepo, eventsService, ciRepo, s3Service, notificationsService, tagsClient, photosClient, achievementsClient)
 	platformsService := services.NewPlatformsService(platformRepo)
 	itemTypesService := services.NewItemTypesService(itemTypesRepo)
-	tagsService := services.NewTagsService(tagsClient, userRepo, postsService, ciRepo, colRepo, eventsService, itemTypesRepo, searchService, photosService)
+	tagsService := services.NewTagsService(tagsClient, userRepo, postsService, ciRepo, colRepo, eventsService, itemTypesRepo, searchService, photosService, achievementsClient)
 	fbService := feedback.NewFeedbackService()
 	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsService)
 	enrichedCIService := utils.NewEnrichedCIService(ciService, tagsClient)
 	subService := services.NewSubscriptionService(subRepo)
-	paymentService := payment.NewPayService(userRepo, userService, subService, paymentsRepo)
+	paymentService := payment.NewPayService(userRepo, userService, subService, paymentsRepo, achievementsClient)
 	captchaService := auth.NewRecaptchaService()
 	reportsService := feedback.NewReportsService(fbService, ciRepo, userRepo, colRepo, wlRepo)
 	feedService := services.NewFeedService(newsClient)
@@ -239,6 +245,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.PostsRouter(e, jwtService, *postsService)
 	routes.PhotosRouter(e, jwtService, *photosService)
 	routes.HealthCheckRouter(e)
+	routes.AchievementsRouter(e, jwtService, *achievementsService)
 
 	_ = controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagsService).ReindexInternal(context.Background())
 	setupMonitoring(s3Service)

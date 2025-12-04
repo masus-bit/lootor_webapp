@@ -478,6 +478,59 @@ definitions:
             type: array
         type: object
     type: object
+  models.AchievedAchievement:
+    properties:
+      achievedDate:
+        type: string
+      achievement:
+        $ref: '#/definitions/models.Achievements'
+      achievementCode:
+        type: string
+      achievementId:
+        type: string
+      currentProgress:
+        type: integer
+      exp:
+        type: integer
+      id:
+        type: string
+      level:
+        type: integer
+      threshold:
+        type: integer
+      totalAchieved:
+        type: integer
+      totalAchievedPercentage:
+        type: number
+      userLogin:
+        type: string
+    type: object
+  models.AchievementResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.AchievedAchievement'
+    type: object
+  models.Achievements:
+    properties:
+      code:
+        type: string
+      id:
+        type: string
+    type: object
+  models.AchievementsItemsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Achievements'
+        type: array
+    type: object
+  models.AchievementsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.AchievedAchievement'
+        type: array
+    type: object
   models.AddTagToEntityRequest:
     properties:
       author:
@@ -724,6 +777,8 @@ definitions:
     properties:
       author:
         $ref: '#/definitions/models.SubUsers'
+      canLike:
+        type: boolean
       collection:
         $ref: '#/definitions/models.CollectionShort'
       collectionId:
@@ -732,9 +787,13 @@ definitions:
         type: integer
       createdAt:
         type: string
+      description:
+        type: string
       id:
         type: integer
-      likes:
+      isOwner:
+        type: boolean
+      likesCount:
         type: integer
       path:
         type: string
@@ -944,6 +1003,8 @@ definitions:
         type: integer
       totalCollections:
         type: integer
+      totalPhotos:
+        type: integer
       totalPosts:
         type: integer
     type: object
@@ -1090,6 +1151,65 @@ info:
   title: Lootor
   version: "1.0"
 paths:
+  /public/achievements:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: login
+        in: query
+        name: login
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.AchievementsResponse'
+      summary: Получить все достижения юзера
+      tags:
+      - achievements
+  /public/achievements/items:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.AchievementsItemsResponse'
+      summary: Получить объекты достижений
+      tags:
+      - achievements
+  /public/achievements/one:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: login
+        in: query
+        name: login
+        required: true
+        type: string
+      - description: code
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.AchievementResponse'
+      summary: Получить одну ачиву юзера
+      tags:
+      - achievements
   /public/auth/reset:
     get:
       consumes:

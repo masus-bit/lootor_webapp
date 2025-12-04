@@ -8,6 +8,7 @@ import (
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/core/services"
+	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/pkg/utils"
 	"os"
 )
@@ -17,10 +18,11 @@ type PayService struct {
 	userService  *services.UserService
 	subService   *services.SubscriptionService
 	paymentsRepo *repositories.PaymentsRepository
+	achClient    *achievementsclient.GRPCAchievementsClient
 }
 
-func NewPayService(userRepo *repositories.UsersRepository, userService *services.UserService, subService *services.SubscriptionService, paymentsRepo *repositories.PaymentsRepository) *PayService {
-	return &PayService{userRepo: userRepo, userService: userService, subService: subService, paymentsRepo: paymentsRepo}
+func NewPayService(userRepo *repositories.UsersRepository, userService *services.UserService, subService *services.SubscriptionService, paymentsRepo *repositories.PaymentsRepository, achClient *achievementsclient.GRPCAchievementsClient) *PayService {
+	return &PayService{userRepo: userRepo, userService: userService, subService: subService, paymentsRepo: paymentsRepo, achClient: achClient}
 }
 
 func (s *PayService) StartTransaction(login string, subType string, amount string) (*PayResponseToClientData, error) {
@@ -100,6 +102,7 @@ func (s *PayService) StartTransaction(login string, subType string, amount strin
 
 func (s *PayService) EndTransaction(data *Notification) {
 	userLogin := data.Object.Metadata.UserLogin
+	mode := os.Getenv("MODE")
 
 	if data.Event != "payment.succeeded" {
 		fmt.Println("expected notification: payment.succeeded")
@@ -153,18 +156,31 @@ func (s *PayService) EndTransaction(data *Notification) {
 		fmt.Println(err)
 	}
 
-	if subType == "monthly" {
-		err = s.userRepo.IncrementExperience(userLogin, utils.MonthlyDonateExp)
-		if err != nil {
-			return
+	go func() {
+		if mode == "beta" {
+			err = utils.AddAchievement(s.achClient, utils.AchieveBetaTesterDonate, userLogin, 1, utils.XPBetaTesterDonate, 0)
+			err = s.userRepo.IncrementExperience(userLogin, utils.XPBetaTesterDonate)
 		}
-	} else if subType == "yearly" {
-		err = s.userRepo.IncrementExperience(userLogin, utils.YearlyDonateExp)
-		if err != nil {
-			return
-		}
-	}
+	}()
 
+	if subType == "monthly" {
+		err = s.userRepo.IncrementExperience(userLogin, utils.MonthlyDonateExp+utils.MonthlyDonateExp)
+		if err != nil {
+			return
+		}
+		go func() {
+			err = utils.AddAchievement(s.achClient, utils.AchieveDonate, userLogin, 1, utils.XPDonateLevel1, 0)
+		}()
+
+	} else if subType == "yearly" {
+		err = s.userRepo.IncrementExperience(userLogin, utils.YearlyDonateExp+utils.YearlyDonateExp)
+		if err != nil {
+			return
+		}
+		go func() {
+			err = utils.AddAchievement(s.achClient, utils.AchieveDonate, userLogin, 2, utils.XPDonateLevel2, 0)
+		}()
+	}
 }
 
 func (s *PayService) FindAllPaymentsByLogin(login string) (*models.PaymentsData, error) {

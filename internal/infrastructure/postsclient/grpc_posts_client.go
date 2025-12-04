@@ -131,6 +131,14 @@ func (c *GRPCPostsClient) GetPostsByIds(ctx context.Context, ids []string, authU
 	return c.client.GetPostsByIds(ctx, &microservices.GetPostsByIdsMapRequest{PostIds: ids, AuthUserLogin: authUserLogin, IsPremium: authUserIsPremium})
 }
 
+func (c *GRPCPostsClient) GetPostsCountByUserLogin(ctx context.Context, userLogin string) (*microservices.GetPostsCountByUserLoginResponse, error) {
+	return c.client.GetPostsCountByUserLogin(ctx, &microservices.GetPostsCountByUserLoginRequest{UserLogin: userLogin})
+}
+
+func (c *GRPCPostsClient) GetReactionsCountByUserLogin(ctx context.Context, userLogin string) (*microservices.GetReactionsCountByUserLoginResponse, error) {
+	return c.client.GetReactionsCountByUserLogin(ctx, &microservices.GetReactionsCountByUserLoginRequest{UserLogin: userLogin})
+}
+
 func (c *GRPCPostsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

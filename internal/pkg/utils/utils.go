@@ -2,6 +2,7 @@ package utils
 
 import (
 	"cmp"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
@@ -9,6 +10,7 @@ import (
 	"gorm.io/datatypes"
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
+	"lootor/internal/infrastructure/achievementsclient"
 	"slices"
 	"strings"
 	"unicode"
@@ -404,4 +406,258 @@ func CanLike(likes []string, user, owner string) bool {
 		return true
 	}
 	return !slices.Contains(likes, user)
+}
+
+func GetAchievementSubscribersData(current int64) (int64, int64) {
+	switch {
+	case current >= SubscribersLevel1 && current < SubscribersLevel2:
+		return XPSubscribersLevel1, 1
+	case current >= SubscribersLevel2 && current < SubscribersLevel3:
+		return XPSubscribersLevel2, 2
+	case current >= SubscribersLevel3:
+		return XPSubscribersLevel3, 3
+	default:
+		return 0, 0
+	}
+}
+
+func GetAchievementBetaTesterData() (int64, int64) {
+	return XPBetaTester, 1
+}
+
+func GetAchievementBetaTesterDonateData() (int64, int64) {
+	return XPBetaTesterDonate, 1
+}
+
+func GetAchievementFirstCollectionCreateData() (int64, int64) {
+	return XPFirstCollectionCreate, 1
+}
+
+func GetAchievementDonateData(monthsDonated int64) (int64, int64) {
+	if monthsDonated >= 12 {
+		return XPDonateLevel2, 1
+	} else if monthsDonated >= 1 {
+		return XPDonateLevel1, 1
+	}
+	return 0, 0
+}
+
+func GetAchievementYearlyRegisterData(yearsRegistered int64) (int64, int64) {
+	if yearsRegistered >= 1 {
+		return XPYearlyRegister, 1
+	}
+	return 0, 0
+}
+
+func GetAchievementCollectionItemsAddData(current int64) (int64, int64) {
+	switch {
+	case current >= CollectionItemsAddLevel1 && current < CollectionItemsAddLevel2:
+		return XPCollectionItemsAddLevel1, 1
+	case current >= CollectionItemsAddLevel2 && current < CollectionItemsAddLevel3:
+		return XPCollectionItemsAddLevel2, 2
+	case current >= CollectionItemsAddLevel3:
+		return XPCollectionItemsAddLevel3, 3
+	default:
+		return 0, 0
+	}
+}
+
+func GetAchievementPhotosAddData(current int64) (int64, int64) {
+	switch {
+	case current >= PhotosAddLevel1 && current < PhotosAddLevel2:
+		return XPPhotosAddLevel1, 1
+	case current >= PhotosAddLevel2 && current < PhotosAddLevel3:
+		return XPPhotosAddLevel2, 2
+	case current >= PhotosAddLevel3:
+		return XPPhotosAddLevel3, 3
+	default:
+		return 0, 0
+	}
+}
+
+func GetAchievementTagsAddData(current int64) (int64, int64) {
+	switch {
+	case current >= TagsAddLevel1 && current < TagsAddLevel2:
+		return XPTagsAddLevel1, 1
+	case current >= TagsAddLevel2 && current < TagsAddLevel3:
+		return XPTagsAddLevel2, 2
+	case current >= TagsAddLevel3:
+		return XPTagsAddLevel3, 3
+	default:
+		return 0, 0
+	}
+}
+
+func GetAchievementPostsCreateData(current int64) (int64, int64) {
+	switch {
+	case current >= PostsCreateLevel1 && current < PostsCreateLevel2:
+		return XPPostsCreateLevel1, 1
+	case current >= PostsCreateLevel2 && current < PostsCreateLevel3:
+		return XPPostsCreateLevel2, 2
+	case current >= PostsCreateLevel3:
+		return XPPostsCreateLevel3, 3
+	default:
+		return 0, 0
+	}
+}
+
+func GetAchievementCollectionsLikesData(current int64) (int64, int64) {
+	switch {
+	case current >= CollectionsLikesLevel1 && current < CollectionsLikesLevel2:
+		return XPCollectionsLikesLevel1, 1
+	case current >= CollectionsLikesLevel2 && current < CollectionsLikesLevel3:
+		return XPCollectionsLikesLevel2, 2
+	case current >= CollectionsLikesLevel3:
+		return XPCollectionsLikesLevel3, 3
+	default:
+		return 0, 0
+	}
+}
+
+func GetAchievementCollectionItemsLikesData(current int64) (int64, int64) {
+	switch {
+	case current >= CollectionItemsLikesLevel1 && current < CollectionItemsLikesLevel2:
+		return XPCollectionItemsLikesLevel1, 1
+	case current >= CollectionItemsLikesLevel2 && current < CollectionItemsLikesLevel3:
+		return XPCollectionItemsLikesLevel2, 2
+	case current >= CollectionItemsLikesLevel3:
+		return XPCollectionItemsLikesLevel3, 3
+	default:
+		return 0, 0
+	}
+}
+
+func GetAchievementPhotosLikesData(current int64) (int64, int64) {
+	switch {
+	case current >= PhotosLikesLevel1 && current < PhotosLikesLevel2:
+		return XPPhotosLikesLevel1, 1
+	case current >= PhotosLikesLevel2 && current < PhotosLikesLevel3:
+		return XPPhotosLikesLevel2, 2
+	case current >= PhotosLikesLevel3:
+		return XPPhotosLikesLevel3, 3
+	default:
+		return 0, 0
+	}
+}
+
+func GetAchievementPostsReactionsData(current int64) (int64, int64) {
+	switch {
+	case current >= PostsReactionsLevel1 && current < PostsReactionsLevel2:
+		return XPPostsReactionsLevel1, 1
+	case current >= PostsReactionsLevel2 && current < PostsReactionsLevel3:
+		return XPPostsReactionsLevel2, 2
+	case current >= PostsReactionsLevel3:
+		return XPPostsReactionsLevel3, 3
+	default:
+		return 0, 0
+	}
+}
+
+func GetAchievementCollectionsSumData(current int64) (int64, int64) {
+	switch {
+	case current >= CollectionsSumLevel1 && current < CollectionsSumLevel2:
+		return XPCollectionsSumLevel1, 1
+	case current >= CollectionsSumLevel2 && current < CollectionsSumLevel3:
+		return XPCollectionsSumLevel2, 2
+	case current >= CollectionsSumLevel3:
+		return XPCollectionsSumLevel3, 3
+	default:
+		return 0, 0
+	}
+}
+
+func GetAchievementCollectionsShipSumData(current int64) (int64, int64) {
+	switch {
+	case current >= CollectionsShipSumLevel1 && current < CollectionsShipSumLevel2:
+		return XPCollectionsShipSumLevel1, 1
+	case current >= CollectionsShipSumLevel2 && current < CollectionsShipSumLevel3:
+		return XPCollectionsShipSumLevel2, 2
+	case current >= CollectionsShipSumLevel3:
+		return XPCollectionsShipSumLevel3, 3
+	default:
+		return 0, 0
+	}
+}
+
+func min(a, b int64) int64 {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func GetThreshold(achievementCode string, currentLevel int) (nextThreshold int, maxLevel int, exists bool) {
+	switch achievementCode {
+	case AchieveSubscribers:
+		thresholds := []int{SubscribersLevel1, SubscribersLevel2, SubscribersLevel3}
+		return getNextThreshold(thresholds, currentLevel)
+
+	case AchieveCollectionItemsAdded:
+		thresholds := []int{CollectionItemsAddLevel1, CollectionItemsAddLevel2, CollectionItemsAddLevel3}
+		return getNextThreshold(thresholds, currentLevel)
+
+	case AchievePhotosAdded:
+		thresholds := []int{PhotosAddLevel1, PhotosAddLevel2, PhotosAddLevel3}
+		return getNextThreshold(thresholds, currentLevel)
+
+	case AchieveTagsCreated:
+		thresholds := []int{TagsAddLevel1, TagsAddLevel2, TagsAddLevel3}
+		return getNextThreshold(thresholds, currentLevel)
+
+	case AchievePostsCreated:
+		thresholds := []int{PostsCreateLevel1, PostsCreateLevel2, PostsCreateLevel3}
+		return getNextThreshold(thresholds, currentLevel)
+
+	case AchieveCollectionsLikes:
+		thresholds := []int{CollectionsLikesLevel1, CollectionsLikesLevel2, CollectionsLikesLevel3}
+		return getNextThreshold(thresholds, currentLevel)
+
+	case AchieveCollectionItemsLikes:
+		thresholds := []int{CollectionItemsLikesLevel1, CollectionItemsLikesLevel2, CollectionItemsLikesLevel3}
+		return getNextThreshold(thresholds, currentLevel)
+
+	case AchievePhotosLikes:
+		thresholds := []int{PhotosLikesLevel1, PhotosLikesLevel2, PhotosLikesLevel3}
+		return getNextThreshold(thresholds, currentLevel)
+
+	case AchievePostsReactions:
+		thresholds := []int{PostsReactionsLevel1, PostsReactionsLevel2, PostsReactionsLevel3}
+		return getNextThreshold(thresholds, currentLevel)
+
+	case AchieveCollectionsSum:
+		thresholds := []int{CollectionsSumLevel1, CollectionsSumLevel2, CollectionsSumLevel3}
+		return getNextThreshold(thresholds, currentLevel)
+
+	case AchieveCollectionShipSum:
+		thresholds := []int{CollectionsShipSumLevel1, CollectionsShipSumLevel2, CollectionsShipSumLevel3}
+		return getNextThreshold(thresholds, currentLevel)
+
+	default:
+		return 0, 0, false
+	}
+}
+
+func getNextThreshold(thresholds []int, currentLevel int) (nextThreshold, maxLevel int, exists bool) {
+	maxLevel = len(thresholds)
+
+	if currentLevel >= maxLevel {
+		return 0, maxLevel, false
+	}
+
+	return thresholds[currentLevel], maxLevel, true
+}
+
+func AddAchievement(client *achievementsclient.GRPCAchievementsClient, code, userLogin string, level, xp, value int64) error {
+	achievement := &microservices.AddOrUpdateAchievementRequest{
+		Code:      code,
+		UserLogin: userLogin,
+		Xp:        xp,
+		Level:     level,
+		Value:     value,
+	}
+	_, err := client.AddOrUpdateAchievement(context.Background(), achievement)
+	if err != nil {
+		return fmt.Errorf("AddAchievement: %w", err)
+	}
+	return nil
 }

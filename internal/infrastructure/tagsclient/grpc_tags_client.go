@@ -226,6 +226,10 @@ func (c *GRPCTagsClient) DeleteTags(ctx context.Context, dto *microservices.GetT
 	return resp, nil
 }
 
+func (c *GRPCTagsClient) GetTagsTotalByUserLogin(ctx context.Context, userLogin string) (*microservices.TagsTotalByUserResponse, error) {
+	return c.client.GetTagsTotalByUser(ctx, &microservices.GetTagsTotalByUserRequest{UserLogin: userLogin})
+}
+
 func (c *GRPCTagsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

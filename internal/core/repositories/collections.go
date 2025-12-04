@@ -884,3 +884,17 @@ func (r *CollectionsRepository) GetCollectionItemsIds(collectionId string) ([]st
 	return itemIDs, nil
 
 }
+
+func (r *CollectionsRepository) GetLikesOfAllCollectionsUser(login string) (int64, error) {
+	var totalLikes int64
+
+	query := `
+        SELECT COALESCE(SUM(array_length(likes, 1)), 0) as total_likes
+        FROM collections 
+        WHERE LOWER(user_login) = LOWER($1) 
+          AND deleted_at IS NULL
+    `
+
+	err := r.db.Raw(query, login).Scan(&totalLikes).Error
+	return totalLikes, err
+}

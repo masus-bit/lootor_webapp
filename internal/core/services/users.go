@@ -12,6 +12,7 @@ import (
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
+	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/auth"
 	"lootor/internal/pkg/dto"
@@ -37,11 +38,12 @@ type UserService struct {
 	collectionRepo       *repositories.CollectionsRepository
 	postsService         *PostsService
 	tagsClient           *tagsclient.GRPCTagsClient
+	achClient            *achievementsclient.GRPCAchievementsClient
 }
 
-func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.PostService, eventsService *EventsService, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, postsService *PostsService, tagsClient *tagsclient.GRPCTagsClient) *UserService {
+func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.PostService, eventsService *EventsService, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, postsService *PostsService, tagsClient *tagsclient.GRPCTagsClient, achClient *achievementsclient.GRPCAchievementsClient) *UserService {
 	_ = godotenv.Load()
-	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, eventsService: eventsService, notificationsService: notificationsService, collectionRepo: collectionRepo, postsService: postsService, tagsClient: tagsClient}
+	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, eventsService: eventsService, notificationsService: notificationsService, collectionRepo: collectionRepo, postsService: postsService, tagsClient: tagsClient, achClient: achClient}
 }
 
 func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*models.DataUserResponseForSingleUser, error) {
@@ -223,6 +225,13 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 			if err != nil {
 				fmt.Println(err)
 			}
+
+			subscribers, _ := s.repo.GetTotalSubscribers(targetUserLogin)
+
+			xp, level := utils.GetAchievementSubscribersData(subscribers + 1)
+
+			err = utils.AddAchievement(s.achClient, utils.AchieveSubscribers, targetUserLogin, level, xp, subscribers+1)
+			err = s.repo.IncrementExperience(targetUserLogin, int(xp))
 		}()
 		var target dto.TargetItem = dto.TargetItem{
 			ID:              targetUserLogin,
@@ -301,6 +310,7 @@ func (s *UserService) SignIn(dto *models.SignInRequest) (*models.SignInResponse,
 }
 
 func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*models.SignUpResponse, error) {
+	mode := os.Getenv("MODE")
 	userByMail, _ := s.repo.GetByEmailForSignUp(dto.Email)
 	if userByMail != nil {
 		return nil, errors.New("email должен быть уникальным")
@@ -344,6 +354,11 @@ func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*m
 		err = s.mailService.SendConfirmationEmail(dto.Email, hexString)
 		if err != nil {
 			fmt.Println(err)
+		}
+		if mode == "beta" {
+			_, err = s.achClient.AddZeroAchievements(context.Background(), &microservices.GetUserAchievementsRequest{UserLogin: dto.Login})
+			err = utils.AddAchievement(s.achClient, utils.AchieveBetaTester, dto.Login, 1, utils.XPBetaTester, 0)
+			err = s.repo.IncrementExperience(dto.Login, utils.XPBetaTester)
 		}
 	}()
 

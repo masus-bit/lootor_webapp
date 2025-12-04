@@ -8,6 +8,7 @@ import (
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
+	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/elasticsearch"
@@ -27,9 +28,10 @@ type TagsService struct {
 	eventsService  *EventsService
 	itemTypeRepo   *repositories.ItemTypesRepository
 	es             *elasticsearch.ElasticService
+	achService     *achievementsclient.GRPCAchievementsClient
 }
 
-func NewTagsService(tagsClient *tagsclient.GRPCTagsClient, userRepo *repositories.UsersRepository, postsService *PostsService, ciRepo *repositories.CiRepository, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService, itemTypeRepo *repositories.ItemTypesRepository, es *elasticsearch.ElasticService, photosService *PhotosService) *TagsService {
+func NewTagsService(tagsClient *tagsclient.GRPCTagsClient, userRepo *repositories.UsersRepository, postsService *PostsService, ciRepo *repositories.CiRepository, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService, itemTypeRepo *repositories.ItemTypesRepository, es *elasticsearch.ElasticService, photosService *PhotosService, achService *achievementsclient.GRPCAchievementsClient) *TagsService {
 	return &TagsService{
 		tagsClient:     tagsClient,
 		userRepo:       userRepo,
@@ -40,6 +42,7 @@ func NewTagsService(tagsClient *tagsclient.GRPCTagsClient, userRepo *repositorie
 		itemTypeRepo:   itemTypeRepo,
 		es:             es,
 		photosService:  photosService,
+		achService:     achService,
 	}
 }
 
@@ -67,7 +70,13 @@ func (s *TagsService) CreateTag(req *models.TagCreateRequest, authUser string) (
 	go func() {
 		defer wg.Done()
 		exp := int(utils.TagExp * float64(resp.GetDeletedCount()))
-		_ = s.userRepo.IncrementExperience(authUser, exp)
+		tagsCount, err := s.tagsClient.GetTagsTotalByUserLogin(context.Background(), authUser)
+		if err != nil {
+			fmt.Println(err)
+		}
+		xp, level := utils.GetAchievementTagsAddData(tagsCount.GetTotalTags())
+		err = utils.AddAchievement(s.achService, utils.AchieveTagsCreated, authUser, level, xp, tagsCount.GetTotalTags())
+		_ = s.userRepo.IncrementExperience(authUser, exp+int(xp))
 	}()
 
 	tagIDs := make([]string, len(tags))

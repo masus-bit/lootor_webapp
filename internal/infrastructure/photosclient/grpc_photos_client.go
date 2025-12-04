@@ -140,6 +140,32 @@ func (c *GRPCPhotosClient) GetCountsByCollectionsIDsMap(ctx context.Context, req
 	return countsResult, nil
 }
 
+func (c *GRPCPhotosClient) GetTotalPhotosCountByUserLogin(ctx context.Context, req *microservices.GetTotalPhotosCountByUserLoginRequest) (*microservices.GetTotalPhotosCountByUserLoginResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
+	}
+
+	totalPhotosCountResult, err := c.client.GetTotalPhotosCountByUserLogin(ctx, req)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return totalPhotosCountResult, nil
+}
+
+func (c *GRPCPhotosClient) GetTotalPhotosLikesCountByUserLogin(ctx context.Context, req *microservices.GetTotalPhotosLikesCountByUserLoginRequest) (*microservices.GetTotalPhotosLikesCountByUserLoginResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
+	}
+
+	totalPhotosLikesCountResult, err := c.client.GetTotalPhotosLikesCountByUserLogin(ctx, req)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return totalPhotosLikesCountResult, nil
+}
+
 func (c *GRPCPhotosClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

@@ -23,6 +23,7 @@ var migrationList = []struct {
 	{"066_entity_id_to_string", migrations.EntityIDToString},
 	{"007_uppercase_tags_names", migrations.UppercaseTagsNames},
 	{"008_delete_tags_duplicates", migrations.DeleteTagsDuplicates},
+	{"010_add_achievements_to_all_users", migrations.AddAchievementsToAllUsers},
 }
 
 func RunMigrations(db *gorm.DB) error {

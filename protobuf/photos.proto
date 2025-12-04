@@ -19,6 +19,24 @@ service PhotosService {
   rpc UpdatePhoto(UpdatePhotoRequest) returns (PhotoResponse);
   rpc GetPhotosByIDsMap(GetByIdsRequest) returns (GetPhotosByIdsMapResponse);
   rpc GetCountsByCollectionsIDsMap(GetCountsByCollectionsIdsMapRequest) returns (GetCountsByCollectionsIdsMapResponse);
+  rpc GetTotalPhotosCountByUserLogin(GetTotalPhotosCountByUserLoginRequest) returns (GetTotalPhotosCountByUserLoginResponse);
+  rpc GetTotalPhotosLikesCountByUserLogin(GetTotalPhotosLikesCountByUserLoginRequest) returns (GetTotalPhotosLikesCountByUserLoginResponse);
+}
+
+message GetTotalPhotosCountByUserLoginRequest {
+  string auth_user_login = 1;
+}
+
+message GetTotalPhotosCountByUserLoginResponse {
+  int64 count = 1;
+}
+
+message GetTotalPhotosLikesCountByUserLoginRequest {
+  string auth_user_login = 1;
+}
+
+message GetTotalPhotosLikesCountByUserLoginResponse {
+  int64 count = 1;
 }
 
 message GetCountsByCollectionsIdsMapRequest {

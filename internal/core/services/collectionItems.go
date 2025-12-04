@@ -9,6 +9,7 @@ import (
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
+	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/s3"
@@ -28,10 +29,11 @@ type CiService struct {
 	itemTypeRepo         *repositories.ItemTypesRepository
 	notificationsService *NotificationsService
 	tagsClient           *tagsclient.GRPCTagsClient
+	achClient            *achievementsclient.GRPCAchievementsClient
 }
 
-func NewCiService(repo *repositories.CiRepository, eventsService *EventsService, collectionRepo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, platformsRepo *repositories.PlatformsRepository, s3Service *s3.StorageService, itemTypeRepo *repositories.ItemTypesRepository, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient) *CiService {
-	return &CiService{repo: repo, eventsService: eventsService, collectionRepo: collectionRepo, userRepo: userRepo, platformsRepo: platformsRepo, s3Service: s3Service, itemTypeRepo: itemTypeRepo, notificationsService: notificationsService, tagsClient: tagsClient}
+func NewCiService(repo *repositories.CiRepository, eventsService *EventsService, collectionRepo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, platformsRepo *repositories.PlatformsRepository, s3Service *s3.StorageService, itemTypeRepo *repositories.ItemTypesRepository, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient, achClient *achievementsclient.GRPCAchievementsClient) *CiService {
+	return &CiService{repo: repo, eventsService: eventsService, collectionRepo: collectionRepo, userRepo: userRepo, platformsRepo: platformsRepo, s3Service: s3Service, itemTypeRepo: itemTypeRepo, notificationsService: notificationsService, tagsClient: tagsClient, achClient: achClient}
 }
 
 func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLogin string) (*models.CollectionItemsDataResponse, error) {
@@ -93,6 +95,14 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 	if dto.CopyNumber != nil {
 		dbCollectionItem.CopyNumber = dto.CopyNumber
 	}
+	go func() {
+		collectionItemsCount, _ := s.repo.GetTotalByUserLogin(authUserLogin)
+
+		xp, level := utils.GetAchievementCollectionItemsAddData(collectionItemsCount + 1)
+
+		_ = utils.AddAchievement(s.achClient, utils.AchieveCollectionItemsAdded, authUserLogin, level, xp, collectionItemsCount+1)
+		_ = s.userRepo.IncrementExperience(authUserLogin, int(xp))
+	}()
 	collectionItem, err := s.repo.CreateCI(dbCollectionItem)
 	if err != nil {
 		return nil, err
@@ -121,6 +131,24 @@ func (s *CiService) Create(dto *models.CollectionItemsRequestCreate, authUserLog
 	}
 	if dto.PurchasePrice != 0 {
 		exp += utils.CIPurchasePriceExp
+		go func() {
+			collectionSum, _ := s.repo.SumByUserLogin(authUserLogin)
+
+			xp, level := utils.GetAchievementCollectionsSumData(int64(collectionSum))
+
+			_ = utils.AddAchievement(s.achClient, utils.AchieveCollectionsSum, authUserLogin, level, xp, int64(collectionSum))
+			exp += int(xp)
+		}()
+	}
+	if dto.ShippingCost != 0 {
+		go func() {
+			collectionShippingSum, _ := s.repo.ShippingSumByUserLogin(authUserLogin)
+
+			xp, level := utils.GetAchievementCollectionsShipSumData(int64(collectionShippingSum))
+
+			_ = utils.AddAchievement(s.achClient, utils.AchieveCollectionShipSum, authUserLogin, level, xp, int64(collectionShippingSum))
+			exp += int(xp)
+		}()
 	}
 	if dto.Rating != 0 {
 		exp += utils.CIRatingExp
@@ -322,6 +350,29 @@ func (s *CiService) Update(id string, dto *models.CollectionItemsRequestUpdate) 
 	exists.ItemTypeID = itemTypeID
 	exists.ItemType = itemType
 	result, err := s.repo.UpdateCIFull(exists)
+	exp := 0
+	if *dto.PurchasePrice != 0 {
+		exp += utils.CIPurchasePriceExp
+		go func() {
+			collectionSum, _ := s.repo.SumByUserLogin(exists.UserLogin)
+
+			xp, level := utils.GetAchievementCollectionsSumData(int64(collectionSum))
+
+			_ = utils.AddAchievement(s.achClient, utils.AchieveCollectionsSum, exists.UserLogin, level, xp, int64(collectionSum))
+			exp += int(xp)
+		}()
+	}
+	if *dto.ShippingCost != 0 {
+		go func() {
+			collectionShippingSum, _ := s.repo.ShippingSumByUserLogin(exists.UserLogin)
+
+			xp, level := utils.GetAchievementCollectionsShipSumData(int64(collectionShippingSum))
+
+			_ = utils.AddAchievement(s.achClient, utils.AchieveCollectionShipSum, exists.UserLogin, level, xp, int64(collectionShippingSum))
+			exp += int(xp)
+		}()
+	}
+	err = s.userRepo.IncrementExperience(exists.UserLogin, exp)
 	if err != nil {
 		return nil, err
 	}
@@ -417,7 +468,16 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 				}
 			}()
 		}
-		err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CISelfLikeExp)
+		exp := 0
+		go func() {
+			collectionItemsLikes, _ := s.repo.GetTotalLikesByUserLogin(exists.UserLogin)
+
+			xp, level := utils.GetAchievementCollectionItemsLikesData(collectionItemsLikes)
+
+			_ = utils.AddAchievement(s.achClient, utils.AchieveCollectionItemsLikes, exists.UserLogin, level, xp, collectionItemsLikes)
+			exp += int(xp)
+		}()
+		err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CISelfLikeExp+exp)
 		if err != nil {
 			return nil, err
 		}

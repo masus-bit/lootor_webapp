@@ -20,6 +20,97 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/public/achievements": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievements"
+                ],
+                "summary": "Получить все достижения юзера",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "login",
+                        "name": "login",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.AchievementsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/achievements/items": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievements"
+                ],
+                "summary": "Получить объекты достижений",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.AchievementsItemsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/achievements/one": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievements"
+                ],
+                "summary": "Получить одну ачиву юзера",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "login",
+                        "name": "login",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "code",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.AchievementResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/public/auth/reset": {
             "get": {
                 "consumes": [
@@ -3871,6 +3962,88 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AchievedAchievement": {
+            "type": "object",
+            "properties": {
+                "achievedDate": {
+                    "type": "string"
+                },
+                "achievement": {
+                    "$ref": "#/definitions/models.Achievements"
+                },
+                "achievementCode": {
+                    "type": "string"
+                },
+                "achievementId": {
+                    "type": "string"
+                },
+                "currentProgress": {
+                    "type": "integer"
+                },
+                "exp": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "threshold": {
+                    "type": "integer"
+                },
+                "totalAchieved": {
+                    "type": "integer"
+                },
+                "totalAchievedPercentage": {
+                    "type": "number"
+                },
+                "userLogin": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AchievementResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.AchievedAchievement"
+                }
+            }
+        },
+        "models.Achievements": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AchievementsItemsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Achievements"
+                    }
+                }
+            }
+        },
+        "models.AchievementsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AchievedAchievement"
+                    }
+                }
+            }
+        },
         "models.AddTagToEntityRequest": {
             "type": "object",
             "properties": {
@@ -4248,6 +4421,9 @@ const docTemplate = `{
                 "author": {
                     "$ref": "#/definitions/models.SubUsers"
                 },
+                "canLike": {
+                    "type": "boolean"
+                },
                 "collection": {
                     "$ref": "#/definitions/models.CollectionShort"
                 },
@@ -4260,10 +4436,16 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
+                "description": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
-                "likes": {
+                "isOwner": {
+                    "type": "boolean"
+                },
+                "likesCount": {
                     "type": "integer"
                 },
                 "path": {
@@ -4581,6 +4763,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "totalCollections": {
+                    "type": "integer"
+                },
+                "totalPhotos": {
                     "type": "integer"
                 },
                 "totalPosts": {

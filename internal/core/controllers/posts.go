@@ -259,9 +259,13 @@ func (c *PostsController) UpdatePost(ctx echo.Context) error {
 		})
 	}
 	uintId, _ := strconv.ParseUint(id, 10, 64)
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
 
 	request.ID = uintId
-	response, err := c.postService.UpdatePost(ctx.Request().Context(), &request)
+	response, err := c.postService.UpdatePost(ctx.Request().Context(), &request, authUser)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

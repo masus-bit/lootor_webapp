@@ -549,3 +549,31 @@ func (r *CiRepository) GetCICountsByItemType(entityIDs []string) (map[string]int
 	}
 	return counts, nil
 }
+
+func (r *CiRepository) GetTotalLikesByUserLogin(login string) (int64, error) {
+	var totalLikes int64
+
+	query := `
+        SELECT COALESCE(SUM(array_length(likes, 1)), 0) as total_likes
+        FROM collection_items 
+        WHERE LOWER(user_login) = LOWER($1) 
+          AND deleted_at IS NULL
+    `
+
+	err := r.db.Raw(query, login).Scan(&totalLikes).Error
+	return totalLikes, err
+}
+
+func (r *CiRepository) GetTotalByUserLogin(login string) (int64, error) {
+	var total int64
+
+	query := `
+        SELECT COUNT(*) as total
+        FROM collection_items 
+        WHERE LOWER(user_login) = LOWER($1) 
+          AND deleted_at IS NULL
+    `
+
+	err := r.db.Raw(query, login).Scan(&total).Error
+	return total, err
+}

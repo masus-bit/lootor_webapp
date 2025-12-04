@@ -10,6 +10,7 @@ import (
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
+	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/photosclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/dto"
@@ -30,10 +31,11 @@ type CollectionService struct {
 	notificationsService *NotificationsService
 	tagsClient           *tagsclient.GRPCTagsClient
 	photosClient         *photosclient.GRPCPhotosClient
+	achClient            *achievementsclient.GRPCAchievementsClient
 }
 
-func NewCollectionService(repo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, eventsService *EventsService, collectionItemRepo *repositories.CiRepository, seService *s3.StorageService, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient, photosClient *photosclient.GRPCPhotosClient) *CollectionService {
-	return &CollectionService{repo: repo, userRepo: userRepo, eventsService: eventsService, collectionItemRepo: collectionItemRepo, s3Service: seService, notificationsService: notificationsService, tagsClient: tagsClient, photosClient: photosClient}
+func NewCollectionService(repo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, eventsService *EventsService, collectionItemRepo *repositories.CiRepository, seService *s3.StorageService, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient, photosClient *photosclient.GRPCPhotosClient, achClient *achievementsclient.GRPCAchievementsClient) *CollectionService {
+	return &CollectionService{repo: repo, userRepo: userRepo, eventsService: eventsService, collectionItemRepo: collectionItemRepo, s3Service: seService, notificationsService: notificationsService, tagsClient: tagsClient, photosClient: photosClient, achClient: achClient}
 }
 
 func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models.CollectionDataResponse, error) {
@@ -66,7 +68,18 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 		return nil, err
 	}
 
-	err = s.userRepo.IncrementExperience(dto.UserLogin, utils.CollectionExp)
+	collectionsCount, err := s.repo.GetCollectionsCount(dto.UserLogin)
+	if err != nil {
+		return nil, err
+	}
+
+	if collectionsCount == 1 {
+		go func() {
+			err = utils.AddAchievement(s.achClient, utils.AchieveFirstCollectionCreate, dto.UserLogin, 1, utils.XPFirstCollectionCreate, 1)
+		}()
+	}
+
+	err = s.userRepo.IncrementExperience(dto.UserLogin, utils.CollectionExp+utils.XPFirstCollectionCreate)
 	if err != nil {
 		return nil, err
 	}
@@ -543,7 +556,15 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 			}()
 		}
 
-		err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CollectionSelfLikeExp)
+		go func() {
+			collectionsLikes, _ := s.repo.GetLikesOfAllCollectionsUser(userLogin)
+
+			xp, level := utils.GetAchievementCollectionsLikesData(collectionsLikes + 1)
+
+			err = utils.AddAchievement(s.achClient, utils.AchieveCollectionsLikes, exists.UserLogin, level, xp, collectionsLikes+1)
+			err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CollectionSelfLikeExp+int(xp))
+		}()
+
 		if err != nil {
 			return nil, err
 		}

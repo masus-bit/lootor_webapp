@@ -31,6 +31,15 @@ service TagsService {
   rpc UpdateVisibleLinks(UpdateVisibleLinksRequest) returns (TagsSuccessResponse);
   rpc RemoveEntityTags(RemoveEntityTagsRequest) returns (TagsSuccessResponse);
   rpc DeleteTags(GetTagsByIDsRequest) returns (TagsSuccessResponse);
+  rpc GetTagsTotalByUser(GetTagsTotalByUserRequest) returns (TagsTotalByUserResponse);
+}
+
+message GetTagsTotalByUserRequest {
+  string user_login = 1;
+}
+
+message TagsTotalByUserResponse {
+  int64 total_tags = 1;
 }
 
 message RemoveEntityTagsRequest {

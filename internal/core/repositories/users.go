@@ -530,3 +530,25 @@ func (r *UsersRepository) DecrementPostCount(userLogin string) error {
 		Where("LOWER(login) = LOWER(?)", userLogin).
 		Update("post_count", gorm.Expr("GREATEST(COALESCE(post_count, 0) - ?, 0)", 1)).Error
 }
+
+func (r *UsersRepository) GetTotalSubscribers(login string) (int64, error) {
+	var total int64
+
+	query := `
+        SELECT COALESCE(SUM(array_length(subscribers_logins, 1)), 0) as total_subscribers
+        FROM users 
+        WHERE LOWER(login) = LOWER($1) 
+    `
+
+	err := r.db.Raw(query, login).Scan(&total).Error
+	return total, err
+}
+
+func (r *UsersRepository) GetAllUserCount() int64 {
+	var count int64
+	query := r.db.Model(&models.Users{}).Where("deleted_at IS NULL").Count(&count)
+	if query.Error != nil {
+		return 0
+	}
+	return count
+}

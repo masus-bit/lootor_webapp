@@ -8,6 +8,7 @@ import (
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
+	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/postsclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/dto"
@@ -22,11 +23,12 @@ type PostsService struct {
 	eventsService        *EventsService
 	notificationsService *NotificationsService
 	tagsClient           *tagsclient.GRPCTagsClient
+	achService           *achievementsclient.GRPCAchievementsClient
 }
 
-func NewPostsService(postsClient *postsclient.GRPCPostsClient, userRepo *repositories.UsersRepository, eventsService *EventsService, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient) *PostsService {
+func NewPostsService(postsClient *postsclient.GRPCPostsClient, userRepo *repositories.UsersRepository, eventsService *EventsService, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient, achService *achievementsclient.GRPCAchievementsClient) *PostsService {
 	return &PostsService{
-		postsClient: postsClient, userRepo: userRepo, eventsService: eventsService, notificationsService: notificationsService, tagsClient: tagsClient}
+		postsClient: postsClient, userRepo: userRepo, eventsService: eventsService, notificationsService: notificationsService, tagsClient: tagsClient, achService: achService}
 }
 
 func (s *PostsService) CreatePost(ctx context.Context, request *models.PostRequest) (*models.PostDataResponse, error) {
@@ -44,15 +46,16 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 	translit := utils.Slugify(post.Data.Title) + "_" + strUint
 	if !request.IsDraft {
 		go func() {
-			err = s.userRepo.IncrementExperience(user.Login, utils.PostCreateExp)
+			postsCount, _ := s.postsClient.GetPostsCountByUserLogin(context.Background(), request.Author)
+
+			xp, level := utils.GetAchievementPostsCreateData(postsCount.GetCount())
+			err = utils.AddAchievement(s.achService, utils.AchievePostsCreated, request.Author, level, xp, postsCount.GetCount())
+
+			err = s.userRepo.IncrementExperience(user.Login, utils.PostCreateExp+int(xp))
 			if err != nil {
 				return
 			}
 			err = s.userRepo.IncrementSocialScore(user.Login, 5)
-			if err != nil {
-				return
-			}
-			err = s.userRepo.IncrementPostCount(user.Login)
 			if err != nil {
 				return
 			}
@@ -63,6 +66,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 				_ = fmt.Errorf("failed to add event: %v", err)
 			}
 		}()
+
 	}
 
 	_, _ = s.postsClient.UpdatePost(ctx, &models.PostUpdateRequest{
@@ -299,7 +303,11 @@ func (s *PostsService) React(ctx context.Context, req *models.ReactRequest) (*dt
 		return nil, err
 	}
 	go func() {
-		err = s.userRepo.IncrementExperience(resp.UserLogin, utils.PostReactExt)
+		postsReactCount, _ := s.postsClient.GetReactionsCountByUserLogin(context.Background(), post.GetData().GetAuthor())
+
+		xp, level := utils.GetAchievementPostsReactionsData(postsReactCount.GetCount())
+		err = utils.AddAchievement(s.achService, utils.AchievePostsReactions, post.GetData().GetAuthor(), level, xp, postsReactCount.GetCount())
+		err = s.userRepo.IncrementExperience(resp.UserLogin, utils.PostReactExt+int(xp))
 		if err != nil {
 			return
 		}
@@ -324,6 +332,7 @@ func (s *PostsService) React(ctx context.Context, req *models.ReactRequest) (*dt
 			Date:        time.Now().Format(time.RFC3339),
 			OwnerLogin:  post.GetData().GetAuthor(),
 		}, target)
+
 	}()
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 
@@ -346,7 +355,7 @@ func (s *PostsService) Unreact(ctx context.Context, req *models.ReactRequest) (*
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateRequest) (*models.PostDataResponse, error) {
+func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateRequest, authUser string) (*models.PostDataResponse, error) {
 	existPost, err := s.postsClient.GetPostById(ctx, req.ID, false)
 	if err != nil {
 		return nil, err
@@ -369,15 +378,16 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateReq
 
 	if existPost.Data.IsDraft && !req.IsDraft {
 		go func() {
-			err = s.userRepo.IncrementExperience(user.Login, utils.PostCreateExp)
+			postsCount, _ := s.postsClient.GetPostsCountByUserLogin(context.Background(), authUser)
+
+			xp, level := utils.GetAchievementPostsCreateData(postsCount.GetCount())
+			err = utils.AddAchievement(s.achService, utils.AchievePostsCreated, authUser, level, xp, postsCount.GetCount())
+
+			err = s.userRepo.IncrementExperience(user.Login, utils.PostCreateExp+int(xp))
 			if err != nil {
 				return
 			}
 			err = s.userRepo.IncrementSocialScore(user.Login, 5)
-			if err != nil {
-				return
-			}
-			err = s.userRepo.IncrementPostCount(user.Login)
 			if err != nil {
 				return
 			}

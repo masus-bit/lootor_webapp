@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package achievements;
+
+option go_package = "./gen/go/microservices";
+
+service AchievementsService {
+  rpc AddOrUpdateAchievement(AddOrUpdateAchievementRequest) returns (AddOrUpdateAchievementResponse);
+  rpc GetUserAchievements(GetUserAchievementsRequest) returns (GetUserAchievementsResponse);
+  rpc GetAchievedUserAchievements(GetUserAchievementsRequest) returns (GetUserAchievementsResponse);
+  rpc GetOneAchievement(GetOneAchievementRequest) returns (GetOneAchievementResponse);
+  rpc GetAllAchievementsItems(GetAllAchievementsItemsRequest) returns (GetAllAchievementsItemsResponse);
+  rpc AddZeroAchievements(GetUserAchievementsRequest) returns (GetUserAchievementsRequest);
+}
+
+message GetAllAchievementsItemsRequest {
+
+}
+
+message GetAllAchievementsItemsResponse {
+  repeated AchievementItem achievements = 1;
+}
+
+message GetOneAchievementRequest {
+  string id = 1;
+  string user_login = 2;
+}
+
+message GetOneAchievementResponse {
+  AchievedAchievement achieved_achievement = 1;
+}
+
+message AddOrUpdateAchievementRequest {
+  string code = 1;
+  string user_login = 2;
+  int64 xp = 3;
+  int64 level = 4;
+  int64 value = 5;
+}
+
+message AddOrUpdateAchievementResponse {
+  AchievedAchievement achieved_achievement = 1;
+}
+
+message AchievementItem {
+  string id = 1;
+  string code = 2;
+}
+
+message AchievedAchievement {
+  string id = 1;
+  AchievementItem achievement = 2;
+  string user_login = 3;
+  int64 xp = 4;
+  int64 level = 5;
+  int64 total_achieved = 6;
+  string created_at = 7;
+  string updated_at = 8;
+  int64 current_value_int = 9;
+  bool current_value_bool = 10;
+}
+
+message GetUserAchievementsRequest {
+  string user_login = 1;
+}
+
+message GetUserAchievementsResponse {
+  repeated AchievedAchievement achieved_achievements = 1;
+}

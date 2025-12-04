@@ -8,6 +8,7 @@ import (
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
+	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/photosclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/dto"
@@ -25,9 +26,10 @@ type PhotosService struct {
 	eventsService        *EventsService
 	s3Service            *s3.StorageService
 	notificationsService *NotificationsService
+	achService           *achievementsclient.GRPCAchievementsClient
 }
 
-func NewPhotosService(photosClient *photosclient.GRPCPhotosClient, userRepo *repositories.UsersRepository, tagsClient *tagsclient.GRPCTagsClient, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService, s3Service *s3.StorageService, notificationsService *NotificationsService) *PhotosService {
+func NewPhotosService(photosClient *photosclient.GRPCPhotosClient, userRepo *repositories.UsersRepository, tagsClient *tagsclient.GRPCTagsClient, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService, s3Service *s3.StorageService, notificationsService *NotificationsService, achService *achievementsclient.GRPCAchievementsClient) *PhotosService {
 
 	return &PhotosService{
 		photosClient:         photosClient,
@@ -37,6 +39,7 @@ func NewPhotosService(photosClient *photosclient.GRPCPhotosClient, userRepo *rep
 		eventsService:        eventsService,
 		s3Service:            s3Service,
 		notificationsService: notificationsService,
+		achService:           achService,
 	}
 }
 
@@ -57,6 +60,16 @@ func (s *PhotosService) DecrementCommentsCount(ctx context.Context, id string) (
 }
 
 func (s *PhotosService) CreatePhoto(ctx context.Context, req *models.PhotoCreateRequest, authUserLogin string) (*models.PhotosDataResponse, error) {
+	photosCount, err := s.photosClient.GetTotalPhotosCountByUserLogin(context.Background(), &microservices.GetTotalPhotosCountByUserLoginRequest{AuthUserLogin: authUserLogin})
+	if err != nil {
+		return nil, err
+	}
+	go func() {
+		xp, level := utils.GetAchievementPhotosAddData(photosCount.GetCount() + int64(len(req.Paths)))
+
+		_ = utils.AddAchievement(s.achService, utils.AchievePhotosAdded, authUserLogin, level, xp, photosCount.GetCount()+int64(len(req.Paths)))
+		_ = s.userRepo.IncrementExperience(authUserLogin, int(xp))
+	}()
 	resp, err := s.photosClient.CreatePhotos(ctx, &microservices.CreatePhotosRequest{
 		CollectionId:  req.CollectionID,
 		Paths:         req.Paths,
@@ -159,7 +172,6 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 		return nil, err
 	}
 	if resp.GetIsLike() {
-		err = s.userRepo.IncrementExperience(authUserLogin, utils.CISelfLikeExp)
 		dbCollection, err := s.collectionRepo.GetByIdWithoutCollectionItems(resp.GetCollectionId())
 		if err != nil {
 			return nil, err
@@ -182,6 +194,19 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 				OwnerLogin:  dbCollection.UserLogin,
 			}, target)
 		}()
+		photosCountLikes, err := s.photosClient.GetTotalPhotosLikesCountByUserLogin(context.Background(), &microservices.GetTotalPhotosLikesCountByUserLoginRequest{AuthUserLogin: dbCollection.UserLogin})
+		if err != nil {
+			return nil, err
+		}
+
+		exp := utils.CISelfLikeExp
+		go func() {
+			xp, level := utils.GetAchievementPhotosLikesData(photosCountLikes.GetCount() + 1)
+
+			_ = utils.AddAchievement(s.achService, utils.AchievePhotosLikes, dbCollection.UserLogin, level, xp, photosCountLikes.GetCount()+1)
+			exp += int(xp)
+		}()
+		err = s.userRepo.IncrementExperience(authUserLogin, exp)
 	} else {
 		err = s.userRepo.DecrementExperience(authUserLogin, utils.CISelfLikeExp)
 		go func() {
