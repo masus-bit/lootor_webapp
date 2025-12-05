@@ -671,16 +671,16 @@ func UpdateUserAchievementsFromExistingData(db *gorm.DB) error {
 				}
 			}
 
-			// 4. Обновляем общий опыт пользователя в таблице loot.users
+			// 4. Обновляем общий опыт пользователя в таблице loot.users (ДОБАВЛЯЕМ к существующему)
 			if totalUserExp > 0 {
 				if err := tx.Exec(`
 					UPDATE loot.users 
-					SET exp = ?
+					SET exp = COALESCE(exp, 0) + ?
 					WHERE login = ? AND deleted_at IS NULL
 				`, totalUserExp, userLogin).Error; err != nil {
 					log.Printf("Ошибка обновления общего опыта для %s: %v", userLogin, err)
 				} else {
-					log.Printf("Обновлен общий опыт для %s: %d XP", userLogin, totalUserExp)
+					log.Printf("Добавлен опыт для %s: %d XP", userLogin, totalUserExp)
 				}
 			}
 		}
