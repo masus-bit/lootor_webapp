@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"github.com/google/uuid"
 	"log"
 	"lootor/gen/go/microservices"
@@ -382,7 +381,6 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	}
 
 	for _, event := range events {
-		fmt.Println(event)
 		normalizedEvent := models.Events{
 			ID:                   event.Id,
 			Date:                 event.Date,
