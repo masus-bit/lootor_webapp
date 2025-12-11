@@ -19,7 +19,7 @@ func NewItemTypesController(itemTypesService services.ItemTypesService) *ItemTyp
 // @Tags itemTypes
 // @Accept  json
 // @Produce  json
-// @Success 201 {object} models.ItemTypesDataResponse
+// @Success 201 {object} dto.ItemTypesDataResponse
 // @Router /secured/item_types [get]
 func (c *ItemTypesController) GetItemTypes(ctx echo.Context) error {
 	response, err := c.itemTypesService.GetAllTypes()

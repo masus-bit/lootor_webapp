@@ -3,10 +3,9 @@ package services
 import (
 	"context"
 	"github.com/google/uuid"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/commentsclient"
-	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/utils"
 	"strconv"
 	"time"
@@ -52,7 +51,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 		return nil, err
 	}
 
-	userStruct := models.SubUsers{
+	userStruct := dto.SubUsers{
 		Login:       user.Login,
 		AvatarURL:   user.AvatarURL,
 		ProfileName: user.ProfileName,
@@ -72,8 +71,8 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 				Content:       content,
 				CreatedAt:     createdAtAsTime,
 				UpdatedAt:     updatedAtAsTime,
-				Likes:         make([]models.SubUsers, 0),
-				Dislikes:      make([]models.SubUsers, 0),
+				Likes:         make([]dto.SubUsers, 0),
+				Dislikes:      make([]dto.SubUsers, 0),
 				DeletedAt:     deletedAtStr,
 				EntityType:    request.EntityType,
 			},
@@ -251,7 +250,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 		likes, _ := s.userRepo.GetForSubs(likesStrings)
 		dislikes, _ := s.userRepo.GetForSubs(dislikesStrings)
 
-		userStruct := models.SubUsers{
+		userStruct := dto.SubUsers{
 			Login:       user.Login,
 			AvatarURL:   user.AvatarURL,
 			ProfileName: user.ProfileName,
@@ -287,7 +286,7 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 			likesCh, _ := s.userRepo.GetForSubs(likesStringsCh)
 			dislikesCh, _ := s.userRepo.GetForSubs(dislikesStringsCh)
 
-			userStructCh := models.SubUsers{
+			userStructCh := dto.SubUsers{
 				Login:       userCh.Login,
 				AvatarURL:   userCh.AvatarURL,
 				ProfileName: userCh.ProfileName,
@@ -466,7 +465,7 @@ func (s *CommentsService) LoadAnswers(ctx context.Context, id, limit, offset str
 		likes, _ := s.userRepo.GetForSubs(likesStrings)
 		dislikes, _ := s.userRepo.GetForSubs(dislikesStrings)
 
-		userStruct := models.SubUsers{
+		userStruct := dto.SubUsers{
 			Login:       user.Login,
 			AvatarURL:   user.AvatarURL,
 			ProfileName: user.ProfileName,

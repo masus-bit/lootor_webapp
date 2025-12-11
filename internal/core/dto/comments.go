@@ -4,7 +4,6 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"lootor/internal/core/models"
 	"time"
 )
 
@@ -13,17 +12,17 @@ type Comments struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 	DeletedAt string    `json:"deletedAt" gorm:"index"`
 
-	ID            string          `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	Date          string          `json:"date"`
-	TargetID      string          `json:"targetId"`
-	Author        models.SubUsers `json:"author"`
-	ParentID      string          `json:"parentId"`
-	LikesCount    int             `json:"likesCount"`
-	DislikesCount int             `json:"dislikesCount"`
-	EntityType    string          `json:"entityType"`
+	ID            string   `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	Date          string   `json:"date"`
+	TargetID      string   `json:"targetId"`
+	Author        SubUsers `json:"author"`
+	ParentID      string   `json:"parentId"`
+	LikesCount    int      `json:"likesCount"`
+	DislikesCount int      `json:"dislikesCount"`
+	EntityType    string   `json:"entityType"`
 
-	Likes    []models.SubUsers `gorm:"foreignKey:CommentID;references:ID;constraint:OnDelete:CASCADE;" json:"likes"`
-	Dislikes []models.SubUsers `gorm:"foreignKey:CommentID;references:ID;constraint:OnDelete:CASCADE;" json:"dislikes"`
+	Likes    []SubUsers `gorm:"foreignKey:CommentID;references:ID;constraint:OnDelete:CASCADE;" json:"likes"`
+	Dislikes []SubUsers `gorm:"foreignKey:CommentID;references:ID;constraint:OnDelete:CASCADE;" json:"dislikes"`
 
 	Content datatypes.JSON `gorm:"type:jsonb" json:"content"`
 }
@@ -35,10 +34,10 @@ type CommentsDataResponse struct {
 
 type ChildrenComments struct {
 	*Comments
-	Likes         []models.SubUsers `json:"likes"`
-	Dislikes      []models.SubUsers `json:"dislikes"`
-	LikesCount    int               `json:"likesCount"`
-	DislikesCount int               `json:"dislikesCount"`
+	Likes         []SubUsers `json:"likes"`
+	Dislikes      []SubUsers `json:"dislikes"`
+	LikesCount    int        `json:"likesCount"`
+	DislikesCount int        `json:"dislikesCount"`
 }
 
 type CommentsResponse struct {
@@ -77,18 +76,18 @@ type Likes struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	ID        string          `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	Author    models.SubUsers `json:"author"`
-	CommentID string          `json:"commentID"`
-	Comment   Comments        `gorm:"foreignKey:CommentID;references:ID;constraint:OnDelete:CASCADE;"`
+	ID        string   `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	Author    SubUsers `json:"author"`
+	CommentID string   `json:"commentID"`
+	Comment   Comments `gorm:"foreignKey:CommentID;references:ID;constraint:OnDelete:CASCADE;"`
 }
 
 type AnswersItem struct {
 	*Comments
-	Likes         []models.SubUsers `json:"likes"`
-	Dislikes      []models.SubUsers `json:"dislikes"`
-	LikesCount    int               `json:"likesCount"`
-	DislikesCount int               `json:"dislikesCount"`
+	Likes         []SubUsers `json:"likes"`
+	Dislikes      []SubUsers `json:"dislikes"`
+	LikesCount    int        `json:"likesCount"`
+	DislikesCount int        `json:"dislikesCount"`
 }
 
 type AnswersRequest struct {

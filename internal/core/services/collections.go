@@ -8,12 +8,13 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"log"
 	"lootor/gen/go/microservices"
+	"lootor/internal/core/dto"
+
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/photosclient"
 	"lootor/internal/infrastructure/tagsclient"
-	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/s3"
 	"lootor/internal/pkg/utils"
 	"reflect"
@@ -38,8 +39,8 @@ func NewCollectionService(repo *repositories.CollectionsRepository, userRepo *re
 	return &CollectionService{repo: repo, userRepo: userRepo, eventsService: eventsService, collectionItemRepo: collectionItemRepo, s3Service: seService, notificationsService: notificationsService, tagsClient: tagsClient, photosClient: photosClient, achClient: achClient}
 }
 
-func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models.CollectionDataResponse, error) {
-	existsCollection, err := s.repo.GetUniqueByName(dto.Name, dto.UserLogin)
+func (s *CollectionService) Create(req *dto.CollectionCreateRequest) (*dto.CollectionDataResponse, error) {
+	existsCollection, err := s.repo.GetUniqueByName(req.Name, req.UserLogin)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -47,19 +48,19 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 		return nil, errors.New("collection с таким именем уже существует")
 	}
 
-	dtoUser, _ := s.userRepo.GetUserByLogin(dto.UserLogin)
+	dtoUser, _ := s.userRepo.GetUserByLogin(req.UserLogin)
 	dbCollection := &models.Collections{
-		Name:            dto.Name,
-		Description:     dto.Description,
-		BannerURL:       dto.BannerURL,
-		IsPrivate:       dto.IsPrivate,
-		Transliteration: dto.Transliteration,
+		Name:            req.Name,
+		Description:     req.Description,
+		BannerURL:       req.BannerURL,
+		IsPrivate:       req.IsPrivate,
+		Transliteration: req.Transliteration,
 		User:            dtoUser,
 		Created:         time.Now().Format(time.RFC3339),
 		ShippingTotal:   0,
 		TotalPrice:      0,
 		ShareString:     utils.GenerateRandomStringNoHex(8),
-		UserLogin:       dto.UserLogin,
+		UserLogin:       req.UserLogin,
 	}
 
 	res, err := s.repo.CreateCollection(dbCollection)
@@ -68,49 +69,49 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 		return nil, err
 	}
 
-	collectionsCount, err := s.repo.GetCollectionsCount(dto.UserLogin)
+	collectionsCount, err := s.repo.GetCollectionsCount(req.UserLogin)
 	if err != nil {
 		return nil, err
 	}
 
 	if collectionsCount == 1 {
 		go func() {
-			err = utils.AddAchievement(s.achClient, utils.AchieveFirstCollectionCreate, dto.UserLogin, 1, utils.XPFirstCollectionCreate, 1)
+			err = utils.AddAchievement(s.achClient, utils.AchieveFirstCollectionCreate, req.UserLogin, 1, utils.XPFirstCollectionCreate, 1)
 		}()
 	}
 
-	err = s.userRepo.IncrementExperience(dto.UserLogin, utils.CollectionExp+utils.XPFirstCollectionCreate)
+	err = s.userRepo.IncrementExperience(req.UserLogin, utils.CollectionExp+utils.XPFirstCollectionCreate)
 	if err != nil {
 		return nil, err
 	}
 
-	if !dto.IsPrivate {
-		eventError := s.eventsService.AddEvent(dto.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, dto.Name, &models.EventsParams{TargetCollectionID: res.ID})
+	if !req.IsPrivate {
+		eventError := s.eventsService.AddEvent(req.UserLogin, utils.EventActionCreate, utils.EventTargetCollection, req.Name, &dto.EventsParams{TargetCollectionID: res.ID})
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
 
 	}
 
-	var response models.CollectionsResponse
+	var response dto.CollectionsResponse
 
 	e := mapstructure.Decode(res, &response)
 	response.ID = res.ID
 
 	var tags *microservices.GetShortsResponse
 
-	if len(dto.Tags) > 0 {
+	if len(req.Tags) > 0 {
 		tags, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
 			EntityType: "collection",
 			EntityId:   res.ID.String(),
-			TagIds:     dto.Tags,
-			Author:     dto.UserLogin,
-			ShowSearch: !dto.IsPrivate,
+			TagIds:     req.Tags,
+			Author:     req.UserLogin,
+			ShowSearch: !req.IsPrivate,
 		})
-		if !dto.IsPrivate {
+		if !req.IsPrivate {
 			for _, tag := range tags.GetTags() {
 				tagUUID, _ := uuid.Parse(tag.GetId())
-				eventError := s.eventsService.AddEvent(dto.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TargetCollectionID: res.ID, TagRelatedEntityType: utils.EventTargetCollection})
+				eventError := s.eventsService.AddEvent(req.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &dto.EventsParams{TargetTagID: tagUUID, TargetCollectionID: res.ID, TagRelatedEntityType: utils.EventTargetCollection})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -118,11 +119,11 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 		}
 	}
 
-	var resultTags []models.ShortTags
-	resultTags = make([]models.ShortTags, 0)
+	var resultTags []dto.ShortTags
+	resultTags = make([]dto.ShortTags, 0)
 	if tags != nil {
 		for _, tag := range tags.Tags {
-			resultTags = append(resultTags, models.ShortTags{
+			resultTags = append(resultTags, dto.ShortTags{
 				ID:   tag.Id,
 				Name: tag.Name,
 				Slug: tag.Slug,
@@ -142,17 +143,17 @@ func (s *CollectionService) Create(dto *models.CollectionCreateRequest) (*models
 	}
 	response.CanLike = true
 	response.IsOwner = true
-	return &models.CollectionDataResponse{Data: response}, nil
+	return &dto.CollectionDataResponse{Data: response}, nil
 }
 
-func (s *CollectionService) Update(id string, dto *models.CollectionUpdateRequest) (*models.CollectionDataResponse, error) {
+func (s *CollectionService) Update(id string, req *dto.CollectionUpdateRequest) (*dto.CollectionDataResponse, error) {
 	exists, err := s.repo.GetCollectionByIdWithoutLimits(id)
 	if err != nil {
 		return nil, err
 	}
 
 	dst := reflect.ValueOf(exists).Elem()
-	src := reflect.ValueOf(dto).Elem()
+	src := reflect.ValueOf(req).Elem()
 
 	for i := 0; i < src.NumField(); i++ {
 		field := src.Field(i)
@@ -168,27 +169,27 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 		}
 	}
 
-	exists.IsPrivate = *dto.IsPrivate
+	exists.IsPrivate = *req.IsPrivate
 
 	resultCollection, err := s.repo.UpdateCollectionFull(exists)
 	if err != nil {
 		return nil, err
 	}
 
-	if !*dto.IsPrivate {
+	if !*req.IsPrivate {
 		eventError := s.eventsService.AddEvent(
-			*dto.UserLogin,
+			*req.UserLogin,
 			utils.EventActionUpdate,
 			utils.EventTargetCollection,
-			*dto.Name,
-			&models.EventsParams{TargetCollectionID: resultCollection.ID},
+			*req.Name,
+			&dto.EventsParams{TargetCollectionID: resultCollection.ID},
 		)
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
 	}
 
-	var finalCollection models.CollectionsResponse
+	var finalCollection dto.CollectionsResponse
 	if err = mapstructure.Decode(resultCollection, &finalCollection); err != nil {
 		return nil, err
 	}
@@ -197,14 +198,14 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 	tags, err = s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
 		EntityType: "collection",
 		EntityId:   id,
-		TagIds:     dto.Tags,
+		TagIds:     req.Tags,
 		Author:     exists.UserLogin,
 	})
 	if err != nil {
 		return nil, err
 	}
-	if len(dto.Tags) > 0 {
-		if !*dto.IsPrivate {
+	if len(req.Tags) > 0 {
+		if !*req.IsPrivate {
 			var entitiesIDs []string
 			collectionItemsIDs, err := s.repo.GetCollectionItemsIds(id)
 			if err != nil {
@@ -222,7 +223,7 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 			for _, tag := range tags.GetTags() {
 				tagUUID, _ := uuid.Parse(tag.GetId())
 				idUUID, _ := uuid.Parse(id)
-				eventError := s.eventsService.AddEvent(exists.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TargetCollectionID: idUUID, TagRelatedEntityType: utils.EventTargetCollection})
+				eventError := s.eventsService.AddEvent(exists.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &dto.EventsParams{TargetTagID: tagUUID, TargetCollectionID: idUUID, TagRelatedEntityType: utils.EventTargetCollection})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -246,11 +247,11 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 		}
 	}
 
-	var resultTags []models.ShortTags
-	resultTags = make([]models.ShortTags, 0)
+	var resultTags []dto.ShortTags
+	resultTags = make([]dto.ShortTags, 0)
 	if tags != nil {
 		for _, tag := range tags.GetTags() {
-			resultTags = append(resultTags, models.ShortTags{
+			resultTags = append(resultTags, dto.ShortTags{
 				ID:        tag.GetId(),
 				Name:      tag.GetName(),
 				Slug:      tag.GetSlug(),
@@ -264,14 +265,14 @@ func (s *CollectionService) Update(id string, dto *models.CollectionUpdateReques
 	finalCollection.CanLike = true
 	finalCollection.IsOwner = true
 
-	return &models.CollectionDataResponse{Data: finalCollection}, nil
+	return &dto.CollectionDataResponse{Data: finalCollection}, nil
 }
 
 func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonResponse, error) {
 	exists, _ := s.repo.GetCollectionByIdWithoutLimits(id)
 	if !exists.IsPrivate {
 		go func() {
-			eventError := s.eventsService.AddEvent(exists.User.Login, utils.EventActionDelete, utils.EventTargetCollection, exists.Name, &models.EventsParams{TargetCollectionID: exists.ID})
+			eventError := s.eventsService.AddEvent(exists.User.Login, utils.EventActionDelete, utils.EventTargetCollection, exists.Name, &dto.EventsParams{TargetCollectionID: exists.ID})
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -321,7 +322,7 @@ func (s *CollectionService) Delete(id string, ctx context.Context) (*dto.CommonR
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, s.repo.DeleteCollection(id)
 }
 
-func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, orderBy string, order string, search string) (*models.AllCollectionsDataResponse, error) {
+func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, orderBy string, order string, search string) (*dto.AllCollectionsDataResponse, error) {
 	var collections []models.Collections
 	var total int64
 	if authorizedUser == login {
@@ -336,7 +337,7 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 		return nil, err
 	}
 
-	result := make([]models.CollectionsResponse, 0)
+	result := make([]dto.CollectionsResponse, 0)
 
 	collectionIds := make([]uuid.UUID, 0)
 	collectionStringIds := make([]string, 0)
@@ -355,12 +356,12 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 	photosCounts, _ := s.photosClient.GetCountsByCollectionsIDsMap(context.Background(), &microservices.GetCountsByCollectionsIdsMapRequest{CollectionsIds: collectionStringIds})
 
 	for _, dbCollection := range collections {
-		var temp models.CollectionsResponse
+		var temp dto.CollectionsResponse
 		err = mapstructure.Decode(dbCollection, &temp)
 
 		itemTags := tags.GetTags()[dbCollection.ID.String()]
 
-		var resultTags []models.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
+		var resultTags []dto.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
 
 		temp.Tags = resultTags
 
@@ -381,13 +382,13 @@ func (s *CollectionService) GetByUserLogin(login string, authorizedUser string, 
 
 	sortedCollections := utils.GetCollectionOrderBy(orderBy, result, order)
 
-	return &models.AllCollectionsDataResponse{Data: sortedCollections, Total: total, ProfileName: user.ProfileName}, nil
+	return &dto.AllCollectionsDataResponse{Data: sortedCollections, Total: total, ProfileName: user.ProfileName}, nil
 }
 
-func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit, offset string) (*models.AllCollectionsDataResponse, error) {
+func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit, offset string) (*dto.AllCollectionsDataResponse, error) {
 	var collections []models.Collections
 	collections, total, _ := s.repo.GetAllWithoutPrivates(search, limit, offset, orderBy, order)
-	result := make([]models.CollectionsResponse, 0)
+	result := make([]dto.CollectionsResponse, 0)
 
 	collectionIds := make([]uuid.UUID, 0)
 	collectionStringIds := make([]string, 0)
@@ -406,12 +407,12 @@ func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit
 	shippingCosts, _ := s.collectionItemRepo.GetShippingCostsByCollectionIDs(collectionIds)
 
 	for _, dbCollection := range collections {
-		var temp models.CollectionsResponse
+		var temp dto.CollectionsResponse
 		err = mapstructure.Decode(dbCollection, &temp)
 
 		itemTags := tags.GetTags()[dbCollection.ID.String()]
 
-		var resultTags []models.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
+		var resultTags []dto.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
 
 		temp.Tags = resultTags
 
@@ -429,10 +430,10 @@ func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit
 		result = append(result, temp)
 	}
 
-	return &models.AllCollectionsDataResponse{Data: result, Total: total}, nil
+	return &dto.AllCollectionsDataResponse{Data: result, Total: total}, nil
 }
 
-func (s *CollectionService) GetOne(authorizerUser string, id string, transliteration string, userLogin string, shareString string, ciLimit string, ciOffset string, orderBy string, order string, search string) (*models.CollectionDataResponse, error) {
+func (s *CollectionService) GetOne(authorizerUser string, id string, transliteration string, userLogin string, shareString string, ciLimit string, ciOffset string, orderBy string, order string, search string) (*dto.CollectionDataResponse, error) {
 	var dbCollection *models.Collections
 
 	if id != "" {
@@ -453,13 +454,13 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	if authorizerUser != "" {
 		authUser, _ = s.userRepo.GetUserByLogin(authorizerUser)
 	}
-	var finalCollection models.CollectionsResponse
+	var finalCollection dto.CollectionsResponse
 	err := mapstructure.Decode(dbCollection, &finalCollection)
 	if err != nil {
 		return nil, err
 	}
 
-	collectionItems := make([]models.CollectionItemsResponse, 0)
+	collectionItems := make([]dto.CollectionItemsResponse, 0)
 
 	collectionItemIds := make([]string, 0)
 	for _, item := range dbCollection.CollectionItems {
@@ -476,7 +477,7 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 	}
 
 	for _, item := range dbCollection.CollectionItems {
-		var temp models.CollectionItemsResponse
+		var temp dto.CollectionItemsResponse
 		itemErr := mapstructure.Decode(item, &temp)
 		if itemErr != nil {
 			return nil, itemErr
@@ -484,7 +485,7 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 
 		itemTags := ciTags.GetTags()[item.ID.String()]
 
-		var resultTags []models.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
+		var resultTags []dto.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
 		temp.Tags = resultTags
 
 		temp.Collection = finalCollection.ID
@@ -506,7 +507,7 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 		return nil, err
 	}
 
-	var resultTags []models.ShortTags = utils.NormalizeTagsShort(protoTags.GetTags())
+	var resultTags []dto.ShortTags = utils.NormalizeTagsShort(protoTags.GetTags())
 
 	finalCollection.Tags = resultTags
 
@@ -535,7 +536,7 @@ func (s *CollectionService) GetOne(authorizerUser string, id string, translitera
 		finalCollection.User.CanSubscribe = canSubscribe
 
 	}
-	return &models.CollectionDataResponse{Data: finalCollection}, nil
+	return &dto.CollectionDataResponse{Data: finalCollection}, nil
 
 }
 
@@ -549,7 +550,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.IsPrivate {
 			go func() {
-				eventError := s.eventsService.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollection, exists.Name, &models.EventsParams{TargetCollectionID: exists.ID})
+				eventError := s.eventsService.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollection, exists.Name, &dto.EventsParams{TargetCollectionID: exists.ID})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -589,7 +590,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
 		if !exists.IsPrivate {
 			go func() {
-				eventError := s.eventsService.AddEvent(userLogin, utils.EventActionDislike, utils.EventTargetCollection, exists.Name, &models.EventsParams{TargetCollectionID: exists.ID})
+				eventError := s.eventsService.AddEvent(userLogin, utils.EventActionDislike, utils.EventTargetCollection, exists.Name, &dto.EventsParams{TargetCollectionID: exists.ID})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}

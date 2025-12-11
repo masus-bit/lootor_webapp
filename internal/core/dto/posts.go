@@ -1,6 +1,8 @@
-package models
+package dto
 
-import "gorm.io/datatypes"
+import (
+	"gorm.io/datatypes"
+)
 
 import (
 	"github.com/google/uuid"

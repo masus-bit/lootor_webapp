@@ -1,6 +1,7 @@
-package models
+package dto
 
 import (
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"time"
 )
@@ -36,6 +37,9 @@ type Tags struct {
 	SeriesID      string     `gorm:"type:uuid" json:"seriesId"`
 	SeriesEntries []Tags     `gorm:"foreignKey:PrimaryID" json:"seriesEntries"`
 	Series        *ShortTags `gorm:"foreignKey:SeriesID" json:"series"`
+
+	Images           []string       `gorm:"type:text[]" json:"images"`
+	AdditionalFields datatypes.JSON `gorm:"type:jsonb" json:"additionalFields"`
 }
 
 type CollectionItemsProps struct {
@@ -86,10 +90,12 @@ type TagDataResponse struct {
 }
 
 type TagCreateRequest struct {
-	Names      []string `json:"names"`
-	Author     string   `json:"author"`
-	EntityID   string   `json:"entityId"`
-	EntityType string   `json:"entityType"`
+	Names            []string       `json:"names"`
+	Author           string         `json:"author"`
+	EntityID         string         `json:"entityId"`
+	EntityType       string         `json:"entityType"`
+	Images           []string       `json:"images"`
+	AdditionalFields datatypes.JSON `json:"additionalFields"`
 }
 
 type TagsSearchRequest struct {

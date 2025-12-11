@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/services"
 	"net/http"
 )
@@ -21,7 +21,7 @@ func NewTagsController(tagsService services.TagsService) *TagsController {
 // @Accept  json
 // @Produce  json
 // @Param name query string true "name"
-// @Success 201 {object} models.TagsDataResponse
+// @Success 201 {object} dto.TagsDataResponse
 // @Router /secured/tags [get]
 func (c *TagsController) SearchTags(ctx echo.Context) error {
 	name := ctx.QueryParam("name")
@@ -41,7 +41,7 @@ func (c *TagsController) SearchTags(ctx echo.Context) error {
 // @Produce  json
 // @Param name query string true "name"
 // @Param limit query string true "limit"
-// @Success 201 {object} models.TagsDataResponse
+// @Success 201 {object} dto.TagsDataResponse
 // @Router /secured/tags/search [get]
 func (c *TagsController) SearchTagsV2(ctx echo.Context) error {
 	name := ctx.QueryParam("name")
@@ -62,7 +62,7 @@ func (c *TagsController) SearchTagsV2(ctx echo.Context) error {
 // @Produce  json
 // @Param name query string true "name"
 // @Param limit query string true "limit"
-// @Success 201 {object} models.TagsDataResponse
+// @Success 201 {object} dto.TagsDataResponse
 // @Router /secured/tags/suggestions [get]
 func (c *TagsController) GetSuggestions(ctx echo.Context) error {
 	name := ctx.QueryParam("name")
@@ -81,11 +81,11 @@ func (c *TagsController) GetSuggestions(ctx echo.Context) error {
 // @Tags tags
 // @Accept  json
 // @Produce  json
-// @Param addRequest body models.UserChoiceRequest true "необходимые поля"
+// @Param addRequest body dto.UserChoiceRequest true "необходимые поля"
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/tags/record_choice [post]
 func (c *TagsController) RecordChoice(ctx echo.Context) error {
-	var request models.UserChoiceRequest
+	var request dto.UserChoiceRequest
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",
@@ -105,11 +105,11 @@ func (c *TagsController) RecordChoice(ctx echo.Context) error {
 // @Tags tags
 // @Accept  json
 // @Produce  json
-// @Param createRequest body models.TagCreateRequest true "поля создания (entityID, entityType - необязательные)"
+// @Param createRequest body dto.TagCreateRequest true "поля создания (entityID, entityType - необязательные)"
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/tags [post]
 func (c *TagsController) CreateTag(ctx echo.Context) error {
-	var request models.TagCreateRequest
+	var request dto.TagCreateRequest
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",
@@ -149,7 +149,7 @@ func (c *TagsController) CreateTag(ctx echo.Context) error {
 // @Param limit query string true "limit"
 // @Param offset query string true "offset"
 // @Param ciFilter query string true "filter"
-// @Success 201 {object} models.TagDataResponse
+// @Success 201 {object} dto.TagDataResponse
 // @Router /public/tags/{id} [get]
 func (c *TagsController) FindEntitiesByTag(ctx echo.Context) error {
 	tagSlug := ctx.Param("id")
@@ -175,11 +175,11 @@ func (c *TagsController) FindEntitiesByTag(ctx echo.Context) error {
 // @Tags tags
 // @Accept  json
 // @Produce  json
-// @Param addRequest body models.AddTagToEntityRequest true "необходимые поля"
+// @Param addRequest body dto.AddTagToEntityRequest true "необходимые поля"
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/tags/adm/entity [post]
 func (c *TagsController) AddTagToEntity(ctx echo.Context) error {
-	var request models.AddTagToEntityRequest
+	var request dto.AddTagToEntityRequest
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",
@@ -212,11 +212,11 @@ func (c *TagsController) AddTagToEntity(ctx echo.Context) error {
 // @Tags tags
 // @Accept  json
 // @Produce  json
-// @Param removeRequest body models.RemoveTagsRequest true "необходимые поля"
+// @Param removeRequest body dto.RemoveTagsRequest true "необходимые поля"
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/tags/adm/entity/remove [post]
 func (c *TagsController) RemoveTagsFromEntity(ctx echo.Context) error {
-	var request models.RemoveTagsRequest
+	var request dto.RemoveTagsRequest
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
 		authUser = ""
@@ -249,11 +249,11 @@ func (c *TagsController) RemoveTagsFromEntity(ctx echo.Context) error {
 // @Tags tags
 // @Accept  json
 // @Produce  json
-// @Param mergeRequest body models.MergeTagsRequest true "необходимые поля"
+// @Param mergeRequest body dto.MergeTagsRequest true "необходимые поля"
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/tags/adm/merge [post]
 func (c *TagsController) MergeTags(ctx echo.Context) error {
-	var request models.MergeTagsRequest
+	var request dto.MergeTagsRequest
 
 	userRole, ok := ctx.Get("role").(string)
 	if !ok {
@@ -285,11 +285,11 @@ func (c *TagsController) MergeTags(ctx echo.Context) error {
 // @Tags tags
 // @Accept  json
 // @Produce  json
-// @Param mergeRequest body models.MergeTagsRequest true "необходимые поля"
+// @Param mergeRequest body dto.MergeTagsRequest true "необходимые поля"
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/tags/adm/merge_series [post]
 func (c *TagsController) MergeSeries(ctx echo.Context) error {
-	var request models.MergeTagsRequest
+	var request dto.MergeTagsRequest
 
 	userRole, ok := ctx.Get("role").(string)
 	if !ok {
@@ -321,11 +321,11 @@ func (c *TagsController) MergeSeries(ctx echo.Context) error {
 // @Tags tags
 // @Accept  json
 // @Produce  json
-// @Param mergeRequest body models.DeleteTags true "необходимые поля"
+// @Param mergeRequest body dto.DeleteTags true "необходимые поля"
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/tags/adm/delete [post]
 func (c *TagsController) DeleteTags(ctx echo.Context) error {
-	var request models.DeleteTags
+	var request dto.DeleteTags
 
 	userRole, ok := ctx.Get("role").(string)
 	if !ok {
@@ -357,11 +357,11 @@ func (c *TagsController) DeleteTags(ctx echo.Context) error {
 // @Tags tags
 // @Accept  json
 // @Produce  json
-// @Param updateRequest body models.TagUpdateRequest true "необходимые поля"
+// @Param updateRequest body dto.TagUpdateRequest true "необходимые поля"
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/tags/adm/update/{id} [post]
 func (c *TagsController) UpdateTag(ctx echo.Context) error {
-	var request models.TagUpdateRequest
+	var request dto.TagUpdateRequest
 
 	userRole, ok := ctx.Get("role").(string)
 	if !ok {
@@ -395,7 +395,7 @@ func (c *TagsController) UpdateTag(ctx echo.Context) error {
 // @Produce  json
 // @Param limit query string true "limit"
 // @Param offset query string true "offset"
-// @Success 201 {object} models.TagsShortDataResponse
+// @Success 201 {object} dto.TagsShortDataResponse
 // @Router /secured/tags/all [get]
 func (c *TagsController) GetAllTags(ctx echo.Context) error {
 	limit := ctx.QueryParam("limit")

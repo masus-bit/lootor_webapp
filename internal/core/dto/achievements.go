@@ -1,4 +1,4 @@
-package models
+package dto
 
 type Achievements struct {
 	ID   string `json:"id"`

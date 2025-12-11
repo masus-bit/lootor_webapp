@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/services"
 	"net/http"
 	"strconv"
@@ -21,11 +21,11 @@ func NewEventsController(eventsService services.EventsService) *EventsController
 // @Tags events
 // @Accept  json
 // @Produce  json
-// @Param getEvents body models.GetEventsRequest true "фильтры"
+// @Param getEvents body dto.GetEventsRequest true "фильтры"
 // @Success 201 {object} dto.EventsDataResponseSwagger
 // @Router /secured/events [post]
 func (c *EventsController) GetEvents(ctx echo.Context) error {
-	var request models.GetEventsRequestForAll
+	var request dto.GetEventsRequestForAll
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",

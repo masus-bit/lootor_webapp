@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"lootor/gen/go/microservices"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
 	"lootor/internal/pkg/utils"
@@ -418,7 +419,7 @@ func (r *CiRepository) DecrementCommentsCount(id string, amount int) error {
 		Update("comments_count", gorm.Expr("GREATEST(COALESCE(comments_count, 0) - ?, 0)", amount)).Error
 }
 
-func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin string) (map[string]models.CollectionItemsResponse, error) {
+func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin string) (map[string]dto.CollectionItemsResponse, error) {
 	var collectionItems []models.CollectionItems
 	err := r.db.Where("id IN (?)", ids).
 		Preload("Collections").
@@ -430,9 +431,9 @@ func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin st
 	if err != nil {
 		return nil, err
 	}
-	collectionItemsMap := make(map[string]models.CollectionItemsResponse, len(collectionItems))
+	collectionItemsMap := make(map[string]dto.CollectionItemsResponse, len(collectionItems))
 	for _, collectionItem := range collectionItems {
-		var temp models.CollectionItemsResponse
+		var temp dto.CollectionItemsResponse
 		err = mapstructure.Decode(collectionItem, &temp)
 		if err != nil {
 			return nil, err
@@ -469,7 +470,7 @@ func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin st
 	return collectionItemsMap, nil
 }
 
-func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin, filter string, tagsMap map[string]*microservices.GetShortsResponse) ([]models.CollectionItemsResponse, error) {
+func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin, filter string, tagsMap map[string]*microservices.GetShortsResponse) ([]dto.CollectionItemsResponse, error) {
 	var collectionItems []models.CollectionItems
 	query := r.db.Where("id IN (?)", ids).
 		Preload("Collections").
@@ -485,9 +486,9 @@ func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin, filt
 	if err != nil {
 		return nil, err
 	}
-	var result []models.CollectionItemsResponse
+	var result []dto.CollectionItemsResponse
 	for _, collectionItem := range collectionItems {
-		var temp models.CollectionItemsResponse
+		var temp dto.CollectionItemsResponse
 		err = mapstructure.Decode(collectionItem, &temp)
 		if err != nil {
 			return nil, err

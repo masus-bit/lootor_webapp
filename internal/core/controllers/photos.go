@@ -3,7 +3,7 @@ package controllers
 import (
 	"context"
 	"github.com/labstack/echo/v4"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/services"
 	"net/http"
 )
@@ -25,7 +25,7 @@ func NewPhotosController(photosService services.PhotosService) *PhotosController
 // @Success 201 {object} models.PhotosDataResponse
 // @Router /secured/photos [post]
 func (c *PhotosController) CreatePhotos(ctx echo.Context) error {
-	var request models.PhotoCreate
+	var request dto.PhotoCreate
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",
@@ -37,7 +37,7 @@ func (c *PhotosController) CreatePhotos(ctx echo.Context) error {
 		authUser = ""
 	}
 
-	req := models.PhotoCreateRequest{
+	req := dto.PhotoCreateRequest{
 		CollectionID: request.CollectionID,
 		Paths:        request.Paths,
 		Author:       authUser,
@@ -188,7 +188,7 @@ func (c *PhotosController) Like(ctx echo.Context) error {
 // @Success 201 {object} models.PhotoDataResponse
 // @Router /secured/photos [patch]
 func (c *PhotosController) Update(ctx echo.Context) error {
-	var request models.PhotoUpdateRequest
+	var request dto.PhotoUpdateRequest
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",

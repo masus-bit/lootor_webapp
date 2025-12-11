@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"lootor/gen/go/microservices"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/models"
 	"lootor/internal/pkg/elasticsearch"
 	"lootor/internal/pkg/utils"
@@ -774,16 +775,16 @@ func (r *CollectionsRepository) GetCollectionsCount(login string) (int64, error)
 	return count, err
 }
 
-func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[uuid.UUID]int64, totalPrices map[uuid.UUID]float64, shippingCosts map[uuid.UUID]float64, authorizedUser string) (map[string]models.CollectionsResponse, error) {
+func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[uuid.UUID]int64, totalPrices map[uuid.UUID]float64, shippingCosts map[uuid.UUID]float64, authorizedUser string) (map[string]dto.CollectionsResponse, error) {
 	var collections []models.Collections
 	err := r.db.Where("id IN (?)", ids).Preload("User").Find(&collections).Error
 	if err != nil {
 		return nil, err
 	}
-	collectionsMap := make(map[string]models.CollectionsResponse, len(collections))
+	collectionsMap := make(map[string]dto.CollectionsResponse, len(collections))
 	for _, collection := range collections {
 
-		var temp models.CollectionsResponse
+		var temp dto.CollectionsResponse
 		err = mapstructure.Decode(collection, &temp)
 		if err != nil {
 			return nil, err
@@ -803,15 +804,15 @@ func (r *CollectionsRepository) GetCollectionsByIdsMap(ids []string, counts map[
 	return collectionsMap, nil
 }
 
-func (r *CollectionsRepository) GetCollectionsByIdsMapForShort(ids []string) (map[string]models.CollectionShort, error) {
+func (r *CollectionsRepository) GetCollectionsByIdsMapForShort(ids []string) (map[string]dto.CollectionShort, error) {
 	var collections []models.Collections
 	err := r.db.Where("id IN (?)", ids).Preload("User").Find(&collections).Error
 	if err != nil {
 		return nil, err
 	}
-	collectionsMap := make(map[string]models.CollectionShort, len(collections))
+	collectionsMap := make(map[string]dto.CollectionShort, len(collections))
 	for _, collection := range collections {
-		var temp models.CollectionShort
+		var temp dto.CollectionShort
 		err = mapstructure.Decode(collection, &temp)
 		if err != nil {
 			return nil, err
@@ -821,15 +822,15 @@ func (r *CollectionsRepository) GetCollectionsByIdsMapForShort(ids []string) (ma
 	return collectionsMap, nil
 }
 
-func (r *CollectionsRepository) GetCollectionsByTranslitsMapForShort(ids []string, userLogin string) (map[string]models.CollectionShort, error) {
+func (r *CollectionsRepository) GetCollectionsByTranslitsMapForShort(ids []string, userLogin string) (map[string]dto.CollectionShort, error) {
 	var collections []models.Collections
 	err := r.db.Where("id IN (?) AND user_login = ?", ids, userLogin).Preload("User").Find(&collections).Error
 	if err != nil {
 		return nil, err
 	}
-	collectionsMap := make(map[string]models.CollectionShort, len(collections))
+	collectionsMap := make(map[string]dto.CollectionShort, len(collections))
 	for _, collection := range collections {
-		var temp models.CollectionShort
+		var temp dto.CollectionShort
 		err = mapstructure.Decode(collection, &temp)
 		if err != nil {
 			return nil, err
@@ -839,15 +840,15 @@ func (r *CollectionsRepository) GetCollectionsByTranslitsMapForShort(ids []strin
 	return collectionsMap, nil
 }
 
-func (r *CollectionsRepository) GetCollectionsByIds(ids []string, counts map[uuid.UUID]int64, totalPrices map[uuid.UUID]float64, shippingCosts map[uuid.UUID]float64, authorizedUser string, tagsMap map[string]*microservices.GetShortsResponse) ([]models.CollectionsResponse, error) {
+func (r *CollectionsRepository) GetCollectionsByIds(ids []string, counts map[uuid.UUID]int64, totalPrices map[uuid.UUID]float64, shippingCosts map[uuid.UUID]float64, authorizedUser string, tagsMap map[string]*microservices.GetShortsResponse) ([]dto.CollectionsResponse, error) {
 	var collections []models.Collections
 	err := r.db.Where("id IN (?)", ids).Preload("User").Find(&collections).Error
 	if err != nil {
 		return nil, err
 	}
-	var result []models.CollectionsResponse
+	var result []dto.CollectionsResponse
 	for _, collection := range collections {
-		var temp models.CollectionsResponse
+		var temp dto.CollectionsResponse
 		err = mapstructure.Decode(collection, &temp)
 		if err != nil {
 			return nil, err

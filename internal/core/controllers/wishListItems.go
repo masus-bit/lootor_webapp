@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/services"
 	"net/http"
 )
@@ -20,11 +20,11 @@ func NewWLController(wlService services.WLService) *WLController {
 // @Tags wishlist
 // @Accept  json
 // @Produce  json
-// @Param createRequest body models.WishListCreateRequest true "поля создания"
+// @Param createRequest body dto.WishListCreateRequest true "поля создания"
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/wishlist [post]
 func (c *WLController) AddWishListItem(ctx echo.Context) error {
-	var request models.WishListCreateRequest
+	var request dto.WishListCreateRequest
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",
@@ -70,12 +70,12 @@ func (c *WLController) GetWishList(ctx echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param id query string true "id"
-// @Param priority body models.WishListItemUpdatePriority true "priority"
+// @Param priority body dto.WishListItemUpdatePriority true "priority"
 // @Success 201 {object} dto.WishlistDataResponseSwagger
 // @Router /secured/wishlist/priority [post]
 func (c *WLController) UpdatePriority(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
-	var request models.WishListItemUpdatePriority
+	var request dto.WishListItemUpdatePriority
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",
@@ -122,12 +122,12 @@ func (c *WLController) Delete(ctx echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param id query string true "id"
-// @Param request body models.WishListItemUpdatePriority true "priority"
+// @Param request body dto.WishListItemUpdatePriority true "priority"
 // @Success 201 {object} dto.WishlistDataResponseSwagger
 // @Router /secured/wishlist/update [post]
 func (c *WLController) Update(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
-	var request models.WishListUpdateRequest
+	var request dto.WishListUpdateRequest
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",

@@ -5,7 +5,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"lootor/gen/go/microservices"
-	"lootor/internal/pkg/dto"
+	"lootor/internal/core/dto"
 )
 
 type GRPCNotificationsClient struct {
@@ -25,39 +25,39 @@ func NewGRPCNotificationsClient(addr string) (*GRPCNotificationsClient, error) {
 	}, nil
 }
 
-func (c *GRPCNotificationsClient) AddNotification(ctx context.Context, dto *dto.NotificationsRequest) (*microservices.NotificationResponse, error) {
+func (c *GRPCNotificationsClient) AddNotification(ctx context.Context, req *dto.NotificationsRequest) (*microservices.NotificationResponse, error) {
 
 	resp, err := c.client.CreateNotification(ctx, &microservices.CreateNotificationRequest{
-		Date:        dto.Date,
-		TargetId:    dto.TargetID,
-		UserLogin:   dto.Login,
-		Type:        dto.Type,
-		SenderLogin: dto.SenderLogin,
-		Action:      dto.Action,
-		TargetType:  dto.TargetItem.TargetType,
+		Date:        req.Date,
+		TargetId:    req.TargetID,
+		UserLogin:   req.Login,
+		Type:        req.Type,
+		SenderLogin: req.SenderLogin,
+		Action:      req.Action,
+		TargetType:  req.TargetItem.TargetType,
 		Target: &microservices.TargetItem{
-			Id:              &dto.TargetItem.ID,
-			Name:            &dto.TargetItem.Name,
-			Transliteration: &dto.TargetItem.Transliteration,
-			TargetType:      &dto.TargetItem.TargetType,
+			Id:              &req.TargetItem.ID,
+			Name:            &req.TargetItem.Name,
+			Transliteration: &req.TargetItem.Transliteration,
+			TargetType:      &req.TargetItem.TargetType,
 		},
 		TargetUser: &microservices.User{
-			Login:       &dto.TargetUser.Login,
-			IsPremium:   &dto.TargetUser.IsPremium,
-			AvatarUrl:   &dto.TargetUser.AvatarURL,
-			ProfileName: &dto.TargetUser.ProfileName,
+			Login:       &req.TargetUser.Login,
+			IsPremium:   &req.TargetUser.IsPremium,
+			AvatarUrl:   &req.TargetUser.AvatarURL,
+			ProfileName: &req.TargetUser.ProfileName,
 		},
 		SenderUser: &microservices.User{
-			Login:       &dto.SenderUser.Login,
-			IsPremium:   &dto.SenderUser.IsPremium,
-			AvatarUrl:   &dto.SenderUser.AvatarURL,
-			ProfileName: &dto.SenderUser.ProfileName,
+			Login:       &req.SenderUser.Login,
+			IsPremium:   &req.SenderUser.IsPremium,
+			AvatarUrl:   &req.SenderUser.AvatarURL,
+			ProfileName: &req.SenderUser.ProfileName,
 		},
 		Owner: &microservices.User{
-			Login:       &dto.Owner.Login,
-			IsPremium:   &dto.Owner.IsPremium,
-			AvatarUrl:   &dto.Owner.AvatarURL,
-			ProfileName: &dto.Owner.ProfileName,
+			Login:       &req.Owner.Login,
+			IsPremium:   &req.Owner.IsPremium,
+			AvatarUrl:   &req.Owner.AvatarURL,
+			ProfileName: &req.Owner.ProfileName,
 		},
 	})
 	if err != nil {

@@ -5,7 +5,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"lootor/gen/go/microservices"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 )
 
 type GRPCEventsClient struct {
@@ -25,7 +25,7 @@ func NewGRPCClient(addr string) (*GRPCEventsClient, error) {
 	}, nil
 }
 
-func (c *GRPCEventsClient) AddEvent(ctx context.Context, req *models.AddEventRequest) (*microservices.AddEventResponse, error) {
+func (c *GRPCEventsClient) AddEvent(ctx context.Context, req *dto.AddEventRequest) (*microservices.AddEventResponse, error) {
 	return c.client.AddEvent(ctx, &microservices.AddEventRequest{
 		Action:         req.Action,
 		TargetType:     req.EventTargetType,
@@ -44,7 +44,7 @@ func (c *GRPCEventsClient) AddEvent(ctx context.Context, req *models.AddEventReq
 	})
 }
 
-func (c *GRPCEventsClient) GetEvents(ctx context.Context, req *models.GetEventsRequest) (*microservices.GetEventsResponse, error) {
+func (c *GRPCEventsClient) GetEvents(ctx context.Context, req *dto.GetEventsRequest) (*microservices.GetEventsResponse, error) {
 	return c.client.GetEvents(ctx, &microservices.GetEventsRequest{
 		Limit:            req.Limit,
 		Offset:           req.Offset,
@@ -54,7 +54,7 @@ func (c *GRPCEventsClient) GetEvents(ctx context.Context, req *models.GetEventsR
 	})
 }
 
-func (c *GRPCEventsClient) GetFilteredEvents(ctx context.Context, req *models.GetFilteredEventsRequest) (*microservices.GetEventsResponse, error) {
+func (c *GRPCEventsClient) GetFilteredEvents(ctx context.Context, req *dto.GetFilteredEventsRequest) (*microservices.GetEventsResponse, error) {
 	return c.client.GetFilteredEvents(ctx, &microservices.GetFilteredEventsRequest{
 		Limit:             req.Limit,
 		Offset:            req.Offset,

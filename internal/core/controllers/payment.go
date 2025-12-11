@@ -61,7 +61,7 @@ func (c *PaymentController) ConfirmPayment(ctx echo.Context) error {
 // @Summary Получить список платежей юзера
 // @Description список платежей
 // @Tags payment
-// @Success 200 {object} models.PaymentsData
+// @Success 200 {object} dto.PaymentsData
 // @Router /secured/payment/info [get]
 func (c *PaymentController) GetUserPayments(ctx echo.Context) error {
 	authUser, ok := ctx.Get("user_login").(string)

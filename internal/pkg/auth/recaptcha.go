@@ -2,7 +2,7 @@ package auth
 
 import (
 	"github.com/joho/godotenv"
-	"lootor/internal/pkg/dto"
+	"lootor/internal/core/dto"
 	"lootor/internal/pkg/utils"
 	"os"
 )

@@ -5,7 +5,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"lootor/gen/go/microservices"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 )
 
 type GRPCTagsClient struct {
@@ -25,7 +25,7 @@ func NewGRPCTagsClient(addr string) (*GRPCTagsClient, error) {
 	}, nil
 }
 
-func (c *GRPCTagsClient) CreateTag(ctx context.Context, dto *models.TagCreateRequest) (*microservices.TagsCreateResponse, error) {
+func (c *GRPCTagsClient) CreateTag(ctx context.Context, dto *dto.TagCreateRequest) (*microservices.TagsCreateResponse, error) {
 
 	resp, err := c.client.CreateTags(ctx, &microservices.CreateTagsRequest{
 		Names:  dto.Names,
@@ -37,7 +37,7 @@ func (c *GRPCTagsClient) CreateTag(ctx context.Context, dto *models.TagCreateReq
 	return resp, nil
 }
 
-func (c *GRPCTagsClient) SearchTags(ctx context.Context, dto *models.TagsSearchRequest) (*microservices.TagsDataResponse, error) {
+func (c *GRPCTagsClient) SearchTags(ctx context.Context, dto *dto.TagsSearchRequest) (*microservices.TagsDataResponse, error) {
 
 	resp, err := c.client.SearchTags(ctx, &microservices.TagsSearchRequest{
 		Name: dto.Name,

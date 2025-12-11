@@ -24,7 +24,6 @@ type Notifications struct {
 	Action      string     `json:"action"`
 	Owner       User       `json:"owner"`
 }
-
 type NotificationsReadRequest struct {
 	IDs []string `json:"ids"`
 }

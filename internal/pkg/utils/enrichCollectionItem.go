@@ -4,13 +4,14 @@ import (
 	"context"
 	"github.com/mitchellh/mapstructure"
 	"lootor/gen/go/microservices"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/models"
 	"lootor/internal/infrastructure/tagsclient"
 	"slices"
 )
 
 type EnrichedCI interface {
-	Update(id string, dto *models.CollectionItemsRequestUpdate) (*models.CollectionItems, error)
+	Update(id string, dto *dto.CollectionItemsRequestUpdate) (*models.CollectionItems, error)
 	GetByID(id string, authUser string) (*models.CollectionItems, error)
 }
 
@@ -23,8 +24,8 @@ func NewEnrichedCIService(service EnrichedCI, tagsClient *tagsclient.GRPCTagsCli
 	return &EnrichingCIService{service: service, tagsClient: tagsClient}
 }
 
-func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser string) (*models.CollectionItemsResponse, error) {
-	var response models.CollectionItemsResponse
+func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser string) (*dto.CollectionItemsResponse, error) {
+	var response dto.CollectionItemsResponse
 	protoTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: item.ID.String()})
 	if err != nil {
 		return nil, err
@@ -32,7 +33,7 @@ func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser s
 	if err = mapstructure.Decode(item, &response); err != nil {
 		return nil, err
 	}
-	var resultTags []models.ShortTags
+	var resultTags []dto.ShortTags
 	if protoTags != nil {
 		resultTags = NormalizeTagsShort(protoTags.GetTags())
 	}
@@ -53,10 +54,10 @@ func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser s
 	return &response, nil
 }
 
-func (s *EnrichingCIService) enrichAnyItems(items []models.CollectionItems, authUser string) ([]models.CollectionItemsResponse, error) {
-	var resultCollectionItems []models.CollectionItemsResponse
+func (s *EnrichingCIService) enrichAnyItems(items []models.CollectionItems, authUser string) ([]dto.CollectionItemsResponse, error) {
+	var resultCollectionItems []dto.CollectionItemsResponse
 	for _, item := range items {
-		var temp models.CollectionItemsResponse
+		var temp dto.CollectionItemsResponse
 		err := mapstructure.Decode(item, &temp)
 		if err != nil {
 			return nil, err
@@ -67,7 +68,7 @@ func (s *EnrichingCIService) enrichAnyItems(items []models.CollectionItems, auth
 			return nil, err
 		}
 
-		var resultTags []models.ShortTags = NormalizeTagsShort(protoTags.GetTags())
+		var resultTags []dto.ShortTags = NormalizeTagsShort(protoTags.GetTags())
 		temp.Tags = resultTags
 
 		temp.Collection = item.Collections[0].ID
@@ -91,7 +92,7 @@ func (s *EnrichingCIService) enrichAnyItems(items []models.CollectionItems, auth
 	return resultCollectionItems, nil
 }
 
-func (s *EnrichingCIService) GetByID(id string, authUser string) (*models.CollectionItemsDataResponse, error) {
+func (s *EnrichingCIService) GetByID(id string, authUser string) (*dto.CollectionItemsDataResponse, error) {
 	item, err := s.service.GetByID(id, authUser)
 	if err != nil {
 		return nil, err
@@ -100,14 +101,14 @@ func (s *EnrichingCIService) GetByID(id string, authUser string) (*models.Collec
 	if err != nil {
 		return nil, err
 	}
-	return &models.CollectionItemsDataResponse{Data: *enriched}, err
+	return &dto.CollectionItemsDataResponse{Data: *enriched}, err
 }
 
-func (s *EnrichingCIService) Update(id string, dto *models.CollectionItemsRequestUpdate, authUser string) (*models.CollectionItemsDataResponse, error) {
-	item, err := s.service.Update(id, dto)
+func (s *EnrichingCIService) Update(id string, req *dto.CollectionItemsRequestUpdate, authUser string) (*dto.CollectionItemsDataResponse, error) {
+	item, err := s.service.Update(id, req)
 	if err != nil {
 		return nil, err
 	}
 	enriched, err := s.enrichItem(item, authUser)
-	return &models.CollectionItemsDataResponse{Data: *enriched}, err
+	return &dto.CollectionItemsDataResponse{Data: *enriched}, err
 }

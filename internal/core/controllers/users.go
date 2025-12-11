@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/services"
 	"net/http"
 )
@@ -20,11 +20,11 @@ func NewUserController(userService services.UserService) *UserController {
 // @Tags users
 // @Accept  json
 // @Produce  json
-// @Param user body models.SignUpRequest true "User data"
-// @Success 201 {object} models.SignUpResponse
+// @Param user body dto.SignUpRequest true "User data"
+// @Success 201 {object} dto.SignUpResponse
 // @Router /public/auth/signup [post]
 func (c *UserController) SignUp(ctx echo.Context) error {
-	var request models.SignUpRequest
+	var request dto.SignUpRequest
 
 	reqCtx := ctx.Request().Context()
 
@@ -48,11 +48,11 @@ func (c *UserController) SignUp(ctx echo.Context) error {
 // @Tags users
 // @Accept  json
 // @Produce  json
-// @Param user body models.SignInRequest true "User data"
-// @Success 201 {object} models.SignInResponse
+// @Param user body dto.SignInRequest true "User data"
+// @Success 201 {object} dto.SignInResponse
 // @Router /public/auth/signin [post]
 func (c *UserController) SignIn(ctx echo.Context) error {
-	var request models.SignInRequest
+	var request dto.SignInRequest
 
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
@@ -136,7 +136,7 @@ func (c *UserController) GetAll(ctx echo.Context) error {
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/user/rating [post]
 func (c *UserController) ChangeRating(ctx echo.Context) error {
-	var request models.ChangeRatingRequest
+	var request dto.ChangeRatingRequest
 	err := ctx.Bind(&request)
 	if err != nil {
 		return err
@@ -168,7 +168,7 @@ func (c *UserController) ChangeRating(ctx echo.Context) error {
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/user/password [post]
 func (c *UserController) ChangePass(ctx echo.Context) error {
-	var request models.ChangePasswordRequest
+	var request dto.ChangePasswordRequest
 	err := ctx.Bind(&request)
 	if err != nil {
 		return err
@@ -240,7 +240,7 @@ func (c *UserController) Verification(ctx echo.Context) error {
 }
 
 func (c *UserController) RenewTokens(ctx echo.Context) error {
-	var request models.RenewTokensRequest
+	var request dto.RenewTokensRequest
 	err := ctx.Bind(&request)
 	if err != nil {
 		return err
@@ -260,7 +260,7 @@ func (c *UserController) VkOauth(ctx echo.Context) error {
 	codeVerifier := ctx.QueryParam("code_verifier")
 	deviceId := ctx.QueryParam("device_id")
 	state := ctx.QueryParam("state")
-	request := models.VkOauthRequest{
+	request := dto.VkOauthRequest{
 		Code:         code,
 		CodeVerifier: codeVerifier,
 		DeviceID:     deviceId,
@@ -295,7 +295,7 @@ func (c *UserController) VkOauth(ctx echo.Context) error {
 }
 
 func (c *UserController) TelegramOauth(ctx echo.Context) error {
-	var request models.TelegramOauthRequest
+	var request dto.TelegramOauthRequest
 
 	err := ctx.Bind(&request)
 	if err != nil {
@@ -348,11 +348,11 @@ func (c *UserController) ResetPassword(ctx echo.Context) error {
 // @Tags users
 // @Accept  json
 // @Produce  json
-// @Param user body models.ChangePasswordReset true "User data"
+// @Param user body dto.ChangePasswordReset true "User data"
 // @Success 201 {object} dto.CommonResponse
 // @Router /public/user/reset [post]
 func (c *UserController) ChangeResetPassword(ctx echo.Context) error {
-	var request models.ChangePasswordReset
+	var request dto.ChangePasswordReset
 	err := ctx.Bind(&request)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
@@ -373,11 +373,11 @@ func (c *UserController) ChangeResetPassword(ctx echo.Context) error {
 // @Tags users
 // @Accept  json
 // @Produce  json
-// @Param user body models.UserRequestUpdate true "User data"
+// @Param user body dto.UserRequestUpdate true "User data"
 // @Success 201 {object} dto.DataUserResponseSwagger
 // @Router /secured/user/update [post]
 func (c *UserController) UpdateUser(ctx echo.Context) error {
-	var request models.UserRequestUpdate
+	var request dto.UserRequestUpdate
 	err := ctx.Bind(&request)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
@@ -403,11 +403,11 @@ func (c *UserController) UpdateUser(ctx echo.Context) error {
 // @Tags users
 // @Accept  json
 // @Produce  json
-// @Param user body models.UserRequestUpdateFirstTime true "User data"
-// @Success 201 {object} models.SignInResponse
+// @Param user body dto.UserRequestUpdateFirstTime true "User data"
+// @Success 201 {object} dto.SignInResponse
 // @Router /secured/user/update/reg [post]
 func (c *UserController) UpdateLogin(ctx echo.Context) error {
-	var request models.UserRequestUpdateFirstTime
+	var request dto.UserRequestUpdateFirstTime
 	err := ctx.Bind(&request)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{

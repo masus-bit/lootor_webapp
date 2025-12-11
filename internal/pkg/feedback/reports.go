@@ -2,8 +2,8 @@ package feedback
 
 import (
 	"github.com/joho/godotenv"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/repositories"
-	"lootor/internal/pkg/dto"
 )
 
 type ReportsService struct {

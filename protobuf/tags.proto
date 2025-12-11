@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "google/protobuf/struct.proto";
 
 package tags;
 
@@ -254,6 +255,8 @@ message TagItem {
   bool is_series = 13;
   repeated TagItem series_entries = 14;
   TagItem series = 15;
+  google.protobuf.Struct additional_fields = 16;
+  repeated string images = 17;
 }
 
 message GetShortsResponse {

@@ -6,12 +6,12 @@ import (
 	"github.com/google/uuid"
 	"log"
 	"lootor/gen/go/microservices"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/postsclient"
 	"lootor/internal/infrastructure/tagsclient"
-	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/utils"
 	"strconv"
 	"time"
@@ -31,7 +31,7 @@ func NewPostsService(postsClient *postsclient.GRPCPostsClient, userRepo *reposit
 		postsClient: postsClient, userRepo: userRepo, eventsService: eventsService, notificationsService: notificationsService, tagsClient: tagsClient, achService: achService}
 }
 
-func (s *PostsService) CreatePost(ctx context.Context, request *models.PostRequest) (*models.PostDataResponse, error) {
+func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest) (*dto.PostDataResponse, error) {
 	post, err := s.postsClient.CreatePost(ctx, request)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 			}
 		}()
 		go func() {
-			err = s.eventsService.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, request.Title, &models.EventsParams{TargetPostID: translit})
+			err = s.eventsService.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, request.Title, &dto.EventsParams{TargetPostID: translit})
 			if err != nil {
 				_ = fmt.Errorf("failed to add event: %v", err)
 			}
@@ -69,14 +69,14 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 
 	}
 
-	_, _ = s.postsClient.UpdatePost(ctx, &models.PostUpdateRequest{
+	_, _ = s.postsClient.UpdatePost(ctx, &dto.PostUpdateRequest{
 		ID:       post.Data.Id,
 		Translit: translit,
 		Title:    post.Data.Title,
 		IsDraft:  post.Data.IsDraft,
 		Content:  content,
 	})
-	var tags []models.ShortTags
+	var tags []dto.ShortTags
 	if len(request.Tags) > 0 {
 		go func() {
 			tagsAdded, err := s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
@@ -93,7 +93,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 				for _, tag := range tagsAdded.GetTags() {
 					tagUUID, _ := uuid.Parse(tag.GetId())
 					stringifyUINT := strconv.Itoa(int(post.GetData().GetId()))
-					eventError := s.eventsService.AddEvent(post.GetData().GetAuthor(), utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TargetPostID: stringifyUINT, TagRelatedEntityType: utils.EventTargetPost})
+					eventError := s.eventsService.AddEvent(post.GetData().GetAuthor(), utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &dto.EventsParams{TargetTagID: tagUUID, TargetPostID: stringifyUINT, TagRelatedEntityType: utils.EventTargetPost})
 					if eventError != nil {
 						log.Default().Print(eventError)
 					}
@@ -111,11 +111,11 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 		tags = utils.NormalizeTagsShort(respTags.GetTags())
 	}
 
-	result := models.PostDataResponse{
-		Data: models.Posts{
+	result := dto.PostDataResponse{
+		Data: dto.Posts{
 			ID:   post.Data.Id,
 			Date: post.Data.Date,
-			Author: models.SubUsers{
+			Author: dto.SubUsers{
 				Login:       user.Login,
 				AvatarURL:   user.AvatarURL,
 				ProfileName: user.ProfileName,
@@ -133,7 +133,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 			ShitCount:      0,
 			ClownCount:     0,
 			TotalReactions: 0,
-			Reactions:      &models.ReactResponse{},
+			Reactions:      &dto.ReactResponse{},
 			IsDraft:        post.Data.IsDraft,
 			Views:          0,
 			CommentsCount:  0,
@@ -146,7 +146,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *models.PostReque
 	return &result, nil
 }
 
-func (s *PostsService) GetAllPosts(ctx context.Context, order, limit, offset, authUser string) (*models.PostsDataResponse, error) {
+func (s *PostsService) GetAllPosts(ctx context.Context, order, limit, offset, authUser string) (*dto.PostsDataResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	var authUserIsPremium bool
 	if err != nil {
@@ -163,7 +163,7 @@ func (s *PostsService) GetAllPosts(ctx context.Context, order, limit, offset, au
 
 }
 
-func (s *PostsService) GetPostsByUser(ctx context.Context, login, limit, offset, authUser string, isDraft bool) (*models.PostsDataResponse, error) {
+func (s *PostsService) GetPostsByUser(ctx context.Context, login, limit, offset, authUser string, isDraft bool) (*dto.PostsDataResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	var authUserIsPremium bool
 	if err != nil {
@@ -195,7 +195,7 @@ func (s *PostsService) DeletePost(ctx context.Context, id uint64, authUser strin
 	}
 	if !exists.Data.IsDraft {
 		go func() {
-			eventError := s.eventsService.AddEvent(user.Login, utils.EventActionDelete, utils.EventTargetPost, result.Title, &models.EventsParams{TargetPostID: exists.Data.Translit})
+			eventError := s.eventsService.AddEvent(user.Login, utils.EventActionDelete, utils.EventTargetPost, result.Title, &dto.EventsParams{TargetPostID: exists.Data.Translit})
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -229,7 +229,7 @@ func (s *PostsService) DeletePost(ctx context.Context, id uint64, authUser strin
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *PostsService) GetPostById(ctx context.Context, id uint64, authUser string) (*models.PostDataResponse, error) {
+func (s *PostsService) GetPostById(ctx context.Context, id uint64, authUser string) (*dto.PostDataResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	var authUserIsPremium bool
 	if err != nil {
@@ -243,7 +243,7 @@ func (s *PostsService) GetPostById(ctx context.Context, id uint64, authUser stri
 	}
 
 	normalizedContent := utils.NormalizeContent(post.Data.Content)
-	var reacts *models.ReactResponse
+	var reacts *dto.ReactResponse
 	if len(post.Data.GetReactions()) != 0 {
 		reacts, err = s.formatReacts(post.Data)
 		if err != nil {
@@ -258,10 +258,10 @@ func (s *PostsService) GetPostById(ctx context.Context, id uint64, authUser stri
 
 	result := s.fillPost(post.Data, normalizedContent, reacts, author, nil)
 
-	return &models.PostDataResponse{Data: *result}, nil
+	return &dto.PostDataResponse{Data: *result}, nil
 }
 
-func (s *PostsService) GetPostByTranslit(ctx context.Context, translit string, authUser string) (*models.PostDataResponse, error) {
+func (s *PostsService) GetPostByTranslit(ctx context.Context, translit string, authUser string) (*dto.PostDataResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	var authUserIsPremium bool
 	if err != nil {
@@ -275,7 +275,7 @@ func (s *PostsService) GetPostByTranslit(ctx context.Context, translit string, a
 	}
 
 	normalizedContent := utils.NormalizeContent(post.Data.Content)
-	var reacts *models.ReactResponse
+	var reacts *dto.ReactResponse
 	if len(post.Data.GetReactions()) != 0 {
 		reacts, err = s.formatReacts(post.Data)
 		if err != nil {
@@ -290,10 +290,10 @@ func (s *PostsService) GetPostByTranslit(ctx context.Context, translit string, a
 
 	result := s.fillPost(post.Data, normalizedContent, reacts, author, nil)
 
-	return &models.PostDataResponse{Data: *result}, nil
+	return &dto.PostDataResponse{Data: *result}, nil
 }
 
-func (s *PostsService) React(ctx context.Context, req *models.ReactRequest) (*dto.CommonResponse, error) {
+func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.CommonResponse, error) {
 	resp, err := s.postsClient.ReactPost(ctx, req)
 	if err != nil {
 		return nil, err
@@ -338,7 +338,7 @@ func (s *PostsService) React(ctx context.Context, req *models.ReactRequest) (*dt
 
 }
 
-func (s *PostsService) Unreact(ctx context.Context, req *models.ReactRequest) (*dto.CommonResponse, error) {
+func (s *PostsService) Unreact(ctx context.Context, req *dto.ReactRequest) (*dto.CommonResponse, error) {
 	resp, err := s.postsClient.ReactPostDecrement(ctx, req)
 	if err != nil {
 		return nil, err
@@ -355,7 +355,7 @@ func (s *PostsService) Unreact(ctx context.Context, req *models.ReactRequest) (*
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateRequest, authUser string) (*models.PostDataResponse, error) {
+func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateRequest, authUser string) (*dto.PostDataResponse, error) {
 	existPost, err := s.postsClient.GetPostById(ctx, req.ID, false)
 	if err != nil {
 		return nil, err
@@ -393,14 +393,14 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateReq
 			}
 		}()
 		go func() {
-			err = s.eventsService.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, req.Title, &models.EventsParams{TargetPostID: existPost.Data.Translit})
+			err = s.eventsService.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, req.Title, &dto.EventsParams{TargetPostID: existPost.Data.Translit})
 			if err != nil {
 				_ = fmt.Errorf("failed to add event: %v", err)
 			}
 		}()
 	} else if !existPost.Data.IsDraft && !req.IsDraft {
 		go func() {
-			err = s.eventsService.AddEvent(user.Login, utils.EventActionUpdate, utils.EventTargetPost, req.Title, &models.EventsParams{TargetPostID: existPost.Data.Translit})
+			err = s.eventsService.AddEvent(user.Login, utils.EventActionUpdate, utils.EventTargetPost, req.Title, &dto.EventsParams{TargetPostID: existPost.Data.Translit})
 			if err != nil {
 				_ = fmt.Errorf("failed to add event: %v", err)
 			}
@@ -441,7 +441,7 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateReq
 			for _, tag := range tags.GetTags() {
 				tagUUID, _ := uuid.Parse(tag.GetId())
 				stringifyUINT := strconv.Itoa(int(req.ID))
-				eventError := s.eventsService.AddEvent(post.GetData().GetAuthor(), utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TargetPostID: stringifyUINT, TagRelatedEntityType: utils.EventTargetPost})
+				eventError := s.eventsService.AddEvent(post.GetData().GetAuthor(), utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &dto.EventsParams{TargetTagID: tagUUID, TargetPostID: stringifyUINT, TagRelatedEntityType: utils.EventTargetPost})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -449,11 +449,11 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateReq
 		}
 	}
 
-	var resultTags []models.ShortTags
-	resultTags = make([]models.ShortTags, 0)
+	var resultTags []dto.ShortTags
+	resultTags = make([]dto.ShortTags, 0)
 	if tags != nil {
 		for _, tag := range tags.GetTags() {
-			resultTags = append(resultTags, models.ShortTags{
+			resultTags = append(resultTags, dto.ShortTags{
 				ID:        tag.GetId(),
 				Name:      tag.GetName(),
 				Slug:      tag.GetSlug(),
@@ -466,16 +466,16 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *models.PostUpdateReq
 	resultPost := s.fillPost(post.Data, utils.NormalizeContent(post.Data.Content), nil, user, nil)
 	resultPost.Tags = resultTags
 
-	return &models.PostDataResponse{Data: *resultPost}, nil
+	return &dto.PostDataResponse{Data: *resultPost}, nil
 }
 
-func (s *PostsService) IncrementViews(ctx context.Context, req *models.IncrementRequestInput) (*dto.CommonResponse, error) {
+func (s *PostsService) IncrementViews(ctx context.Context, req *dto.IncrementRequestInput) (*dto.CommonResponse, error) {
 	var uintIds []uint64
 	for _, id := range req.PostIDs {
 		idInt, _ := strconv.ParseUint(id, 10, 64)
 		uintIds = append(uintIds, idInt)
 	}
-	resp, err := s.postsClient.IncrementViews(ctx, &models.IncrementRequest{PostIDs: uintIds})
+	resp, err := s.postsClient.IncrementViews(ctx, &dto.IncrementRequest{PostIDs: uintIds})
 	if err != nil {
 		return nil, err
 	}
@@ -506,9 +506,9 @@ func (s *PostsService) GetCount(ctx context.Context, userLogin string) int64 {
 	return count.GetCount()
 }
 
-func (s *PostsService) GetPostsByIDs(ctx context.Context, ids []string, authUserLogin string, isPremium bool) (*models.PostsDataResponse, error) {
+func (s *PostsService) GetPostsByIDs(ctx context.Context, ids []string, authUserLogin string, isPremium bool) (*dto.PostsDataResponse, error) {
 	resp, _ := s.postsClient.GetPostsByIds(context.Background(), ids, authUserLogin, isPremium)
-	var posts []models.Posts
+	var posts []dto.Posts
 	var postIds []string
 	postIds = append(postIds, ids...)
 	tagsMap, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
@@ -523,12 +523,12 @@ func (s *PostsService) GetPostsByIDs(ctx context.Context, ids []string, authUser
 			var reactUsers []string
 			itemTags := tagsMap.GetTags()[strconv.FormatUint(p.Id, 10)]
 
-			var resultTags []models.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
+			var resultTags []dto.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
 			for _, r := range p.Reactions {
 				reactUsers = append(reactUsers, r.UserLogin)
 			}
 			reactsLen := len(p.GetReactions())
-			var users []models.SubUsers
+			var users []dto.SubUsers
 			if reactsLen != 0 {
 				users, _ = s.userRepo.GetForSubs(reactUsers)
 			}
@@ -538,7 +538,7 @@ func (s *PostsService) GetPostsByIDs(ctx context.Context, ids []string, authUser
 				continue
 			}
 
-			posts = append(posts, models.Posts{
+			posts = append(posts, dto.Posts{
 				ID:             postFormatted.Data.ID,
 				Title:          postFormatted.Data.Title,
 				Author:         postFormatted.Data.Author,
@@ -564,11 +564,11 @@ func (s *PostsService) GetPostsByIDs(ctx context.Context, ids []string, authUser
 			})
 		}
 	}
-	return &models.PostsDataResponse{Data: posts}, nil
+	return &dto.PostsDataResponse{Data: posts}, nil
 }
 
-func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*models.PostsDataResponse, error) {
-	var result []models.Posts
+func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*dto.PostsDataResponse, error) {
+	var result []dto.Posts
 	var postIds []string
 	for _, p := range posts.Data {
 		id := strconv.FormatUint(p.Id, 10)
@@ -584,7 +584,7 @@ func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*m
 		content := utils.NormalizeContent(p.Content)
 		itemTags := tagsMap.GetTags()[strconv.FormatUint(p.Id, 10)]
 
-		var resultTags []models.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
+		var resultTags []dto.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
 		user, err := s.userRepo.GetUserByLogin(p.Author)
 		if err != nil {
 			return nil, err
@@ -599,14 +599,14 @@ func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*m
 
 	totalInt, _ := strconv.Atoi(posts.Total)
 
-	return &models.PostsDataResponse{Data: result, Total: int64(totalInt)}, nil
+	return &dto.PostsDataResponse{Data: result, Total: int64(totalInt)}, nil
 }
 
-func (s *PostsService) formatReacts(post *microservices.PostItem) (*models.ReactResponse, error) {
-	var reactionsResult models.ReactResponse
-	reacts := map[string][]models.React{}
+func (s *PostsService) formatReacts(post *microservices.PostItem) (*dto.ReactResponse, error) {
+	var reactionsResult dto.ReactResponse
+	reacts := map[string][]dto.React{}
 	var reactUsers []string
-	var fullReactUsers = map[string]models.SubUsers{}
+	var fullReactUsers = map[string]dto.SubUsers{}
 	if len(post.GetReactions()) != 0 {
 		for _, r := range post.Reactions {
 			reactUsers = append(reactUsers, r.UserLogin)
@@ -621,7 +621,7 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*models.React
 		}
 
 		reactionMapping := []struct {
-			field *[]models.React
+			field *[]dto.React
 			key   string
 		}{
 			{&reactionsResult.Fire, "fire"},
@@ -637,7 +637,7 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*models.React
 		}
 
 		for _, mapping := range reactionMapping {
-			*mapping.field = []models.React{}
+			*mapping.field = []dto.React{}
 		}
 
 		for _, r := range post.GetReactions() {
@@ -645,10 +645,10 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*models.React
 			if err != nil {
 				return nil, err
 			}
-			reacts[r.GetReaction()] = append(reacts[r.GetReaction()], models.React{
+			reacts[r.GetReaction()] = append(reacts[r.GetReaction()], dto.React{
 				ID:       reactUUID.String(),
 				User:     fullReactUsers[r.UserLogin],
-				Reaction: models.ReactionType(r.Reaction),
+				Reaction: dto.ReactionType(r.Reaction),
 			})
 		}
 
@@ -662,8 +662,8 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*models.React
 	return &reactionsResult, nil
 }
 
-func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, reacts *models.ReactResponse, user *models.Users, resTags []models.ShortTags) *models.Posts {
-	var tags []models.ShortTags
+func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, reacts *dto.ReactResponse, user *models.Users, resTags []dto.ShortTags) *dto.Posts {
+	var tags []dto.ShortTags
 	if resTags != nil {
 		tags = resTags
 	} else {
@@ -677,10 +677,10 @@ func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, react
 
 		tags = utils.NormalizeTagsShort(respTags.GetTags())
 	}
-	return &models.Posts{
+	return &dto.Posts{
 		ID:   p.GetId(),
 		Date: p.GetDate(),
-		Author: models.SubUsers{
+		Author: dto.SubUsers{
 			Login:       user.Login,
 			AvatarURL:   user.AvatarURL,
 			ProfileName: user.ProfileName,

@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/services"
 	"net/http"
 	"strconv"
@@ -23,7 +23,7 @@ func NewPostsController(postService services.PostsService) *PostsController {
 // @Produce  json
 // @Router /secured/posts [post]
 func (c *PostsController) CreatePost(ctx echo.Context) error {
-	var request models.PostRequest
+	var request dto.PostRequest
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",
@@ -172,7 +172,7 @@ func (c *PostsController) React(ctx echo.Context) error {
 	}
 	uintId, _ := strconv.ParseUint(id, 10, 64)
 
-	request := models.ReactRequest{
+	request := dto.ReactRequest{
 		PostID:    uintId,
 		Reaction:  reaction,
 		UserLogin: authUser,
@@ -203,7 +203,7 @@ func (c *PostsController) DeleteReact(ctx echo.Context) error {
 	}
 	uintId, _ := strconv.ParseUint(id, 10, 64)
 
-	request := models.ReactRequest{
+	request := dto.ReactRequest{
 		PostID:    uintId,
 		UserLogin: authUser,
 		Reaction:  reaction,
@@ -247,11 +247,11 @@ func (c *PostsController) Delete(ctx echo.Context) error {
 // @Tags posts
 // @Accept  json
 // @Produce  json
-// @Param updateRequest body models.PostUpdateRequest true "поля"
+// @Param updateRequest body dto.PostUpdateRequest true "поля"
 // @Success 201 {object} dto.FeedResponseSwag
 // @Router /secured/posts/{id} [put]
 func (c *PostsController) UpdatePost(ctx echo.Context) error {
-	var request models.PostUpdateRequest
+	var request dto.PostUpdateRequest
 	id := ctx.Param("id")
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
@@ -279,11 +279,11 @@ func (c *PostsController) UpdatePost(ctx echo.Context) error {
 // @Tags posts
 // @Accept  json
 // @Produce  json
-// @Param updateRequest body models.IncrementRequest true "поля"
+// @Param updateRequest body dto.IncrementRequest true "поля"
 // @Success 201 {object} dto.FeedResponseSwag
 // @Router /secured/posts/views [post]
 func (c *PostsController) IncrementViews(ctx echo.Context) error {
-	var request models.IncrementRequestInput
+	var request dto.IncrementRequestInput
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",

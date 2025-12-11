@@ -18,7 +18,6 @@ type Feed struct {
 
 	Content datatypes.JSON `gorm:"type:jsonb" json:"content"`
 }
-
 type FeedDataResponse struct {
 	Data  []Feed `json:"data"`
 	Total int64  `json:"total"`

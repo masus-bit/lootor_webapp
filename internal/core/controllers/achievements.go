@@ -19,7 +19,7 @@ func NewAchievementsController(achievementsService services.AchievementsService)
 // @Tags achievements
 // @Accept  json
 // @Produce  json
-// @Success 201 {object} models.AchievementsItemsResponse
+// @Success 201 {object} dto.AchievementsItemsResponse
 // @Router /public/achievements/items [get]
 func (c *AchievementsController) GetAllItems(ctx echo.Context) error {
 	response, err := c.achievementsService.GetAllAchievementsItems()
@@ -37,7 +37,7 @@ func (c *AchievementsController) GetAllItems(ctx echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param login query string true "login"
-// @Success 201 {object} models.AchievementsResponse
+// @Success 201 {object} dto.AchievementsResponse
 // @Router /public/achievements [get]
 func (c *AchievementsController) GetAllUsersAchievements(ctx echo.Context) error {
 	userLogin := ctx.QueryParam("login")
@@ -57,7 +57,7 @@ func (c *AchievementsController) GetAllUsersAchievements(ctx echo.Context) error
 // @Produce  json
 // @Param login query string true "login"
 // @Param code query string true "code"
-// @Success 201 {object} models.AchievementResponse
+// @Success 201 {object} dto.AchievementResponse
 // @Router /public/achievements/one [get]
 func (c *AchievementsController) GetOneAchievement(ctx echo.Context) error {
 	userLogin := ctx.QueryParam("login")

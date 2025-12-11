@@ -150,16 +150,6 @@ type AllCollectionsDataResponseSwagger struct {
 	Data []CollectionsResponseSwagger `json:"data"`
 }
 
-type CollectionCreateRequest struct {
-	Name            string   `json:"name"`
-	Description     string   `json:"description"`
-	IsPrivate       bool     `json:"isPrivate"`
-	BannerURL       string   `json:"bannerUrl"`
-	Transliteration string   `json:"transliteration"`
-	UserLogin       string   `json:"userLogin"`
-	Tags            []string `json:"tags"`
-}
-
 type EntitiesSwagger struct {
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`

@@ -9,6 +9,8 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"gorm.io/datatypes"
 	"lootor/gen/go/microservices"
+	"lootor/internal/core/dto"
+
 	"lootor/internal/core/models"
 	"lootor/internal/infrastructure/achievementsclient"
 	"slices"
@@ -41,10 +43,10 @@ func DefineShareString(authorizedUser string, id string, collection *models.Coll
 	return ""
 }
 
-func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsResponse, order string) []models.CollectionsResponse {
+func GetCollectionOrderBy(orderByInput string, collections []dto.CollectionsResponse, order string) []dto.CollectionsResponse {
 	switch orderByInput {
 	case "name":
-		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
+		slices.SortFunc(collections, func(a, b dto.CollectionsResponse) int {
 			if order == "asc" {
 				return cmp.Compare(a.Name, b.Name)
 			}
@@ -52,7 +54,7 @@ func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsR
 
 		})
 	case "created":
-		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
+		slices.SortFunc(collections, func(a, b dto.CollectionsResponse) int {
 			if order == "asc" {
 				return cmp.Compare(a.CreatedAt.UnixNano(), b.CreatedAt.UnixNano())
 			}
@@ -60,7 +62,7 @@ func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsR
 
 		})
 	case "totalPrice":
-		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
+		slices.SortFunc(collections, func(a, b dto.CollectionsResponse) int {
 			if order == "asc" {
 				return cmp.Compare(a.TotalPrice, b.TotalPrice)
 			}
@@ -68,7 +70,7 @@ func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsR
 
 		})
 	case "collectionItemsCount":
-		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
+		slices.SortFunc(collections, func(a, b dto.CollectionsResponse) int {
 			if order == "asc" {
 				return cmp.Compare(a.CollectionItemsCount, b.CollectionItemsCount)
 			}
@@ -76,7 +78,7 @@ func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsR
 
 		})
 	case "likesCount":
-		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
+		slices.SortFunc(collections, func(a, b dto.CollectionsResponse) int {
 			if order == "asc" {
 				return cmp.Compare(a.LikesCount, b.LikesCount)
 			}
@@ -84,7 +86,7 @@ func GetCollectionOrderBy(orderByInput string, collections []models.CollectionsR
 
 		})
 	default:
-		slices.SortFunc(collections, func(a, b models.CollectionsResponse) int {
+		slices.SortFunc(collections, func(a, b dto.CollectionsResponse) int {
 			return cmp.Compare(b.LikesCount, a.LikesCount)
 
 		})
@@ -269,7 +271,7 @@ func UsersOrder(order string) string {
 	return finalOrder
 }
 
-func FormatPost(post *microservices.PostItem, users []models.SubUsers, author *models.Users, reactLength int) (*models.PostDataResponse, error) {
+func FormatPost(post *microservices.PostItem, users []dto.SubUsers, author *models.Users, reactLength int) (*dto.PostDataResponse, error) {
 	content := NormalizeContent(post.Content)
 
 	reacts, err := FormatReacts(post, users, reactLength)
@@ -277,14 +279,14 @@ func FormatPost(post *microservices.PostItem, users []models.SubUsers, author *m
 		return nil, err
 	}
 
-	return &models.PostDataResponse{Data: *fillPost(post, content, reacts, author)}, nil
+	return &dto.PostDataResponse{Data: *fillPost(post, content, reacts, author)}, nil
 }
 
-func FormatReacts(post *microservices.PostItem, users []models.SubUsers, reactLength int) (*models.ReactResponse, error) {
-	var reactionsResult models.ReactResponse
-	reacts := map[string][]models.React{}
+func FormatReacts(post *microservices.PostItem, users []dto.SubUsers, reactLength int) (*dto.ReactResponse, error) {
+	var reactionsResult dto.ReactResponse
+	reacts := map[string][]dto.React{}
 	var reactUsers []string
-	var fullReactUsers = map[string]models.SubUsers{}
+	var fullReactUsers = map[string]dto.SubUsers{}
 	if reactLength != 0 {
 		for _, r := range post.Reactions {
 			reactUsers = append(reactUsers, r.UserLogin)
@@ -295,7 +297,7 @@ func FormatReacts(post *microservices.PostItem, users []models.SubUsers, reactLe
 		}
 
 		reactionMapping := []struct {
-			field *[]models.React
+			field *[]dto.React
 			key   string
 		}{
 			{&reactionsResult.Fire, "fire"},
@@ -311,7 +313,7 @@ func FormatReacts(post *microservices.PostItem, users []models.SubUsers, reactLe
 		}
 
 		for _, mapping := range reactionMapping {
-			*mapping.field = []models.React{}
+			*mapping.field = []dto.React{}
 		}
 
 		for _, r := range post.GetReactions() {
@@ -319,10 +321,10 @@ func FormatReacts(post *microservices.PostItem, users []models.SubUsers, reactLe
 			if err != nil {
 				return nil, err
 			}
-			reacts[r.GetReaction()] = append(reacts[r.GetReaction()], models.React{
+			reacts[r.GetReaction()] = append(reacts[r.GetReaction()], dto.React{
 				ID:       reactUUID.String(),
 				User:     fullReactUsers[r.UserLogin],
-				Reaction: models.ReactionType(r.Reaction),
+				Reaction: dto.ReactionType(r.Reaction),
 			})
 		}
 
@@ -336,11 +338,11 @@ func FormatReacts(post *microservices.PostItem, users []models.SubUsers, reactLe
 	return &reactionsResult, nil
 }
 
-func fillPost(p *microservices.PostItem, content []byte, reacts *models.ReactResponse, user *models.Users) *models.Posts {
-	return &models.Posts{
+func fillPost(p *microservices.PostItem, content []byte, reacts *dto.ReactResponse, user *models.Users) *dto.Posts {
+	return &dto.Posts{
 		ID:   p.GetId(),
 		Date: p.GetDate(),
-		Author: models.SubUsers{
+		Author: dto.SubUsers{
 			Login:       user.Login,
 			AvatarURL:   user.AvatarURL,
 			ProfileName: user.ProfileName,
@@ -385,10 +387,10 @@ func getType(tagProto *microservices.TagItemShort) string {
 	return "synonymSeriesChild"
 }
 
-func NormalizeTagsShort(tagsProto []*microservices.TagItemShort) []models.ShortTags {
-	tempTags := make([]models.ShortTags, 0, len(tagsProto))
+func NormalizeTagsShort(tagsProto []*microservices.TagItemShort) []dto.ShortTags {
+	tempTags := make([]dto.ShortTags, 0, len(tagsProto))
 	for _, tag := range tagsProto {
-		tempTags = append(tempTags, models.ShortTags{
+		tempTags = append(tempTags, dto.ShortTags{
 			ID:        tag.GetId(),
 			Name:      tag.GetName(),
 			Slug:      tag.GetSlug(),

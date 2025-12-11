@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 	"github.com/google/uuid"
+	"lootor/internal/core/dto"
 	"lootor/internal/infrastructure/newsclient"
-	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/utils"
 	"strconv"
 	"time"

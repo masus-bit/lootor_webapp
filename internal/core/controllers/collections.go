@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/services"
 	"net/http"
 )
@@ -20,11 +20,11 @@ func NewCollectionsController(colService services.CollectionService) *Collection
 // @Tags collections
 // @Accept  json
 // @Produce  json
-// @Param createRequest body models.CollectionCreateRequest true "поля создания"
+// @Param createRequest body dto.CollectionCreateRequest true "поля создания"
 // @Success 201 {object} dto.CollectionDataResponseSwagger
 // @Router /secured/collections [post]
 func (c *CollectionsController) CreateCollection(ctx echo.Context) error {
-	var request models.CollectionCreateRequest
+	var request dto.CollectionCreateRequest
 
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
@@ -65,11 +65,11 @@ func (c *CollectionsController) DeleteCollection(ctx echo.Context) error {
 // @Tags collections
 // @Accept  json
 // @Produce  json
-// @Param createRequest body models.CollectionCreateRequest true "поля создания"
+// @Param createRequest body dto.CollectionCreateRequest true "поля создания"
 // @Success 201 {object} dto.CollectionDataResponseSwagger
 // @Router /secured/collections/update [post]
 func (c *CollectionsController) UpdateCollection(ctx echo.Context) error {
-	var request models.CollectionUpdateRequest
+	var request dto.CollectionUpdateRequest
 	id := ctx.QueryParam("id")
 
 	if err := ctx.Bind(&request); err != nil {

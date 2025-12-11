@@ -3,12 +3,12 @@ package services
 import (
 	"context"
 	"lootor/gen/go/microservices"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/notificationsclient"
 	"lootor/internal/infrastructure/photosclient"
 	"lootor/internal/infrastructure/postsclient"
-	"lootor/internal/pkg/dto"
 	"strconv"
 )
 
@@ -90,15 +90,15 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 	var postsIDs []string
 	var userLogins []string
 
-	var photosMap map[string]models.Photos
+	var photosMap map[string]dto.Photos
 	var collectionsMap map[string]models.Collections
 	var collectionItemsMap map[string]models.CollectionItems
-	var postsMap map[string]models.Posts
+	var postsMap map[string]dto.Posts
 	var resultNotifications []dto.Notifications
-	photosMap = make(map[string]models.Photos)
+	photosMap = make(map[string]dto.Photos)
 	collectionsMap = make(map[string]models.Collections)
 	collectionItemsMap = make(map[string]models.CollectionItems)
-	postsMap = make(map[string]models.Posts)
+	postsMap = make(map[string]dto.Posts)
 	for _, n := range notifications.GetData() {
 		switch n.GetTargetType() {
 		case "photo":
@@ -122,11 +122,11 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		for _, photo := range photos.GetData() {
 			userLogins = append(userLogins, photo.GetAuthor())
 			stringID := strconv.Itoa(int(photo.GetId()))
-			photosMap[stringID] = models.Photos{
+			photosMap[stringID] = dto.Photos{
 				ID:           photo.GetId(),
 				CollectionID: photo.GetCollectionId(),
 				Path:         photo.GetPath(),
-				Author: models.SubUsers{
+				Author: dto.SubUsers{
 					Login: photo.GetAuthor(),
 				},
 			}
@@ -174,11 +174,11 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 		for _, post := range posts.GetData() {
 			userLogins = append(userLogins, post.GetAuthor())
 			stringID := strconv.Itoa(int(post.GetId()))
-			postsMap[stringID] = models.Posts{
+			postsMap[stringID] = dto.Posts{
 				ID:       post.GetId(),
 				Title:    post.GetTitle(),
 				Translit: post.GetTranslit(),
-				Author: models.SubUsers{
+				Author: dto.SubUsers{
 					Login: post.GetAuthor(),
 				},
 			}

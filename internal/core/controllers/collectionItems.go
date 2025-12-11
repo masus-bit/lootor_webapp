@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/services"
 	"lootor/internal/pkg/utils"
 	"net/http"
@@ -22,11 +22,11 @@ func NewCIController(ciService services.CiService, enrichedService utils.Enrichi
 // @Tags collection items
 // @Accept  json
 // @Produce  json
-// @Param createRequest body models.CollectionItemsRequestCreate true "поля создания"
+// @Param createRequest body dto.CollectionItemsRequestCreate true "поля создания"
 // @Success 201 {object} dto.CollectionItemsDataResponseSwagger
 // @Router /secured/collection_item [post]
 func (c *CIController) CreateCollectionItem(ctx echo.Context) error {
-	var request models.CollectionItemsRequestCreate
+	var request dto.CollectionItemsRequestCreate
 
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{
@@ -79,11 +79,11 @@ func (c *CIController) DeleteCollectionItem(ctx echo.Context) error {
 // @Tags collection items
 // @Accept  json
 // @Produce  json
-// @Param createRequest body models.CollectionItemsRequestCreate true "поля создания"
+// @Param createRequest body dto.CollectionItemsRequestCreate true "поля создания"
 // @Success 201 {object} dto.CollectionItemsDataResponseSwagger
 // @Router /secured/collection_item/update [post]
 func (c *CIController) UpdateCollectionItem(ctx echo.Context) error {
-	var request models.CollectionItemsRequestUpdate
+	var request dto.CollectionItemsRequestUpdate
 	id := ctx.QueryParam("id")
 
 	if err := ctx.Bind(&request); err != nil {
@@ -141,11 +141,11 @@ func (c *CIController) GetCollectionItem(ctx echo.Context) error {
 // @Tags collection items
 // @Accept  json
 // @Produce  json
-// @Param createRequest body models.CollectionItemsCopyOrMoveRequest true "polya"
+// @Param createRequest body dto.CollectionItemsCopyOrMoveRequest true "polya"
 // @Success 201 {object} dto.CommonResponse
 // @Router /secured/collection_item/copy [post]
 func (c *CIController) CopyOrMoveCollectionItem(ctx echo.Context) error {
-	var request models.CollectionItemsCopyOrMoveRequest
+	var request dto.CollectionItemsCopyOrMoveRequest
 
 	if err := ctx.Bind(&request); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{

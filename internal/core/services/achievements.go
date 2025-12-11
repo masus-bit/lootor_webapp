@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"lootor/gen/go/microservices"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/tagsclient"
@@ -44,8 +44,8 @@ func (s *AchievementsService) AddAchievement(code, userLogin string, level, xp i
 	return nil
 }
 
-func (s *AchievementsService) GetUserAchievements(userLogin string) (*models.AchievementsResponse, error) {
-	var achievementsResult []models.AchievedAchievement
+func (s *AchievementsService) GetUserAchievements(userLogin string) (*dto.AchievementsResponse, error) {
+	var achievementsResult []dto.AchievedAchievement
 	resp, err := s.achievementsClient.GetUserAchievements(context.Background(), &microservices.GetUserAchievementsRequest{
 		UserLogin: userLogin,
 	})
@@ -57,11 +57,11 @@ func (s *AchievementsService) GetUserAchievements(userLogin string) (*models.Ach
 		temp := s.convertAchievement(a)
 		achievementsResult = append(achievementsResult, *temp)
 	}
-	return &models.AchievementsResponse{Data: achievementsResult}, nil
+	return &dto.AchievementsResponse{Data: achievementsResult}, nil
 }
 
-func (s *AchievementsService) GetAchievedUserAchievements(userLogin string) (*models.AchievementsResponse, error) {
-	var achievementsResult []models.AchievedAchievement
+func (s *AchievementsService) GetAchievedUserAchievements(userLogin string) (*dto.AchievementsResponse, error) {
+	var achievementsResult []dto.AchievedAchievement
 	resp, err := s.achievementsClient.GetAchievedUserAchievements(context.Background(), &microservices.GetUserAchievementsRequest{
 		UserLogin: userLogin,
 	})
@@ -72,10 +72,10 @@ func (s *AchievementsService) GetAchievedUserAchievements(userLogin string) (*mo
 		temp := s.convertAchievement(a)
 		achievementsResult = append(achievementsResult, *temp)
 	}
-	return &models.AchievementsResponse{Data: achievementsResult}, nil
+	return &dto.AchievementsResponse{Data: achievementsResult}, nil
 }
 
-func (s *AchievementsService) GetOneAchievement(userLogin, code string) (*models.AchievementResponse, error) {
+func (s *AchievementsService) GetOneAchievement(userLogin, code string) (*dto.AchievementResponse, error) {
 	resp, err := s.achievementsClient.GetOneAchievement(context.Background(), &microservices.GetOneAchievementRequest{
 		UserLogin: userLogin,
 		Id:        code,
@@ -84,25 +84,25 @@ func (s *AchievementsService) GetOneAchievement(userLogin, code string) (*models
 		return nil, fmt.Errorf("GetOneAchievement: %w", err)
 	}
 	temp := s.convertAchievement(resp.GetAchievedAchievement())
-	return &models.AchievementResponse{Data: *temp}, nil
+	return &dto.AchievementResponse{Data: *temp}, nil
 }
 
-func (s *AchievementsService) GetAllAchievementsItems() (*models.AchievementsItemsResponse, error) {
-	var achievements []models.Achievements
+func (s *AchievementsService) GetAllAchievementsItems() (*dto.AchievementsItemsResponse, error) {
+	var achievements []dto.Achievements
 	resp, err := s.achievementsClient.GetAllAchievementsItems(context.Background(), &microservices.GetAllAchievementsItemsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("GetAllAchievementsItems: %w", err)
 	}
 	for _, a := range resp.GetAchievements() {
-		achievements = append(achievements, models.Achievements{
+		achievements = append(achievements, dto.Achievements{
 			ID:   a.GetId(),
 			Code: a.GetCode(),
 		})
 	}
-	return &models.AchievementsItemsResponse{Data: achievements}, nil
+	return &dto.AchievementsItemsResponse{Data: achievements}, nil
 }
 
-func (s *AchievementsService) convertAchievement(achievement *microservices.AchievedAchievement) *models.AchievedAchievement {
+func (s *AchievementsService) convertAchievement(achievement *microservices.AchievedAchievement) *dto.AchievedAchievement {
 	var achievedDate string
 	if achievement.GetLevel() > 1 {
 		achievedDate = achievement.GetUpdatedAt()
@@ -113,13 +113,13 @@ func (s *AchievementsService) convertAchievement(achievement *microservices.Achi
 	totalUsers := s.userRepo.GetAllUserCount()
 	totalAchievedPercentage := (float64(achievement.TotalAchieved) / float64(totalUsers)) * 100
 	threshold, _, _ := utils.GetThreshold(achievement.GetAchievement().GetCode(), int(achievement.GetLevel()))
-	achievementResult := &models.AchievedAchievement{
+	achievementResult := &dto.AchievedAchievement{
 		AchievedDate:    achievedDate,
 		ID:              achievement.GetId(),
 		AchievementID:   achievement.GetAchievement().GetId(),
 		AchievementCode: achievement.GetAchievement().GetCode(),
 		UserLogin:       achievement.GetUserLogin(),
-		Achievement: models.Achievements{
+		Achievement: dto.Achievements{
 			ID:   achievement.GetAchievement().GetId(),
 			Code: achievement.GetAchievement().GetCode(),
 		},

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/repositories"
 	"time"
 )
@@ -22,24 +22,24 @@ type TokenPair struct {
 	RefreshToken string `json:"refreshToken"`
 }
 type Claims struct {
-	Login             string            `json:"login"`
-	UserName          string            `json:"userName"`
-	VkID              string            `json:"vkId"`
-	TelegramID        string            `json:"telegramId"`
-	Email             string            `json:"email"`
-	Created           string            `json:"created"`
-	Likes             int               `json:"likes"`
-	Dislikes          int               `json:"dislikes"`
-	AvatarURL         string            `json:"avatarUrl"`
-	BackgroundURL     string            `json:"backgroundUrl"`
-	Subscribers       int               `json:"subscribers"`
-	Bio               string            `json:"bio"`
-	City              string            `json:"city"`
-	IsPremium         bool              `json:"isPremium"`
-	ProfileName       string            `json:"profileName"`
-	SubscribersLogins []models.SubUsers `json:"subscribersLogins" mapstructure:"-"`
-	Subscriptions     []models.SubUsers `json:"subscriptions" mapstructure:"-"`
-	Role              string            `json:"role"`
+	Login             string         `json:"login"`
+	UserName          string         `json:"userName"`
+	VkID              string         `json:"vkId"`
+	TelegramID        string         `json:"telegramId"`
+	Email             string         `json:"email"`
+	Created           string         `json:"created"`
+	Likes             int            `json:"likes"`
+	Dislikes          int            `json:"dislikes"`
+	AvatarURL         string         `json:"avatarUrl"`
+	BackgroundURL     string         `json:"backgroundUrl"`
+	Subscribers       int            `json:"subscribers"`
+	Bio               string         `json:"bio"`
+	City              string         `json:"city"`
+	IsPremium         bool           `json:"isPremium"`
+	ProfileName       string         `json:"profileName"`
+	SubscribersLogins []dto.SubUsers `json:"subscribersLogins" mapstructure:"-"`
+	Subscriptions     []dto.SubUsers `json:"subscriptions" mapstructure:"-"`
+	Role              string         `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -81,7 +81,7 @@ func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
 	}, nil
 }
 
-func (s *JWTService) generateToken(user TokenData, exp time.Duration, subLogins, subs []models.SubUsers) (string, error) {
+func (s *JWTService) generateToken(user TokenData, exp time.Duration, subLogins, subs []dto.SubUsers) (string, error) {
 	claims := Claims{
 		Login:             user.GetLogin(),
 		UserName:          user.GetUserName(),
@@ -211,7 +211,7 @@ type tokenData struct {
 	city              string
 	isPremium         bool
 	profileName       string
-	subscribersLogins []models.SubUsers
-	subscriptions     []models.SubUsers
+	subscribersLogins []dto.SubUsers
+	subscriptions     []dto.SubUsers
 	role              string
 }

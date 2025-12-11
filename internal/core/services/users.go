@@ -10,12 +10,12 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/mitchellh/mapstructure"
 	"lootor/gen/go/microservices"
+	dto "lootor/internal/core/dto"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/auth"
-	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/mail"
 	"lootor/internal/pkg/utils"
 	"os"
@@ -46,7 +46,7 @@ func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTServ
 	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, eventsService: eventsService, notificationsService: notificationsService, collectionRepo: collectionRepo, postsService: postsService, tagsClient: tagsClient, achClient: achClient}
 }
 
-func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*models.DataUserResponseForSingleUser, error) {
+func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*dto.DataUserResponseForSingleUser, error) {
 	dbUser, err := s.repo.GetUserByLogin(userLogin)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	if authUser != "" && isAuthenticated {
 		authorizedUser, _ = s.repo.GetUserByLogin(authUser)
 	}
-	var response models.UserResponseForSingleUser
+	var response dto.UserResponseForSingleUser
 	postsCount := s.postsService.GetCount(context.Background(), userLogin)
 
 	if userLogin == authUser {
@@ -89,7 +89,7 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		if e != nil {
 			return nil, e
 		}
-		return &models.DataUserResponseForSingleUser{Data: response}, nil
+		return &dto.DataUserResponseForSingleUser{Data: response}, nil
 	}
 
 	var subArray []string
@@ -135,11 +135,11 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 		return nil, err
 	}
 	subTags, _ := s.tagsClient.GetTagsByIDs(context.Background(), &microservices.GetTagsByIDsRequest{Ids: dbUser.TagsSubscriptions})
-	var resultTags []models.SubTags
-	resultTags = make([]models.SubTags, 0)
+	var resultTags []dto.SubTags
+	resultTags = make([]dto.SubTags, 0)
 	if len(subTags.GetTags()) > 0 || subTags != nil {
 		for _, tag := range subTags.GetTags() {
-			resultTags = append(resultTags, models.SubTags{
+			resultTags = append(resultTags, dto.SubTags{
 				ID:   tag.Id,
 				Name: tag.Name,
 				Slug: tag.Slug,
@@ -149,7 +149,7 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	response.TagsSubscriptions = resultTags
 	response.Subscriptions = subscriptions
 
-	return &models.DataUserResponseForSingleUser{Data: response}, nil
+	return &dto.DataUserResponseForSingleUser{Data: response}, nil
 }
 
 func (s *UserService) ChangeRating(isLike bool, login string) (*dto.CommonResponse, error) {
@@ -221,7 +221,7 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		subscriptionTargetUser.Exp += utils.UserSelfSubExp
 
 		go func() {
-			err = s.eventsService.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, &models.EventsParams{TargetUserLogin: targetUserLogin})
+			err = s.eventsService.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, &dto.EventsParams{TargetUserLogin: targetUserLogin})
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -257,7 +257,7 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 		subscriptionTargetUser.SubscribersLogins = utils.RemoveByValue(subscriptionTargetUser.SubscribersLogins, strings.ToLower(authUserLogin))
 		go func() {
 			_ = s.notificationsService.DeleteNotification(context.Background(), targetUserLogin, authUserLogin)
-			err := s.eventsService.AddEvent(authUserLogin, utils.EventActionUnsubscribe, utils.EventTargetUser, targetUserLogin, &models.EventsParams{TargetUserLogin: targetUserLogin})
+			err := s.eventsService.AddEvent(authUserLogin, utils.EventActionUnsubscribe, utils.EventTargetUser, targetUserLogin, &dto.EventsParams{TargetUserLogin: targetUserLogin})
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -284,15 +284,15 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *UserService) SignIn(dto *models.SignInRequest) (*models.SignInResponse, error) {
-	dbUser, err := s.repo.GetByEmailWithPassword(dto.Email)
+func (s *UserService) SignIn(req *dto.SignInRequest) (*dto.SignInResponse, error) {
+	dbUser, err := s.repo.GetByEmailWithPassword(req.Email)
 	if err != nil {
 		return nil, errors.New("incorrect email or password")
 	}
 	if dbUser.VerificationToken != "" {
 		return nil, errors.New("user is not verified")
 	}
-	ok := auth.CheckPasswordHash(dto.Password, dbUser.PasswordHash)
+	ok := auth.CheckPasswordHash(req.Password, dbUser.PasswordHash)
 	if !ok {
 		return nil, errors.New("incorrect email or password")
 	}
@@ -302,25 +302,25 @@ func (s *UserService) SignIn(dto *models.SignInRequest) (*models.SignInResponse,
 	if er != nil {
 		return nil, er
 	}
-	return &models.SignInResponse{
+	return &dto.SignInResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 	}, nil
 
 }
 
-func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*models.SignUpResponse, error) {
+func (s *UserService) SignUp(req *dto.SignUpRequest, ctx context.Context) (*dto.SignUpResponse, error) {
 	mode := os.Getenv("MODE")
-	userByMail, _ := s.repo.GetByEmailForSignUp(dto.Email)
+	userByMail, _ := s.repo.GetByEmailForSignUp(req.Email)
 	if userByMail != nil {
 		return nil, errors.New("email должен быть уникальным")
 	}
-	userByLogin, _ := s.repo.GetUserByLoginForSignUp(dto.Login)
+	userByLogin, _ := s.repo.GetUserByLoginForSignUp(req.Login)
 	if userByLogin != nil {
 		return nil, errors.New("логин должен быть уникальным")
 	}
 
-	passwordHash, errorHash := auth.HashPassword(dto.Password)
+	passwordHash, errorHash := auth.HashPassword(req.Password)
 	if errorHash != nil {
 		return nil, errorHash
 	}
@@ -329,15 +329,15 @@ func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*m
 	hexString, _ := utils.GenerateRandomString(32)
 
 	dbUser := models.Users{
-		Login:             dto.Login,
-		Email:             dto.Email,
-		UserName:          dto.UserName,
+		Login:             req.Login,
+		Email:             req.Email,
+		UserName:          req.UserName,
 		PasswordHash:      passwordHash,
 		Created:           isoTime,
 		VerificationToken: hexString,
-		Bio:               dto.Bio,
-		City:              dto.City,
-		ProfileName:       dto.ProfileName,
+		Bio:               req.Bio,
+		City:              req.City,
+		ProfileName:       req.ProfileName,
 		Role:              "user",
 	}
 	err := s.repo.CreateUser(&dbUser)
@@ -351,23 +351,23 @@ func (s *UserService) SignUp(dto *models.SignUpRequest, ctx context.Context) (*m
 			fmt.Println("mailService is not initialized")
 			return
 		}
-		err = s.mailService.SendConfirmationEmail(dto.Email, hexString)
+		err = s.mailService.SendConfirmationEmail(req.Email, hexString)
 		if err != nil {
 			fmt.Println(err)
 		}
 		if mode == "beta" {
-			_, err = s.achClient.AddZeroAchievements(context.Background(), &microservices.GetUserAchievementsRequest{UserLogin: dto.Login})
-			err = utils.AddAchievement(s.achClient, utils.AchieveBetaTester, dto.Login, 1, utils.XPBetaTester, 0)
-			err = s.repo.IncrementExperience(dto.Login, utils.XPBetaTester)
+			_, err = s.achClient.AddZeroAchievements(context.Background(), &microservices.GetUserAchievementsRequest{UserLogin: req.Login})
+			err = utils.AddAchievement(s.achClient, utils.AchieveBetaTester, req.Login, 1, utils.XPBetaTester, 0)
+			err = s.repo.IncrementExperience(req.Login, utils.XPBetaTester)
 		}
 	}()
 
-	return &models.SignUpResponse{
+	return &dto.SignUpResponse{
 		Data: "success",
 	}, nil
 }
 
-func (s *UserService) Verification(token string) (*models.SignInResponse, error) {
+func (s *UserService) Verification(token string) (*dto.SignInResponse, error) {
 	var tokens *auth.TokenPair
 	dbUser, err := s.repo.GetByVerificationToken(token)
 	if err != nil {
@@ -388,16 +388,16 @@ func (s *UserService) Verification(token string) (*models.SignInResponse, error)
 	if err != nil {
 		return nil, err
 	}
-	return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
+	return &dto.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
 }
 
-func (s *UserService) RefreshTokens(refreshToken string) (*models.SignInResponse, error) {
+func (s *UserService) RefreshTokens(refreshToken string) (*dto.SignInResponse, error) {
 
 	tokens, err := s.jwtService.RenewTokenPair(refreshToken)
 	if err != nil {
 		return nil, err
 	}
-	return &models.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
+	return &dto.SignInResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}, nil
 }
 
 type VkAuthResponse struct {
@@ -407,23 +407,23 @@ type VkAuthResponse struct {
 	Email       string `json:"email,omitempty"`
 }
 
-func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInResponseWithTmpLogin, error) {
+func (s *UserService) VkOauth(req *dto.VkOauthRequest) (*dto.SignInResponseWithTmpLogin, error) {
 
 	bodyRequest := map[string]string{
 		"grant_type":    "authorization_code",
 		"client_id":     os.Getenv("VK_CLIENT_ID"),
-		"code":          dto.Code,
-		"code_verifier": dto.CodeVerifier,
+		"code":          req.Code,
+		"code_verifier": req.CodeVerifier,
 		"redirect_uri":  os.Getenv("FRONTEND_URL"),
-		"device_id":     dto.DeviceID,
-		"state":         dto.State,
+		"device_id":     req.DeviceID,
+		"state":         req.State,
 	}
 
 	headers := map[string]string{
 		"Content-Type": "application/x-www-form-urlencoded",
 	}
 
-	response, err := utils.SendRequest[models.VkAuthGetTokenData](utils.RequestOptions{Method: "POST", URL: "https://id.vk.com/oauth2/auth", Headers: headers, QueryParams: map[string]string{}, Body: bodyRequest, File: []byte{}, BasicAuth: nil})
+	response, err := utils.SendRequest[dto.VkAuthGetTokenData](utils.RequestOptions{Method: "POST", URL: "https://id.vk.com/oauth2/auth", Headers: headers, QueryParams: map[string]string{}, Body: bodyRequest, File: []byte{}, BasicAuth: nil})
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -438,7 +438,6 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 
 	existsUser, _ := s.repo.GetByVkId(newId)
 
-	fmt.Println(fmt.Printf("user%+v", existsUser))
 	if existsUser != nil && !existsUser.TmpLogin {
 
 		if existsUser.VerificationToken != "" {
@@ -449,7 +448,7 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		if err != nil {
 			return nil, fmt.Errorf("token generation error: %w", err)
 		}
-		return &models.SignInResponseWithTmpLogin{
+		return &dto.SignInResponseWithTmpLogin{
 			AccessToken:  tokens.AccessToken,
 			RefreshToken: tokens.RefreshToken,
 			TmpLogin:     false,
@@ -460,7 +459,7 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 		if err != nil {
 			return nil, fmt.Errorf("token generation error: %w", err)
 		}
-		return &models.SignInResponseWithTmpLogin{
+		return &dto.SignInResponseWithTmpLogin{
 			AccessToken:  tokens.AccessToken,
 			RefreshToken: tokens.RefreshToken,
 			TmpLogin:     true,
@@ -503,13 +502,13 @@ func (s *UserService) VkOauth(dto *models.VkOauthRequest) (*models.SignInRespons
 	if err != nil {
 		return nil, fmt.Errorf("token generation error: %w", err)
 	}
-	return &models.SignInResponseWithTmpLogin{
+	return &dto.SignInResponseWithTmpLogin{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 		TmpLogin:     true,
 	}, nil
 }
-func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo, error) {
+func (s *UserService) getUserInfo(accessToken string) (*dto.VkAuthGetUserInfo, error) {
 	baseURL := "https://api.vk.com/method/users.get"
 
 	parameters := map[string]string{
@@ -518,7 +517,7 @@ func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo
 		"fields":       "email,photo_200",
 	}
 	response, err := utils.SendRequest[struct {
-		Response []models.VkAuthGetUserInfo `json:"response"`
+		Response []dto.VkAuthGetUserInfo `json:"response"`
 	}](utils.RequestOptions{Method: "GET", URL: baseURL, Headers: map[string]string{}, Body: map[string]string{}, QueryParams: parameters, File: []byte{}, BasicAuth: nil})
 
 	if err != nil {
@@ -528,26 +527,26 @@ func (s *UserService) getUserInfo(accessToken string) (*models.VkAuthGetUserInfo
 	return &response.Response[0], nil
 }
 
-func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.SignInResponseWithTmpLogin, error) {
-	if dto.LastName == "" {
+func (s *UserService) TelegramOauth(req *dto.TelegramOauthRequest) (*dto.SignInResponseWithTmpLogin, error) {
+	if req.LastName == "" {
 
 	}
 	data := []string{
-		fmt.Sprintf("id=%d", dto.ID),
-		fmt.Sprintf("username=%s", dto.Username),
-		fmt.Sprintf("auth_date=%d", dto.AuthDate),
+		fmt.Sprintf("id=%d", req.ID),
+		fmt.Sprintf("username=%s", req.Username),
+		fmt.Sprintf("auth_date=%d", req.AuthDate),
 	}
 
-	if dto.LastName != "" {
-		data = append(data, fmt.Sprintf("last_name=%s", dto.LastName))
+	if req.LastName != "" {
+		data = append(data, fmt.Sprintf("last_name=%s", req.LastName))
 	}
-	if dto.FirstName != "" {
-		data = append(data, fmt.Sprintf("first_name=%s", dto.FirstName))
+	if req.FirstName != "" {
+		data = append(data, fmt.Sprintf("first_name=%s", req.FirstName))
 	}
-	if dto.PhotoURL != "" {
-		data = append(data, fmt.Sprintf("photo_url=%s", dto.PhotoURL))
+	if req.PhotoURL != "" {
+		data = append(data, fmt.Sprintf("photo_url=%s", req.PhotoURL))
 	}
-	hash := dto.Hash
+	hash := req.Hash
 
 	sort.Strings(data)
 	dataCheckString := strings.Join(data, "\n")
@@ -565,7 +564,7 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 		return nil, fmt.Errorf("проблемы с хэшем")
 	}
 
-	newId := fmt.Sprintf("%d", dto.ID)
+	newId := fmt.Sprintf("%d", req.ID)
 
 	existUser, _ := s.repo.GetByTgId(newId)
 
@@ -577,7 +576,7 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 		if err != nil {
 			return nil, fmt.Errorf("token generation error: %w", err)
 		}
-		return &models.SignInResponseWithTmpLogin{
+		return &dto.SignInResponseWithTmpLogin{
 			AccessToken:  tokens.AccessToken,
 			RefreshToken: tokens.RefreshToken,
 			TmpLogin:     false,
@@ -587,31 +586,31 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 		if err != nil {
 			return nil, fmt.Errorf("token generation error: %w", err)
 		}
-		return &models.SignInResponseWithTmpLogin{
+		return &dto.SignInResponseWithTmpLogin{
 			AccessToken:  tokens.AccessToken,
 			RefreshToken: tokens.RefreshToken,
 			TmpLogin:     true,
 		}, nil
 	}
 
-	passwordHash, err := auth.HashPassword("tg" + newId + dto.Username)
+	passwordHash, err := auth.HashPassword("tg" + newId + req.Username)
 	if err != nil {
 		return nil, fmt.Errorf("password hash error: %w", err)
 	}
 
 	newUser := models.Users{
 		TelegramID:   newId,
-		Login:        dto.Username + newId,
-		UserName:     dto.FirstName + " " + dto.LastName,
-		AvatarURL:    dto.PhotoURL,
+		Login:        req.Username + newId,
+		UserName:     req.FirstName + " " + req.LastName,
+		AvatarURL:    req.PhotoURL,
 		Created:      time.Now().Format(time.RFC3339),
 		PasswordHash: passwordHash,
 		TmpLogin:     true,
-		ProfileName:  dto.Username,
+		ProfileName:  req.Username,
 	}
 
-	if dto.PhotoURL != "" {
-		err = s.repo.IncrementExperience(dto.Username+newId, utils.AvatarAddExt)
+	if req.PhotoURL != "" {
+		err = s.repo.IncrementExperience(req.Username+newId, utils.AvatarAddExt)
 		if err != nil {
 			return nil, fmt.Errorf("increment experience error: %w", err)
 		}
@@ -632,7 +631,7 @@ func (s *UserService) TelegramOauth(dto *models.TelegramOauthRequest) (*models.S
 		return nil, fmt.Errorf("token generation error: %w", err)
 	}
 
-	return &models.SignInResponseWithTmpLogin{
+	return &dto.SignInResponseWithTmpLogin{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 		TmpLogin:     true,
@@ -666,7 +665,7 @@ func (s *UserService) ResetPassword(email string) (*dto.CommonResponse, error) {
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *UserService) ChangeResetPassword(request *models.ChangePasswordReset) (*models.SignInResponse, error) {
+func (s *UserService) ChangeResetPassword(request *dto.ChangePasswordReset) (*dto.SignInResponse, error) {
 	existsUser, err := s.repo.GetByResetToken(request.Token)
 	if err != nil {
 		return nil, err
@@ -681,13 +680,13 @@ func (s *UserService) ChangeResetPassword(request *models.ChangePasswordReset) (
 	if err != nil {
 		return nil, fmt.Errorf("token generation error: %w", err)
 	}
-	return &models.SignInResponse{
+	return &dto.SignInResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 	}, nil
 }
 
-func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (*models.SignInResponse, error) {
+func (s *UserService) UpdateUser(user *dto.UserRequestUpdate, login string) (*dto.SignInResponse, error) {
 	if login == "" {
 		return nil, errors.New("not authorized")
 	}
@@ -746,13 +745,13 @@ func (s *UserService) UpdateUser(user *models.UserRequestUpdate, login string) (
 		return nil, fmt.Errorf("token generation error: %w", err)
 	}
 
-	return &models.SignInResponse{
+	return &dto.SignInResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 	}, nil
 }
 
-func (s *UserService) UpdateOnlyOnce(data *models.UserRequestUpdateFirstTime, targetUserLogin string) (*dto.CommonResponse, error) {
+func (s *UserService) UpdateOnlyOnce(data *dto.UserRequestUpdateFirstTime, targetUserLogin string) (*dto.CommonResponse, error) {
 	userByLogin, _ := s.repo.GetUserByLogin(*data.Login)
 
 	if userByLogin != nil && userByLogin.Login == *data.Login {
@@ -889,17 +888,17 @@ func (s *UserService) CheckDeletedUsers() {
 	}
 }
 
-func (s *UserService) GetAll(search, limit, offset, order string) (*models.DataUsersResponse, error) {
+func (s *UserService) GetAll(search, limit, offset, order string) (*dto.DataUsersResponse, error) {
 	users, total, donateMap, err := s.repo.GetAll(search, limit, offset, order)
 
 	if err != nil {
 		return nil, err
 	}
 
-	var result []models.UserResponse
+	var result []dto.UserResponse
 
 	for _, user := range users {
-		var tempUser models.UserResponse
+		var tempUser dto.UserResponse
 		err = mapstructure.Decode(user, &tempUser)
 		if err != nil {
 			return nil, err
@@ -917,7 +916,7 @@ func (s *UserService) GetAll(search, limit, offset, order string) (*models.DataU
 		result = append(result, tempUser)
 	}
 
-	return &models.DataUsersResponse{
+	return &dto.DataUsersResponse{
 		Data:  result,
 		Total: total,
 	}, nil

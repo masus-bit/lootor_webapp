@@ -3,7 +3,7 @@ package feedback
 import (
 	"fmt"
 	"github.com/joho/godotenv"
-	"lootor/internal/pkg/dto"
+	"lootor/internal/core/dto"
 	"lootor/internal/pkg/utils"
 	"os"
 )

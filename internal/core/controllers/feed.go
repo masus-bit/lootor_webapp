@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/services"
-	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/utils"
 	"net/http"
 	"slices"

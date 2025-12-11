@@ -5,7 +5,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"lootor/gen/go/microservices"
-	"lootor/internal/pkg/dto"
+	"lootor/internal/core/dto"
 	"lootor/internal/pkg/utils"
 	"strconv"
 )
@@ -27,16 +27,16 @@ func NewGRPCCommentsClient(addr string) (*GRPCCommentsClient, error) {
 	}, nil
 }
 
-func (c *GRPCCommentsClient) CreateComment(ctx context.Context, dto *dto.CommentsRequest) (*microservices.CommentResponse, error) {
-	normalizedContent, _ := utils.GormJSONToProtoStruct(dto.Content)
+func (c *GRPCCommentsClient) CreateComment(ctx context.Context, req *dto.CommentsRequest) (*microservices.CommentResponse, error) {
+	normalizedContent, _ := utils.GormJSONToProtoStruct(req.Content)
 
 	resp, err := c.client.CreateComment(ctx, &microservices.CreateCommentRequest{
 		Content:    normalizedContent,
-		Date:       dto.Date,
-		Author:     dto.Author,
-		ParentId:   *dto.ParentID,
-		TargetId:   dto.TargetID,
-		EntityType: dto.EntityType,
+		Date:       req.Date,
+		Author:     req.Author,
+		ParentId:   *req.ParentID,
+		TargetId:   req.TargetID,
+		EntityType: req.EntityType,
 	})
 	if err != nil {
 		return nil, err
@@ -54,11 +54,11 @@ func (c *GRPCCommentsClient) DeleteComments(ctx context.Context, id string) (*mi
 	})
 }
 
-func (c *GRPCCommentsClient) LoadAnswers(ctx context.Context, dto *dto.AnswersRequest) (*microservices.AnswersResponse, error) {
+func (c *GRPCCommentsClient) LoadAnswers(ctx context.Context, req *dto.AnswersRequest) (*microservices.AnswersResponse, error) {
 	return c.client.LoadAnswers(ctx, &microservices.AnswersRequest{
-		Id:     dto.ID,
-		Limit:  strconv.Itoa(dto.Limit),
-		Offset: strconv.Itoa(dto.Offset),
+		Id:     req.ID,
+		Limit:  strconv.Itoa(req.Limit),
+		Offset: strconv.Itoa(req.Offset),
 	})
 }
 

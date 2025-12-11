@@ -6,12 +6,11 @@ import (
 	"github.com/google/uuid"
 	"log"
 	"lootor/gen/go/microservices"
-	"lootor/internal/core/models"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/photosclient"
 	"lootor/internal/infrastructure/tagsclient"
-	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/s3"
 	"lootor/internal/pkg/utils"
 	"strconv"
@@ -59,7 +58,7 @@ func (s *PhotosService) DecrementCommentsCount(ctx context.Context, id string) (
 	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
 }
 
-func (s *PhotosService) CreatePhoto(ctx context.Context, req *models.PhotoCreateRequest, authUserLogin string) (*models.PhotosDataResponse, error) {
+func (s *PhotosService) CreatePhoto(ctx context.Context, req *dto.PhotoCreateRequest, authUserLogin string) (*dto.PhotosDataResponse, error) {
 	photosCount, err := s.photosClient.GetTotalPhotosCountByUserLogin(context.Background(), &microservices.GetTotalPhotosCountByUserLoginRequest{AuthUserLogin: authUserLogin})
 	if err != nil {
 		return nil, err
@@ -87,17 +86,17 @@ func (s *PhotosService) CreatePhoto(ctx context.Context, req *models.PhotoCreate
 		for _, ph := range resp.GetData() {
 			stringId := strconv.Itoa(int(ph.GetId()))
 			uuidColID, _ := uuid.Parse(req.CollectionID)
-			eventError := s.eventsService.AddEvent(authUserLogin, utils.EventActionCreate, utils.EventTargetPhoto, ph.Path, &models.EventsParams{TargetPhotoID: stringId, TargetCollectionID: uuidColID})
+			eventError := s.eventsService.AddEvent(authUserLogin, utils.EventActionCreate, utils.EventTargetPhoto, ph.Path, &dto.EventsParams{TargetPhotoID: stringId, TargetCollectionID: uuidColID})
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
 		}
 	}
 	result := s.convertProtoToModels(resp.GetData(), authUserLogin)
-	return &models.PhotosDataResponse{Data: result}, nil
+	return &dto.PhotosDataResponse{Data: result}, nil
 }
 
-func (s *PhotosService) GetByUser(ctx context.Context, userLogin, authUserLogin, limit, offset string) (*models.PhotosDataResponse, error) {
+func (s *PhotosService) GetByUser(ctx context.Context, userLogin, authUserLogin, limit, offset string) (*dto.PhotosDataResponse, error) {
 	resp, err := s.photosClient.FindByUser(ctx, &microservices.FindByUserRequest{
 		AuthUserLogin: authUserLogin,
 		Login:         userLogin,
@@ -108,7 +107,7 @@ func (s *PhotosService) GetByUser(ctx context.Context, userLogin, authUserLogin,
 		return nil, err
 	}
 	result := s.convertProtoToModels(resp.GetData(), authUserLogin)
-	return &models.PhotosDataResponse{Data: result}, nil
+	return &dto.PhotosDataResponse{Data: result}, nil
 }
 
 func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.CommonResponse, error) {
@@ -130,7 +129,7 @@ func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.Common
 		_, _ = s.tagsClient.RemoveEntityTags(context.Background(), &microservices.RemoveEntityTagsRequest{
 			EntityId: id,
 		})
-		eventError := s.eventsService.AddEvent("", utils.EventActionDelete, utils.EventTargetPhoto, "", &models.EventsParams{TargetPhotoID: id})
+		eventError := s.eventsService.AddEvent("", utils.EventActionDelete, utils.EventTargetPhoto, "", &dto.EventsParams{TargetPhotoID: id})
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
@@ -138,7 +137,7 @@ func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.Common
 	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
 }
 
-func (s *PhotosService) FindOneByID(ctx context.Context, id, authUserLogin string) (*models.PhotoDataResponse, error) {
+func (s *PhotosService) FindOneByID(ctx context.Context, id, authUserLogin string) (*dto.PhotoDataResponse, error) {
 	resp, err := s.photosClient.FindOneByID(ctx, &microservices.FindOneByIdRequest{
 		Id: s.stringToUint64(id),
 	})
@@ -146,10 +145,10 @@ func (s *PhotosService) FindOneByID(ctx context.Context, id, authUserLogin strin
 		return nil, err
 	}
 	photo := s.convertProtoToModel(resp.GetData(), authUserLogin)
-	return &models.PhotoDataResponse{Data: *photo}, nil
+	return &dto.PhotoDataResponse{Data: *photo}, nil
 }
 
-func (s *PhotosService) FindAllByCollectionID(ctx context.Context, collectionId, limit, offset, authUserLogin string) (*models.PhotosDataResponse, error) {
+func (s *PhotosService) FindAllByCollectionID(ctx context.Context, collectionId, limit, offset, authUserLogin string) (*dto.PhotosDataResponse, error) {
 	resp, err := s.photosClient.FindAllByCollectionID(ctx, &microservices.FindByCollectionIdRequest{
 		CollectionId:  collectionId,
 		Limit:         limit,
@@ -160,7 +159,7 @@ func (s *PhotosService) FindAllByCollectionID(ctx context.Context, collectionId,
 		return nil, err
 	}
 	photos := s.convertProtoToModels(resp.GetData(), authUserLogin)
-	return &models.PhotosDataResponse{Data: photos, Total: resp.GetTotal()}, nil
+	return &dto.PhotosDataResponse{Data: photos, Total: resp.GetTotal()}, nil
 }
 
 func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin string) (*dto.CommonResponse, error) {
@@ -216,7 +215,7 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
 }
 
-func (s *PhotosService) FindPhotosByIds(ctx context.Context, ids []string, authUserLogin string) (*models.PhotosDataResponse, error) {
+func (s *PhotosService) FindPhotosByIds(ctx context.Context, ids []string, authUserLogin string) (*dto.PhotosDataResponse, error) {
 	resp, err := s.photosClient.GetPhotosByIDs(ctx, &microservices.GetByIdsRequest{
 		Ids:           ids,
 		AuthUserLogin: authUserLogin,
@@ -225,7 +224,7 @@ func (s *PhotosService) FindPhotosByIds(ctx context.Context, ids []string, authU
 		return nil, err
 	}
 	photos := s.convertProtoToModels(resp.GetData(), authUserLogin)
-	return &models.PhotosDataResponse{Data: photos}, nil
+	return &dto.PhotosDataResponse{Data: photos}, nil
 }
 
 func (s *PhotosService) GetCountByCollection(ctx context.Context, collectionId string) (int64, error) {
@@ -238,7 +237,7 @@ func (s *PhotosService) GetCountByCollection(ctx context.Context, collectionId s
 	return resp.GetCount(), nil
 }
 
-func (s *PhotosService) UpdatePhoto(ctx context.Context, req *models.PhotoUpdateRequest, authUserLogin string) (*models.PhotoDataResponse, error) {
+func (s *PhotosService) UpdatePhoto(ctx context.Context, req *dto.PhotoUpdateRequest, authUserLogin string) (*dto.PhotoDataResponse, error) {
 	resp, err := s.photosClient.UpdatePhoto(ctx, &microservices.UpdatePhotoRequest{
 		Id:          s.stringToUint64(req.ID),
 		Description: req.Description,
@@ -270,7 +269,7 @@ func (s *PhotosService) UpdatePhoto(ctx context.Context, req *models.PhotoUpdate
 			for _, tag := range photo.Tags {
 				tagUUID, _ := uuid.Parse(tag.ID)
 				stringPhotoID := strconv.Itoa(int(resp.GetData().GetId()))
-				eventError := s.eventsService.AddEvent(authUserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &models.EventsParams{TargetTagID: tagUUID, TargetPhotoID: stringPhotoID, TagRelatedEntityType: utils.EventTargetPhoto})
+				eventError := s.eventsService.AddEvent(authUserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &dto.EventsParams{TargetTagID: tagUUID, TargetPhotoID: stringPhotoID, TagRelatedEntityType: utils.EventTargetPhoto})
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -278,11 +277,11 @@ func (s *PhotosService) UpdatePhoto(ctx context.Context, req *models.PhotoUpdate
 		}
 	}
 
-	return &models.PhotoDataResponse{Data: *photo}, nil
+	return &dto.PhotoDataResponse{Data: *photo}, nil
 }
 
-func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem, authUserLogin string) []models.Photos {
-	var resultPhotos []models.Photos
+func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem, authUserLogin string) []dto.Photos {
+	var resultPhotos []dto.Photos
 	var userLogins []string
 	var collectionIds []string
 	var photoIds []string
@@ -308,10 +307,10 @@ func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem, 
 	}
 	for i := range photos {
 		photoTags := tags.GetTags()[photoIds[i]]
-		var resultPhotoTags []models.ShortTags
+		var resultPhotoTags []dto.ShortTags
 
 		for _, tag := range photoTags.GetTags() {
-			resultPhotoTags = append(resultPhotoTags, models.ShortTags{
+			resultPhotoTags = append(resultPhotoTags, dto.ShortTags{
 				ID:        tag.GetId(),
 				Name:      tag.GetName(),
 				Slug:      tag.GetSlug(),
@@ -325,7 +324,7 @@ func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem, 
 			log.Printf("Error parsing date: %v", err)
 		}
 		canLike := utils.CanLike(photos[i].GetLikes(), authUserLogin, photos[i].GetAuthor())
-		resultPhotos = append(resultPhotos, models.Photos{
+		resultPhotos = append(resultPhotos, dto.Photos{
 			ID:            photos[i].GetId(),
 			Author:        usersMap[photos[i].GetAuthor()],
 			CollectionID:  photos[i].GetCollectionId(),
@@ -343,8 +342,8 @@ func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem, 
 	return resultPhotos
 }
 
-func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem, authUserLogin string) *models.Photos {
-	var resultPhoto *models.Photos
+func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem, authUserLogin string) *dto.Photos {
+	var resultPhoto *dto.Photos
 	var userLogins []string
 	var collectionIds []string
 	var photoIds []string
@@ -367,10 +366,10 @@ func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem, auth
 		return nil
 	}
 	photoTags := tags.GetTags()[photoIds[0]]
-	var resultPhotoTags []models.ShortTags
+	var resultPhotoTags []dto.ShortTags
 
 	for _, tag := range photoTags.GetTags() {
-		resultPhotoTags = append(resultPhotoTags, models.ShortTags{
+		resultPhotoTags = append(resultPhotoTags, dto.ShortTags{
 			ID:        tag.GetId(),
 			Name:      tag.GetName(),
 			Slug:      tag.GetSlug(),
@@ -383,7 +382,7 @@ func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem, auth
 	if err != nil {
 		log.Printf("Error parsing date: %v", err)
 	}
-	resultPhoto = &models.Photos{
+	resultPhoto = &dto.Photos{
 		ID:            photo.GetId(),
 		Author:        usersMap[photo.GetAuthor()],
 		CollectionID:  photo.GetCollectionId(),

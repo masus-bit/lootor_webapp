@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mitchellh/mapstructure"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
-	"lootor/internal/pkg/dto"
 	"lootor/internal/pkg/utils"
 	"reflect"
 	"slices"
@@ -34,7 +34,7 @@ func NewWLService(
 	}
 }
 
-func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin string) (*models.WishListSingleDataResponse, error) {
+func (s *WLService) AddItem(requestDto *dto.WishListCreateRequest, userLogin string) (*dto.WishListSingleDataResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(userLogin)
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
@@ -106,13 +106,13 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 		utils.EventActionCreate,
 		utils.EventTargetWL,
 		name,
-		&models.EventsParams{TargetWLID: wlItem.ID})
+		&dto.EventsParams{TargetWLID: wlItem.ID})
 
 	if err != nil {
 		return nil, err
 	}
 
-	var resultItem models.WishListItemResponse
+	var resultItem dto.WishListItemResponse
 	err = mapstructure.Decode(wlItem, &resultItem)
 	if err != nil {
 		return nil, err
@@ -121,10 +121,10 @@ func (s *WLService) AddItem(requestDto *models.WishListCreateRequest, userLogin 
 		resultItem.CollectionItem.Collection = wlItem.CollectionItem.Collections[0].ID
 	}
 
-	return &models.WishListSingleDataResponse{Data: resultItem}, nil
+	return &dto.WishListSingleDataResponse{Data: resultItem}, nil
 }
 
-func (s *WLService) GetAllUserItems(userLogin string) (*models.WishListDataResponse, error) {
+func (s *WLService) GetAllUserItems(userLogin string) (*dto.WishListDataResponse, error) {
 	allWLItems, total, err := s.wlRepo.GetAllByUserLogin(userLogin)
 	if err != nil {
 		return nil, err
@@ -135,10 +135,10 @@ func (s *WLService) GetAllUserItems(userLogin string) (*models.WishListDataRespo
 		return nil, err
 	}
 
-	var wlItems = make([]models.WishListItemResponse, 0)
+	var wlItems = make([]dto.WishListItemResponse, 0)
 
 	for _, item := range allWLItems {
-		var resultItem models.WishListItemResponse
+		var resultItem dto.WishListItemResponse
 		err = mapstructure.Decode(item, &resultItem)
 		if err != nil {
 			return nil, err
@@ -146,14 +146,14 @@ func (s *WLService) GetAllUserItems(userLogin string) (*models.WishListDataRespo
 		wlItems = append(wlItems, resultItem)
 	}
 
-	return &models.WishListDataResponse{
+	return &dto.WishListDataResponse{
 		Data:        wlItems,
 		Total:       total,
 		ProfileName: user.ProfileName,
 	}, nil
 }
 
-func (s *WLService) UpdatePriority(id string, dto models.WishListItemUpdatePriority, authUser string) (*models.WishListDataResponse, error) {
+func (s *WLService) UpdatePriority(id string, req dto.WishListItemUpdatePriority, authUser string) (*dto.WishListDataResponse, error) {
 	allUsersItems, _, err := s.wlRepo.GetAllByUserLogin(authUser)
 	if err != nil {
 		return nil, err
@@ -180,7 +180,7 @@ func (s *WLService) UpdatePriority(id string, dto models.WishListItemUpdatePrior
 	}
 
 	oldPriority := targetItem.Priority
-	newPriority := dto.Priority
+	newPriority := req.Priority
 
 	if oldPriority == newPriority {
 		return s.GetAllUserItems(authUser)
@@ -228,7 +228,7 @@ func (s *WLService) DeleteItem(id string) (*dto.CommonResponse, error) {
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *WLService) Update(id string, req models.WishListUpdateRequest, login string) (*models.WishListSingleDataResponse, error) {
+func (s *WLService) Update(id string, req dto.WishListUpdateRequest, login string) (*dto.WishListSingleDataResponse, error) {
 	if login == "" {
 		return nil, errors.New("not authorized")
 	}
@@ -289,11 +289,11 @@ func (s *WLService) Update(id string, req models.WishListUpdateRequest, login st
 		return nil, err
 	}
 
-	var resultItem models.WishListItemResponse
+	var resultItem dto.WishListItemResponse
 	err = mapstructure.Decode(updated, &resultItem)
 	if err != nil {
 		return nil, err
 	}
 
-	return &models.WishListSingleDataResponse{Data: resultItem}, nil
+	return &dto.WishListSingleDataResponse{Data: resultItem}, nil
 }
