@@ -25,11 +25,11 @@ func NewGRPCTagsClient(addr string) (*GRPCTagsClient, error) {
 	}, nil
 }
 
-func (c *GRPCTagsClient) CreateTag(ctx context.Context, dto *dto.TagCreateRequest) (*microservices.TagsCreateResponse, error) {
+func (c *GRPCTagsClient) CreateTag(ctx context.Context, req *dto.TagCreateRequest) (*microservices.TagsCreateResponse, error) {
 
 	resp, err := c.client.CreateTags(ctx, &microservices.CreateTagsRequest{
-		Names:  dto.Names,
-		Author: dto.Author,
+		Names:  req.Names,
+		Author: req.Author,
 	})
 	if err != nil {
 		return nil, err
@@ -37,10 +37,10 @@ func (c *GRPCTagsClient) CreateTag(ctx context.Context, dto *dto.TagCreateReques
 	return resp, nil
 }
 
-func (c *GRPCTagsClient) SearchTags(ctx context.Context, dto *dto.TagsSearchRequest) (*microservices.TagsDataResponse, error) {
+func (c *GRPCTagsClient) SearchTags(ctx context.Context, req *dto.TagsSearchRequest) (*microservices.TagsDataResponse, error) {
 
 	resp, err := c.client.SearchTags(ctx, &microservices.TagsSearchRequest{
-		Name: dto.Name,
+		Name: req.Name,
 	})
 	if err != nil {
 		return nil, err
@@ -48,56 +48,56 @@ func (c *GRPCTagsClient) SearchTags(ctx context.Context, dto *dto.TagsSearchRequ
 	return resp, nil
 }
 
-func (c *GRPCTagsClient) MergeTags(ctx context.Context, dto *microservices.MergeTagsRequest) (*microservices.TagsSuccessResponse, error) {
-	resp, err := c.client.MergeTags(ctx, dto)
+func (c *GRPCTagsClient) MergeTags(ctx context.Context, req *microservices.MergeTagsRequest) (*microservices.TagsSuccessResponse, error) {
+	resp, err := c.client.MergeTags(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *GRPCTagsClient) MergeSeries(ctx context.Context, dto *microservices.MergeTagsRequest) (*microservices.TagsSuccessResponse, error) {
-	resp, err := c.client.MergeSeries(ctx, dto)
+func (c *GRPCTagsClient) MergeSeries(ctx context.Context, req *microservices.MergeTagsRequest) (*microservices.TagsSuccessResponse, error) {
+	resp, err := c.client.MergeSeries(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *GRPCTagsClient) FindAllEntitiesByTag(ctx context.Context, dto *microservices.GetEntitiesByTagRequest) (*microservices.TagDataResponse, error) {
-	resp, err := c.client.FindAllEntitiesByTag(ctx, dto)
+func (c *GRPCTagsClient) FindAllEntitiesByTag(ctx context.Context, req *microservices.GetEntitiesByTagRequest) (*microservices.TagDataResponse, error) {
+	resp, err := c.client.FindAllEntitiesByTag(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *GRPCTagsClient) AddTagToEntity(ctx context.Context, dto *microservices.AddTagsToEntityRequest) (*microservices.TagsSuccessResponse, error) {
-	resp, err := c.client.AddTagToEntity(ctx, dto)
+func (c *GRPCTagsClient) AddTagToEntity(ctx context.Context, req *microservices.AddTagsToEntityRequest) (*microservices.TagsSuccessResponse, error) {
+	resp, err := c.client.AddTagToEntity(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *GRPCTagsClient) RemoveTagsFromEntity(ctx context.Context, dto *microservices.RemoveTagsRequest) (*microservices.TagsSuccessResponse, error) {
-	resp, err := c.client.RemoveTagsFromEntity(ctx, dto)
+func (c *GRPCTagsClient) RemoveTagsFromEntity(ctx context.Context, req *microservices.RemoveTagsRequest) (*microservices.TagsSuccessResponse, error) {
+	resp, err := c.client.RemoveTagsFromEntity(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *GRPCTagsClient) UpdateTag(ctx context.Context, dto *microservices.UpdateTagRequest) (*microservices.TagItem, error) {
-	resp, err := c.client.UpdateTag(ctx, dto)
+func (c *GRPCTagsClient) UpdateTag(ctx context.Context, req *microservices.UpdateTagRequest) (*microservices.TagItem, error) {
+	resp, err := c.client.UpdateTag(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *GRPCTagsClient) GetAllTags(ctx context.Context, dto *microservices.GetAllTagsRequest) (*microservices.TagsDataResponse, error) {
-	resp, err := c.client.GetAllTags(ctx, dto)
+func (c *GRPCTagsClient) GetAllTags(ctx context.Context, req *microservices.GetAllTagsRequest) (*microservices.TagsDataResponse, error) {
+	resp, err := c.client.GetAllTags(ctx, req)
 	if err != nil {
 		return nil, err
 	}

@@ -245,11 +245,16 @@ func (s *TagsService) RemoveTagsFromEntity(req *dto.RemoveTagsRequest, authUser,
 }
 
 func (s *TagsService) UpdateTag(req *dto.TagUpdateRequest) (*dto.TagDataResponse, error) {
+	addFields, err := utils.GormJSONToProtoStruct(req.AdditionalFields)
+	if err != nil {
+		return nil, err
+	}
 	tag, err := s.tagsClient.UpdateTag(context.Background(), &microservices.UpdateTagRequest{
-		Id:          req.ID,
-		Name:        req.Name,
-		Slug:        req.Slug,
-		Description: req.Description,
+		Id:               req.ID,
+		Name:             req.Name,
+		Slug:             req.Slug,
+		Description:      req.Description,
+		AdditionalFields: addFields,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при обновлении тега: %v", err)
@@ -582,7 +587,6 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 			SeriesID:             tag.SeriesId,
 			SeriesEntries:        seriesEntries,
 			Series:               seriesTag,
-			Images:               tag.Images,
 			AdditionalFields:     addFields,
 		}
 	}

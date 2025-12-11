@@ -256,7 +256,6 @@ message TagItem {
   repeated TagItem series_entries = 14;
   TagItem series = 15;
   google.protobuf.Struct additional_fields = 16;
-  repeated string images = 17;
 }
 
 message GetShortsResponse {
@@ -291,4 +290,5 @@ message UpdateTagRequest {
   string name = 2;
   string slug = 3;
   string description = 4;
+  google.protobuf.Struct additional_fields = 5;
 }

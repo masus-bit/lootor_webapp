@@ -94,7 +94,6 @@ type TagCreateRequest struct {
 	Author           string         `json:"author"`
 	EntityID         string         `json:"entityId"`
 	EntityType       string         `json:"entityType"`
-	Images           []string       `json:"images"`
 	AdditionalFields datatypes.JSON `json:"additionalFields"`
 }
 
@@ -121,10 +120,11 @@ type RemoveTagsRequest struct {
 }
 
 type TagUpdateRequest struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Slug        string `json:"slug"`
-	Description string `json:"description"`
+	ID               string         `json:"id"`
+	Name             string         `json:"name"`
+	Slug             string         `json:"slug"`
+	Description      string         `json:"description"`
+	AdditionalFields datatypes.JSON `json:"additionalFields"`
 }
 
 type TagIDsResponse struct {
