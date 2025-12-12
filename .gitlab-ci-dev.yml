@@ -43,12 +43,20 @@ sast_gosec:
 
     # Проверка, что Issues = 0
     - |
-      if echo "$OUTPUT" | grep -E "Issues[[:space:]]*:[[:space:]]*0" > /dev/null; then
-        echo "✅ GOSEC CHECK PASSED"
+      if echo "$OUTPUT" | grep "Issues : 0" > /dev/null; then
+        echo "✅ GOSEC CHECK PASSED (method 1)"
+        exit 0
+      elif echo "$OUTPUT" | grep -E "Issues:[[:space:]]*0" > /dev/null; then
+        echo "✅ GOSEC CHECK PASSED (method 2)" 
+        exit 0
+      elif echo "$OUTPUT" | tail -10 | grep "Issues : 0" > /dev/null; then
+        echo "✅ GOSEC CHECK PASSED (method 3)"
         exit 0
       else
         echo "❌ GOSEC CHECK FAILED"
-        exit $EXIT_CODE
+        echo "Debug: Looking for 'Issues: 0' pattern..."
+        echo "$OUTPUT" | grep -i "issues" || echo "No 'issues' found in output"
+        exit 1
       fi
   allow_failure: true
 
@@ -90,7 +98,7 @@ deploy:
       
       docker pull registry.gitlab.com/auc2/backend_services/lootor_webapp:latest
       
-      docker service update --force --image registry.gitlab.com/auc2/backend_services/lootor_webapp:latest lootor_backend      
+      docker stack deploy --with-registry-auth -c ~/../lootor/docker-compose.swarm.yml lootor  
       
       echo "Waiting for services to start..."
       sleep 10
