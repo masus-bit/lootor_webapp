@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/labstack/echo/v4"
 	"lootor/internal/pkg/elasticsearch"
@@ -19,9 +20,10 @@ func NewSearchController(es *elasticsearch.ElasticService) *SearchController {
 // @Summary Поиск по коллекциям, ентити, КИ, тегам, юзерам
 // @Tags search
 // @Accept  json
-// @Produce  json
+// @Produce  json./
 // @Param search query string true "поисковая строка"
 // @Param limit query string true "количество результатов"
+// @Param type query string true "type"
 // @Success 201 {object} elasticsearch.SearchResult
 // @Router /public/search [get]
 func (c *SearchController) Search(ctx echo.Context) error {
@@ -33,9 +35,20 @@ func (c *SearchController) Search(ctx echo.Context) error {
 	if limit == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "limit query is обязателей"})
 	}
+	searchType := ctx.QueryParam("type")
 
 	indices := []string{"users", "tags", "collection_items", "collections"}
-	result, err := c.es.SearchInIndices(ctx.Request().Context(), indices, query, limit)
+
+	var finalIndices []string
+
+	if searchType != "" {
+		index := slices.Index(indices, searchType)
+		finalIndices = append(finalIndices, indices[index])
+	} else {
+		finalIndices = indices
+	}
+
+	result, err := c.es.SearchInIndices(ctx.Request().Context(), finalIndices, query, limit)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
