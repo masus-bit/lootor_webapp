@@ -255,6 +255,7 @@ func (s *TagsService) UpdateTag(req *dto.TagUpdateRequest) (*dto.TagDataResponse
 		Slug:             req.Slug,
 		Description:      req.Description,
 		AdditionalFields: addFields,
+		OnModeration:     req.OnModeration,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при обновлении тега: %v", err)
@@ -498,6 +499,55 @@ func (s *TagsService) DeleteTags(req *dto.DeleteTags) (*dto.CommonResponse, erro
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
+func (s *TagsService) PublicUpdate(req *dto.PublicUpdateTag) (*dto.TagDataResponse, error) {
+	addFields, err := utils.GormJSONToProtoStruct(req.AdditionalFields)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := s.tagsClient.PublicUpdateTag(context.Background(), &microservices.PublicUpdateTagRequest{
+		Id:               req.ID,
+		AdditionalFields: addFields,
+	})
+	if err != nil {
+		return nil, err
+	}
+	tagResult := s.convertProtoToModel(resp.GetTag(), "", false, "", nil)
+
+	return &dto.TagDataResponse{Data: *tagResult}, nil
+}
+
+func (s *TagsService) MoveTagLinks(req *dto.MoveTagLinks) (*dto.CommonResponse, error) {
+	_, err := s.tagsClient.MoveTagLinks(context.Background(), &microservices.MoveTagLinksRequest{
+		TargetId: req.TargetID,
+		SourceId: req.SourceID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
+}
+
+func (s *TagsService) GetOnModerationTags(req *dto.OnModerationTagsRequest) (*dto.TagsDataResponse, error) {
+	intLimit, _ := strconv.Atoi(req.Limit)
+	intOffset, _ := strconv.Atoi(req.Offset)
+	resp, err := s.tagsClient.GetOnModerationTags(context.Background(), &microservices.OnModerationTagsRequest{
+		Limit:  int64(intLimit),
+		Offset: int64(intOffset),
+	})
+	if err != nil {
+		return nil, err
+	}
+	var result []dto.Tags
+
+	for _, tag := range resp.GetTags() {
+		normalizedTag := s.convertProtoToModel(tag, "", false, "", nil)
+		result = append(result, *normalizedTag)
+	}
+	return &dto.TagsDataResponse{Data: result, Total: resp.GetTotal()}, nil
+
+}
+
 func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLogin string, isPremium bool, filter string, tagsMap map[string]*microservices.GetShortsResponse) *dto.Tags {
 	var primaryTag *dto.Tags
 	var seriesTag *dto.ShortTags
@@ -505,10 +555,21 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 	var seriesEntries []dto.Tags
 	var entities dto.Entities
 	var collectionItemProps *dto.CollectionItemsProps
+	var canSubscribe bool
+	canSubscribe = false
+
 	collectionItemProps = nil
 	author := &models.Users{}
 	if tag != nil {
 		author, _ = s.userRepo.GetUserByLogin(tag.GetAuthor())
+		user, _ := s.userRepo.GetUserByLogin(userAuthLogin)
+		subsTags := user.TagsSubscriptions
+		if slices.Contains(subsTags, tag.Id) {
+			canSubscribe = false
+		} else {
+			canSubscribe = true
+		}
+
 		if tag.GetPrimaryId() != "" {
 			primaryTag = s.convertProtoToModel(tag.Primary, userAuthLogin, isPremium, filter, tagsMap)
 		} else {
@@ -588,6 +649,11 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 			SeriesEntries:        seriesEntries,
 			Series:               seriesTag,
 			AdditionalFields:     addFields,
+			TotalCollections:     tag.TotalCollections,
+			TotalPosts:           tag.TotalPosts,
+			TotalCollectionItems: tag.TotalCollectionItems,
+			TotalPhotos:          tag.TotalPhotos,
+			CanSubscribe:         canSubscribe,
 		}
 	}
 	return &dto.Tags{}

@@ -431,3 +431,77 @@ func (c *TagsController) Subscribe(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
+
+// MoveTagLinks
+// @Summary переместить связи тега
+// @Tags tags
+// @Accept  json
+// @Produce  json
+// @Param mergeRequest body dto.MoveTagLinks true "необходимые поля"
+// @Success 201 {object} dto.CommonResponse
+// @Router /secured/tags/adm/move [post]
+func (c *TagsController) MoveTagLinks(ctx echo.Context) error {
+	var request dto.MoveTagLinks
+	userRole, ok := ctx.Get("role").(string)
+	if !ok {
+		userRole = ""
+	}
+
+	if userRole != "admin" {
+		return ctx.JSON(http.StatusForbidden, map[string]string{
+			"error": "Forbidden",
+		})
+	}
+	response, err := c.tagsService.MoveTagLinks(&request)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
+// PublicUpdate
+// @Summary Обновить доп поля
+// @Tags tags
+// @Accept  json
+// @Produce  json
+// @Param mergeRequest body dto.PublicUpdateTag true "необходимые поля"
+// @Success 201 {object} dto.TagDataResponse
+// @Router /secured/tags/update [put]
+func (c *TagsController) PublicUpdate(ctx echo.Context) error {
+	var request dto.PublicUpdateTag
+
+	response, err := c.tagsService.PublicUpdate(&request)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}
+
+// GetOnModerateTags
+// @Summary получить теги на модерации
+// @Tags tags
+// @Accept  json
+// @Produce  json
+// @Param limit query string true "limit"
+// @Param offset query string true "offset"
+// @Success 201 {object} dto.TagsDataResponse
+// @Router /secured/tags/adm/moderate [get]
+func (c *TagsController) GetOnModerateTags(ctx echo.Context) error {
+	limit := ctx.QueryParam("limit")
+	offset := ctx.QueryParam("offset")
+
+	response, err := c.tagsService.GetOnModerationTags(&dto.OnModerationTagsRequest{
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, response)
+}

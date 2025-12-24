@@ -21,8 +21,8 @@ func NewPhotosController(photosService services.PhotosService) *PhotosController
 // @Tags photos
 // @Accept  json
 // @Produce  json
-// @Param addRequest body models.PhotoCreate true "необходимые поля"
-// @Success 201 {object} models.PhotosDataResponse
+// @Param addRequest body dto.PhotoCreate true "необходимые поля"
+// @Success 201 {object} dto.PhotosDataResponse
 // @Router /secured/photos [post]
 func (c *PhotosController) CreatePhotos(ctx echo.Context) error {
 	var request dto.PhotoCreate
@@ -59,7 +59,7 @@ func (c *PhotosController) CreatePhotos(ctx echo.Context) error {
 // @Param userLogin query string true "user login"
 // @Param limit query string true "limit"
 // @Param offset query string true "offset"
-// @Success 201 {object} models.PhotosDataResponse
+// @Success 201 {object} dto.PhotosDataResponse
 // @Router /public/photos/by_user [get]
 func (c *PhotosController) GetByUserLogin(ctx echo.Context) error {
 	userLogin := ctx.QueryParam("userLogin")
@@ -106,7 +106,7 @@ func (c *PhotosController) Delete(ctx echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param id path string true "id"
-// @Success 201 {object} models.PhotoDataResponse
+// @Success 201 {object} dto.PhotoDataResponse
 // @Router /public/photos/{id} [get]
 func (c *PhotosController) GetByID(ctx echo.Context) error {
 	id := ctx.Param("id")
@@ -133,7 +133,7 @@ func (c *PhotosController) GetByID(ctx echo.Context) error {
 // @Param collectionId query string true "collectionId"
 // @Param limit query string true "limit"
 // @Param offset query string true "offset"
-// @Success 201 {object} models.PhotosDataResponse
+// @Success 201 {object} dto.PhotosDataResponse
 // @Router /public/photos/by_collection [get]
 func (c *PhotosController) FindAllByCollectionID(ctx echo.Context) error {
 	collectionId := ctx.QueryParam("collectionId")
@@ -184,8 +184,8 @@ func (c *PhotosController) Like(ctx echo.Context) error {
 // @Tags photos
 // @Accept  json
 // @Produce  json
-// @Param addRequest body models.PhotoUpdateRequest true "необходимые поля"
-// @Success 201 {object} models.PhotoDataResponse
+// @Param addRequest body dto.PhotoUpdateRequest true "необходимые поля"
+// @Success 201 {object} dto.PhotoDataResponse
 // @Router /secured/photos [patch]
 func (c *PhotosController) Update(ctx echo.Context) error {
 	var request dto.PhotoUpdateRequest

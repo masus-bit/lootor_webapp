@@ -230,6 +230,18 @@ func (c *GRPCTagsClient) GetTagsTotalByUserLogin(ctx context.Context, userLogin 
 	return c.client.GetTagsTotalByUser(ctx, &microservices.GetTagsTotalByUserRequest{UserLogin: userLogin})
 }
 
+func (c *GRPCTagsClient) PublicUpdateTag(ctx context.Context, dto *microservices.PublicUpdateTagRequest) (*microservices.PublicUpdateTagResponse, error) {
+	return c.client.PublicUpdateTag(ctx, dto)
+}
+
+func (c *GRPCTagsClient) MoveTagLinks(ctx context.Context, dto *microservices.MoveTagLinksRequest) (*microservices.MoveTagLinksResponse, error) {
+	return c.client.MoveTagLinks(ctx, dto)
+}
+
+func (c *GRPCTagsClient) GetOnModerationTags(ctx context.Context, dto *microservices.OnModerationTagsRequest) (*microservices.OnModerationTagsResponse, error) {
+	return c.client.GetOnModerationTags(ctx, dto)
+}
+
 func (c *GRPCTagsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

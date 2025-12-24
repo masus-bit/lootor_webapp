@@ -32,6 +32,9 @@ func TagsRouter(e *echo.Echo, jwtService *auth.JWTService, tagsService services.
 		securedGroup.POST("/tags/adm/delete", controller.DeleteTags)
 		securedGroup.POST("/tags/adm/update/:id", controller.UpdateTag)
 		securedGroup.GET("/tags/subscribe/:id", controller.Subscribe)
+		securedGroup.POST("/tags/adm/move", controller.MoveTagLinks)
+		securedGroup.GET("/tags/adm/moderate", controller.GetOnModerateTags)
+		securedGroup.PUT("/tags/update", controller.PublicUpdate)
 
 	}
 }

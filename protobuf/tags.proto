@@ -33,6 +33,37 @@ service TagsService {
   rpc RemoveEntityTags(RemoveEntityTagsRequest) returns (TagsSuccessResponse);
   rpc DeleteTags(GetTagsByIDsRequest) returns (TagsSuccessResponse);
   rpc GetTagsTotalByUser(GetTagsTotalByUserRequest) returns (TagsTotalByUserResponse);
+  rpc PublicUpdateTag(PublicUpdateTagRequest) returns (PublicUpdateTagResponse);
+  rpc MoveTagLinks(MoveTagLinksRequest) returns (MoveTagLinksResponse);
+  rpc GetOnModerationTags(OnModerationTagsRequest) returns (OnModerationTagsResponse);
+}
+
+message OnModerationTagsRequest {
+  int64 limit = 1;
+  int64 offset = 2;
+}
+
+message OnModerationTagsResponse {
+  repeated TagItem tags = 1;
+  int64 total = 2;
+}
+
+message MoveTagLinksRequest {
+  string source_id = 1;
+  string target_id = 2;
+}
+
+message MoveTagLinksResponse {
+  bool success = 1;
+}
+
+message PublicUpdateTagRequest {
+  string id = 1;
+  google.protobuf.Struct additional_fields = 2;
+}
+
+message PublicUpdateTagResponse {
+  TagItem tag = 1;
 }
 
 message GetTagsTotalByUserRequest {
@@ -256,6 +287,10 @@ message TagItem {
   repeated TagItem series_entries = 14;
   TagItem series = 15;
   google.protobuf.Struct additional_fields = 16;
+  int64 total_posts = 17;
+  int64 total_collections = 18;
+  int64 total_collection_items = 19;
+  int64 total_photos = 20;
 }
 
 message GetShortsResponse {
@@ -291,4 +326,5 @@ message UpdateTagRequest {
   string slug = 3;
   string description = 4;
   google.protobuf.Struct additional_fields = 5;
+  bool on_moderation = 6;
 }

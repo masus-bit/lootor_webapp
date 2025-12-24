@@ -40,6 +40,7 @@ type Tags struct {
 
 	Images           []string       `gorm:"type:text[]" json:"images"`
 	AdditionalFields datatypes.JSON `gorm:"type:jsonb" json:"additionalFields"`
+	CanSubscribe     bool           `json:"canSubscribe"`
 }
 
 type CollectionItemsProps struct {
@@ -125,6 +126,7 @@ type TagUpdateRequest struct {
 	Slug             string         `json:"slug"`
 	Description      string         `json:"description"`
 	AdditionalFields datatypes.JSON `json:"additionalFields"`
+	OnModeration     bool           `json:"onModeration"`
 }
 
 type TagIDsResponse struct {
@@ -181,6 +183,20 @@ type UserChoiceRequest struct {
 	FeedbackScore int32  `json:"feedbackScore"`
 }
 
+type PublicUpdateTag struct {
+	ID               string         `json:"id"`
+	AdditionalFields datatypes.JSON `json:"additionalFields"`
+}
+
+type MoveTagLinks struct {
+	SourceID string `json:"sourceId"`
+	TargetID string `json:"targetId"`
+}
+
+type OnModerationTagsRequest struct {
+	Limit  string `json:"limit"`
+	Offset string `json:"offset"`
+}
 type SearchSuggestions struct {
 	Title      string  `json:"title"`
 	Type       string  `json:"type"`
