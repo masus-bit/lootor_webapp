@@ -562,8 +562,13 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 	author := &models.Users{}
 	if tag != nil {
 		author, _ = s.userRepo.GetUserByLogin(tag.GetAuthor())
-		user, _ := s.userRepo.GetUserByLogin(userAuthLogin)
-		subsTags := user.TagsSubscriptions
+		var user *models.Users
+		var subsTags []string
+		if userAuthLogin != "" {
+			user, _ = s.userRepo.GetUserByLogin(userAuthLogin)
+			subsTags = user.TagsSubscriptions
+		}
+
 		if slices.Contains(subsTags, tag.Id) {
 			canSubscribe = false
 		} else {
