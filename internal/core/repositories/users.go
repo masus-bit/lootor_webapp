@@ -243,7 +243,6 @@ func (r *UsersRepository) UpdateUser(existsUser *models.Users, updated models.Us
 
 	var updatedUser models.Users
 	err := r.db.Where("login = ?", existsUser.Login).Preload("WishListItems").First(&updatedUser).Error
-
 	doc := map[string]interface{}{
 		"id":          updatedUser.Login,
 		"login":       updatedUser.Login,

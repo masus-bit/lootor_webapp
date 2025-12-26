@@ -281,7 +281,7 @@ func (s *TagsService) GetAllTagsForElastic() ([]dto.ShortTags, error) {
 	return result, nil
 }
 
-func (s *TagsService) GetAllTags(limit, offset string) (*dto.TagsDataResponse, error) {
+func (s *TagsService) GetAllTags(limit, offset, authUserLogin string) (*dto.TagsDataResponse, error) {
 	intLimit, _ := strconv.Atoi(limit)
 	intOffset, _ := strconv.Atoi(offset)
 	tags, err := s.tagsClient.GetAllTags(context.Background(), &microservices.GetAllTagsRequest{Limit: int64(intLimit), Offset: int64(intOffset)})
@@ -290,7 +290,7 @@ func (s *TagsService) GetAllTags(limit, offset string) (*dto.TagsDataResponse, e
 	}
 	var result []dto.Tags
 	for _, tag := range tags.GetTags() {
-		normalizedTag := s.convertProtoToModel(tag, "", false, "", nil)
+		normalizedTag := s.convertProtoToModel(tag, authUserLogin, false, "", nil)
 		result = append(result, *normalizedTag)
 	}
 	return &dto.TagsDataResponse{Data: result, Total: tags.GetTotal()}, nil
@@ -333,7 +333,7 @@ func (s *TagsService) Subscribe(id, userLogin string) (*dto.CommonResponse, erro
 	}
 	subsTags := user.TagsSubscriptions
 	if slices.Contains(subsTags, id) {
-		utils.RemoveByValue(subsTags, id)
+		subsTags = utils.RemoveByValue(subsTags, id)
 		go func() {
 			tagUUID, _ := uuid.Parse(tag.GetId())
 			err = s.eventsService.AddEvent(userLogin, utils.EventActionUnsubscribe, utils.EventTargetTag, tag.GetName(), &dto.EventsParams{TargetTagID: tagUUID})
@@ -351,9 +351,9 @@ func (s *TagsService) Subscribe(id, userLogin string) (*dto.CommonResponse, erro
 			}
 		}()
 	}
-
-	user.TagsSubscriptions = subsTags
-	_, err = s.userRepo.UpdateUser(user, *user)
+	updUser := user
+	updUser.TagsSubscriptions = subsTags
+	_, err = s.userRepo.UpdateUser(user, *updUser)
 	if err != nil {
 		return nil, err
 	}
@@ -569,11 +569,7 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 			subsTags = user.TagsSubscriptions
 		}
 
-		if slices.Contains(subsTags, tag.Id) {
-			canSubscribe = false
-		} else {
-			canSubscribe = true
-		}
+		canSubscribe = !slices.Contains(subsTags, tag.Id)
 
 		if tag.GetPrimaryId() != "" {
 			primaryTag = s.convertProtoToModel(tag.Primary, userAuthLogin, isPremium, filter, tagsMap)
