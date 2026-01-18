@@ -456,6 +456,11 @@ func (c *TagsController) MoveTagLinks(ctx echo.Context) error {
 			"error": "Forbidden",
 		})
 	}
+	if err := ctx.Bind(&request); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body",
+		})
+	}
 	response, err := c.tagsService.MoveTagLinks(&request)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
@@ -476,7 +481,13 @@ func (c *TagsController) MoveTagLinks(ctx echo.Context) error {
 func (c *TagsController) PublicUpdate(ctx echo.Context) error {
 	var request dto.PublicUpdateTag
 
+	if err := ctx.Bind(&request); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body",
+		})
+	}
 	response, err := c.tagsService.PublicUpdate(&request)
+
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

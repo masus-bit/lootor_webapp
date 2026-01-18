@@ -61,4 +61,7 @@ func (u *Users) GetSubscribersLogins() []string { return u.SubscribersLogins }
 func (u *Users) GetSubscriptions() []string {
 	return u.Subscriptions
 }
+func (u *Users) GetTagsSubscriptions() []string {
+	return u.TagsSubscriptions
+}
 func (u *Users) GetRole() string { return u.Role }

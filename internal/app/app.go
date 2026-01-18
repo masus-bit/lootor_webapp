@@ -193,6 +193,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		time.Duration(jwtTtl)*time.Minute,
 		time.Duration(refreshTtl)*time.Minute,
 		*userRepo,
+		*tagsClient,
 	)
 	notificationsService := services.NewNotificationsService(notificationsClient, userRepo, colRepo, ciRepo, postsClient, photosClient)
 	eventsService := services.NewEventsService(userRepo, eventsClient, colRepo, ciRepo, postsClient, wlRepo, tagsClient, photosClient)

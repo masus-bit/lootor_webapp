@@ -1,12 +1,15 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"lootor/gen/go/microservices"
 	"lootor/internal/core/dto"
 	"lootor/internal/core/repositories"
+	"lootor/internal/infrastructure/tagsclient"
 	"time"
 )
 
@@ -15,6 +18,7 @@ type JWTService struct {
 	accessTokenExp  time.Duration
 	refreshTokenExp time.Duration
 	userRepo        repositories.UsersRepository
+	tagsClient      tagsclient.GRPCTagsClient
 }
 
 type TokenPair struct {
@@ -39,16 +43,18 @@ type Claims struct {
 	ProfileName       string         `json:"profileName"`
 	SubscribersLogins []dto.SubUsers `json:"subscribersLogins" mapstructure:"-"`
 	Subscriptions     []dto.SubUsers `json:"subscriptions" mapstructure:"-"`
+	TagsSubscriptions []dto.SubTags  `json:"tagsSubscriptions" mapstructure:"-"`
 	Role              string         `json:"role"`
 	jwt.RegisteredClaims
 }
 
-func NewJWTService(secret string, accessExp time.Duration, refreshExp time.Duration, userRepo repositories.UsersRepository) *JWTService {
+func NewJWTService(secret string, accessExp time.Duration, refreshExp time.Duration, userRepo repositories.UsersRepository, tagsClient tagsclient.GRPCTagsClient) *JWTService {
 	return &JWTService{
 		secretKey:       []byte(secret),
 		accessTokenExp:  accessExp,
 		refreshTokenExp: refreshExp,
 		userRepo:        userRepo,
+		tagsClient:      tagsClient,
 	}
 }
 
@@ -63,14 +69,27 @@ func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	subTags, _ := s.tagsClient.GetTagsByIDs(context.Background(), &microservices.GetTagsByIDsRequest{Ids: userData.TagsSubscriptions})
+	var resultTags []dto.SubTags
+	resultTags = make([]dto.SubTags, 0)
+	if len(subTags.GetTags()) > 0 || subTags != nil {
+		for _, tag := range subTags.GetTags() {
+			resultTags = append(resultTags, dto.SubTags{
+				ID:   tag.Id,
+				Name: tag.Name,
+				Slug: tag.Slug,
+			})
+		}
+	}
 	// Access token
-	accessToken, err := s.generateToken(user, s.accessTokenExp, subscribersLogins, subscriptions)
+	accessToken, err := s.generateToken(user, s.accessTokenExp, subscribersLogins, subscriptions, resultTags)
 	if err != nil {
 		return nil, err
 	}
 
 	// Refresh token
-	refreshToken, err := s.generateToken(user, s.refreshTokenExp, subscribersLogins, subscriptions)
+	refreshToken, err := s.generateToken(user, s.refreshTokenExp, subscribersLogins, subscriptions, resultTags)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +100,7 @@ func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
 	}, nil
 }
 
-func (s *JWTService) generateToken(user TokenData, exp time.Duration, subLogins, subs []dto.SubUsers) (string, error) {
+func (s *JWTService) generateToken(user TokenData, exp time.Duration, subLogins, subs []dto.SubUsers, tagsSubs []dto.SubTags) (string, error) {
 	claims := Claims{
 		Login:             user.GetLogin(),
 		UserName:          user.GetUserName(),
@@ -100,6 +119,7 @@ func (s *JWTService) generateToken(user TokenData, exp time.Duration, subLogins,
 		ProfileName:       user.GetProfileName(),
 		SubscribersLogins: subLogins,
 		Subscriptions:     subs,
+		TagsSubscriptions: tagsSubs,
 		Role:              user.GetRole(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(exp)),
@@ -213,5 +233,6 @@ type tokenData struct {
 	profileName       string
 	subscribersLogins []dto.SubUsers
 	subscriptions     []dto.SubUsers
+	tagsSubscriptions []dto.SubTags
 	role              string
 }

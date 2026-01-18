@@ -85,6 +85,20 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 			return nil, err
 		}
 
+		subTags, _ := s.tagsClient.GetTagsByIDs(context.Background(), &microservices.GetTagsByIDsRequest{Ids: dbUser.TagsSubscriptions})
+		var resultTags []dto.SubTags
+		resultTags = make([]dto.SubTags, 0)
+		if len(subTags.GetTags()) > 0 || subTags != nil {
+			for _, tag := range subTags.GetTags() {
+				resultTags = append(resultTags, dto.SubTags{
+					ID:   tag.Id,
+					Name: tag.Name,
+					Slug: tag.Slug,
+				})
+			}
+		}
+		response.TagsSubscriptions = resultTags
+
 		response.Subscriptions = subscriptions
 		if e != nil {
 			return nil, e
