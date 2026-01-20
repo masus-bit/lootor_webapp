@@ -76,11 +76,12 @@ func (s *EventsService) GetEvents(authUserLogin, limit, offset string, eventTarg
 	subscriptions := dbUser.Subscriptions
 	if subscriptions != nil {
 		evs, err := s.eventClient.GetEvents(context.Background(), &dto.GetEventsRequest{
-			Limit:            limit,
-			Offset:           offset,
-			Subscriptions:    subscriptions,
-			Actions:          actions,
-			EventTargetTypes: eventTargetTypes,
+			Limit:             limit,
+			Offset:            offset,
+			Subscriptions:     subscriptions,
+			Actions:           actions,
+			EventTargetTypes:  eventTargetTypes,
+			TagsSubscriptions: dbUser.TagsSubscriptions,
 		})
 		if err != nil {
 			return nil, err

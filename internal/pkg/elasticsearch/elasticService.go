@@ -634,3 +634,137 @@ func (es *ElasticService) indexExists(ctx context.Context, indexName string) (bo
 
 	return res.StatusCode == http.StatusOK, nil
 }
+
+func (es *ElasticService) GetDocument(ctx context.Context, index, id string) (map[string]interface{}, error) {
+	req := esapi.GetRequest{
+		Index:      index,
+		DocumentID: id,
+	}
+
+	res, err := req.Do(ctx, es.client)
+	if err != nil {
+		return nil, fmt.Errorf("get document request error: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == 404 {
+		return nil, fmt.Errorf("document not found: %s", id)
+	} else if res.IsError() {
+		return nil, parseErrorResponse(res)
+	}
+
+	var result struct {
+		Source map[string]interface{} `json:"_source"`
+		Found  bool                   `json:"found"`
+	}
+
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("error parsing get response: %w", err)
+	}
+
+	if !result.Found {
+		return nil, fmt.Errorf("document not found: %s", id)
+	}
+
+	return result.Source, nil
+}
+
+func (es *ElasticService) IncrementField(ctx context.Context, index, id, field string, increment int64) error {
+	updateBody := map[string]interface{}{
+		"script": map[string]interface{}{
+			"source": "ctx._source." + field + " += params.increment",
+			"params": map[string]interface{}{
+				"increment": increment,
+			},
+		},
+	}
+
+	var buf strings.Builder
+	if err := json.NewEncoder(&buf).Encode(updateBody); err != nil {
+		return fmt.Errorf("error encoding increment body: %w", err)
+	}
+
+	req := esapi.UpdateRequest{
+		Index:      index,
+		DocumentID: id,
+		Body:       strings.NewReader(buf.String()),
+		Refresh:    "wait_for",
+	}
+
+	res, err := req.Do(ctx, es.client)
+	if err != nil {
+		return fmt.Errorf("increment request error: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return parseErrorResponse(res)
+	}
+
+	return nil
+}
+
+func (es *ElasticService) DecrementField(ctx context.Context, index, id, field string, decrement int64) error {
+	updateBody := map[string]interface{}{
+		"script": map[string]interface{}{
+			"source": "ctx._source." + field + " -= params.decrement",
+			"params": map[string]interface{}{
+				"decrement": decrement,
+			},
+		},
+	}
+
+	var buf strings.Builder
+	if err := json.NewEncoder(&buf).Encode(updateBody); err != nil {
+		return fmt.Errorf("error encoding decrement body: %w", err)
+	}
+
+	req := esapi.UpdateRequest{
+		Index:      index,
+		DocumentID: id,
+		Body:       strings.NewReader(buf.String()),
+		Refresh:    "wait_for",
+	}
+
+	res, err := req.Do(ctx, es.client)
+	if err != nil {
+		return fmt.Errorf("decrement request error: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return parseErrorResponse(res)
+	}
+
+	return nil
+}
+
+func (es *ElasticService) UpdateDocument(ctx context.Context, index, id string, fields map[string]interface{}) error {
+	updateBody := map[string]interface{}{
+		"doc": fields,
+	}
+
+	var buf strings.Builder
+	if err := json.NewEncoder(&buf).Encode(updateBody); err != nil {
+		return fmt.Errorf("error encoding update body: %w", err)
+	}
+
+	req := esapi.UpdateRequest{
+		Index:      index,
+		DocumentID: id,
+		Body:       strings.NewReader(buf.String()),
+		Refresh:    "wait_for",
+	}
+
+	res, err := req.Do(ctx, es.client)
+	if err != nil {
+		return fmt.Errorf("update request error: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return parseErrorResponse(res)
+	}
+
+	return nil
+}

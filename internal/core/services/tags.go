@@ -271,11 +271,15 @@ func (s *TagsService) GetAllTagsForElastic() ([]dto.ShortTags, error) {
 	var result []dto.ShortTags
 	for _, tag := range tags.GetTags() {
 		result = append(result, dto.ShortTags{
-			ID:        tag.GetId(),
-			Name:      tag.GetName(),
-			Slug:      tag.GetSlug(),
-			PrimaryID: tag.GetPrimaryId(),
-			SeriesID:  tag.GetSeriesId(),
+			ID:                   tag.GetId(),
+			Name:                 tag.GetName(),
+			Slug:                 tag.GetSlug(),
+			PrimaryID:            tag.GetPrimaryId(),
+			SeriesID:             tag.GetSeriesId(),
+			TotalPosts:           tag.GetTotalPosts(),
+			TotalCollectionItems: tag.GetTotalCollectionItems(),
+			TotalPhotos:          tag.GetTotalPhotos(),
+			TotalCollections:     tag.GetTotalCollections(),
 		})
 	}
 	return result, nil

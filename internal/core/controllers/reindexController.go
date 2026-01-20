@@ -132,11 +132,15 @@ func (c *ReindexController) getTagData() ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, len(tags))
 	for i, tag := range tags {
 		result[i] = map[string]interface{}{
-			"id":        tag.ID,
-			"name":      tag.Name,
-			"slug":      tag.Slug,
-			"primaryId": tag.PrimaryID,
-			"seriesId":  tag.SeriesID,
+			"id":                   tag.ID,
+			"name":                 tag.Name,
+			"slug":                 tag.Slug,
+			"primaryId":            tag.PrimaryID,
+			"seriesId":             tag.SeriesID,
+			"totalPosts":           tag.TotalPosts,
+			"totalCollectionItems": tag.TotalCollectionItems,
+			"totalPhotos":          tag.TotalPhotos,
+			"totalCollections":     tag.TotalCollections,
 		}
 	}
 	return result, nil

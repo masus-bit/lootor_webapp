@@ -39,6 +39,7 @@ message GetEventsRequest {
   string offset = 3;
   repeated string event_target_types = 4;
   repeated string actions = 5;
+  repeated string tags_subscriptions = 6;
 }
 
 message GetFilteredEventsRequest {

@@ -304,7 +304,8 @@ func (s *CiService) Update(id string, req *dto.CollectionItemsRequestUpdate) (*m
 	if err != nil {
 		return nil, err
 	}
-	if len(req.Tags) > 0 {
+	if len(tags.GetTags()) > 0 {
+
 		if !exists.Collections[0].IsPrivate {
 			for _, tag := range tags.GetTags() {
 				tagUUID, _ := uuid.Parse(tag.GetId())
