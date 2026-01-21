@@ -127,7 +127,8 @@ func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.Common
 	}
 	go func() {
 		_, _ = s.tagsClient.RemoveEntityTags(context.Background(), &microservices.RemoveEntityTagsRequest{
-			EntityId: id,
+			EntityId:   id,
+			EntityType: utils.EventTargetPhoto,
 		})
 		eventError := s.eventsService.AddEvent("", utils.EventActionDelete, utils.EventTargetPhoto, "", &dto.EventsParams{TargetPhotoID: id})
 		if eventError != nil {

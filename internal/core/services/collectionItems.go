@@ -211,7 +211,8 @@ func (s *CiService) Delete(id string, ctx context.Context) (*dto.CommonResponse,
 		}
 		go func() {
 			_, _ = s.tagsClient.RemoveEntityTags(context.Background(), &microservices.RemoveEntityTagsRequest{
-				EntityId: id,
+				EntityId:   id,
+				EntityType: utils.EventTargetCollectionItem,
 			})
 		}()
 		err := s.repo.DeleteCI(id)

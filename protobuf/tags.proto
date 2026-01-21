@@ -76,6 +76,7 @@ message TagsTotalByUserResponse {
 
 message RemoveEntityTagsRequest {
   string entity_id = 1;
+  string entity_type = 2;
 }
 
 message UpdateVisibleLinksRequest {

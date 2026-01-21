@@ -98,6 +98,22 @@ func NewElasticService(configPath string) (*ElasticService, error) {
 }
 
 func (es *ElasticService) ReindexAll(ctx context.Context, dataProviders map[string]func() ([]map[string]interface{}, error)) error {
+	for indexName, provider := range dataProviders {
+		data, err := provider()
+		if err != nil {
+			return fmt.Errorf("failed to get data for %s: %w", indexName, err)
+		}
+
+		if len(data) == 0 {
+			es.logger.Printf("Skipping %s: no data", indexName)
+			continue
+		}
+
+		// НЕ УДАЛЯЕМ ИНДЕКС!
+		// if err := es.deleteIndexIfExists(indexName); err != nil {
+		// 	return fmt.Errorf("failed to delete index %s: %w", indexName, err)
+		// }
+	}
 
 	for indexName, provider := range dataProviders {
 		data, err := provider()
@@ -109,38 +125,84 @@ func (es *ElasticService) ReindexAll(ctx context.Context, dataProviders map[stri
 			es.logger.Printf("Skipping %s: no data", indexName)
 			continue
 		}
-		if err := es.deleteIndexIfExists(indexName); err != nil {
-			return fmt.Errorf("failed to delete index %s: %w", indexName, err)
-		}
-	}
 
-	for indexName, provider := range dataProviders {
-		data, err := provider()
+		// Создаем индекс только если он не существует
+		exists, err := es.indexExists(context.Background(), indexName)
 		if err != nil {
-			return fmt.Errorf("failed to get data for %s: %w", indexName, err)
+			return fmt.Errorf("failed to check index existence: %w", err)
 		}
 
-		// Пропускаем индексы без данных
-		if len(data) == 0 {
-			es.logger.Printf("Skipping %s: no data", indexName)
-			continue
+		if !exists {
+			if err := es.createIndex(indexName); err != nil {
+				return fmt.Errorf("failed to create index %s: %w", indexName, err)
+			}
 		}
-		if err := es.createIndex(indexName); err != nil {
-			return fmt.Errorf("failed to create index %s: %w", indexName, err)
+
+		// Используем bulk update вместо bulk create
+		if err := es.bulkUpdateDocuments(ctx, indexName, data); err != nil {
+			return fmt.Errorf("failed to update data for %s: %w", indexName, err)
 		}
 	}
 
-	for indexName, provider := range dataProviders {
-		data, err := provider()
-		if err != nil {
-			return fmt.Errorf("failed to get data for %s: %w", indexName, err)
+	return nil
+}
+
+func (es *ElasticService) bulkUpdateDocuments(ctx context.Context, indexName string, docs []map[string]interface{}) error {
+	var buf strings.Builder
+
+	for _, doc := range docs {
+		id, ok := doc["id"].(string)
+		if !ok {
+			return fmt.Errorf("document missing id field")
 		}
 
-		if err := es.bulkIndexDocuments(ctx, indexName, data); err != nil {
-			return fmt.Errorf("failed to index data for %s: %w", indexName, err)
+		// Используем update вместо index
+		meta := map[string]interface{}{
+			"update": map[string]interface{}{
+				"_index": indexName,
+				"_id":    id,
+			},
 		}
+
+		// Используем doc_as_upsert для обновления или создания
+		update := map[string]interface{}{
+			"doc":           doc,
+			"doc_as_upsert": true,
+		}
+
+		metaJSON, _ := json.Marshal(meta)
+		updateJSON, _ := json.Marshal(update)
+
+		buf.Write(metaJSON)
+		buf.WriteString("\n")
+		buf.Write(updateJSON)
+		buf.WriteString("\n")
 	}
 
+	res, err := es.client.Bulk(
+		strings.NewReader(buf.String()),
+		es.client.Bulk.WithContext(ctx),
+		es.client.Bulk.WithRefresh("true"),
+	)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return parseErrorResponse(res)
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return fmt.Errorf("error parsing bulk response: %w", err)
+	}
+
+	if errors, ok := result["errors"].(bool); ok && errors {
+		return fmt.Errorf("bulk operation contains errors")
+	}
+
+	es.logger.Printf("Updated %d documents in %s", len(docs), indexName)
 	return nil
 }
 
