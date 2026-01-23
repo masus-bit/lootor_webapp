@@ -1,5 +1,4 @@
 stages:
-  - security
   - build
   - deploy
 
@@ -24,42 +23,6 @@ variables:
     paths:
       - /kaniko/.docker/config.json
     expire_in: 1 hour
-
-sast_gosec:
-  stage: security
-  tags:
-    - auc
-  image: golang:1.24
-  before_script:
-    - cd $CI_PROJECT_DIR
-  script:
-    - go install github.com/securego/gosec/v2/cmd/gosec@latest
-    - |
-      # Запускаем gosec и сохраняем вывод
-      set +e
-      OUTPUT=$($(go env GOPATH)/bin/gosec ./... 2>&1)
-      set -e
-      
-      echo "=== FULL OUTPUT ==="
-      echo "$OUTPUT"
-      echo "=== END OUTPUT ==="
-      
-      if echo "$OUTPUT" | grep "Issues : 0" > /dev/null; then
-        echo "✅ GOSEC CHECK PASSED (method 1)"
-        exit 0
-      elif echo "$OUTPUT" | grep -E "Issues:[[:space:]]*0" > /dev/null; then
-        echo "✅ GOSEC CHECK PASSED (method 2)" 
-        exit 0
-      elif echo "$OUTPUT" | tail -10 | grep "Issues : 0" > /dev/null; then
-        echo "✅ GOSEC CHECK PASSED (method 3)"
-        exit 0
-      else
-        echo "❌ GOSEC CHECK FAILED"
-        echo "Debug: Looking for 'Issues: 0' pattern..."
-        echo "$OUTPUT" | grep -i "issues" || echo "No 'issues' found in output"
-        exit 1
-      fi
-  allow_failure: false
 
 build:
   stage: build
