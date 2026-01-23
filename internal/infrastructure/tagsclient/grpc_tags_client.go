@@ -242,6 +242,10 @@ func (c *GRPCTagsClient) GetOnModerationTags(ctx context.Context, dto *microserv
 	return c.client.GetOnModerationTags(ctx, dto)
 }
 
+func (c *GRPCTagsClient) TriggerMoveTags(ctx context.Context, dto *microservices.TriggerMoveTagsRequest) (*microservices.TagsSuccessResponse, error) {
+	return c.client.TriggerMoveTags(ctx, dto)
+}
+
 func (c *GRPCTagsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

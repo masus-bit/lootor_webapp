@@ -552,6 +552,14 @@ func (s *TagsService) GetOnModerationTags(req *dto.OnModerationTagsRequest) (*dt
 
 }
 
+func (s *TagsService) TriggerMoveTags() error {
+	_, err := s.tagsClient.TriggerMoveTags(context.Background(), &microservices.TriggerMoveTagsRequest{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLogin string, isPremium bool, filter string, tagsMap map[string]*microservices.GetShortsResponse) *dto.Tags {
 	var primaryTag *dto.Tags
 	var seriesTag *dto.ShortTags

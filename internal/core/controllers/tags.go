@@ -520,3 +520,13 @@ func (c *TagsController) GetOnModerateTags(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
+
+func (c *TagsController) TriggerMoveTags(ctx echo.Context) error {
+	err := c.tagsService.TriggerMoveTags()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(http.StatusOK, "OK")
+}

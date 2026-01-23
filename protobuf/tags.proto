@@ -36,6 +36,10 @@ service TagsService {
   rpc PublicUpdateTag(PublicUpdateTagRequest) returns (PublicUpdateTagResponse);
   rpc MoveTagLinks(MoveTagLinksRequest) returns (MoveTagLinksResponse);
   rpc GetOnModerationTags(OnModerationTagsRequest) returns (OnModerationTagsResponse);
+  rpc TriggerMoveTags(TriggerMoveTagsRequest) returns (TagsSuccessResponse);
+}
+
+message TriggerMoveTagsRequest {
 }
 
 message OnModerationTagsRequest {
