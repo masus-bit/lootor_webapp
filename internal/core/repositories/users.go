@@ -369,12 +369,12 @@ func (r *UsersRepository) GetAll(search, limit, offset, order string) ([]models.
 		query = query.Select("users.*, COALESCE(p.total_donations, 0) as total_donations").
 			Joins("LEFT JOIN (?) as p ON users.login = p.user_login", subQuery).Order("total_donations DESC")
 	} else {
-		query = query.Model(&models.Users{}).Order("COALESCE(users." + orderString + ", 0) DESC")
+		query = query.Model(&models.Users{}).Where("users.login NOT IN (?, ?)", "lootor_bot", "eg_rif_ykkur_i_bita").Order("COALESCE(users." + orderString + ", 0) DESC")
 	}
 	query = query.Limit(intLimit).Offset(intOffset)
 
 	if search != "" {
-		query = query.Where("users.login ILIKE ? AND users.deleted_at IS NULL", "%"+search+"%")
+		query = query.Where("LOWER(users.login) LIKE LOWER(?) AND users.deleted_at IS NULL", "%"+search+"%")
 	} else {
 		query = query.Where("users.deleted_at IS NULL")
 	}
