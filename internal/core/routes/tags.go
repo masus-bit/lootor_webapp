@@ -15,6 +15,7 @@ func TagsRouter(e *echo.Echo, jwtService *auth.JWTService, tagsService services.
 	{
 		publicGroup.GET("/tags/:id", controller.FindEntitiesByTag)
 		publicGroup.GET("/tags/all", controller.GetAllTags)
+		publicGroup.GET("/tags/trigger/move/tags/yeah/bitch", controller.TriggerMoveTags)
 	}
 
 	securedGroup := e.Group("/secured")
