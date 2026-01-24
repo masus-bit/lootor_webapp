@@ -24,26 +24,38 @@ func NewGRPCLikesClient(addr string) (*GRPCLikesClient, error) {
 	}, nil
 }
 
-func (c *GRPCLikesClient) Like(ctx context.Context, commentID, author string, isLiked bool) (*microservices.LikeResponse, error) {
+func (c *GRPCLikesClient) Like(
+	ctx context.Context,
+	commentID, author string,
+	isLiked bool,
+) (*microservices.LikeResponse, error) {
 
-	resp, err := c.client.Like(ctx, &microservices.LikeRequest{
-		CommentId: commentID,
-		Author:    author,
-		IsLiked:   isLiked,
-	})
+	resp, err := c.client.Like(
+		ctx, &microservices.LikeRequest{
+			CommentId: commentID,
+			Author:    author,
+			IsLiked:   isLiked,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *GRPCLikesClient) Dislike(ctx context.Context, commentID, author string, isLiked bool) (*microservices.LikeResponse, error) {
+func (c *GRPCLikesClient) Dislike(
+	ctx context.Context,
+	commentID, author string,
+	isLiked bool,
+) (*microservices.LikeResponse, error) {
 
-	resp, err := c.client.Dislike(ctx, &microservices.DislikeRequest{
-		CommentId:  commentID,
-		Author:     author,
-		IsDisliked: isLiked,
-	})
+	resp, err := c.client.Dislike(
+		ctx, &microservices.DislikeRequest{
+			CommentId:  commentID,
+			Author:     author,
+			IsDisliked: isLiked,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}

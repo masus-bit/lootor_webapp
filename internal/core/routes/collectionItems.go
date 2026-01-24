@@ -8,7 +8,12 @@ import (
 	"lootor/internal/pkg/utils"
 )
 
-func RegisterCollectionItemsRoutes(e *echo.Echo, jwtService *auth.JWTService, ciService services.CiService, enrichedCiService utils.EnrichingCIService) {
+func RegisterCollectionItemsRoutes(
+	e *echo.Echo,
+	jwtService *auth.JWTService,
+	ciService services.CiService,
+	enrichedCiService utils.EnrichingCIService,
+) {
 	controller := controllers.NewCIController(ciService, enrichedCiService)
 
 	publicGroup := e.Group("/public")

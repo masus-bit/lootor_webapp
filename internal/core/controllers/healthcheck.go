@@ -13,7 +13,9 @@ func NewHealthCheckController() *HealthCheckController {
 }
 
 func (c *HealthCheckController) Healthcheck(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, map[string]string{
-		"status": "ok",
-	})
+	return ctx.JSON(
+		http.StatusOK, map[string]string{
+			"status": "ok",
+		},
+	)
 }

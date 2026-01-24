@@ -29,97 +29,158 @@ func NewGRPCPostsClient(addr string) (*GRPCPostsClient, error) {
 func (c *GRPCPostsClient) CreatePost(ctx context.Context, dto *dto.PostRequest) (*microservices.PostResponse, error) {
 	normalizedContent, _ := utils.GormJSONToProtoStruct(dto.Content)
 
-	resp, err := c.client.CreatePost(ctx, &microservices.CreatePostRequest{
-		Content: normalizedContent,
-		Date:    dto.Date,
-		Author:  dto.Author,
-		IsDraft: dto.IsDraft,
-		Title:   dto.Title,
-	})
+	resp, err := c.client.CreatePost(
+		ctx, &microservices.CreatePostRequest{
+			Content: normalizedContent,
+			Date:    dto.Date,
+			Author:  dto.Author,
+			IsDraft: dto.IsDraft,
+			Title:   dto.Title,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *GRPCPostsClient) GetAllPosts(ctx context.Context, order, limit, offset string, authUserIsPremium bool, authUser string) (*microservices.GetAllPostsResponse, error) {
-	return c.client.GetAllPosts(ctx, &microservices.GetAllPostsRequest{Limit: limit, Offset: offset, Order: order, IsPremium: authUserIsPremium, AuthUserLogin: authUser})
+func (c *GRPCPostsClient) GetAllPosts(
+	ctx context.Context,
+	order, limit, offset string,
+	authUserIsPremium bool,
+	authUser string,
+) (*microservices.GetAllPostsResponse, error) {
+	return c.client.GetAllPosts(
+		ctx,
+		&microservices.GetAllPostsRequest{
+			Limit:         limit,
+			Offset:        offset,
+			Order:         order,
+			IsPremium:     authUserIsPremium,
+			AuthUserLogin: authUser,
+		},
+	)
 }
 
-func (c *GRPCPostsClient) GetPostsByUser(ctx context.Context, limit, offset, login string, authUserIsPremium bool, authUser string, isDraft bool) (*microservices.GetAllPostsResponse, error) {
-	return c.client.GetPostsByUser(ctx, &microservices.GetPostsByUserRequest{
-		Login:         login,
-		Offset:        offset,
-		Limit:         limit,
-		IsPremium:     authUserIsPremium,
-		AuthUserLogin: authUser,
-		IsDraft:       isDraft,
-	})
+func (c *GRPCPostsClient) GetPostsByUser(
+	ctx context.Context,
+	limit, offset, login string,
+	authUserIsPremium bool,
+	authUser string,
+	isDraft bool,
+) (*microservices.GetAllPostsResponse, error) {
+	return c.client.GetPostsByUser(
+		ctx, &microservices.GetPostsByUserRequest{
+			Login:         login,
+			Offset:        offset,
+			Limit:         limit,
+			IsPremium:     authUserIsPremium,
+			AuthUserLogin: authUser,
+			IsDraft:       isDraft,
+		},
+	)
 }
 
 func (c *GRPCPostsClient) DeletePost(ctx context.Context, id uint64) (*microservices.DeletePostResponse, error) {
-	return c.client.DeletePost(ctx, &microservices.DeletePostRequest{
-		Id: id,
-	})
+	return c.client.DeletePost(
+		ctx, &microservices.DeletePostRequest{
+			Id: id,
+		},
+	)
 }
 
 func (c *GRPCPostsClient) ReactPost(ctx context.Context, dto *dto.ReactRequest) (*microservices.ReactResponse, error) {
-	return c.client.IncrementReaction(ctx, &microservices.ReactRequest{
-		UserLogin: dto.UserLogin,
-		PostId:    dto.PostID,
-		Reaction:  dto.Reaction,
-	})
+	return c.client.IncrementReaction(
+		ctx, &microservices.ReactRequest{
+			UserLogin: dto.UserLogin,
+			PostId:    dto.PostID,
+			Reaction:  dto.Reaction,
+		},
+	)
 }
 
-func (c *GRPCPostsClient) ReactPostDecrement(ctx context.Context, dto *dto.ReactRequest) (*microservices.ReactResponse, error) {
-	return c.client.DecrementReaction(ctx, &microservices.ReactDecrementRequest{
-		UserLogin: dto.UserLogin,
-		PostId:    dto.PostID,
-		Reaction:  dto.Reaction,
-	})
+func (c *GRPCPostsClient) ReactPostDecrement(ctx context.Context, dto *dto.ReactRequest) (
+	*microservices.ReactResponse,
+	error,
+) {
+	return c.client.DecrementReaction(
+		ctx, &microservices.ReactDecrementRequest{
+			UserLogin: dto.UserLogin,
+			PostId:    dto.PostID,
+			Reaction:  dto.Reaction,
+		},
+	)
 }
 
-func (c *GRPCPostsClient) UpdatePost(ctx context.Context, dto *dto.PostUpdateRequest) (*microservices.PostResponse, error) {
+func (c *GRPCPostsClient) UpdatePost(ctx context.Context, dto *dto.PostUpdateRequest) (
+	*microservices.PostResponse,
+	error,
+) {
 	normalizedContent, _ := utils.GormJSONToProtoStruct(dto.Content)
 
-	resp, err := c.client.UpdatePost(ctx, &microservices.UpdatePostRequest{
-		Id:       dto.ID,
-		Content:  normalizedContent,
-		IsDraft:  dto.IsDraft,
-		Title:    dto.Title,
-		Translit: dto.Translit,
-	})
+	resp, err := c.client.UpdatePost(
+		ctx, &microservices.UpdatePostRequest{
+			Id:       dto.ID,
+			Content:  normalizedContent,
+			IsDraft:  dto.IsDraft,
+			Title:    dto.Title,
+			Translit: dto.Translit,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *GRPCPostsClient) GetPostById(ctx context.Context, id uint64, authUserIsPremium bool) (*microservices.PostResponse, error) {
-	return c.client.GetPost(ctx, &microservices.PostRequest{
-		Id:        id,
-		IsPremium: authUserIsPremium,
-	})
+func (c *GRPCPostsClient) GetPostById(
+	ctx context.Context,
+	id uint64,
+	authUserIsPremium bool,
+) (*microservices.PostResponse, error) {
+	return c.client.GetPost(
+		ctx, &microservices.PostRequest{
+			Id:        id,
+			IsPremium: authUserIsPremium,
+		},
+	)
 }
 
-func (c *GRPCPostsClient) GetPostByTranslit(ctx context.Context, translit string, authUserIsPremium bool) (*microservices.PostResponse, error) {
-	return c.client.GetPostByTranslit(ctx, &microservices.PostRequestByTranslit{
-		Translit:  translit,
-		IsPremium: authUserIsPremium,
-	})
+func (c *GRPCPostsClient) GetPostByTranslit(
+	ctx context.Context,
+	translit string,
+	authUserIsPremium bool,
+) (*microservices.PostResponse, error) {
+	return c.client.GetPostByTranslit(
+		ctx, &microservices.PostRequestByTranslit{
+			Translit:  translit,
+			IsPremium: authUserIsPremium,
+		},
+	)
 }
 
-func (c *GRPCPostsClient) IncrementViews(ctx context.Context, req *dto.IncrementRequest) (*microservices.ViewsResponse, error) {
-	return c.client.IncrementViews(ctx, &microservices.ViewsRequest{
-		PostIds: req.PostIDs,
-	})
+func (c *GRPCPostsClient) IncrementViews(ctx context.Context, req *dto.IncrementRequest) (
+	*microservices.ViewsResponse,
+	error,
+) {
+	return c.client.IncrementViews(
+		ctx, &microservices.ViewsRequest{
+			PostIds: req.PostIDs,
+		},
+	)
 }
 
-func (c *GRPCPostsClient) IncrementCommentsCount(ctx context.Context, id uint64) (*microservices.CommentsCountResponse, error) {
+func (c *GRPCPostsClient) IncrementCommentsCount(ctx context.Context, id uint64) (
+	*microservices.CommentsCountResponse,
+	error,
+) {
 	return c.client.IncrementCommentsCount(ctx, &microservices.CommentsCountRequest{PostId: id})
 }
 
-func (c *GRPCPostsClient) DecrementCommentsCount(ctx context.Context, id uint64) (*microservices.CommentsCountResponse, error) {
+func (c *GRPCPostsClient) DecrementCommentsCount(ctx context.Context, id uint64) (
+	*microservices.CommentsCountResponse,
+	error,
+) {
 	return c.client.DecrementCommentsCount(ctx, &microservices.CommentsCountRequest{PostId: id})
 }
 
@@ -127,16 +188,37 @@ func (c *GRPCPostsClient) GetCount(ctx context.Context, userLogin string) (*micr
 	return c.client.GetCountByUser(ctx, &microservices.CountRequest{UserLogin: userLogin})
 }
 
-func (c *GRPCPostsClient) GetPostsByIds(ctx context.Context, ids []string, authUserLogin string, authUserIsPremium bool) (*microservices.GetPostsByIdsMapResponse, error) {
-	return c.client.GetPostsByIds(ctx, &microservices.GetPostsByIdsMapRequest{PostIds: ids, AuthUserLogin: authUserLogin, IsPremium: authUserIsPremium})
+func (c *GRPCPostsClient) GetPostsByIds(
+	ctx context.Context,
+	ids []string,
+	authUserLogin string,
+	authUserIsPremium bool,
+) (*microservices.GetPostsByIdsMapResponse, error) {
+	return c.client.GetPostsByIds(
+		ctx,
+		&microservices.GetPostsByIdsMapRequest{
+			PostIds:       ids,
+			AuthUserLogin: authUserLogin,
+			IsPremium:     authUserIsPremium,
+		},
+	)
 }
 
-func (c *GRPCPostsClient) GetPostsCountByUserLogin(ctx context.Context, userLogin string) (*microservices.GetPostsCountByUserLoginResponse, error) {
+func (c *GRPCPostsClient) GetPostsCountByUserLogin(
+	ctx context.Context,
+	userLogin string,
+) (*microservices.GetPostsCountByUserLoginResponse, error) {
 	return c.client.GetPostsCountByUserLogin(ctx, &microservices.GetPostsCountByUserLoginRequest{UserLogin: userLogin})
 }
 
-func (c *GRPCPostsClient) GetReactionsCountByUserLogin(ctx context.Context, userLogin string) (*microservices.GetReactionsCountByUserLoginResponse, error) {
-	return c.client.GetReactionsCountByUserLogin(ctx, &microservices.GetReactionsCountByUserLoginRequest{UserLogin: userLogin})
+func (c *GRPCPostsClient) GetReactionsCountByUserLogin(
+	ctx context.Context,
+	userLogin string,
+) (*microservices.GetReactionsCountByUserLoginResponse, error) {
+	return c.client.GetReactionsCountByUserLogin(
+		ctx,
+		&microservices.GetReactionsCountByUserLoginRequest{UserLogin: userLogin},
+	)
 }
 
 func (c *GRPCPostsClient) Close() {

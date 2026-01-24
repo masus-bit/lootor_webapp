@@ -28,9 +28,11 @@ func NewFeedController(feedService services.FeedService) *FeedController {
 func (c *FeedController) CreateFeedItem(ctx echo.Context) error {
 	var request dto.FeedRequest
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 
 	authUser, ok := ctx.Get("user_login").(string)
@@ -41,17 +43,21 @@ func (c *FeedController) CreateFeedItem(ctx echo.Context) error {
 	adminList := utils.GetAdminLogins()
 
 	if !slices.Contains(adminList, authUser) {
-		return ctx.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "Unauthorized",
-		})
+		return ctx.JSON(
+			http.StatusUnauthorized, map[string]string{
+				"error": "Unauthorized",
+			},
+		)
 	}
 
 	context := ctx.Request().Context()
 	response, err := c.feedService.CreateFeed(context, &request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -70,9 +76,11 @@ func (c *FeedController) GetAll(ctx echo.Context) error {
 	offset := ctx.QueryParam("offset")
 	response, err := c.feedService.GetAllFeed(ctx.Request().Context(), limit, offset)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -89,9 +97,11 @@ func (c *FeedController) GetOne(ctx echo.Context) error {
 	id := ctx.Param("id")
 	response, err := c.feedService.GetFeed(ctx.Request().Context(), id)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -109,9 +119,11 @@ func (c *FeedController) Update(ctx echo.Context) error {
 	id := ctx.Param("id")
 	var request dto.FeedRequest
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 
 	authUser, ok := ctx.Get("user_login").(string)
@@ -122,16 +134,20 @@ func (c *FeedController) Update(ctx echo.Context) error {
 	adminList := utils.GetAdminLogins()
 
 	if !slices.Contains(adminList, authUser) {
-		return ctx.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "Unauthorized",
-		})
+		return ctx.JSON(
+			http.StatusUnauthorized, map[string]string{
+				"error": "Unauthorized",
+			},
+		)
 	}
 
 	response, err := c.feedService.UpdateFeed(ctx.Request().Context(), id, &request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -155,16 +171,20 @@ func (c *FeedController) Delete(ctx echo.Context) error {
 	adminList := utils.GetAdminLogins()
 
 	if !slices.Contains(adminList, authUser) {
-		return ctx.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "Unauthorized",
-		})
+		return ctx.JSON(
+			http.StatusUnauthorized, map[string]string{
+				"error": "Unauthorized",
+			},
+		)
 	}
 
 	response, err := c.feedService.DeleteFeed(ctx.Request().Context(), id)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }

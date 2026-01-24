@@ -19,7 +19,13 @@ type AchievementsService struct {
 	eventsService      *EventsService
 }
 
-func NewAchievementsService(achievementsClient *achievementsclient.GRPCAchievementsClient, userRepo *repositories.UsersRepository, tagsClient *tagsclient.GRPCTagsClient, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService) *AchievementsService {
+func NewAchievementsService(
+	achievementsClient *achievementsclient.GRPCAchievementsClient,
+	userRepo *repositories.UsersRepository,
+	tagsClient *tagsclient.GRPCTagsClient,
+	collectionRepo *repositories.CollectionsRepository,
+	eventsService *EventsService,
+) *AchievementsService {
 
 	return &AchievementsService{
 		achievementsClient: achievementsClient,
@@ -46,9 +52,11 @@ func (s *AchievementsService) AddAchievement(code, userLogin string, level, xp i
 
 func (s *AchievementsService) GetUserAchievements(userLogin string) (*dto.AchievementsResponse, error) {
 	var achievementsResult []dto.AchievedAchievement
-	resp, err := s.achievementsClient.GetUserAchievements(context.Background(), &microservices.GetUserAchievementsRequest{
-		UserLogin: userLogin,
-	})
+	resp, err := s.achievementsClient.GetUserAchievements(
+		context.Background(), &microservices.GetUserAchievementsRequest{
+			UserLogin: userLogin,
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("GetUserAchievements: %w", err)
 	}
@@ -62,9 +70,11 @@ func (s *AchievementsService) GetUserAchievements(userLogin string) (*dto.Achiev
 
 func (s *AchievementsService) GetAchievedUserAchievements(userLogin string) (*dto.AchievementsResponse, error) {
 	var achievementsResult []dto.AchievedAchievement
-	resp, err := s.achievementsClient.GetAchievedUserAchievements(context.Background(), &microservices.GetUserAchievementsRequest{
-		UserLogin: userLogin,
-	})
+	resp, err := s.achievementsClient.GetAchievedUserAchievements(
+		context.Background(), &microservices.GetUserAchievementsRequest{
+			UserLogin: userLogin,
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("GetAchievedUserAchievements: %w", err)
 	}
@@ -76,10 +86,12 @@ func (s *AchievementsService) GetAchievedUserAchievements(userLogin string) (*dt
 }
 
 func (s *AchievementsService) GetOneAchievement(userLogin, code string) (*dto.AchievementResponse, error) {
-	resp, err := s.achievementsClient.GetOneAchievement(context.Background(), &microservices.GetOneAchievementRequest{
-		UserLogin: userLogin,
-		Id:        code,
-	})
+	resp, err := s.achievementsClient.GetOneAchievement(
+		context.Background(), &microservices.GetOneAchievementRequest{
+			UserLogin: userLogin,
+			Id:        code,
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("GetOneAchievement: %w", err)
 	}
@@ -89,15 +101,20 @@ func (s *AchievementsService) GetOneAchievement(userLogin, code string) (*dto.Ac
 
 func (s *AchievementsService) GetAllAchievementsItems() (*dto.AchievementsItemsResponse, error) {
 	var achievements []dto.Achievements
-	resp, err := s.achievementsClient.GetAllAchievementsItems(context.Background(), &microservices.GetAllAchievementsItemsRequest{})
+	resp, err := s.achievementsClient.GetAllAchievementsItems(
+		context.Background(),
+		&microservices.GetAllAchievementsItemsRequest{},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("GetAllAchievementsItems: %w", err)
 	}
 	for _, a := range resp.GetAchievements() {
-		achievements = append(achievements, dto.Achievements{
-			ID:   a.GetId(),
-			Code: a.GetCode(),
-		})
+		achievements = append(
+			achievements, dto.Achievements{
+				ID:   a.GetId(),
+				Code: a.GetCode(),
+			},
+		)
 	}
 	return &dto.AchievementsItemsResponse{Data: achievements}, nil
 }

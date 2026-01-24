@@ -21,8 +21,20 @@ type PayService struct {
 	achClient    *achievementsclient.GRPCAchievementsClient
 }
 
-func NewPayService(userRepo *repositories.UsersRepository, userService *services.UserService, subService *services.SubscriptionService, paymentsRepo *repositories.PaymentsRepository, achClient *achievementsclient.GRPCAchievementsClient) *PayService {
-	return &PayService{userRepo: userRepo, userService: userService, subService: subService, paymentsRepo: paymentsRepo, achClient: achClient}
+func NewPayService(
+	userRepo *repositories.UsersRepository,
+	userService *services.UserService,
+	subService *services.SubscriptionService,
+	paymentsRepo *repositories.PaymentsRepository,
+	achClient *achievementsclient.GRPCAchievementsClient,
+) *PayService {
+	return &PayService{
+		userRepo:     userRepo,
+		userService:  userService,
+		subService:   subService,
+		paymentsRepo: paymentsRepo,
+		achClient:    achClient,
+	}
 }
 
 func (s *PayService) StartTransaction(login string, subType string, amount string) (*PayResponseToClientData, error) {
@@ -86,7 +98,17 @@ func (s *PayService) StartTransaction(login string, subType string, amount strin
 		Password: os.Getenv("YOOKASSA_SECRET_KEY"),
 	}
 
-	response, err := utils.SendRequest[PayResponse](utils.RequestOptions{Method: "POST", URL: baseURL, Headers: headers, Body: payment, QueryParams: nil, File: nil, BasicAuth: basicAuth})
+	response, err := utils.SendRequest[PayResponse](
+		utils.RequestOptions{
+			Method:      "POST",
+			URL:         baseURL,
+			Headers:     headers,
+			Body:        payment,
+			QueryParams: nil,
+			File:        nil,
+			BasicAuth:   basicAuth,
+		},
+	)
 
 	if err != nil {
 		return nil, err
@@ -158,7 +180,14 @@ func (s *PayService) EndTransaction(data *Notification) {
 
 	go func() {
 		if mode == "beta" {
-			err = utils.AddAchievement(s.achClient, utils.AchieveBetaTesterDonate, userLogin, 1, utils.XPBetaTesterDonate, 0)
+			err = utils.AddAchievement(
+				s.achClient,
+				utils.AchieveBetaTesterDonate,
+				userLogin,
+				1,
+				utils.XPBetaTesterDonate,
+				0,
+			)
 			err = s.userRepo.IncrementExperience(userLogin, utils.XPBetaTesterDonate)
 		}
 	}()

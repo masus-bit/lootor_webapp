@@ -19,7 +19,11 @@ type UsersRepository struct {
 	collectionsRepo *CollectionsRepository
 }
 
-func NewUsersRepository(db *gorm.DB, es *elasticsearch.ElasticService, collectionsRepo *CollectionsRepository) *UsersRepository {
+func NewUsersRepository(
+	db *gorm.DB,
+	es *elasticsearch.ElasticService,
+	collectionsRepo *CollectionsRepository,
+) *UsersRepository {
 	return &UsersRepository{db: db, es: es, collectionsRepo: collectionsRepo}
 }
 
@@ -130,7 +134,10 @@ func (r *UsersRepository) GetByLoginWithPassword(login string) (*models.Users, e
 func (r *UsersRepository) GetUserByLogin(login string) (*models.Users, error) {
 	var user models.Users
 
-	err := r.db.Where("LOWER(login) = LOWER(?) AND deleted_at IS NULL", login).Preload("WishListItems").First(&user).Error
+	err := r.db.Where(
+		"LOWER(login) = LOWER(?) AND deleted_at IS NULL",
+		login,
+	).Preload("WishListItems").First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -342,7 +349,12 @@ func (r *UsersRepository) CheckPremiumStatus(userLogin string) (bool, error) {
 	return user.IsPremium && user.PremiumUntil.After(time.Now()), nil
 }
 
-func (r *UsersRepository) GetAll(search, limit, offset, order string) ([]models.Users, int64, map[string]string, error) {
+func (r *UsersRepository) GetAll(search, limit, offset, order string) (
+	[]models.Users,
+	int64,
+	map[string]string,
+	error,
+) {
 	intLimit, _ := strconv.Atoi(limit)
 	intOffset, _ := strconv.Atoi(offset)
 	var users []models.Users
@@ -369,7 +381,11 @@ func (r *UsersRepository) GetAll(search, limit, offset, order string) ([]models.
 		query = query.Select("users.*, COALESCE(p.total_donations, 0) as total_donations").
 			Joins("LEFT JOIN (?) as p ON users.login = p.user_login", subQuery).Order("total_donations DESC")
 	} else {
-		query = query.Model(&models.Users{}).Where("users.login NOT IN (?, ?)", "lootor_bot", "eg_rif_ykkur_i_bita").Order("COALESCE(users." + orderString + ", 0) DESC")
+		query = query.Model(&models.Users{}).Where(
+			"users.login NOT IN (?, ?)",
+			"lootor_bot",
+			"eg_rif_ykkur_i_bita",
+		).Order("COALESCE(users." + orderString + ", 0) DESC")
 	}
 	query = query.Limit(intLimit).Offset(intOffset)
 

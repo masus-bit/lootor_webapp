@@ -26,9 +26,11 @@ func NewCommentsController(commentService services.CommentsService) *CommentsCon
 func (c *CommentsController) CreateComment(ctx echo.Context) error {
 	var request dto.CommentsRequest
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 
 	authUser, ok := ctx.Get("user_login").(string)
@@ -37,17 +39,21 @@ func (c *CommentsController) CreateComment(ctx echo.Context) error {
 	}
 
 	if request.Author != authUser {
-		return ctx.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "Unauthorized",
-		})
+		return ctx.JSON(
+			http.StatusUnauthorized, map[string]string{
+				"error": "Unauthorized",
+			},
+		)
 	}
 
 	context := ctx.Request().Context()
 	response, err := c.commentService.CreateComment(context, &request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -70,9 +76,11 @@ func (c *CommentsController) GetAllComments(ctx echo.Context) error {
 	entityType := ctx.QueryParam("entityType")
 	response, err := c.commentService.GetAllComments(ctx.Request().Context(), targetId, limit, offset, entityType)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -93,9 +101,11 @@ func (c *CommentsController) LoadAnswers(ctx echo.Context) error {
 	id := ctx.QueryParam("parentId")
 	response, err := c.commentService.LoadAnswers(ctx.Request().Context(), id, limit, offset)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -120,9 +130,11 @@ func (c *CommentsController) Like(ctx echo.Context) error {
 
 	response, err := c.commentService.LikeComment(ctx.Request().Context(), id, authUser, isLike == "true")
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -147,9 +159,11 @@ func (c *CommentsController) Dislike(ctx echo.Context) error {
 
 	response, err := c.commentService.DislikeComment(ctx.Request().Context(), id, authUser, isLike == "true")
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -174,9 +188,11 @@ func (c *CommentsController) Delete(ctx echo.Context) error {
 
 	response, err := c.commentService.DeleteComment(ctx.Request().Context(), id, targetId, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }

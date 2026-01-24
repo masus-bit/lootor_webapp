@@ -27,9 +27,11 @@ func (c *TagsController) SearchTags(ctx echo.Context) error {
 	name := ctx.QueryParam("name")
 	response, err := c.tagsService.SearchTags(name)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -48,9 +50,11 @@ func (c *TagsController) SearchTagsV2(ctx echo.Context) error {
 	limit := ctx.QueryParam("limit")
 	response, err := c.tagsService.SearchSmartTags(name, limit)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -69,9 +73,11 @@ func (c *TagsController) GetSuggestions(ctx echo.Context) error {
 	limit := ctx.QueryParam("limit")
 	response, err := c.tagsService.GetSuggestions(name, limit)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -87,15 +93,19 @@ func (c *TagsController) GetSuggestions(ctx echo.Context) error {
 func (c *TagsController) RecordChoice(ctx echo.Context) error {
 	var request dto.UserChoiceRequest
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	response, err := c.tagsService.RecordUserChoice(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -111,9 +121,11 @@ func (c *TagsController) RecordChoice(ctx echo.Context) error {
 func (c *TagsController) CreateTag(ctx echo.Context) error {
 	var request dto.TagCreateRequest
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	userRole, ok := ctx.Get("role").(string)
 	if !ok {
@@ -125,16 +137,20 @@ func (c *TagsController) CreateTag(ctx echo.Context) error {
 		authUser = ""
 	}
 	if request.Author != "" && userRole != "admin" {
-		return ctx.JSON(http.StatusForbidden, map[string]string{
-			"error": "Forbidden",
-		})
+		return ctx.JSON(
+			http.StatusForbidden, map[string]string{
+				"error": "Forbidden",
+			},
+		)
 	}
 	request.Author = authUser
 	response, err := c.tagsService.CreateTag(&request, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -161,11 +177,20 @@ func (c *TagsController) FindEntitiesByTag(ctx echo.Context) error {
 		IsAuthenticated bool
 		UserLogin       string
 	})
-	response, err := c.tagsService.FindAllEntitiesByTag(tagSlug, entityType, limit, offset, authInfo.UserLogin, ciFilter)
+	response, err := c.tagsService.FindAllEntitiesByTag(
+		tagSlug,
+		entityType,
+		limit,
+		offset,
+		authInfo.UserLogin,
+		ciFilter,
+	)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -181,9 +206,11 @@ func (c *TagsController) FindEntitiesByTag(ctx echo.Context) error {
 func (c *TagsController) AddTagToEntity(ctx echo.Context) error {
 	var request dto.AddTagToEntityRequest
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
@@ -194,15 +221,19 @@ func (c *TagsController) AddTagToEntity(ctx echo.Context) error {
 		role = ""
 	}
 	if role != "admin" {
-		return ctx.JSON(http.StatusForbidden, map[string]string{
-			"error": "Forbidden",
-		})
+		return ctx.JSON(
+			http.StatusForbidden, map[string]string{
+				"error": "Forbidden",
+			},
+		)
 	}
 	response, err := c.tagsService.AddTagToEntity(&request, authUser, role)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -226,20 +257,26 @@ func (c *TagsController) RemoveTagsFromEntity(ctx echo.Context) error {
 		role = ""
 	}
 	if role != "admin" {
-		return ctx.JSON(http.StatusForbidden, map[string]string{
-			"error": "Forbidden",
-		})
+		return ctx.JSON(
+			http.StatusForbidden, map[string]string{
+				"error": "Forbidden",
+			},
+		)
 	}
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	response, err := c.tagsService.RemoveTagsFromEntity(&request, authUser, role)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -261,21 +298,27 @@ func (c *TagsController) MergeTags(ctx echo.Context) error {
 	}
 
 	if userRole != "admin" {
-		return ctx.JSON(http.StatusForbidden, map[string]string{
-			"error": "Forbidden",
-		})
+		return ctx.JSON(
+			http.StatusForbidden, map[string]string{
+				"error": "Forbidden",
+			},
+		)
 	}
 
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	response, err := c.tagsService.MergeTags(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -297,21 +340,27 @@ func (c *TagsController) MergeSeries(ctx echo.Context) error {
 	}
 
 	if userRole != "admin" {
-		return ctx.JSON(http.StatusForbidden, map[string]string{
-			"error": "Forbidden",
-		})
+		return ctx.JSON(
+			http.StatusForbidden, map[string]string{
+				"error": "Forbidden",
+			},
+		)
 	}
 
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	response, err := c.tagsService.MergeSeries(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -333,21 +382,27 @@ func (c *TagsController) DeleteTags(ctx echo.Context) error {
 	}
 
 	if userRole != "admin" {
-		return ctx.JSON(http.StatusForbidden, map[string]string{
-			"error": "Forbidden",
-		})
+		return ctx.JSON(
+			http.StatusForbidden, map[string]string{
+				"error": "Forbidden",
+			},
+		)
 	}
 
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	response, err := c.tagsService.DeleteTags(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -369,21 +424,27 @@ func (c *TagsController) UpdateTag(ctx echo.Context) error {
 	}
 
 	if userRole != "admin" {
-		return ctx.JSON(http.StatusForbidden, map[string]string{
-			"error": "Forbidden",
-		})
+		return ctx.JSON(
+			http.StatusForbidden, map[string]string{
+				"error": "Forbidden",
+			},
+		)
 	}
 
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	response, err := c.tagsService.UpdateTag(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -406,9 +467,11 @@ func (c *TagsController) GetAllTags(ctx echo.Context) error {
 	})
 	response, err := c.tagsService.GetAllTags(limit, offset, authInfo.UserLogin)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -429,9 +492,11 @@ func (c *TagsController) Subscribe(ctx echo.Context) error {
 	}
 	response, err := c.tagsService.Subscribe(id, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -452,20 +517,26 @@ func (c *TagsController) MoveTagLinks(ctx echo.Context) error {
 	}
 
 	if userRole != "admin" {
-		return ctx.JSON(http.StatusForbidden, map[string]string{
-			"error": "Forbidden",
-		})
+		return ctx.JSON(
+			http.StatusForbidden, map[string]string{
+				"error": "Forbidden",
+			},
+		)
 	}
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	response, err := c.tagsService.MoveTagLinks(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -482,16 +553,20 @@ func (c *TagsController) PublicUpdate(ctx echo.Context) error {
 	var request dto.PublicUpdateTag
 
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	response, err := c.tagsService.PublicUpdate(&request)
 
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -509,14 +584,18 @@ func (c *TagsController) GetOnModerateTags(ctx echo.Context) error {
 	limit := ctx.QueryParam("limit")
 	offset := ctx.QueryParam("offset")
 
-	response, err := c.tagsService.GetOnModerationTags(&dto.OnModerationTagsRequest{
-		Limit:  limit,
-		Offset: offset,
-	})
+	response, err := c.tagsService.GetOnModerationTags(
+		&dto.OnModerationTagsRequest{
+			Limit:  limit,
+			Offset: offset,
+		},
+	)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -524,9 +603,11 @@ func (c *TagsController) GetOnModerateTags(ctx echo.Context) error {
 func (c *TagsController) TriggerMoveTags(ctx echo.Context) error {
 	err := c.tagsService.TriggerMoveTags()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, "OK")
 }

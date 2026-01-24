@@ -55,11 +55,13 @@ func (c *FilesController) Upload(ctx echo.Context) error {
 		fileBuffers = append(fileBuffers, buf)
 	}
 
-	keys, err := c.s3.UploadOptimizedImages(ctx.Request().Context(), fileBuffers, s3.UploadOptions{
-		Width:   width,
-		Height:  height,
-		Quality: 70,
-	})
+	keys, err := c.s3.UploadOptimizedImages(
+		ctx.Request().Context(), fileBuffers, s3.UploadOptions{
+			Width:   width,
+			Height:  height,
+			Quality: 70,
+		},
+	)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}
@@ -152,9 +154,11 @@ func (c *FilesController) GetThumbnail(ctx echo.Context) error {
 	)
 
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, echo.Map{
-			"error": fmt.Sprintf("thumbnail generation failed: %v", err),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, echo.Map{
+				"error": fmt.Sprintf("thumbnail generation failed: %v", err),
+			},
+		)
 	}
 
 	ctx.Response().Header().Set("Cache-Control", "public, max-age=31536000")

@@ -24,9 +24,11 @@ func NewItemTypesController(itemTypesService services.ItemTypesService) *ItemTyp
 func (c *ItemTypesController) GetItemTypes(ctx echo.Context) error {
 	response, err := c.itemTypesService.GetAllTypes()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }

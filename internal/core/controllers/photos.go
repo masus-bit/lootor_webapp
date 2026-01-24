@@ -27,9 +27,11 @@ func NewPhotosController(photosService services.PhotosService) *PhotosController
 func (c *PhotosController) CreatePhotos(ctx echo.Context) error {
 	var request dto.PhotoCreate
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 
 	authUser, ok := ctx.Get("user_login").(string)
@@ -44,9 +46,11 @@ func (c *PhotosController) CreatePhotos(ctx echo.Context) error {
 	}
 	response, err := c.photosService.CreatePhoto(context.Background(), &req, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -73,9 +77,11 @@ func (c *PhotosController) GetByUserLogin(ctx echo.Context) error {
 
 	response, err := c.photosService.GetByUser(context.Background(), userLogin, authInfo.UserLogin, limit, offset)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -93,9 +99,11 @@ func (c *PhotosController) Delete(ctx echo.Context) error {
 
 	response, err := c.photosService.DeletePhoto(context.Background(), id)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -118,9 +126,11 @@ func (c *PhotosController) GetByID(ctx echo.Context) error {
 
 	response, err := c.photosService.FindOneByID(context.Background(), id, authInfo.UserLogin)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -145,11 +155,19 @@ func (c *PhotosController) FindAllByCollectionID(ctx echo.Context) error {
 		UserLogin       string
 	})
 
-	response, err := c.photosService.FindAllByCollectionID(context.Background(), collectionId, limit, offset, authInfo.UserLogin)
+	response, err := c.photosService.FindAllByCollectionID(
+		context.Background(),
+		collectionId,
+		limit,
+		offset,
+		authInfo.UserLogin,
+	)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -172,9 +190,11 @@ func (c *PhotosController) Like(ctx echo.Context) error {
 
 	response, err := c.photosService.LikePhoto(context.Background(), id, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -190,9 +210,11 @@ func (c *PhotosController) Like(ctx echo.Context) error {
 func (c *PhotosController) Update(ctx echo.Context) error {
 	var request dto.PhotoUpdateRequest
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
@@ -201,9 +223,11 @@ func (c *PhotosController) Update(ctx echo.Context) error {
 
 	response, err := c.photosService.UpdatePhoto(context.Background(), &request, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }

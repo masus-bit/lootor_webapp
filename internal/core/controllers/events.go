@@ -27,20 +27,30 @@ func NewEventsController(eventsService services.EventsService) *EventsController
 func (c *EventsController) GetEvents(ctx echo.Context) error {
 	var request dto.GetEventsRequestForAll
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
 		authUser = ""
 	}
 
-	response, err := c.eventsService.GetEvents(authUser, strconv.FormatInt(request.Limit, 10), strconv.FormatInt(request.Offset, 10), request.EventTargetTypes, request.Actions)
+	response, err := c.eventsService.GetEvents(
+		authUser,
+		strconv.FormatInt(request.Limit, 10),
+		strconv.FormatInt(request.Offset, 10),
+		request.EventTargetTypes,
+		request.Actions,
+	)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -73,11 +83,22 @@ func (c *EventsController) GetFilteredEvents(ctx echo.Context) error {
 		UserLogin       string
 	})
 
-	response, err := c.eventsService.GetFilteredEvents(userLogin, collectionId, collectionItemId, wishListItemId, limit, offset, authInfo.UserLogin, tagId)
+	response, err := c.eventsService.GetFilteredEvents(
+		userLogin,
+		collectionId,
+		collectionItemId,
+		wishListItemId,
+		limit,
+		offset,
+		authInfo.UserLogin,
+		tagId,
+	)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }

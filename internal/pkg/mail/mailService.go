@@ -23,7 +23,11 @@ func (s *PostService) SendConfirmationEmail(email, token string) error {
 	domain := os.Getenv("DOMAIN")
 
 	subject := "Подтверждение регистрации на Lootor"
-	body := fmt.Sprintf("Подтвердите ваш аккаунт, перейдя по ссылке: https://%s/auth?confirmationToken=%s", domain, token)
+	body := fmt.Sprintf(
+		"Подтвердите ваш аккаунт, перейдя по ссылке: https://%s/auth?confirmationToken=%s",
+		domain,
+		token,
+	)
 	m := gomail.NewMessage()
 	m.SetHeader("From", s.from)
 	m.SetHeader("To", email)
@@ -37,7 +41,11 @@ func (s *PostService) SendResetPasswordEmail(email, token string) error {
 	domain := os.Getenv("DOMAIN")
 
 	subject := "Восстановление пароля на Lootor"
-	body := fmt.Sprintf("Восстановите пароль, перейдя по ссылке: https://%s/auth/reset?resetToken=%s \nЕсли вы не пытались восстановить пароль, то проигнорируйте это письмо", domain, token)
+	body := fmt.Sprintf(
+		"Восстановите пароль, перейдя по ссылке: https://%s/auth/reset?resetToken=%s \nЕсли вы не пытались восстановить пароль, то проигнорируйте это письмо",
+		domain,
+		token,
+	)
 	m := gomail.NewMessage()
 	m.SetHeader("From", s.from)
 	m.SetHeader("To", email)

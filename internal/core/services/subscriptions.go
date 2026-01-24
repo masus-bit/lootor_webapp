@@ -15,7 +15,13 @@ func NewSubscriptionService(repo *repositories.SubscriptionRepository) *Subscrip
 	return &SubscriptionService{repo: repo}
 }
 
-func (s *SubscriptionService) CreateSubscription(ctx context.Context, login string, subType string, months int, years int) (*models.Subscription, error) {
+func (s *SubscriptionService) CreateSubscription(
+	ctx context.Context,
+	login string,
+	subType string,
+	months int,
+	years int,
+) (*models.Subscription, error) {
 	now := time.Now()
 	subscription := &models.Subscription{
 		UserLogin: login,
@@ -31,7 +37,12 @@ func (s *SubscriptionService) CreateSubscription(ctx context.Context, login stri
 
 	return subscription, nil
 }
-func (s *SubscriptionService) CreateTestSubscription(ctx context.Context, login string, subType string, duration time.Duration) (*models.Subscription, error) {
+func (s *SubscriptionService) CreateTestSubscription(
+	ctx context.Context,
+	login string,
+	subType string,
+	duration time.Duration,
+) (*models.Subscription, error) {
 	now := time.Now()
 	subscription := &models.Subscription{
 		UserLogin: login,
@@ -48,7 +59,11 @@ func (s *SubscriptionService) CreateTestSubscription(ctx context.Context, login 
 	return subscription, nil
 }
 
-func (s *SubscriptionService) CheckActiveSubscription(ctx context.Context, login string) (bool, *models.Subscription, error) {
+func (s *SubscriptionService) CheckActiveSubscription(ctx context.Context, login string) (
+	bool,
+	*models.Subscription,
+	error,
+) {
 	sub, err := s.repo.GetActiveByUser(ctx, login)
 	if err != nil {
 		return false, nil, err

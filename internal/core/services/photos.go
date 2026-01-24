@@ -28,7 +28,16 @@ type PhotosService struct {
 	achService           *achievementsclient.GRPCAchievementsClient
 }
 
-func NewPhotosService(photosClient *photosclient.GRPCPhotosClient, userRepo *repositories.UsersRepository, tagsClient *tagsclient.GRPCTagsClient, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService, s3Service *s3.StorageService, notificationsService *NotificationsService, achService *achievementsclient.GRPCAchievementsClient) *PhotosService {
+func NewPhotosService(
+	photosClient *photosclient.GRPCPhotosClient,
+	userRepo *repositories.UsersRepository,
+	tagsClient *tagsclient.GRPCTagsClient,
+	collectionRepo *repositories.CollectionsRepository,
+	eventsService *EventsService,
+	s3Service *s3.StorageService,
+	notificationsService *NotificationsService,
+	achService *achievementsclient.GRPCAchievementsClient,
+) *PhotosService {
 
 	return &PhotosService{
 		photosClient:         photosClient,
@@ -58,23 +67,39 @@ func (s *PhotosService) DecrementCommentsCount(ctx context.Context, id string) (
 	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
 }
 
-func (s *PhotosService) CreatePhoto(ctx context.Context, req *dto.PhotoCreateRequest, authUserLogin string) (*dto.PhotosDataResponse, error) {
-	photosCount, err := s.photosClient.GetTotalPhotosCountByUserLogin(context.Background(), &microservices.GetTotalPhotosCountByUserLoginRequest{AuthUserLogin: authUserLogin})
+func (s *PhotosService) CreatePhoto(
+	ctx context.Context,
+	req *dto.PhotoCreateRequest,
+	authUserLogin string,
+) (*dto.PhotosDataResponse, error) {
+	photosCount, err := s.photosClient.GetTotalPhotosCountByUserLogin(
+		context.Background(),
+		&microservices.GetTotalPhotosCountByUserLoginRequest{AuthUserLogin: authUserLogin},
+	)
 	if err != nil {
 		return nil, err
 	}
 	go func() {
 		xp, level := utils.GetAchievementPhotosAddData(photosCount.GetCount() + int64(len(req.Paths)))
 
-		_ = utils.AddAchievement(s.achService, utils.AchievePhotosAdded, authUserLogin, level, xp, photosCount.GetCount()+int64(len(req.Paths)))
+		_ = utils.AddAchievement(
+			s.achService,
+			utils.AchievePhotosAdded,
+			authUserLogin,
+			level,
+			xp,
+			photosCount.GetCount()+int64(len(req.Paths)),
+		)
 		_ = s.userRepo.IncrementExperience(authUserLogin, int(xp))
 	}()
-	resp, err := s.photosClient.CreatePhotos(ctx, &microservices.CreatePhotosRequest{
-		CollectionId:  req.CollectionID,
-		Paths:         req.Paths,
-		Author:        req.Author,
-		AuthUserLogin: authUserLogin,
-	})
+	resp, err := s.photosClient.CreatePhotos(
+		ctx, &microservices.CreatePhotosRequest{
+			CollectionId:  req.CollectionID,
+			Paths:         req.Paths,
+			Author:        req.Author,
+			AuthUserLogin: authUserLogin,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +111,13 @@ func (s *PhotosService) CreatePhoto(ctx context.Context, req *dto.PhotoCreateReq
 		for _, ph := range resp.GetData() {
 			stringId := strconv.Itoa(int(ph.GetId()))
 			uuidColID, _ := uuid.Parse(req.CollectionID)
-			eventError := s.eventsService.AddEvent(authUserLogin, utils.EventActionCreate, utils.EventTargetPhoto, ph.Path, &dto.EventsParams{TargetPhotoID: stringId, TargetCollectionID: uuidColID})
+			eventError := s.eventsService.AddEvent(
+				authUserLogin,
+				utils.EventActionCreate,
+				utils.EventTargetPhoto,
+				ph.Path,
+				&dto.EventsParams{TargetPhotoID: stringId, TargetCollectionID: uuidColID},
+			)
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -96,13 +127,18 @@ func (s *PhotosService) CreatePhoto(ctx context.Context, req *dto.PhotoCreateReq
 	return &dto.PhotosDataResponse{Data: result}, nil
 }
 
-func (s *PhotosService) GetByUser(ctx context.Context, userLogin, authUserLogin, limit, offset string) (*dto.PhotosDataResponse, error) {
-	resp, err := s.photosClient.FindByUser(ctx, &microservices.FindByUserRequest{
-		AuthUserLogin: authUserLogin,
-		Login:         userLogin,
-		Offset:        offset,
-		Limit:         limit,
-	})
+func (s *PhotosService) GetByUser(
+	ctx context.Context,
+	userLogin, authUserLogin, limit, offset string,
+) (*dto.PhotosDataResponse, error) {
+	resp, err := s.photosClient.FindByUser(
+		ctx, &microservices.FindByUserRequest{
+			AuthUserLogin: authUserLogin,
+			Login:         userLogin,
+			Offset:        offset,
+			Limit:         limit,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -111,9 +147,11 @@ func (s *PhotosService) GetByUser(ctx context.Context, userLogin, authUserLogin,
 }
 
 func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.CommonResponse, error) {
-	resp, err := s.photosClient.DeletePhoto(ctx, &microservices.DeletePhotoRequest{
-		Id: s.stringToUint64(id),
-	})
+	resp, err := s.photosClient.DeletePhoto(
+		ctx, &microservices.DeletePhotoRequest{
+			Id: s.stringToUint64(id),
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -126,11 +164,19 @@ func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.Common
 		return nil, errors.New("failed to delete photo")
 	}
 	go func() {
-		_, _ = s.tagsClient.RemoveEntityTags(context.Background(), &microservices.RemoveEntityTagsRequest{
-			EntityId:   id,
-			EntityType: utils.EventTargetPhoto,
-		})
-		eventError := s.eventsService.AddEvent("", utils.EventActionDelete, utils.EventTargetPhoto, "", &dto.EventsParams{TargetPhotoID: id})
+		_, _ = s.tagsClient.RemoveEntityTags(
+			context.Background(), &microservices.RemoveEntityTagsRequest{
+				EntityId:   id,
+				EntityType: utils.EventTargetPhoto,
+			},
+		)
+		eventError := s.eventsService.AddEvent(
+			"",
+			utils.EventActionDelete,
+			utils.EventTargetPhoto,
+			"",
+			&dto.EventsParams{TargetPhotoID: id},
+		)
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
@@ -139,9 +185,11 @@ func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.Common
 }
 
 func (s *PhotosService) FindOneByID(ctx context.Context, id, authUserLogin string) (*dto.PhotoDataResponse, error) {
-	resp, err := s.photosClient.FindOneByID(ctx, &microservices.FindOneByIdRequest{
-		Id: s.stringToUint64(id),
-	})
+	resp, err := s.photosClient.FindOneByID(
+		ctx, &microservices.FindOneByIdRequest{
+			Id: s.stringToUint64(id),
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -149,13 +197,18 @@ func (s *PhotosService) FindOneByID(ctx context.Context, id, authUserLogin strin
 	return &dto.PhotoDataResponse{Data: *photo}, nil
 }
 
-func (s *PhotosService) FindAllByCollectionID(ctx context.Context, collectionId, limit, offset, authUserLogin string) (*dto.PhotosDataResponse, error) {
-	resp, err := s.photosClient.FindAllByCollectionID(ctx, &microservices.FindByCollectionIdRequest{
-		CollectionId:  collectionId,
-		Limit:         limit,
-		Offset:        offset,
-		AuthUserLogin: authUserLogin,
-	})
+func (s *PhotosService) FindAllByCollectionID(
+	ctx context.Context,
+	collectionId, limit, offset, authUserLogin string,
+) (*dto.PhotosDataResponse, error) {
+	resp, err := s.photosClient.FindAllByCollectionID(
+		ctx, &microservices.FindByCollectionIdRequest{
+			CollectionId:  collectionId,
+			Limit:         limit,
+			Offset:        offset,
+			AuthUserLogin: authUserLogin,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -164,10 +217,12 @@ func (s *PhotosService) FindAllByCollectionID(ctx context.Context, collectionId,
 }
 
 func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin string) (*dto.CommonResponse, error) {
-	resp, err := s.photosClient.LikePhoto(ctx, &microservices.LikePhotoRequest{
-		Id:             s.stringToUint64(id),
-		InitiatorLogin: authUserLogin,
-	})
+	resp, err := s.photosClient.LikePhoto(
+		ctx, &microservices.LikePhotoRequest{
+			Id:             s.stringToUint64(id),
+			InitiatorLogin: authUserLogin,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -184,17 +239,22 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 			TargetParentName: dbCollection.Name,
 		}
 		go func() {
-			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
-				Login:       dbCollection.UserLogin,
-				TargetID:    id,
-				SenderLogin: authUserLogin,
-				Type:        utils.NotificationTypePhoto,
-				Action:      utils.NotificationActionLike,
-				Date:        time.Now().Format(time.RFC3339),
-				OwnerLogin:  dbCollection.UserLogin,
-			}, target)
+			err = s.notificationsService.SendNotification(
+				context.Background(), &dto.NotificationsRequest{
+					Login:       dbCollection.UserLogin,
+					TargetID:    id,
+					SenderLogin: authUserLogin,
+					Type:        utils.NotificationTypePhoto,
+					Action:      utils.NotificationActionLike,
+					Date:        time.Now().Format(time.RFC3339),
+					OwnerLogin:  dbCollection.UserLogin,
+				}, target,
+			)
 		}()
-		photosCountLikes, err := s.photosClient.GetTotalPhotosLikesCountByUserLogin(context.Background(), &microservices.GetTotalPhotosLikesCountByUserLoginRequest{AuthUserLogin: dbCollection.UserLogin})
+		photosCountLikes, err := s.photosClient.GetTotalPhotosLikesCountByUserLogin(
+			context.Background(),
+			&microservices.GetTotalPhotosLikesCountByUserLoginRequest{AuthUserLogin: dbCollection.UserLogin},
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -203,7 +263,14 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 		go func() {
 			xp, level := utils.GetAchievementPhotosLikesData(photosCountLikes.GetCount() + 1)
 
-			_ = utils.AddAchievement(s.achService, utils.AchievePhotosLikes, dbCollection.UserLogin, level, xp, photosCountLikes.GetCount()+1)
+			_ = utils.AddAchievement(
+				s.achService,
+				utils.AchievePhotosLikes,
+				dbCollection.UserLogin,
+				level,
+				xp,
+				photosCountLikes.GetCount()+1,
+			)
 			exp += int(xp)
 		}()
 		err = s.userRepo.IncrementExperience(authUserLogin, exp)
@@ -216,11 +283,17 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 	return &dto.CommonResponse{Data: dto.Resp{Success: resp.Success}}, nil
 }
 
-func (s *PhotosService) FindPhotosByIds(ctx context.Context, ids []string, authUserLogin string) (*dto.PhotosDataResponse, error) {
-	resp, err := s.photosClient.GetPhotosByIDs(ctx, &microservices.GetByIdsRequest{
-		Ids:           ids,
-		AuthUserLogin: authUserLogin,
-	})
+func (s *PhotosService) FindPhotosByIds(
+	ctx context.Context,
+	ids []string,
+	authUserLogin string,
+) (*dto.PhotosDataResponse, error) {
+	resp, err := s.photosClient.GetPhotosByIDs(
+		ctx, &microservices.GetByIdsRequest{
+			Ids:           ids,
+			AuthUserLogin: authUserLogin,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -229,20 +302,28 @@ func (s *PhotosService) FindPhotosByIds(ctx context.Context, ids []string, authU
 }
 
 func (s *PhotosService) GetCountByCollection(ctx context.Context, collectionId string) (int64, error) {
-	resp, err := s.photosClient.GetCountByCollection(ctx, &microservices.CountRequestPhoto{
-		CollectionId: collectionId,
-	})
+	resp, err := s.photosClient.GetCountByCollection(
+		ctx, &microservices.CountRequestPhoto{
+			CollectionId: collectionId,
+		},
+	)
 	if err != nil {
 		return 0, err
 	}
 	return resp.GetCount(), nil
 }
 
-func (s *PhotosService) UpdatePhoto(ctx context.Context, req *dto.PhotoUpdateRequest, authUserLogin string) (*dto.PhotoDataResponse, error) {
-	resp, err := s.photosClient.UpdatePhoto(ctx, &microservices.UpdatePhotoRequest{
-		Id:          s.stringToUint64(req.ID),
-		Description: req.Description,
-	})
+func (s *PhotosService) UpdatePhoto(
+	ctx context.Context,
+	req *dto.PhotoUpdateRequest,
+	authUserLogin string,
+) (*dto.PhotoDataResponse, error) {
+	resp, err := s.photosClient.UpdatePhoto(
+		ctx, &microservices.UpdatePhotoRequest{
+			Id:          s.stringToUint64(req.ID),
+			Description: req.Description,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -254,13 +335,15 @@ func (s *PhotosService) UpdatePhoto(ctx context.Context, req *dto.PhotoUpdateReq
 
 	if len(req.Tags) > 0 {
 		stringedUint := strconv.Itoa(int(resp.GetData().GetId()))
-		_, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
-			EntityType: "photo",
-			EntityId:   stringedUint,
-			TagIds:     req.Tags,
-			Author:     authUserLogin,
-			ShowSearch: !dbCollection.IsPrivate,
-		})
+		_, _ = s.tagsClient.AddTagsToEntity(
+			context.Background(), &microservices.AddFewTagsToEntityRequest{
+				EntityType: "photo",
+				EntityId:   stringedUint,
+				TagIds:     req.Tags,
+				Author:     authUserLogin,
+				ShowSearch: !dbCollection.IsPrivate,
+			},
+		)
 	}
 
 	photo := s.convertProtoToModel(resp.GetData(), authUserLogin)
@@ -270,7 +353,17 @@ func (s *PhotosService) UpdatePhoto(ctx context.Context, req *dto.PhotoUpdateReq
 			for _, tag := range photo.Tags {
 				tagUUID, _ := uuid.Parse(tag.ID)
 				stringPhotoID := strconv.Itoa(int(resp.GetData().GetId()))
-				eventError := s.eventsService.AddEvent(authUserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &dto.EventsParams{TargetTagID: tagUUID, TargetPhotoID: stringPhotoID, TagRelatedEntityType: utils.EventTargetPhoto})
+				eventError := s.eventsService.AddEvent(
+					authUserLogin,
+					utils.EventActionAddTag,
+					utils.EventTargetTag,
+					tag.Name,
+					&dto.EventsParams{
+						TargetTagID:          tagUUID,
+						TargetPhotoID:        stringPhotoID,
+						TagRelatedEntityType: utils.EventTargetPhoto,
+					},
+				)
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -300,9 +393,11 @@ func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem, 
 	if err != nil {
 		return nil
 	}
-	tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
-		EntityIds: photoIds,
-	})
+	tags, err := s.tagsClient.GetTagsByEntityIdsMap(
+		context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+			EntityIds: photoIds,
+		},
+	)
 	if err != nil {
 		return nil
 	}
@@ -311,13 +406,15 @@ func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem, 
 		var resultPhotoTags []dto.ShortTags
 
 		for _, tag := range photoTags.GetTags() {
-			resultPhotoTags = append(resultPhotoTags, dto.ShortTags{
-				ID:        tag.GetId(),
-				Name:      tag.GetName(),
-				Slug:      tag.GetSlug(),
-				PrimaryID: tag.GetPrimaryId(),
-				SeriesID:  tag.GetSeriesId(),
-			})
+			resultPhotoTags = append(
+				resultPhotoTags, dto.ShortTags{
+					ID:        tag.GetId(),
+					Name:      tag.GetName(),
+					Slug:      tag.GetSlug(),
+					PrimaryID: tag.GetPrimaryId(),
+					SeriesID:  tag.GetSeriesId(),
+				},
+			)
 		}
 
 		createdAtAsTime, err := parseDate(photos[i].GetCreatedAt())
@@ -325,20 +422,22 @@ func (s *PhotosService) convertProtoToModels(photos []*microservices.PhotoItem, 
 			log.Printf("Error parsing date: %v", err)
 		}
 		canLike := utils.CanLike(photos[i].GetLikes(), authUserLogin, photos[i].GetAuthor())
-		resultPhotos = append(resultPhotos, dto.Photos{
-			ID:            photos[i].GetId(),
-			Author:        usersMap[photos[i].GetAuthor()],
-			CollectionID:  photos[i].GetCollectionId(),
-			Path:          photos[i].GetPath(),
-			LikesCount:    int64(len(photos[i].GetLikes())),
-			CommentsCount: photos[i].GetCommentsCount(),
-			CreatedAt:     createdAtAsTime,
-			Collection:    collectionsMap[photos[i].GetCollectionId()],
-			Tags:          resultPhotoTags,
-			CanLike:       canLike,
-			IsOwner:       authUserLogin == photos[i].GetAuthor(),
-			Description:   photos[i].GetDescription(),
-		})
+		resultPhotos = append(
+			resultPhotos, dto.Photos{
+				ID:            photos[i].GetId(),
+				Author:        usersMap[photos[i].GetAuthor()],
+				CollectionID:  photos[i].GetCollectionId(),
+				Path:          photos[i].GetPath(),
+				LikesCount:    int64(len(photos[i].GetLikes())),
+				CommentsCount: photos[i].GetCommentsCount(),
+				CreatedAt:     createdAtAsTime,
+				Collection:    collectionsMap[photos[i].GetCollectionId()],
+				Tags:          resultPhotoTags,
+				CanLike:       canLike,
+				IsOwner:       authUserLogin == photos[i].GetAuthor(),
+				Description:   photos[i].GetDescription(),
+			},
+		)
 	}
 	return resultPhotos
 }
@@ -360,9 +459,11 @@ func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem, auth
 	if err != nil {
 		return nil
 	}
-	tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
-		EntityIds: photoIds,
-	})
+	tags, err := s.tagsClient.GetTagsByEntityIdsMap(
+		context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+			EntityIds: photoIds,
+		},
+	)
 	if err != nil {
 		return nil
 	}
@@ -370,13 +471,15 @@ func (s *PhotosService) convertProtoToModel(photo *microservices.PhotoItem, auth
 	var resultPhotoTags []dto.ShortTags
 
 	for _, tag := range photoTags.GetTags() {
-		resultPhotoTags = append(resultPhotoTags, dto.ShortTags{
-			ID:        tag.GetId(),
-			Name:      tag.GetName(),
-			Slug:      tag.GetSlug(),
-			PrimaryID: tag.GetPrimaryId(),
-			SeriesID:  tag.GetSeriesId(),
-		})
+		resultPhotoTags = append(
+			resultPhotoTags, dto.ShortTags{
+				ID:        tag.GetId(),
+				Name:      tag.GetName(),
+				Slug:      tag.GetSlug(),
+				PrimaryID: tag.GetPrimaryId(),
+				SeriesID:  tag.GetSeriesId(),
+			},
+		)
 	}
 	canLike := utils.CanLike(photo.GetLikes(), authUserLogin, photo.GetAuthor())
 	createdAtAsTime, err := parseDate(photo.GetCreatedAt())

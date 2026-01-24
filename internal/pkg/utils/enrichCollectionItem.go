@@ -24,9 +24,15 @@ func NewEnrichedCIService(service EnrichedCI, tagsClient *tagsclient.GRPCTagsCli
 	return &EnrichingCIService{service: service, tagsClient: tagsClient}
 }
 
-func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser string) (*dto.CollectionItemsResponse, error) {
+func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser string) (
+	*dto.CollectionItemsResponse,
+	error,
+) {
 	var response dto.CollectionItemsResponse
-	protoTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: item.ID.String()})
+	protoTags, err := s.tagsClient.GetTagsByEntityId(
+		context.Background(),
+		&microservices.GetTagsByEntityIdRequest{EntityId: item.ID.String()},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +60,10 @@ func (s *EnrichingCIService) enrichItem(item *models.CollectionItems, authUser s
 	return &response, nil
 }
 
-func (s *EnrichingCIService) enrichAnyItems(items []models.CollectionItems, authUser string) ([]dto.CollectionItemsResponse, error) {
+func (s *EnrichingCIService) enrichAnyItems(
+	items []models.CollectionItems,
+	authUser string,
+) ([]dto.CollectionItemsResponse, error) {
 	var resultCollectionItems []dto.CollectionItemsResponse
 	for _, item := range items {
 		var temp dto.CollectionItemsResponse
@@ -63,12 +72,15 @@ func (s *EnrichingCIService) enrichAnyItems(items []models.CollectionItems, auth
 			return nil, err
 		}
 
-		protoTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: item.ID.String()})
+		protoTags, err := s.tagsClient.GetTagsByEntityId(
+			context.Background(),
+			&microservices.GetTagsByEntityIdRequest{EntityId: item.ID.String()},
+		)
 		if err != nil {
 			return nil, err
 		}
 
-		var resultTags []dto.ShortTags = NormalizeTagsShort(protoTags.GetTags())
+		var resultTags = NormalizeTagsShort(protoTags.GetTags())
 		temp.Tags = resultTags
 
 		temp.Collection = item.Collections[0].ID
@@ -104,7 +116,11 @@ func (s *EnrichingCIService) GetByID(id string, authUser string) (*dto.Collectio
 	return &dto.CollectionItemsDataResponse{Data: *enriched}, err
 }
 
-func (s *EnrichingCIService) Update(id string, req *dto.CollectionItemsRequestUpdate, authUser string) (*dto.CollectionItemsDataResponse, error) {
+func (s *EnrichingCIService) Update(
+	id string,
+	req *dto.CollectionItemsRequestUpdate,
+	authUser string,
+) (*dto.CollectionItemsDataResponse, error) {
 	item, err := s.service.Update(id, req)
 	if err != nil {
 		return nil, err

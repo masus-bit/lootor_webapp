@@ -12,21 +12,27 @@ func (s *JWTService) RequireAuthMiddleware() echo.MiddlewareFunc {
 			token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
 
 			if token == "" {
-				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "Authorization token required",
-				})
+				return c.JSON(
+					http.StatusUnauthorized, map[string]string{
+						"error": "Authorization token required",
+					},
+				)
 			}
 			login, err := s.ParseToken(token)
 			if err != nil {
-				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "Invalid token",
-				})
+				return c.JSON(
+					http.StatusUnauthorized, map[string]string{
+						"error": "Invalid token",
+					},
+				)
 			}
 			role, err := s.GetRole(token)
 			if err != nil {
-				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "Invalid token",
-				})
+				return c.JSON(
+					http.StatusUnauthorized, map[string]string{
+						"error": "Invalid token",
+					},
+				)
 			}
 			c.Set("user_login", login)
 			c.Set("role", role)

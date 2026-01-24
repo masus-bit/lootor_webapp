@@ -31,7 +31,18 @@ type TagsService struct {
 	achService     *achievementsclient.GRPCAchievementsClient
 }
 
-func NewTagsService(tagsClient *tagsclient.GRPCTagsClient, userRepo *repositories.UsersRepository, postsService *PostsService, ciRepo *repositories.CiRepository, collectionRepo *repositories.CollectionsRepository, eventsService *EventsService, itemTypeRepo *repositories.ItemTypesRepository, es *elasticsearch.ElasticService, photosService *PhotosService, achService *achievementsclient.GRPCAchievementsClient) *TagsService {
+func NewTagsService(
+	tagsClient *tagsclient.GRPCTagsClient,
+	userRepo *repositories.UsersRepository,
+	postsService *PostsService,
+	ciRepo *repositories.CiRepository,
+	collectionRepo *repositories.CollectionsRepository,
+	eventsService *EventsService,
+	itemTypeRepo *repositories.ItemTypesRepository,
+	es *elasticsearch.ElasticService,
+	photosService *PhotosService,
+	achService *achievementsclient.GRPCAchievementsClient,
+) *TagsService {
 	return &TagsService{
 		tagsClient:     tagsClient,
 		userRepo:       userRepo,
@@ -75,7 +86,14 @@ func (s *TagsService) CreateTag(req *dto.TagCreateRequest, authUser string) (*dt
 			fmt.Println(err)
 		}
 		xp, level := utils.GetAchievementTagsAddData(tagsCount.GetTotalTags())
-		err = utils.AddAchievement(s.achService, utils.AchieveTagsCreated, authUser, level, xp, tagsCount.GetTotalTags())
+		err = utils.AddAchievement(
+			s.achService,
+			utils.AchieveTagsCreated,
+			authUser,
+			level,
+			xp,
+			tagsCount.GetTotalTags(),
+		)
 		_ = s.userRepo.IncrementExperience(authUser, exp+int(xp))
 	}()
 
@@ -119,10 +137,12 @@ func (s *TagsService) SearchTags(name string) (*dto.TagsDataResponse, error) {
 }
 
 func (s *TagsService) MergeTags(req *dto.MergeTagsRequest) (*dto.CommonResponse, error) {
-	_, err := s.tagsClient.MergeTags(context.Background(), &microservices.MergeTagsRequest{
-		FromTagIds: req.FromTagIDs,
-		ToTagId:    req.ToTagID,
-	})
+	_, err := s.tagsClient.MergeTags(
+		context.Background(), &microservices.MergeTagsRequest{
+			FromTagIds: req.FromTagIDs,
+			ToTagId:    req.ToTagID,
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при слиянии тегов: %v", err)
 	}
@@ -132,10 +152,12 @@ func (s *TagsService) MergeTags(req *dto.MergeTagsRequest) (*dto.CommonResponse,
 }
 
 func (s *TagsService) MergeSeries(req *dto.MergeTagsRequest) (*dto.CommonResponse, error) {
-	_, err := s.tagsClient.MergeSeries(context.Background(), &microservices.MergeTagsRequest{
-		FromTagIds: req.FromTagIDs,
-		ToTagId:    req.ToTagID,
-	})
+	_, err := s.tagsClient.MergeSeries(
+		context.Background(), &microservices.MergeTagsRequest{
+			FromTagIds: req.FromTagIDs,
+			ToTagId:    req.ToTagID,
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при слиянии тегов: %v", err)
 	}
@@ -144,7 +166,10 @@ func (s *TagsService) MergeSeries(req *dto.MergeTagsRequest) (*dto.CommonRespons
 	}, nil
 }
 
-func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, authUserLogin, ciFilter string) (*dto.TagDataResponse, error) {
+func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, authUserLogin, ciFilter string) (
+	*dto.TagDataResponse,
+	error,
+) {
 	authUser, _ := s.userRepo.GetUserByLogin(authUserLogin)
 	var isPremium bool
 	if authUser != nil {
@@ -167,7 +192,15 @@ func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, aut
 
 	intLimit := int32(finalLimit)
 	intOffset, _ := strconv.Atoi(offset)
-	tag, err := s.tagsClient.FindAllEntitiesByTag(context.Background(), &microservices.GetEntitiesByTagRequest{TagId: tagID, EntityType: entityType, Limit: int64(intLimit), Offset: int64(intOffset)})
+	tag, err := s.tagsClient.FindAllEntitiesByTag(
+		context.Background(),
+		&microservices.GetEntitiesByTagRequest{
+			TagId:      tagID,
+			EntityType: entityType,
+			Limit:      int64(intLimit),
+			Offset:     int64(intOffset),
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
 	}
@@ -191,7 +224,10 @@ func (s *TagsService) FindAllEntitiesByTag(tagID, entityType, limit, offset, aut
 	return &dto.TagDataResponse{Data: *resultTag, Total: tag.GetTotalEntities()}, nil
 }
 
-func (s *TagsService) AddTagToEntity(req *dto.AddTagToEntityRequest, authUser, role string) (*dto.CommonResponse, error) {
+func (s *TagsService) AddTagToEntity(req *dto.AddTagToEntityRequest, authUser, role string) (
+	*dto.CommonResponse,
+	error,
+) {
 	author := authUser
 	if role == "admin" {
 		author = req.Author
@@ -204,12 +240,14 @@ func (s *TagsService) AddTagToEntity(req *dto.AddTagToEntityRequest, authUser, r
 		return nil, fmt.Errorf("вы не можете добавить тег к сущности, созданной другим пользователем")
 	}
 
-	_, err = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
-		EntityId:   req.EntityID,
-		TagIds:     req.TagIDs,
-		EntityType: req.EntityType,
-		Author:     author,
-	})
+	_, err = s.tagsClient.AddTagsToEntity(
+		context.Background(), &microservices.AddFewTagsToEntityRequest{
+			EntityId:   req.EntityID,
+			TagIds:     req.TagIDs,
+			EntityType: req.EntityType,
+			Author:     author,
+		},
+	)
 	_ = s.userRepo.IncrementExperience(author, utils.TagAttachExp)
 
 	if err != nil {
@@ -220,7 +258,10 @@ func (s *TagsService) AddTagToEntity(req *dto.AddTagToEntityRequest, authUser, r
 	}, nil
 }
 
-func (s *TagsService) RemoveTagsFromEntity(req *dto.RemoveTagsRequest, authUser, role string) (*dto.CommonResponse, error) {
+func (s *TagsService) RemoveTagsFromEntity(req *dto.RemoveTagsRequest, authUser, role string) (
+	*dto.CommonResponse,
+	error,
+) {
 	canActivate, err := s.canActivate(authUser, role, req.EntityID, req.EntityType)
 	if err != nil {
 		return nil, err
@@ -229,11 +270,13 @@ func (s *TagsService) RemoveTagsFromEntity(req *dto.RemoveTagsRequest, authUser,
 		return nil, fmt.Errorf("вы не можете удалять тег сущности, созданной другим пользователем")
 	}
 
-	_, err = s.tagsClient.RemoveTagsFromEntity(context.Background(), &microservices.RemoveTagsRequest{
-		EntityId:   req.EntityID,
-		TagIds:     req.TagIDs,
-		EntityType: req.EntityType,
-	})
+	_, err = s.tagsClient.RemoveTagsFromEntity(
+		context.Background(), &microservices.RemoveTagsRequest{
+			EntityId:   req.EntityID,
+			TagIds:     req.TagIDs,
+			EntityType: req.EntityType,
+		},
+	)
 	_ = s.userRepo.DecrementExperience(authUser, int(utils.TagAttachExp*float64(len(req.TagIDs))))
 
 	if err != nil {
@@ -249,14 +292,16 @@ func (s *TagsService) UpdateTag(req *dto.TagUpdateRequest) (*dto.TagDataResponse
 	if err != nil {
 		return nil, err
 	}
-	tag, err := s.tagsClient.UpdateTag(context.Background(), &microservices.UpdateTagRequest{
-		Id:               req.ID,
-		Name:             req.Name,
-		Slug:             req.Slug,
-		Description:      req.Description,
-		AdditionalFields: addFields,
-		OnModeration:     req.OnModeration,
-	})
+	tag, err := s.tagsClient.UpdateTag(
+		context.Background(), &microservices.UpdateTagRequest{
+			Id:               req.ID,
+			Name:             req.Name,
+			Slug:             req.Slug,
+			Description:      req.Description,
+			AdditionalFields: addFields,
+			OnModeration:     req.OnModeration,
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при обновлении тега: %v", err)
 	}
@@ -270,17 +315,19 @@ func (s *TagsService) GetAllTagsForElastic() ([]dto.ShortTags, error) {
 	}
 	var result []dto.ShortTags
 	for _, tag := range tags.GetTags() {
-		result = append(result, dto.ShortTags{
-			ID:                   tag.GetId(),
-			Name:                 tag.GetName(),
-			Slug:                 tag.GetSlug(),
-			PrimaryID:            tag.GetPrimaryId(),
-			SeriesID:             tag.GetSeriesId(),
-			TotalPosts:           tag.GetTotalPosts(),
-			TotalCollectionItems: tag.GetTotalCollectionItems(),
-			TotalPhotos:          tag.GetTotalPhotos(),
-			TotalCollections:     tag.GetTotalCollections(),
-		})
+		result = append(
+			result, dto.ShortTags{
+				ID:                   tag.GetId(),
+				Name:                 tag.GetName(),
+				Slug:                 tag.GetSlug(),
+				PrimaryID:            tag.GetPrimaryId(),
+				SeriesID:             tag.GetSeriesId(),
+				TotalPosts:           tag.GetTotalPosts(),
+				TotalCollectionItems: tag.GetTotalCollectionItems(),
+				TotalPhotos:          tag.GetTotalPhotos(),
+				TotalCollections:     tag.GetTotalCollections(),
+			},
+		)
 	}
 	return result, nil
 }
@@ -288,7 +335,10 @@ func (s *TagsService) GetAllTagsForElastic() ([]dto.ShortTags, error) {
 func (s *TagsService) GetAllTags(limit, offset, authUserLogin string) (*dto.TagsDataResponse, error) {
 	intLimit, _ := strconv.Atoi(limit)
 	intOffset, _ := strconv.Atoi(offset)
-	tags, err := s.tagsClient.GetAllTags(context.Background(), &microservices.GetAllTagsRequest{Limit: int64(intLimit), Offset: int64(intOffset)})
+	tags, err := s.tagsClient.GetAllTags(
+		context.Background(),
+		&microservices.GetAllTagsRequest{Limit: int64(intLimit), Offset: int64(intOffset)},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
 	}
@@ -301,19 +351,24 @@ func (s *TagsService) GetAllTags(limit, offset, authUserLogin string) (*dto.Tags
 }
 
 func (s *TagsService) GetTagsByEntityId(entityId string) ([]dto.ShortTags, error) {
-	tags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{EntityId: entityId})
+	tags, err := s.tagsClient.GetTagsByEntityId(
+		context.Background(),
+		&microservices.GetTagsByEntityIdRequest{EntityId: entityId},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
 	}
 	var result []dto.ShortTags
 	for _, tag := range tags.GetTags() {
-		result = append(result, dto.ShortTags{
-			ID:        tag.GetId(),
-			Name:      tag.GetName(),
-			Slug:      tag.GetSlug(),
-			PrimaryID: tag.GetPrimaryId(),
-			SeriesID:  tag.GetSeriesId(),
-		})
+		result = append(
+			result, dto.ShortTags{
+				ID:        tag.GetId(),
+				Name:      tag.GetName(),
+				Slug:      tag.GetSlug(),
+				PrimaryID: tag.GetPrimaryId(),
+				SeriesID:  tag.GetSeriesId(),
+			},
+		)
 	}
 	return result, nil
 }
@@ -340,7 +395,13 @@ func (s *TagsService) Subscribe(id, userLogin string) (*dto.CommonResponse, erro
 		subsTags = utils.RemoveByValue(subsTags, id)
 		go func() {
 			tagUUID, _ := uuid.Parse(tag.GetId())
-			err = s.eventsService.AddEvent(userLogin, utils.EventActionUnsubscribe, utils.EventTargetTag, tag.GetName(), &dto.EventsParams{TargetTagID: tagUUID})
+			err = s.eventsService.AddEvent(
+				userLogin,
+				utils.EventActionUnsubscribe,
+				utils.EventTargetTag,
+				tag.GetName(),
+				&dto.EventsParams{TargetTagID: tagUUID},
+			)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -349,7 +410,13 @@ func (s *TagsService) Subscribe(id, userLogin string) (*dto.CommonResponse, erro
 		subsTags = append(subsTags, id)
 		go func() {
 			tagUUID, _ := uuid.Parse(tag.GetId())
-			err = s.eventsService.AddEvent(userLogin, utils.EventActionSubscribe, utils.EventTargetTag, tag.GetName(), &dto.EventsParams{TargetTagID: tagUUID})
+			err = s.eventsService.AddEvent(
+				userLogin,
+				utils.EventActionSubscribe,
+				utils.EventTargetTag,
+				tag.GetName(),
+				&dto.EventsParams{TargetTagID: tagUUID},
+			)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -382,10 +449,12 @@ func (s *TagsService) SearchSmartTags(query string, limit string) (*dto.SearchRe
 	}
 
 	intLimit := int32(finalLimit)
-	resp, err := s.tagsClient.SearchGameTitles(context.Background(), &microservices.SearchGameTitlesRequest{
-		Query: query,
-		Limit: intLimit,
-	})
+	resp, err := s.tagsClient.SearchGameTitles(
+		context.Background(), &microservices.SearchGameTitlesRequest{
+			Query: query,
+			Limit: intLimit,
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при поиске тегов: %v", err)
 	}
@@ -395,22 +464,25 @@ func (s *TagsService) SearchSmartTags(query string, limit string) (*dto.SearchRe
 		for _, seriesEntry := range result.GetSeriesEntries() {
 			seriesEntries = append(seriesEntries, *s.convertProtoToModel(seriesEntry, "", false, "", nil))
 		}
-		results = append(results, dto.Results{
-			Tag:   s.convertProtoToModel(result.GetTag(), "", false, "", nil),
-			Score: result.GetScore(),
-			ParsedData: &dto.ParsedTitle{Original: result.GetParsedData().GetEdition(),
-				SeriesCore: result.GetParsedData().GetSeriesCore(),
-				GamePart:   result.GetParsedData().GetGamePart(),
-				Edition:    result.GetParsedData().GetEdition(),
-				Platform:   result.GetParsedData().GetPlatform(),
-				Year:       result.GetParsedData().GetYear(),
-				Confidence: result.GetParsedData().GetConfidence(),
+		results = append(
+			results, dto.Results{
+				Tag:   s.convertProtoToModel(result.GetTag(), "", false, "", nil),
+				Score: result.GetScore(),
+				ParsedData: &dto.ParsedTitle{
+					Original:   result.GetParsedData().GetEdition(),
+					SeriesCore: result.GetParsedData().GetSeriesCore(),
+					GamePart:   result.GetParsedData().GetGamePart(),
+					Edition:    result.GetParsedData().GetEdition(),
+					Platform:   result.GetParsedData().GetPlatform(),
+					Year:       result.GetParsedData().GetYear(),
+					Confidence: result.GetParsedData().GetConfidence(),
+				},
+				SeriesTag:     s.convertProtoToModel(result.GetSeriesTag(), "", false, "", nil),
+				MatchType:     result.GetMatchType(),
+				Confidence:    result.GetConfidence(),
+				SeriesEntries: seriesEntries,
 			},
-			SeriesTag:     s.convertProtoToModel(result.GetSeriesTag(), "", false, "", nil),
-			MatchType:     result.GetMatchType(),
-			Confidence:    result.GetConfidence(),
-			SeriesEntries: seriesEntries,
-		})
+		)
 	}
 	parsedData := &dto.ParsedTitle{
 		Original:   resp.GetParsedTitle().GetOriginal(),
@@ -436,14 +508,16 @@ func (s *TagsService) SearchSmartTags(query string, limit string) (*dto.SearchRe
 }
 
 func (s *TagsService) RecordUserChoice(req *dto.UserChoiceRequest) (*dto.CommonResponse, error) {
-	_, err := s.tagsClient.RecordUserChoice(context.Background(), &microservices.RecordUserChoiceRequest{
-		SearchQuery:   req.SearchQuery,
-		SelectedTagId: req.SelectedTagID,
-		SessionId:     req.SessionID,
-		UserId:        req.UserID,
-		WasCorrect:    req.WasCorrect,
-		FeedbackScore: req.FeedbackScore,
-	})
+	_, err := s.tagsClient.RecordUserChoice(
+		context.Background(), &microservices.RecordUserChoiceRequest{
+			SearchQuery:   req.SearchQuery,
+			SelectedTagId: req.SelectedTagID,
+			SessionId:     req.SessionID,
+			UserId:        req.UserID,
+			WasCorrect:    req.WasCorrect,
+			FeedbackScore: req.FeedbackScore,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -467,30 +541,36 @@ func (s *TagsService) GetSuggestions(query, limit string) (*dto.SearchSuggestion
 	}
 
 	intLimit := int32(finalLimit)
-	resp, err := s.tagsClient.GetSearchSuggestions(context.Background(), &microservices.GetSearchSuggestionsRequest{
-		Query: query,
-		Limit: intLimit,
-	})
+	resp, err := s.tagsClient.GetSearchSuggestions(
+		context.Background(), &microservices.GetSearchSuggestionsRequest{
+			Query: query,
+			Limit: intLimit,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 	var resultSuggestions []dto.SearchSuggestions
 	for _, suggestion := range resp.GetSuggestions() {
-		resultSuggestions = append(resultSuggestions, dto.SearchSuggestions{
-			Title:      suggestion.GetTitle(),
-			Type:       suggestion.GetType(),
-			Score:      suggestion.GetScore(),
-			Confidence: suggestion.GetConfidence(),
-			TagID:      suggestion.GetTagId(),
-		})
+		resultSuggestions = append(
+			resultSuggestions, dto.SearchSuggestions{
+				Title:      suggestion.GetTitle(),
+				Type:       suggestion.GetType(),
+				Score:      suggestion.GetScore(),
+				Confidence: suggestion.GetConfidence(),
+				TagID:      suggestion.GetTagId(),
+			},
+		)
 	}
 	return &dto.SearchSuggestionResponse{Data: resultSuggestions}, nil
 }
 
 func (s *TagsService) DeleteTags(req *dto.DeleteTags) (*dto.CommonResponse, error) {
-	_, err := s.tagsClient.DeleteTags(context.Background(), &microservices.GetTagsByIDsRequest{
-		Ids: req.IDs,
-	})
+	_, err := s.tagsClient.DeleteTags(
+		context.Background(), &microservices.GetTagsByIDsRequest{
+			Ids: req.IDs,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -508,10 +588,12 @@ func (s *TagsService) PublicUpdate(req *dto.PublicUpdateTag) (*dto.TagDataRespon
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.tagsClient.PublicUpdateTag(context.Background(), &microservices.PublicUpdateTagRequest{
-		Id:               req.ID,
-		AdditionalFields: addFields,
-	})
+	resp, err := s.tagsClient.PublicUpdateTag(
+		context.Background(), &microservices.PublicUpdateTagRequest{
+			Id:               req.ID,
+			AdditionalFields: addFields,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -521,10 +603,12 @@ func (s *TagsService) PublicUpdate(req *dto.PublicUpdateTag) (*dto.TagDataRespon
 }
 
 func (s *TagsService) MoveTagLinks(req *dto.MoveTagLinks) (*dto.CommonResponse, error) {
-	_, err := s.tagsClient.MoveTagLinks(context.Background(), &microservices.MoveTagLinksRequest{
-		TargetId: req.TargetID,
-		SourceId: req.SourceID,
-	})
+	_, err := s.tagsClient.MoveTagLinks(
+		context.Background(), &microservices.MoveTagLinksRequest{
+			TargetId: req.TargetID,
+			SourceId: req.SourceID,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -535,10 +619,12 @@ func (s *TagsService) MoveTagLinks(req *dto.MoveTagLinks) (*dto.CommonResponse, 
 func (s *TagsService) GetOnModerationTags(req *dto.OnModerationTagsRequest) (*dto.TagsDataResponse, error) {
 	intLimit, _ := strconv.Atoi(req.Limit)
 	intOffset, _ := strconv.Atoi(req.Offset)
-	resp, err := s.tagsClient.GetOnModerationTags(context.Background(), &microservices.OnModerationTagsRequest{
-		Limit:  int64(intLimit),
-		Offset: int64(intOffset),
-	})
+	resp, err := s.tagsClient.GetOnModerationTags(
+		context.Background(), &microservices.OnModerationTagsRequest{
+			Limit:  int64(intLimit),
+			Offset: int64(intOffset),
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -560,7 +646,13 @@ func (s *TagsService) TriggerMoveTags() error {
 	return nil
 }
 
-func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLogin string, isPremium bool, filter string, tagsMap map[string]*microservices.GetShortsResponse) *dto.Tags {
+func (s *TagsService) convertProtoToModel(
+	tag *microservices.TagItem,
+	userAuthLogin string,
+	isPremium bool,
+	filter string,
+	tagsMap map[string]*microservices.GetShortsResponse,
+) *dto.Tags {
 	var primaryTag *dto.Tags
 	var seriesTag *dto.ShortTags
 	var synonyms []dto.Tags
@@ -610,7 +702,10 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 		}
 		if tag.GetSeriesEntries() != nil || len(tag.GetSeriesEntries()) > 0 {
 			for _, entry := range tag.GetSeriesEntries() {
-				seriesEntries = append(seriesEntries, *s.convertProtoToModel(entry, userAuthLogin, isPremium, filter, tagsMap))
+				seriesEntries = append(
+					seriesEntries,
+					*s.convertProtoToModel(entry, userAuthLogin, isPremium, filter, tagsMap),
+				)
 			}
 		} else {
 			seriesEntries = []dto.Tags{}
@@ -621,7 +716,14 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 			for _, entity := range tag.Entities {
 				entityIDs = append(entityIDs, entity.EntityId)
 			}
-			resEntities, ciProps, err := s.getEntitiesByType(entitiesType, userAuthLogin, entityIDs, isPremium, filter, tagsMap)
+			resEntities, ciProps, err := s.getEntitiesByType(
+				entitiesType,
+				userAuthLogin,
+				entityIDs,
+				isPremium,
+				filter,
+				tagsMap,
+			)
 			if err != nil {
 				return nil
 			}
@@ -672,9 +774,15 @@ func (s *TagsService) convertProtoToModel(tag *microservices.TagItem, userAuthLo
 	return &dto.Tags{}
 }
 
-func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entityIDs []string, isPremium bool, filter string, tagsMap map[string]*microservices.GetShortsResponse) (*dto.Entities, *dto.CollectionItemsProps, error) {
+func (s *TagsService) getEntitiesByType(
+	entityType, authUserLogin string,
+	entityIDs []string,
+	isPremium bool,
+	filter string,
+	tagsMap map[string]*microservices.GetShortsResponse,
+) (*dto.Entities, *dto.CollectionItemsProps, error) {
 	var entities dto.Entities
-	var collectionItemsProps *dto.CollectionItemsProps = &dto.CollectionItemsProps{}
+	var collectionItemsProps = &dto.CollectionItemsProps{}
 	var filterId string
 	if entityType == "post" {
 		posts, err := s.postsService.GetPostsByIDs(context.Background(), entityIDs, authUserLogin, isPremium)
@@ -746,7 +854,14 @@ func (s *TagsService) getEntitiesByType(entityType, authUserLogin string, entity
 		counts, _ := s.ciRepo.GetCountCIByIDs(collectionIDsUUID)
 		totalPrices, _ := s.ciRepo.GetSumsByCollectionIDs(collectionIDsUUID)
 		shippingCosts, _ := s.ciRepo.GetShippingCostsByCollectionIDs(collectionIDsUUID)
-		collections, err := s.collectionRepo.GetCollectionsByIds(entityIDs, counts, totalPrices, shippingCosts, authUserLogin, tagsMap)
+		collections, err := s.collectionRepo.GetCollectionsByIds(
+			entityIDs,
+			counts,
+			totalPrices,
+			shippingCosts,
+			authUserLogin,
+			tagsMap,
+		)
 		if err != nil {
 			return nil, nil, err
 		}

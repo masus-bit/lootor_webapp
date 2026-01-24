@@ -21,12 +21,29 @@ type NotificationsService struct {
 	photosClient        *photosclient.GRPCPhotosClient
 }
 
-func NewNotificationsService(notificationsClient *notificationsclient.GRPCNotificationsClient, userRepo *repositories.UsersRepository, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository, postsClient *postsclient.GRPCPostsClient, photosClient *photosclient.GRPCPhotosClient) *NotificationsService {
+func NewNotificationsService(
+	notificationsClient *notificationsclient.GRPCNotificationsClient,
+	userRepo *repositories.UsersRepository,
+	collectionRepo *repositories.CollectionsRepository,
+	ciRepo *repositories.CiRepository,
+	postsClient *postsclient.GRPCPostsClient,
+	photosClient *photosclient.GRPCPhotosClient,
+) *NotificationsService {
 	return &NotificationsService{
-		notificationsClient: notificationsClient, userRepo: userRepo, collectionRepo: collectionRepo, ciRepo: ciRepo, postsClient: postsClient, photosClient: photosClient}
+		notificationsClient: notificationsClient,
+		userRepo:            userRepo,
+		collectionRepo:      collectionRepo,
+		ciRepo:              ciRepo,
+		postsClient:         postsClient,
+		photosClient:        photosClient,
+	}
 }
 
-func (s *NotificationsService) SendNotification(ctx context.Context, request *dto.NotificationsRequest, targetReq *dto.TargetItem) error {
+func (s *NotificationsService) SendNotification(
+	ctx context.Context,
+	request *dto.NotificationsRequest,
+	targetReq *dto.TargetItem,
+) error {
 	targetUser, _ := s.userRepo.GetUserByLogin(request.Login)
 	senderUser, _ := s.userRepo.GetUserByLogin(request.SenderLogin)
 	owner, _ := s.userRepo.GetUserByLogin(request.OwnerLogin)
@@ -78,7 +95,10 @@ func (s *NotificationsService) SendNotification(ctx context.Context, request *dt
 	return nil
 }
 
-func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, limit, offset, authUser string) (*dto.NotificationsDataResponse, error) {
+func (s *NotificationsService) GetAllNotifications(
+	ctx context.Context,
+	login, limit, offset, authUser string,
+) (*dto.NotificationsDataResponse, error) {
 	notifications, err := s.notificationsClient.GetAllNotifications(ctx, login, limit, offset)
 	if err != nil {
 		return nil, err
@@ -113,9 +133,11 @@ func (s *NotificationsService) GetAllNotifications(ctx context.Context, login, l
 	}
 
 	if len(photosIDs) > 0 {
-		photos, err := s.photosClient.GetPhotosByIDsMap(ctx, &microservices.GetByIdsRequest{
-			Ids: photosIDs,
-		})
+		photos, err := s.photosClient.GetPhotosByIDsMap(
+			ctx, &microservices.GetByIdsRequest{
+				Ids: photosIDs,
+			},
+		)
 		if err != nil {
 			return nil, err
 		}

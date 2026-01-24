@@ -34,7 +34,10 @@ func NewWLService(
 	}
 }
 
-func (s *WLService) AddItem(requestDto *dto.WishListCreateRequest, userLogin string) (*dto.WishListSingleDataResponse, error) {
+func (s *WLService) AddItem(requestDto *dto.WishListCreateRequest, userLogin string) (
+	*dto.WishListSingleDataResponse,
+	error,
+) {
 	user, err := s.userRepo.GetUserByLogin(userLogin)
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
@@ -106,7 +109,8 @@ func (s *WLService) AddItem(requestDto *dto.WishListCreateRequest, userLogin str
 		utils.EventActionCreate,
 		utils.EventTargetWL,
 		name,
-		&dto.EventsParams{TargetWLID: wlItem.ID})
+		&dto.EventsParams{TargetWLID: wlItem.ID},
+	)
 
 	if err != nil {
 		return nil, err
@@ -153,15 +157,21 @@ func (s *WLService) GetAllUserItems(userLogin string) (*dto.WishListDataResponse
 	}, nil
 }
 
-func (s *WLService) UpdatePriority(id string, req dto.WishListItemUpdatePriority, authUser string) (*dto.WishListDataResponse, error) {
+func (s *WLService) UpdatePriority(
+	id string,
+	req dto.WishListItemUpdatePriority,
+	authUser string,
+) (*dto.WishListDataResponse, error) {
 	allUsersItems, _, err := s.wlRepo.GetAllByUserLogin(authUser)
 	if err != nil {
 		return nil, err
 	}
 
-	slices.SortFunc(allUsersItems, func(a, b models.WishListItems) int {
-		return cmp.Compare(a.Priority, b.Priority)
-	})
+	slices.SortFunc(
+		allUsersItems, func(a, b models.WishListItems) int {
+			return cmp.Compare(a.Priority, b.Priority)
+		},
+	)
 
 	var targetItem models.WishListItems
 	var targetIndex int
@@ -206,9 +216,11 @@ func (s *WLService) UpdatePriority(id string, req dto.WishListItemUpdatePriority
 	targetItem.Priority = newPriority
 	newSlice = append(newSlice, targetItem)
 
-	slices.SortFunc(newSlice, func(a, b models.WishListItems) int {
-		return cmp.Compare(a.Priority, b.Priority)
-	})
+	slices.SortFunc(
+		newSlice, func(a, b models.WishListItems) int {
+			return cmp.Compare(a.Priority, b.Priority)
+		},
+	)
 
 	for _, item := range newSlice {
 		_, _, err = s.wlRepo.UpdatePriority(&item)
@@ -228,7 +240,10 @@ func (s *WLService) DeleteItem(id string) (*dto.CommonResponse, error) {
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *WLService) Update(id string, req dto.WishListUpdateRequest, login string) (*dto.WishListSingleDataResponse, error) {
+func (s *WLService) Update(id string, req dto.WishListUpdateRequest, login string) (
+	*dto.WishListSingleDataResponse,
+	error,
+) {
 	if login == "" {
 		return nil, errors.New("not authorized")
 	}

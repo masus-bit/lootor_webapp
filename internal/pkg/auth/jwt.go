@@ -48,7 +48,13 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func NewJWTService(secret string, accessExp time.Duration, refreshExp time.Duration, userRepo repositories.UsersRepository, tagsClient tagsclient.GRPCTagsClient) *JWTService {
+func NewJWTService(
+	secret string,
+	accessExp time.Duration,
+	refreshExp time.Duration,
+	userRepo repositories.UsersRepository,
+	tagsClient tagsclient.GRPCTagsClient,
+) *JWTService {
 	return &JWTService{
 		secretKey:       []byte(secret),
 		accessTokenExp:  accessExp,
@@ -70,16 +76,21 @@ func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
 		return nil, err
 	}
 
-	subTags, _ := s.tagsClient.GetTagsByIDs(context.Background(), &microservices.GetTagsByIDsRequest{Ids: userData.TagsSubscriptions})
+	subTags, _ := s.tagsClient.GetTagsByIDs(
+		context.Background(),
+		&microservices.GetTagsByIDsRequest{Ids: userData.TagsSubscriptions},
+	)
 	var resultTags []dto.SubTags
 	resultTags = make([]dto.SubTags, 0)
 	if len(subTags.GetTags()) > 0 || subTags != nil {
 		for _, tag := range subTags.GetTags() {
-			resultTags = append(resultTags, dto.SubTags{
-				ID:   tag.Id,
-				Name: tag.Name,
-				Slug: tag.Slug,
-			})
+			resultTags = append(
+				resultTags, dto.SubTags{
+					ID:   tag.Id,
+					Name: tag.Name,
+					Slug: tag.Slug,
+				},
+			)
 		}
 	}
 	// Access token
@@ -100,7 +111,12 @@ func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
 	}, nil
 }
 
-func (s *JWTService) generateToken(user TokenData, exp time.Duration, subLogins, subs []dto.SubUsers, tagsSubs []dto.SubTags) (string, error) {
+func (s *JWTService) generateToken(
+	user TokenData,
+	exp time.Duration,
+	subLogins, subs []dto.SubUsers,
+	tagsSubs []dto.SubTags,
+) (string, error) {
 	claims := Claims{
 		Login:             user.GetLogin(),
 		UserName:          user.GetUserName(),
@@ -133,12 +149,14 @@ func (s *JWTService) generateToken(user TokenData, exp time.Duration, subLogins,
 
 // ParseToken валидирует JWT токен и возвращает userID
 func (s *JWTService) ParseToken(tokenString string) (string, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected signing method")
-		}
-		return s.secretKey, nil
-	})
+	token, err := jwt.ParseWithClaims(
+		tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("unexpected signing method")
+			}
+			return s.secretKey, nil
+		},
+	)
 
 	if err != nil {
 		return "", err
@@ -152,12 +170,14 @@ func (s *JWTService) ParseToken(tokenString string) (string, error) {
 }
 
 func (s *JWTService) GetRole(tokenString string) (string, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected signing method")
-		}
-		return s.secretKey, nil
-	})
+	token, err := jwt.ParseWithClaims(
+		tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("unexpected signing method")
+			}
+			return s.secretKey, nil
+		},
+	)
 
 	if err != nil {
 		return "", err
@@ -183,12 +203,14 @@ func HashPassword(password string) (string, error) {
 	return string(hashedBytes), nil
 }
 func (s *JWTService) RenewTokenPair(refreshToken string) (*TokenPair, error) {
-	token, err := jwt.ParseWithClaims(refreshToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected signing method")
-		}
-		return s.secretKey, nil
-	})
+	token, err := jwt.ParseWithClaims(
+		refreshToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("unexpected signing method")
+			}
+			return s.secretKey, nil
+		},
+	)
 
 	if err != nil {
 		return nil, fmt.Errorf("invalid refresh token: %w", err)

@@ -116,7 +116,8 @@ func NewS3Service(redisClient *redis.Client) *StorageService {
 }
 
 func (s *StorageService) logMetrics(_ context.Context, key string, metrics *RequestMetrics) {
-	s.logger.Printf("[METRICS] key=%s cache_hit=%v cache_latency=%dµs redis_latency=%dµs s3_latency=%dµs total=%dµs size=%d error=%q",
+	s.logger.Printf(
+		"[METRICS] key=%s cache_hit=%v cache_latency=%dµs redis_latency=%dµs s3_latency=%dµs total=%dµs size=%d error=%q",
 		key,
 		metrics.CacheHit,
 		metrics.CacheLatency.Microseconds(),
@@ -255,8 +256,10 @@ func (s *StorageService) downloadFromS3Optimized(ctx context.Context, key string
 	}
 	defer resp.Body.Close()
 
-	s.logger.Printf("[S3_RESPONSE] key=%s status=%d content_length=%s",
-		key, resp.StatusCode, resp.Header.Get("Content-Length"))
+	s.logger.Printf(
+		"[S3_RESPONSE] key=%s status=%d content_length=%s",
+		key, resp.StatusCode, resp.Header.Get("Content-Length"),
+	)
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("S3 returned status: %d", resp.StatusCode)
@@ -264,8 +267,10 @@ func (s *StorageService) downloadFromS3Optimized(ctx context.Context, key string
 
 	readStart := time.Now()
 	data, err := io.ReadAll(resp.Body)
-	s.logger.Printf("[S3_READ_BODY] key=%s duration=%v size=%d",
-		key, time.Since(readStart), len(data))
+	s.logger.Printf(
+		"[S3_READ_BODY] key=%s duration=%v size=%d",
+		key, time.Since(readStart), len(data),
+	)
 
 	return data, err
 }
@@ -312,12 +317,14 @@ func extractRedisStat(info, key string) string {
 	return "0"
 }
 
-func (s *StorageService) signS3Request(_ context.Context, method, path string, headers map[string]string, body []byte) (struct {
-	url     string
-	headers map[string]string
-	method  string
-	data    []byte
-}, error) {
+func (s *StorageService) signS3Request(_ context.Context, method, path string, headers map[string]string, body []byte) (
+	struct {
+		url     string
+		headers map[string]string
+		method  string
+		data    []byte
+	}, error,
+) {
 	now := time.Now().UTC()
 	date := now.Format("20060102T150405Z")
 
@@ -328,28 +335,34 @@ func (s *StorageService) signS3Request(_ context.Context, method, path string, h
 	signedHeaders := "host;x-amz-content-sha256;x-amz-date"
 	payloadHash := "UNSIGNED-PAYLOAD"
 
-	canonicalRequest := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s",
+	canonicalRequest := fmt.Sprintf(
+		"%s\n%s\n%s\n%s\n%s\n%s",
 		method,
 		canonicalURI,
 		canonicalQueryString,
 		canonicalHeaders,
 		signedHeaders,
-		payloadHash)
+		payloadHash,
+	)
 
 	credentialScope := fmt.Sprintf("%s/%s/s3/aws4_request", now.Format("20060102"), s.region)
-	stringToSign := fmt.Sprintf("AWS4-HMAC-SHA256\n%s\n%s\n%s",
+	stringToSign := fmt.Sprintf(
+		"AWS4-HMAC-SHA256\n%s\n%s\n%s",
 		date,
 		credentialScope,
-		hex.EncodeToString(hashSHA256([]byte(canonicalRequest))))
+		hex.EncodeToString(hashSHA256([]byte(canonicalRequest))),
+	)
 
 	signingKey := getSignatureKey(s.secretAccessKey, now.Format("20060102"), s.region, "s3")
 	signature := hex.EncodeToString(hmacSHA256(signingKey, []byte(stringToSign)))
 
-	authorizationHeader := fmt.Sprintf("AWS4-HMAC-SHA256 Credential=%s/%s, SignedHeaders=%s, Signature=%s",
+	authorizationHeader := fmt.Sprintf(
+		"AWS4-HMAC-SHA256 Credential=%s/%s, SignedHeaders=%s, Signature=%s",
 		s.accessKeyID,
 		credentialScope,
 		signedHeaders,
-		signature)
+		signature,
+	)
 
 	resultHeaders := map[string]string{
 		"Host":                 host,
@@ -396,9 +409,11 @@ func getSignatureKey(key, dateStamp, regionName, serviceName string) []byte {
 
 func (s *StorageService) UploadFile(ctx context.Context, file []byte, key, contentType string) error {
 	path := "/" + key
-	signed, err := s.signS3Request(ctx, "PUT", path, map[string]string{
-		"Content-Type": contentType,
-	}, file)
+	signed, err := s.signS3Request(
+		ctx, "PUT", path, map[string]string{
+			"Content-Type": contentType,
+		}, file,
+	)
 	if err != nil {
 		return err
 	}
@@ -424,7 +439,10 @@ func (s *StorageService) UploadFile(ctx context.Context, file []byte, key, conte
 	return nil
 }
 
-func (s *StorageService) UploadOptimizedImages(ctx context.Context, files [][]byte, options UploadOptions) ([]string, error) {
+func (s *StorageService) UploadOptimizedImages(ctx context.Context, files [][]byte, options UploadOptions) (
+	[]string,
+	error,
+) {
 	var keys []string
 
 	for _, file := range files {
@@ -438,7 +456,12 @@ func (s *StorageService) UploadOptimizedImages(ctx context.Context, files [][]by
 	return keys, nil
 }
 
-func (s *StorageService) UploadOptimizedImage(ctx context.Context, file []byte, filename string, options UploadOptions) (string, error) {
+func (s *StorageService) UploadOptimizedImage(
+	ctx context.Context,
+	file []byte,
+	filename string,
+	options UploadOptions,
+) (string, error) {
 	width := options.Width
 	if width == 0 {
 		width = 1920
@@ -458,10 +481,12 @@ func (s *StorageService) UploadOptimizedImage(ctx context.Context, file []byte, 
 	}
 
 	var buf bytes.Buffer
-	err = webp.Encode(&buf, img, &webp.Options{
-		Lossless: false,
-		Quality:  float32(quality),
-	})
+	err = webp.Encode(
+		&buf, img, &webp.Options{
+			Lossless: false,
+			Quality:  float32(quality),
+		},
+	)
 	if err != nil {
 		return "", fmt.Errorf("failed to encode webp: %v", err)
 	}
@@ -565,7 +590,10 @@ func (s *StorageService) DeleteFiles(ctx context.Context, req DeleteFilesRequest
 	}, nil
 }
 
-func (s *StorageService) GenerateThumbnail(ctx context.Context, filename string, width, height, quality int) ([]byte, error) {
+func (s *StorageService) GenerateThumbnail(ctx context.Context, filename string, width, height, quality int) (
+	[]byte,
+	error,
+) {
 	originalKey := filename
 	thumbKey := fmt.Sprintf("thumbs/%dx%d/%s", width, height, filename)
 
@@ -586,9 +614,11 @@ func (s *StorageService) GenerateThumbnail(ctx context.Context, filename string,
 	resized := imaging.Resize(img, width, height, imaging.Lanczos)
 
 	var buf bytes.Buffer
-	if err := webp.Encode(&buf, resized, &webp.Options{
-		Quality: float32(quality),
-	}); err != nil {
+	if err := webp.Encode(
+		&buf, resized, &webp.Options{
+			Quality: float32(quality),
+		},
+	); err != nil {
 		return nil, fmt.Errorf("webp encode failed: %w", err)
 	}
 

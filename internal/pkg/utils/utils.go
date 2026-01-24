@@ -43,53 +43,69 @@ func DefineShareString(authorizedUser string, id string, collection *models.Coll
 	return ""
 }
 
-func GetCollectionOrderBy(orderByInput string, collections []dto.CollectionsResponse, order string) []dto.CollectionsResponse {
+func GetCollectionOrderBy(
+	orderByInput string,
+	collections []dto.CollectionsResponse,
+	order string,
+) []dto.CollectionsResponse {
 	switch orderByInput {
 	case "name":
-		slices.SortFunc(collections, func(a, b dto.CollectionsResponse) int {
-			if order == "asc" {
-				return cmp.Compare(a.Name, b.Name)
-			}
-			return cmp.Compare(b.Name, a.Name)
+		slices.SortFunc(
+			collections, func(a, b dto.CollectionsResponse) int {
+				if order == "asc" {
+					return cmp.Compare(a.Name, b.Name)
+				}
+				return cmp.Compare(b.Name, a.Name)
 
-		})
+			},
+		)
 	case "created":
-		slices.SortFunc(collections, func(a, b dto.CollectionsResponse) int {
-			if order == "asc" {
-				return cmp.Compare(a.CreatedAt.UnixNano(), b.CreatedAt.UnixNano())
-			}
-			return cmp.Compare(b.CreatedAt.UnixNano(), a.CreatedAt.UnixNano())
+		slices.SortFunc(
+			collections, func(a, b dto.CollectionsResponse) int {
+				if order == "asc" {
+					return cmp.Compare(a.CreatedAt.UnixNano(), b.CreatedAt.UnixNano())
+				}
+				return cmp.Compare(b.CreatedAt.UnixNano(), a.CreatedAt.UnixNano())
 
-		})
+			},
+		)
 	case "totalPrice":
-		slices.SortFunc(collections, func(a, b dto.CollectionsResponse) int {
-			if order == "asc" {
-				return cmp.Compare(a.TotalPrice, b.TotalPrice)
-			}
-			return cmp.Compare(b.TotalPrice, a.TotalPrice)
+		slices.SortFunc(
+			collections, func(a, b dto.CollectionsResponse) int {
+				if order == "asc" {
+					return cmp.Compare(a.TotalPrice, b.TotalPrice)
+				}
+				return cmp.Compare(b.TotalPrice, a.TotalPrice)
 
-		})
+			},
+		)
 	case "collectionItemsCount":
-		slices.SortFunc(collections, func(a, b dto.CollectionsResponse) int {
-			if order == "asc" {
-				return cmp.Compare(a.CollectionItemsCount, b.CollectionItemsCount)
-			}
-			return cmp.Compare(b.CollectionItemsCount, a.CollectionItemsCount)
+		slices.SortFunc(
+			collections, func(a, b dto.CollectionsResponse) int {
+				if order == "asc" {
+					return cmp.Compare(a.CollectionItemsCount, b.CollectionItemsCount)
+				}
+				return cmp.Compare(b.CollectionItemsCount, a.CollectionItemsCount)
 
-		})
+			},
+		)
 	case "likesCount":
-		slices.SortFunc(collections, func(a, b dto.CollectionsResponse) int {
-			if order == "asc" {
-				return cmp.Compare(a.LikesCount, b.LikesCount)
-			}
-			return cmp.Compare(b.LikesCount, a.LikesCount)
+		slices.SortFunc(
+			collections, func(a, b dto.CollectionsResponse) int {
+				if order == "asc" {
+					return cmp.Compare(a.LikesCount, b.LikesCount)
+				}
+				return cmp.Compare(b.LikesCount, a.LikesCount)
 
-		})
+			},
+		)
 	default:
-		slices.SortFunc(collections, func(a, b dto.CollectionsResponse) int {
-			return cmp.Compare(b.LikesCount, a.LikesCount)
+		slices.SortFunc(
+			collections, func(a, b dto.CollectionsResponse) int {
+				return cmp.Compare(b.LikesCount, a.LikesCount)
 
-		})
+			},
+		)
 	}
 	return collections
 }
@@ -271,7 +287,12 @@ func UsersOrder(order string) string {
 	return finalOrder
 }
 
-func FormatPost(post *microservices.PostItem, users []dto.SubUsers, author *models.Users, reactLength int) (*dto.PostDataResponse, error) {
+func FormatPost(
+	post *microservices.PostItem,
+	users []dto.SubUsers,
+	author *models.Users,
+	reactLength int,
+) (*dto.PostDataResponse, error) {
 	content := NormalizeContent(post.Content)
 
 	reacts, err := FormatReacts(post, users, reactLength)
@@ -321,11 +342,13 @@ func FormatReacts(post *microservices.PostItem, users []dto.SubUsers, reactLengt
 			if err != nil {
 				return nil, err
 			}
-			reacts[r.GetReaction()] = append(reacts[r.GetReaction()], dto.React{
-				ID:       reactUUID.String(),
-				User:     fullReactUsers[r.UserLogin],
-				Reaction: dto.ReactionType(r.Reaction),
-			})
+			reacts[r.GetReaction()] = append(
+				reacts[r.GetReaction()], dto.React{
+					ID:       reactUUID.String(),
+					User:     fullReactUsers[r.UserLogin],
+					Reaction: dto.ReactionType(r.Reaction),
+				},
+			)
 		}
 
 		for _, mapping := range reactionMapping {
@@ -390,14 +413,16 @@ func getType(tagProto *microservices.TagItemShort) string {
 func NormalizeTagsShort(tagsProto []*microservices.TagItemShort) []dto.ShortTags {
 	tempTags := make([]dto.ShortTags, 0, len(tagsProto))
 	for _, tag := range tagsProto {
-		tempTags = append(tempTags, dto.ShortTags{
-			ID:        tag.GetId(),
-			Name:      tag.GetName(),
-			Slug:      tag.GetSlug(),
-			PrimaryID: tag.GetPrimaryId(),
-			SeriesID:  tag.GetSeriesId(),
-			Type:      getType(tag),
-		})
+		tempTags = append(
+			tempTags, dto.ShortTags{
+				ID:        tag.GetId(),
+				Name:      tag.GetName(),
+				Slug:      tag.GetSlug(),
+				PrimaryID: tag.GetPrimaryId(),
+				SeriesID:  tag.GetSeriesId(),
+				Type:      getType(tag),
+			},
+		)
 	}
 
 	return tempTags
@@ -649,7 +674,11 @@ func getNextThreshold(thresholds []int, currentLevel int) (nextThreshold, maxLev
 	return thresholds[currentLevel], maxLevel, true
 }
 
-func AddAchievement(client *achievementsclient.GRPCAchievementsClient, code, userLogin string, level, xp, value int64) error {
+func AddAchievement(
+	client *achievementsclient.GRPCAchievementsClient,
+	code, userLogin string,
+	level, xp, value int64,
+) error {
 	achievement := &microservices.AddOrUpdateAchievementRequest{
 		Code:      code,
 		UserLogin: userLogin,

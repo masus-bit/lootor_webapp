@@ -16,9 +16,11 @@ func MoveTagsAndEntities(db *gorm.DB) error {
 		return fmt.Errorf("failed to create target schema '%s': %w", targetSchema, err)
 	}
 
-	moveTagsSQL := fmt.Sprintf(`INSERT INTO %s.tags (id, name, slug, is_primary, created_at, type, updated_at) 
+	moveTagsSQL := fmt.Sprintf(
+		`INSERT INTO %s.tags (id, name, slug, is_primary, created_at, type, updated_at) 
 		SELECT id, name, name as slug, true as is_primary, created_at, 'collection' as type, updated_at 
-		FROM %s.tags;`, targetSchema, sourceSchema)
+		FROM %s.tags;`, targetSchema, sourceSchema,
+	)
 
 	if err := db.Exec(moveTagsSQL).Error; err != nil {
 		return fmt.Errorf("failed to move tags from %s.tags to %s.tags: %w", sourceSchema, targetSchema, err)
@@ -30,7 +32,10 @@ func MoveTagsAndEntities(db *gorm.DB) error {
 	}
 
 	var tags []Tag
-	if err := db.Table(fmt.Sprintf("%s.tags", targetSchema)).Where("type = ?", "collection").Select("id, name").Find(&tags).Error; err != nil {
+	if err := db.Table(fmt.Sprintf("%s.tags", targetSchema)).Where(
+		"type = ?",
+		"collection",
+	).Select("id, name").Find(&tags).Error; err != nil {
 		return fmt.Errorf("failed to select tags from %s.tags: %w", targetSchema, err)
 	}
 
@@ -44,17 +49,21 @@ func MoveTagsAndEntities(db *gorm.DB) error {
 		}
 	}
 
-	moveCollectionLinksSQL := fmt.Sprintf(`INSERT INTO %s.tag_links (tag_id, entity_type, entity_id, created_at) 
+	moveCollectionLinksSQL := fmt.Sprintf(
+		`INSERT INTO %s.tag_links (tag_id, entity_type, entity_id, created_at) 
 		SELECT tags_id as tag_id, 'collection' as entity_type, collections_id as entity_id, NOW() as created_at 
-		FROM %s.tags_collections_collections;`, targetSchema, sourceSchema)
+		FROM %s.tags_collections_collections;`, targetSchema, sourceSchema,
+	)
 
 	if err := db.Exec(moveCollectionLinksSQL).Error; err != nil {
 		return fmt.Errorf("failed to move collection links to %s.tag_links: %w", targetSchema, err)
 	}
 
-	moveEntitiesSQL := fmt.Sprintf(`INSERT INTO %s.tags (id, name, slug, author, is_primary, type, created_at, updated_at) 
+	moveEntitiesSQL := fmt.Sprintf(
+		`INSERT INTO %s.tags (id, name, slug, author, is_primary, type, created_at, updated_at) 
 		SELECT id, name, id::text as slug, author, true as is_primary, 'collectionItem' as type, created_at, updated_at 
-		FROM %s.entities;`, targetSchema, sourceSchema)
+		FROM %s.entities;`, targetSchema, sourceSchema,
+	)
 
 	if err := db.Exec(moveEntitiesSQL).Error; err != nil {
 		return fmt.Errorf("failed to move entities from %s.entities to %s.tags: %w", sourceSchema, targetSchema, err)
@@ -67,7 +76,12 @@ func MoveTagsAndEntities(db *gorm.DB) error {
 	}
 
 	var entities []Entity
-	if err := db.Table(fmt.Sprintf("%s.entities", sourceSchema)).Select("id, name, transliteration").Find(&entities).Error; err != nil {
+	if err := db.Table(
+		fmt.Sprintf(
+			"%s.entities",
+			sourceSchema,
+		),
+	).Select("id, name, transliteration").Find(&entities).Error; err != nil {
 		return fmt.Errorf("failed to select entities from %s.entities: %w", sourceSchema, err)
 	}
 
@@ -86,9 +100,11 @@ func MoveTagsAndEntities(db *gorm.DB) error {
 		}
 	}
 
-	moveEntityLinksSQL := fmt.Sprintf(`INSERT INTO %s.tag_links (tag_id, entity_type, entity_id, created_at) 
+	moveEntityLinksSQL := fmt.Sprintf(
+		`INSERT INTO %s.tag_links (tag_id, entity_type, entity_id, created_at) 
 		SELECT entities_id as tag_id, 'collectionItem' as entity_type, collection_items_id as entity_id, NOW() as created_at 
-		FROM %s.entities_collection_item_collection_items;`, targetSchema, sourceSchema)
+		FROM %s.entities_collection_item_collection_items;`, targetSchema, sourceSchema,
+	)
 
 	if err := db.Exec(moveEntityLinksSQL).Error; err != nil {
 		return fmt.Errorf("failed to move entity links to %s.tag_links: %w", targetSchema, err)

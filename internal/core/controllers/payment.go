@@ -48,9 +48,11 @@ func (c *PaymentController) ConfirmPayment(ctx echo.Context) error {
 	var request payment.Notification
 
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 
 	c.payService.EndTransaction(&request)

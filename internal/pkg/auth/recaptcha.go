@@ -33,17 +33,31 @@ func (s *RecaptchaService) CheckCaptcha(token string) (*dto.CommonResponse, erro
 		"Content-Type": "application/x-www-form-urlencoded",
 	}
 
-	response, err := utils.SendRequest[ValidationResponse](utils.RequestOptions{Method: "POST", URL: url, Headers: headers, QueryParams: reqParams, Body: reqBody, File: []byte{}, BasicAuth: nil})
+	response, err := utils.SendRequest[ValidationResponse](
+		utils.RequestOptions{
+			Method:      "POST",
+			URL:         url,
+			Headers:     headers,
+			QueryParams: reqParams,
+			Body:        reqBody,
+			File:        []byte{},
+			BasicAuth:   nil,
+		},
+	)
 
 	if err != nil {
 		return nil, err
 	}
 	if response.Status == "ok" {
-		return &dto.CommonResponse{Data: dto.Resp{
-			Success: true,
-		}}, nil
+		return &dto.CommonResponse{
+			Data: dto.Resp{
+				Success: true,
+			},
+		}, nil
 	}
-	return &dto.CommonResponse{Data: dto.Resp{
-		Success: false,
-	}}, nil
+	return &dto.CommonResponse{
+		Data: dto.Resp{
+			Success: false,
+		},
+	}, nil
 }

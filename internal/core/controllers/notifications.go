@@ -36,9 +36,11 @@ func (c *NotificationsController) GetAllByLogin(ctx echo.Context) error {
 	context := ctx.Request().Context()
 	response, err := c.notificationsService.GetAllNotifications(context, authUser, limit, offset, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -54,15 +56,19 @@ func (c *NotificationsController) GetAllByLogin(ctx echo.Context) error {
 func (c *NotificationsController) ReadNotifications(ctx echo.Context) error {
 	var request dto.NotificationsReadRequest
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	response, err := c.notificationsService.ReadNotification(ctx.Request().Context(), request.IDs)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }

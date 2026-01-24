@@ -78,7 +78,10 @@ func (r *CiRepository) GetCountByUserLogin(login string) (int64, error) {
 	return count, err
 }
 
-func (r *CiRepository) UpdateCI(existsItem *models.CollectionItems, updated *models.CollectionItems) (*models.CollectionItems, error) {
+func (r *CiRepository) UpdateCI(
+	existsItem *models.CollectionItems,
+	updated *models.CollectionItems,
+) (*models.CollectionItems, error) {
 	if updated.Platform != nil {
 		err := r.db.Model(existsItem).Association("Platform").Replace(updated.Platform)
 		if err != nil {
@@ -127,44 +130,46 @@ func (r *CiRepository) UpdateCIFull(existsItem *models.CollectionItems) (*models
 	defer cancel()
 
 	var result models.CollectionItems
-	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(existsItem).Select("*").Updates(existsItem).Error; err != nil {
-			return fmt.Errorf("failed to update base fields: %w", err)
-		}
+	err := r.db.WithContext(ctx).Transaction(
+		func(tx *gorm.DB) error {
+			if err := tx.Model(existsItem).Select("*").Updates(existsItem).Error; err != nil {
+				return fmt.Errorf("failed to update base fields: %w", err)
+			}
 
-		associations := []struct {
-			name  string
-			value interface{}
-		}{
-			{"Platform", existsItem.Platform},
-			{"Collections", existsItem.Collections},
-			{"ItemType", existsItem.ItemType},
-		}
+			associations := []struct {
+				name  string
+				value interface{}
+			}{
+				{"Platform", existsItem.Platform},
+				{"Collections", existsItem.Collections},
+				{"ItemType", existsItem.ItemType},
+			}
 
-		for _, assoc := range associations {
-			if assoc.value != nil {
-				if reflect.ValueOf(assoc.value).Kind() == reflect.Slice {
-					if reflect.ValueOf(assoc.value).Len() == 0 {
-						if err := tx.Model(existsItem).Association(assoc.name).Clear(); err != nil {
-							return fmt.Errorf("failed to clear association %s: %w", assoc.name, err)
+			for _, assoc := range associations {
+				if assoc.value != nil {
+					if reflect.ValueOf(assoc.value).Kind() == reflect.Slice {
+						if reflect.ValueOf(assoc.value).Len() == 0 {
+							if err := tx.Model(existsItem).Association(assoc.name).Clear(); err != nil {
+								return fmt.Errorf("failed to clear association %s: %w", assoc.name, err)
+							}
+							continue
 						}
-						continue
+					}
+					if err := tx.Model(existsItem).Association(assoc.name).Replace(assoc.value); err != nil {
+						return fmt.Errorf("failed to update association %s: %w", assoc.name, err)
 					}
 				}
-				if err := tx.Model(existsItem).Association(assoc.name).Replace(assoc.value); err != nil {
-					return fmt.Errorf("failed to update association %s: %w", assoc.name, err)
-				}
 			}
-		}
 
-		return tx.Select("*").
-			Preload("Platform").
-			Preload("Collections").
-			Preload("ItemType").
-			Preload("Owner").
-			First(&result, "id = ?", existsItem.ID).
-			Error
-	})
+			return tx.Select("*").
+				Preload("Platform").
+				Preload("Collections").
+				Preload("ItemType").
+				Preload("Owner").
+				First(&result, "id = ?", existsItem.ID).
+				Error
+		},
+	)
 
 	if err != nil {
 		return nil, fmt.Errorf("transaction failed: %w", err)
@@ -212,8 +217,10 @@ func (r *CiRepository) SumShippingCost(collectionID uuid.UUID) (float64, error) 
 		Model(&models.CollectionItems{}).
 		Select("COALESCE(SUM(shipping_cost), 0) as sum").
 		Joins("INNER JOIN collections_collection_items_collection_items ON collections_collection_items_collection_items.collection_items_id = collection_items.id").
-		Where("collections_collection_items_collection_items.collections_id = ?",
-			collectionID).
+		Where(
+			"collections_collection_items_collection_items.collections_id = ?",
+			collectionID,
+		).
 		Where("collection_items.deleted_at IS NULL").
 		Scan(&result).Error
 
@@ -419,7 +426,10 @@ func (r *CiRepository) DecrementCommentsCount(id string, amount int) error {
 		Update("comments_count", gorm.Expr("GREATEST(COALESCE(comments_count, 0) - ?, 0)", amount)).Error
 }
 
-func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin string) (map[string]dto.CollectionItemsResponse, error) {
+func (r *CiRepository) GetCollectionItemsByIdsMap(
+	ids []string,
+	authUserLogin string,
+) (map[string]dto.CollectionItemsResponse, error) {
 	var collectionItems []models.CollectionItems
 	err := r.db.Where("id IN (?)", ids).
 		Preload("Collections").
@@ -470,7 +480,11 @@ func (r *CiRepository) GetCollectionItemsByIdsMap(ids []string, authUserLogin st
 	return collectionItemsMap, nil
 }
 
-func (r *CiRepository) GetCollectionItemsByIDs(ids []string, authUserLogin, filter string, tagsMap map[string]*microservices.GetShortsResponse) ([]dto.CollectionItemsResponse, error) {
+func (r *CiRepository) GetCollectionItemsByIDs(
+	ids []string,
+	authUserLogin, filter string,
+	tagsMap map[string]*microservices.GetShortsResponse,
+) ([]dto.CollectionItemsResponse, error) {
 	var collectionItems []models.CollectionItems
 	query := r.db.Where("id IN (?)", ids).
 		Preload("Collections").

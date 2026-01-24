@@ -24,7 +24,10 @@ func NewGRPCAchievementsClient(addr string) (*GRPCAchievementsClient, error) {
 	}, nil
 }
 
-func (c *GRPCAchievementsClient) AddOrUpdateAchievement(ctx context.Context, req *microservices.AddOrUpdateAchievementRequest) (*microservices.AddOrUpdateAchievementResponse, error) {
+func (c *GRPCAchievementsClient) AddOrUpdateAchievement(
+	ctx context.Context,
+	req *microservices.AddOrUpdateAchievementRequest,
+) (*microservices.AddOrUpdateAchievementResponse, error) {
 	resp, err := c.client.AddOrUpdateAchievement(ctx, req)
 	if err != nil {
 		return nil, err
@@ -32,14 +35,20 @@ func (c *GRPCAchievementsClient) AddOrUpdateAchievement(ctx context.Context, req
 	return resp, nil
 }
 
-func (c *GRPCAchievementsClient) GetUserAchievements(ctx context.Context, req *microservices.GetUserAchievementsRequest) (*microservices.GetUserAchievementsResponse, error) {
+func (c *GRPCAchievementsClient) GetUserAchievements(
+	ctx context.Context,
+	req *microservices.GetUserAchievementsRequest,
+) (*microservices.GetUserAchievementsResponse, error) {
 	resp, err := c.client.GetUserAchievements(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
-func (c *GRPCAchievementsClient) GetAchievedUserAchievements(ctx context.Context, req *microservices.GetUserAchievementsRequest) (*microservices.GetUserAchievementsResponse, error) {
+func (c *GRPCAchievementsClient) GetAchievedUserAchievements(
+	ctx context.Context,
+	req *microservices.GetUserAchievementsRequest,
+) (*microservices.GetUserAchievementsResponse, error) {
 	resp, err := c.client.GetAchievedUserAchievements(ctx, req)
 	if err != nil {
 		return nil, err
@@ -47,7 +56,10 @@ func (c *GRPCAchievementsClient) GetAchievedUserAchievements(ctx context.Context
 	return resp, nil
 }
 
-func (c *GRPCAchievementsClient) GetOneAchievement(ctx context.Context, req *microservices.GetOneAchievementRequest) (*microservices.GetOneAchievementResponse, error) {
+func (c *GRPCAchievementsClient) GetOneAchievement(
+	ctx context.Context,
+	req *microservices.GetOneAchievementRequest,
+) (*microservices.GetOneAchievementResponse, error) {
 	resp, err := c.client.GetOneAchievement(ctx, req)
 	if err != nil {
 		return nil, err
@@ -55,7 +67,10 @@ func (c *GRPCAchievementsClient) GetOneAchievement(ctx context.Context, req *mic
 	return resp, nil
 }
 
-func (c *GRPCAchievementsClient) GetAllAchievementsItems(ctx context.Context, req *microservices.GetAllAchievementsItemsRequest) (*microservices.GetAllAchievementsItemsResponse, error) {
+func (c *GRPCAchievementsClient) GetAllAchievementsItems(
+	ctx context.Context,
+	req *microservices.GetAllAchievementsItemsRequest,
+) (*microservices.GetAllAchievementsItemsResponse, error) {
 	resp, err := c.client.GetAllAchievementsItems(ctx, req)
 	if err != nil {
 		return nil, err
@@ -63,7 +78,10 @@ func (c *GRPCAchievementsClient) GetAllAchievementsItems(ctx context.Context, re
 	return resp, nil
 }
 
-func (c *GRPCAchievementsClient) AddZeroAchievements(ctx context.Context, req *microservices.GetUserAchievementsRequest) (*microservices.GetUserAchievementsRequest, error) {
+func (c *GRPCAchievementsClient) AddZeroAchievements(
+	ctx context.Context,
+	req *microservices.GetUserAchievementsRequest,
+) (*microservices.GetUserAchievementsRequest, error) {
 	resp, err := c.client.AddZeroAchievements(ctx, req)
 	if err != nil {
 		return nil, err

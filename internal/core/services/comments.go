@@ -22,12 +22,32 @@ type CommentsService struct {
 	photosService        *PhotosService
 }
 
-func NewCommentsService(commentsClient *commentsclient.GRPCCommentsClient, likesClient *commentsclient.GRPCLikesClient, userRepo *repositories.UsersRepository, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, ciRepo *repositories.CiRepository, postService *PostsService, photosService *PhotosService) *CommentsService {
+func NewCommentsService(
+	commentsClient *commentsclient.GRPCCommentsClient,
+	likesClient *commentsclient.GRPCLikesClient,
+	userRepo *repositories.UsersRepository,
+	notificationsService *NotificationsService,
+	collectionRepo *repositories.CollectionsRepository,
+	ciRepo *repositories.CiRepository,
+	postService *PostsService,
+	photosService *PhotosService,
+) *CommentsService {
 	return &CommentsService{
-		commentsClient: commentsClient, likesClient: likesClient, userRepo: userRepo, notificationsService: notificationsService, collectionRepo: collectionRepo, ciRepo: ciRepo, postsService: *postService, photosService: photosService}
+		commentsClient:       commentsClient,
+		likesClient:          likesClient,
+		userRepo:             userRepo,
+		notificationsService: notificationsService,
+		collectionRepo:       collectionRepo,
+		ciRepo:               ciRepo,
+		postsService:         *postService,
+		photosService:        photosService,
+	}
 }
 
-func (s *CommentsService) CreateComment(ctx context.Context, request *dto.CommentsRequest) (*dto.CommentDataResponse, error) {
+func (s *CommentsService) CreateComment(ctx context.Context, request *dto.CommentsRequest) (
+	*dto.CommentDataResponse,
+	error,
+) {
 	comment, err := s.commentsClient.CreateComment(ctx, request)
 	if err != nil {
 		return nil, err
@@ -190,15 +210,17 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 	}
 
 	go func() {
-		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
-			Login:       targetUserLogin,
-			TargetID:    request.TargetID,
-			SenderLogin: user.Login,
-			Type:        typeComment,
-			Action:      utils.NotificationActionComment,
-			Date:        time.Now().Format(time.RFC3339),
-			OwnerLogin:  ownerLogin,
-		}, targetReq)
+		err = s.notificationsService.SendNotification(
+			context.Background(), &dto.NotificationsRequest{
+				Login:       targetUserLogin,
+				TargetID:    request.TargetID,
+				SenderLogin: user.Login,
+				Type:        typeComment,
+				Action:      utils.NotificationActionComment,
+				Date:        time.Now().Format(time.RFC3339),
+				OwnerLogin:  ownerLogin,
+			}, targetReq,
+		)
 	}()
 
 	err = s.userRepo.IncrementExperience(request.Author, 1)
@@ -209,7 +231,10 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 	return &resultComment, nil
 }
 
-func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, offset, entityType string) (*dto.CommentsDataResponse, error) {
+func (s *CommentsService) GetAllComments(
+	ctx context.Context,
+	targetId, limit, offset, entityType string,
+) (*dto.CommentsDataResponse, error) {
 	comments, err := s.commentsClient.GetAllComments(ctx, targetId, limit, offset, entityType)
 	if err != nil {
 		return nil, err
@@ -292,46 +317,50 @@ func (s *CommentsService) GetAllComments(ctx context.Context, targetId, limit, o
 				ProfileName: userCh.ProfileName,
 				IsPremium:   userCh.IsPremium,
 			}
-			resultChildrenComments = append(resultChildrenComments, dto.ChildrenComments{
-				Comments: &dto.Comments{
-					ID:         c.Id,
-					Date:       c.Date,
-					TargetID:   targetId,
-					Author:     userStructCh,
-					ParentID:   c.ParentId,
-					Content:    contentChildren,
-					CreatedAt:  createdAtAsTimeCh,
-					UpdatedAt:  updatedAtAsTimeCh,
-					DeletedAt:  deletedAtStrCh,
-					EntityType: c.EntityType,
+			resultChildrenComments = append(
+				resultChildrenComments, dto.ChildrenComments{
+					Comments: &dto.Comments{
+						ID:         c.Id,
+						Date:       c.Date,
+						TargetID:   targetId,
+						Author:     userStructCh,
+						ParentID:   c.ParentId,
+						Content:    contentChildren,
+						CreatedAt:  createdAtAsTimeCh,
+						UpdatedAt:  updatedAtAsTimeCh,
+						DeletedAt:  deletedAtStrCh,
+						EntityType: c.EntityType,
+					},
+					Likes:         likesCh,
+					Dislikes:      dislikesCh,
+					LikesCount:    int(c.LikesCount),
+					DislikesCount: int(c.DislikesCount),
 				},
-				Likes:         likesCh,
-				Dislikes:      dislikesCh,
-				LikesCount:    int(c.LikesCount),
-				DislikesCount: int(c.DislikesCount),
-			})
+			)
 		}
 
-		resultComments = append(resultComments, dto.CommentsResponse{
-			Comments: &dto.Comments{
-				ID:            parsedId.String(),
-				Date:          f.Date,
-				TargetID:      targetId,
-				Author:        userStruct,
-				ParentID:      f.ParentId,
-				LikesCount:    int(f.LikesCount),
-				DislikesCount: int(f.DislikesCount),
-				Content:       content,
-				CreatedAt:     createdAtAsTime,
-				UpdatedAt:     updatedAtAsTime,
-				Likes:         likes,
-				Dislikes:      dislikes,
-				DeletedAt:     deletedAtStr,
-				EntityType:    f.EntityType,
+		resultComments = append(
+			resultComments, dto.CommentsResponse{
+				Comments: &dto.Comments{
+					ID:            parsedId.String(),
+					Date:          f.Date,
+					TargetID:      targetId,
+					Author:        userStruct,
+					ParentID:      f.ParentId,
+					LikesCount:    int(f.LikesCount),
+					DislikesCount: int(f.DislikesCount),
+					Content:       content,
+					CreatedAt:     createdAtAsTime,
+					UpdatedAt:     updatedAtAsTime,
+					Likes:         likes,
+					Dislikes:      dislikes,
+					DeletedAt:     deletedAtStr,
+					EntityType:    f.EntityType,
+				},
+				ChildrenComments: resultChildrenComments,
+				AnswersTotal:     int64(answerTotalInt),
 			},
-			ChildrenComments: resultChildrenComments,
-			AnswersTotal:     int64(answerTotalInt),
-		})
+		)
 	}
 
 	totalInt, _ := strconv.Atoi(comments.Total)
@@ -344,7 +373,10 @@ func safeAtoi64(s string) int64 {
 	return val
 }
 
-func (s *CommentsService) DeleteComment(ctx context.Context, id, targetId, authUserLogin string) (*dto.CommonResponse, error) {
+func (s *CommentsService) DeleteComment(ctx context.Context, id, targetId, authUserLogin string) (
+	*dto.CommonResponse,
+	error,
+) {
 	_, err := s.collectionRepo.GetByIdWithoutCollectionItems(targetId)
 
 	if err == nil {
@@ -407,7 +439,10 @@ func (s *CommentsService) LikeComment(ctx context.Context, id, login string, isL
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *CommentsService) DislikeComment(ctx context.Context, id, login string, isLike bool) (*dto.CommonResponse, error) {
+func (s *CommentsService) DislikeComment(ctx context.Context, id, login string, isLike bool) (
+	*dto.CommonResponse,
+	error,
+) {
 	ok, err := s.likesClient.Dislike(ctx, id, login, isLike)
 	if err != nil {
 		return nil, err
@@ -472,23 +507,25 @@ func (s *CommentsService) LoadAnswers(ctx context.Context, id, limit, offset str
 			IsPremium:   user.IsPremium,
 		}
 
-		result = append(result, dto.AnswersItem{
-			Comments: &dto.Comments{
-				ID:         f.Id,
-				Date:       f.Date,
-				TargetID:   f.TargetId,
-				Author:     userStruct,
-				ParentID:   f.ParentId,
-				Content:    utils.NormalizeContent(f.Content),
-				CreatedAt:  createdAt,
-				UpdatedAt:  updatedAt,
-				EntityType: f.EntityType,
+		result = append(
+			result, dto.AnswersItem{
+				Comments: &dto.Comments{
+					ID:         f.Id,
+					Date:       f.Date,
+					TargetID:   f.TargetId,
+					Author:     userStruct,
+					ParentID:   f.ParentId,
+					Content:    utils.NormalizeContent(f.Content),
+					CreatedAt:  createdAt,
+					UpdatedAt:  updatedAt,
+					EntityType: f.EntityType,
+				},
+				LikesCount:    int(f.LikesCount),
+				DislikesCount: int(f.DislikesCount),
+				Likes:         likes,
+				Dislikes:      dislikes,
 			},
-			LikesCount:    int(f.LikesCount),
-			DislikesCount: int(f.DislikesCount),
-			Likes:         likes,
-			Dislikes:      dislikes,
-		})
+		)
 	}
 	return &dto.AnswersDataResponse{Data: result, Total: safeAtoi64(response.Total)}, nil
 

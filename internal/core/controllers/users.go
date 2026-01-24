@@ -29,15 +29,19 @@ func (c *UserController) SignUp(ctx echo.Context) error {
 	reqCtx := ctx.Request().Context()
 
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 
 	if _, err := c.userService.SignUp(&request, reqCtx); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusCreated, request)
@@ -55,16 +59,20 @@ func (c *UserController) SignIn(ctx echo.Context) error {
 	var request dto.SignInRequest
 
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 
 	response, err := c.userService.SignIn(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusUnauthorized, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusUnauthorized, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -85,16 +93,20 @@ func (c *UserController) GetByLogin(ctx echo.Context) error {
 		UserLogin       string
 	})
 	if login == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Login parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Login parameter is required",
+			},
+		)
 	}
 
 	response, err := c.userService.GetByLogin(login, authInfo.UserLogin, authInfo.IsAuthenticated)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -119,9 +131,11 @@ func (c *UserController) GetAll(ctx echo.Context) error {
 
 	response, err := c.userService.GetAll(search, limit, offset, order)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -143,16 +157,20 @@ func (c *UserController) ChangeRating(ctx echo.Context) error {
 	}
 	login := ctx.QueryParam("login")
 	if login == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Login parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Login parameter is required",
+			},
+		)
 	}
 
 	response, err := c.userService.ChangeRating(request.IsLike, login)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -175,9 +193,11 @@ func (c *UserController) ChangePass(ctx echo.Context) error {
 	}
 	login := ctx.QueryParam("login")
 	if login == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Login parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Login parameter is required",
+			},
+		)
 	}
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
@@ -186,9 +206,11 @@ func (c *UserController) ChangePass(ctx echo.Context) error {
 	response, err := c.userService.ChangePassword(request.Password, login, authUser)
 
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -212,9 +234,11 @@ func (c *UserController) Subscribe(ctx echo.Context) error {
 	}
 	response, err := c.userService.Subscribe(login, authUser, isSubscribe == "true")
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -224,16 +248,20 @@ func (c *UserController) Verification(ctx echo.Context) error {
 	token := ctx.QueryParam("verificationToken")
 
 	if token == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "verificationToken parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "verificationToken parameter is required",
+			},
+		)
 	}
 
 	response, err := c.userService.Verification(token)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -247,9 +275,11 @@ func (c *UserController) RenewTokens(ctx echo.Context) error {
 	}
 	response, err := c.userService.RefreshTokens(request.RefreshToken)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -268,27 +298,37 @@ func (c *UserController) VkOauth(ctx echo.Context) error {
 	}
 	switch "" {
 	case code:
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Code parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Code parameter is required",
+			},
+		)
 	case codeVerifier:
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "CodeVerifier parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "CodeVerifier parameter is required",
+			},
+		)
 	case deviceId:
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "DeviceID parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "DeviceID parameter is required",
+			},
+		)
 	case state:
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "State parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "State parameter is required",
+			},
+		)
 	}
 	response, err := c.userService.VkOauth(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -299,17 +339,21 @@ func (c *UserController) TelegramOauth(ctx echo.Context) error {
 
 	err := ctx.Bind(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error бля": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error бля": err.Error(),
+			},
+		)
 	}
 
 	response, err := c.userService.TelegramOauth(&request)
 
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error бля": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error бля": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -328,16 +372,20 @@ func (c *UserController) ResetPassword(ctx echo.Context) error {
 	email := ctx.QueryParam("email")
 
 	if email == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "email parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "email parameter is required",
+			},
+		)
 	}
 
 	response, err := c.userService.ResetPassword(email)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -355,15 +403,19 @@ func (c *UserController) ChangeResetPassword(ctx echo.Context) error {
 	var request dto.ChangePasswordReset
 	err := ctx.Bind(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	response, err := c.userService.ChangeResetPassword(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -380,9 +432,11 @@ func (c *UserController) UpdateUser(ctx echo.Context) error {
 	var request dto.UserRequestUpdate
 	err := ctx.Bind(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
@@ -391,9 +445,11 @@ func (c *UserController) UpdateUser(ctx echo.Context) error {
 
 	response, err := c.userService.UpdateUser(&request, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -410,9 +466,11 @@ func (c *UserController) UpdateLogin(ctx echo.Context) error {
 	var request dto.UserRequestUpdateFirstTime
 	err := ctx.Bind(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
@@ -421,9 +479,11 @@ func (c *UserController) UpdateLogin(ctx echo.Context) error {
 
 	response, err := c.userService.UpdateOnlyOnce(&request, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -443,9 +503,11 @@ func (c *UserController) DeleteUser(ctx echo.Context) error {
 
 	response, err := c.userService.DeleteUser(authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }

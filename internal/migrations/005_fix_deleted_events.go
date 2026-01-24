@@ -6,9 +6,10 @@ import (
 )
 
 func MarkEventsDeletedForDeletedTargets(db *gorm.DB) error {
-	return db.Transaction(func(tx *gorm.DB) error {
-		queries := []string{
-			`UPDATE loot_events.events 
+	return db.Transaction(
+		func(tx *gorm.DB) error {
+			queries := []string{
+				`UPDATE loot_events.events 
              SET deleted = true 
              WHERE target_post_id IN (
                  SELECT target_post_id 
@@ -18,7 +19,7 @@ func MarkEventsDeletedForDeletedTargets(db *gorm.DB) error {
                  AND target_post_id IS NOT NULL
              )`,
 
-			`UPDATE loot_events.events 
+				`UPDATE loot_events.events 
              SET deleted = true 
              WHERE target_item_id IN (
                  SELECT target_item_id 
@@ -28,7 +29,7 @@ func MarkEventsDeletedForDeletedTargets(db *gorm.DB) error {
                  AND target_item_id IS NOT NULL
              )`,
 
-			`UPDATE loot_events.events 
+				`UPDATE loot_events.events 
              SET deleted = true 
              WHERE target_collection_id IN (
                  SELECT target_collection_id 
@@ -38,7 +39,7 @@ func MarkEventsDeletedForDeletedTargets(db *gorm.DB) error {
                  AND target_collection_id IS NOT NULL
              )`,
 
-			`UPDATE loot_events.events 
+				`UPDATE loot_events.events 
              SET deleted = true 
              WHERE target_wish_list_item_id IN (
                  SELECT target_wish_list_item_id 
@@ -47,14 +48,15 @@ func MarkEventsDeletedForDeletedTargets(db *gorm.DB) error {
                  AND event_target_type = 'wishListItem'
                  AND target_wish_list_item_id IS NOT NULL
              )`,
-		}
-
-		for i, query := range queries {
-			if err := tx.Exec(query).Error; err != nil {
-				return fmt.Errorf("failed query %d: %w", i, err)
 			}
-		}
 
-		return nil
-	})
+			for i, query := range queries {
+				if err := tx.Exec(query).Error; err != nil {
+					return fmt.Errorf("failed query %d: %w", i, err)
+				}
+			}
+
+			return nil
+		},
+	)
 }

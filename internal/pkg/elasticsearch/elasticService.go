@@ -17,6 +17,18 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
+type TagDocument struct {
+	ID                   string `json:"id"`
+	Name                 string `json:"name"`
+	Slug                 string `json:"slug"`
+	PrimaryID            string `json:"primaryId"`
+	SeriesID             string `json:"seriesId"`
+	TotalCollectionItems int64  `json:"totalCollectionItems"`
+	TotalCollections     int64  `json:"totalCollections"`
+	TotalPhotos          int64  `json:"totalPhotos"`
+	TotalPosts           int64  `json:"totalPosts"`
+}
+
 type ElasticConfig struct {
 	Address string                 `json:"address"`
 	Indices map[string]IndexConfig `json:"indices"`
@@ -71,9 +83,11 @@ func NewElasticService(configPath string) (*ElasticService, error) {
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 
-	es, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{os.Getenv("ELASTIC_URL")},
-	})
+	es, err := elasticsearch.NewClient(
+		elasticsearch.Config{
+			Addresses: []string{os.Getenv("ELASTIC_URL")},
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create elastic client: %w", err)
 	}
@@ -97,7 +111,10 @@ func NewElasticService(configPath string) (*ElasticService, error) {
 	}, nil
 }
 
-func (es *ElasticService) ReindexAll(ctx context.Context, dataProviders map[string]func() ([]map[string]interface{}, error)) error {
+func (es *ElasticService) ReindexAll(
+	ctx context.Context,
+	dataProviders map[string]func() ([]map[string]interface{}, error),
+) error {
 	for indexName, provider := range dataProviders {
 		data, err := provider()
 		if err != nil {
@@ -147,7 +164,11 @@ func (es *ElasticService) ReindexAll(ctx context.Context, dataProviders map[stri
 	return nil
 }
 
-func (es *ElasticService) bulkUpdateDocuments(ctx context.Context, indexName string, docs []map[string]interface{}) error {
+func (es *ElasticService) bulkUpdateDocuments(
+	ctx context.Context,
+	indexName string,
+	docs []map[string]interface{},
+) error {
 	var buf strings.Builder
 
 	for _, doc := range docs {
@@ -206,7 +227,12 @@ func (es *ElasticService) bulkUpdateDocuments(ctx context.Context, indexName str
 	return nil
 }
 
-func (es *ElasticService) SearchInIndices(ctx context.Context, indices []string, query string, limit string) (*SearchResultFormatted, error) {
+func (es *ElasticService) SearchInIndices(
+	ctx context.Context,
+	indices []string,
+	query string,
+	limit string,
+) (*SearchResultFormatted, error) {
 	if strings.TrimSpace(query) == "" {
 		return &SearchResultFormatted{}, nil
 	}
@@ -292,7 +318,11 @@ func (es *ElasticService) createIndex(indexName string) error {
 	return nil
 }
 
-func (es *ElasticService) bulkIndexDocuments(ctx context.Context, indexName string, docs []map[string]interface{}) error {
+func (es *ElasticService) bulkIndexDocuments(
+	ctx context.Context,
+	indexName string,
+	docs []map[string]interface{},
+) error {
 	var buf strings.Builder
 
 	for _, doc := range docs {
@@ -388,12 +418,14 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
 								{"term": map[string]interface{}{"_index": "users"}},
-								{"prefix": map[string]interface{}{
-									"login.keyword": map[string]interface{}{
-										"value":            lowerQuery,
-										"case_insensitive": true,
+								{
+									"prefix": map[string]interface{}{
+										"login.keyword": map[string]interface{}{
+											"value":            lowerQuery,
+											"case_insensitive": true,
+										},
 									},
-								}},
+								},
 							},
 							"must_not": prefixMustNot,
 						},
@@ -411,12 +443,14 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
 								{"term": map[string]interface{}{"_index": "users"}},
-								{"prefix": map[string]interface{}{
-									"profileName.keyword": map[string]interface{}{
-										"value":            lowerQuery,
-										"case_insensitive": true,
+								{
+									"prefix": map[string]interface{}{
+										"profileName.keyword": map[string]interface{}{
+											"value":            lowerQuery,
+											"case_insensitive": true,
+										},
 									},
-								}},
+								},
 							},
 							"must_not": profileNamePrefixMustNot,
 						},
@@ -451,38 +485,46 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 					{
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
-								{"bool": map[string]interface{}{
-									"should": []map[string]interface{}{
-										{"term": map[string]interface{}{"_index": "collections"}},
-										{"term": map[string]interface{}{"_index": "tags"}},
-										{"term": map[string]interface{}{"_index": "collection_items"}},
+								{
+									"bool": map[string]interface{}{
+										"should": []map[string]interface{}{
+											{"term": map[string]interface{}{"_index": "collections"}},
+											{"term": map[string]interface{}{"_index": "tags"}},
+											{"term": map[string]interface{}{"_index": "collection_items"}},
+										},
 									},
-								}},
-								{"match": map[string]interface{}{
-									"name.full": map[string]interface{}{
-										"query":    lowerQuery,
-										"operator": "or",
+								},
+								{
+									"match": map[string]interface{}{
+										"name.full": map[string]interface{}{
+											"query":    lowerQuery,
+											"operator": "or",
+										},
 									},
-								}},
+								},
 							},
 						},
 					},
 					{
 						"bool": map[string]interface{}{
 							"must": []map[string]interface{}{
-								{"bool": map[string]interface{}{
-									"should": []map[string]interface{}{
-										{"term": map[string]interface{}{"_index": "collections"}},
-										{"term": map[string]interface{}{"_index": "tags"}},
-										{"term": map[string]interface{}{"_index": "collection_items"}},
+								{
+									"bool": map[string]interface{}{
+										"should": []map[string]interface{}{
+											{"term": map[string]interface{}{"_index": "collections"}},
+											{"term": map[string]interface{}{"_index": "tags"}},
+											{"term": map[string]interface{}{"_index": "collection_items"}},
+										},
 									},
-								}},
-								{"prefix": map[string]interface{}{
-									"name.keyword": map[string]interface{}{
-										"value":            lowerQuery,
-										"case_insensitive": true,
+								},
+								{
+									"prefix": map[string]interface{}{
+										"name.keyword": map[string]interface{}{
+											"value":            lowerQuery,
+											"case_insensitive": true,
+										},
 									},
-								}},
+								},
 							},
 							"must_not": namePrefixMustNot,
 						},
@@ -495,7 +537,10 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 	}
 }
 
-func (es *ElasticService) search(ctx context.Context, indices []string, query map[string]interface{}) (*SearchResult, error) {
+func (es *ElasticService) search(ctx context.Context, indices []string, query map[string]interface{}) (
+	*SearchResult,
+	error,
+) {
 	var buf strings.Builder
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
 		return nil, err
@@ -732,21 +777,120 @@ func (es *ElasticService) GetDocument(ctx context.Context, index, id string) (ma
 }
 
 func (es *ElasticService) IncrementField(ctx context.Context, index, id, field string, increment int64) error {
-	updateBody := map[string]interface{}{
-		"script": map[string]interface{}{
-			"source": "ctx._source." + field + " += params.increment",
-			"params": map[string]interface{}{
-				"increment": increment,
-			},
+	searchBody := fmt.Sprintf(
+		`{
+		"query": {
+			"term": {
+				"id": "%s"
+			}
 		},
+		"_source": ["*"],
+		"size": 1
+	}`, id,
+	)
+
+	searchReq := esapi.SearchRequest{
+		Index: []string{index},
+		Body:  strings.NewReader(searchBody),
+	}
+
+	searchRes, err := searchReq.Do(ctx, es.client)
+	if err != nil {
+		return fmt.Errorf("search document error: %w", err)
+	}
+	defer searchRes.Body.Close()
+
+	searchBodyBytes, _ := io.ReadAll(searchRes.Body)
+
+	var tagDoc TagDocument
+
+	if searchRes.StatusCode == 200 {
+		var result map[string]interface{}
+		if err := json.Unmarshal(searchBodyBytes, &result); err != nil {
+			return fmt.Errorf("decode search response error: %w", err)
+		}
+
+		hits, ok := result["hits"].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("invalid search response format")
+		}
+
+		hitsList, ok := hits["hits"].([]interface{})
+		if !ok {
+			return fmt.Errorf("invalid hits format")
+		}
+
+		if len(hitsList) == 0 {
+			tagDoc = TagDocument{
+				ID:                   id,
+				Name:                 "",
+				Slug:                 "",
+				PrimaryID:            "",
+				SeriesID:             "",
+				TotalCollectionItems: 0,
+				TotalCollections:     0,
+				TotalPhotos:          0,
+				TotalPosts:           0,
+			}
+		} else {
+			firstHit := hitsList[0].(map[string]interface{})
+
+			if source, ok := firstHit["_source"].(map[string]interface{}); ok {
+
+				tagDoc = convertToTagDocument(source, id)
+			} else {
+				log.Printf("[ERROR] No _source in hit")
+				return fmt.Errorf("no source in document")
+			}
+		}
+	} else {
+		return parseErrorResponse(searchRes)
+	}
+
+	if tagDoc.TotalCollectionItems < 0 {
+		tagDoc.TotalCollectionItems = 0
+	}
+	if tagDoc.TotalCollections < 0 {
+		tagDoc.TotalCollections = 0
+	}
+	if tagDoc.TotalPhotos < 0 {
+		tagDoc.TotalPhotos = 0
+	}
+	if tagDoc.TotalPosts < 0 {
+		tagDoc.TotalPosts = 0
+	}
+
+	switch field {
+	case "totalCollectionItems":
+		tagDoc.TotalCollectionItems += increment
+		if tagDoc.TotalCollectionItems < 0 {
+			tagDoc.TotalCollectionItems = 0
+		}
+	case "totalCollections":
+		tagDoc.TotalCollections += increment
+		if tagDoc.TotalCollections < 0 {
+			tagDoc.TotalCollections = 0
+		}
+	case "totalPhotos":
+		tagDoc.TotalPhotos += increment
+		if tagDoc.TotalPhotos < 0 {
+			tagDoc.TotalPhotos = 0
+		}
+	case "totalPosts":
+		tagDoc.TotalPosts += increment
+		if tagDoc.TotalPosts < 0 {
+			tagDoc.TotalPosts = 0
+		}
+	default:
+		return fmt.Errorf("unknown field: %s", field)
 	}
 
 	var buf strings.Builder
-	if err := json.NewEncoder(&buf).Encode(updateBody); err != nil {
-		return fmt.Errorf("error encoding increment body: %w", err)
+	if err := json.NewEncoder(&buf).Encode(tagDoc); err != nil {
+		return fmt.Errorf("error encoding document: %w", err)
 	}
 
-	req := esapi.UpdateRequest{
+	req := esapi.IndexRequest{
 		Index:      index,
 		DocumentID: id,
 		Body:       strings.NewReader(buf.String()),
@@ -755,7 +899,7 @@ func (es *ElasticService) IncrementField(ctx context.Context, index, id, field s
 
 	res, err := req.Do(ctx, es.client)
 	if err != nil {
-		return fmt.Errorf("increment request error: %w", err)
+		return fmt.Errorf("index document error: %w", err)
 	}
 	defer res.Body.Close()
 
@@ -767,21 +911,108 @@ func (es *ElasticService) IncrementField(ctx context.Context, index, id, field s
 }
 
 func (es *ElasticService) DecrementField(ctx context.Context, index, id, field string, decrement int64) error {
-	updateBody := map[string]interface{}{
-		"script": map[string]interface{}{
-			"source": "ctx._source." + field + " -= params.decrement",
-			"params": map[string]interface{}{
-				"decrement": decrement,
-			},
+	searchBody := fmt.Sprintf(
+		`{
+		"query": {
+			"term": {
+				"id": "%s"
+			}
 		},
+		"_source": ["*"],
+		"size": 1
+	}`, id,
+	)
+
+	searchReq := esapi.SearchRequest{
+		Index: []string{index},
+		Body:  strings.NewReader(searchBody),
+	}
+
+	searchRes, err := searchReq.Do(ctx, es.client)
+	if err != nil {
+		return fmt.Errorf("search document error: %w", err)
+	}
+	defer searchRes.Body.Close()
+
+	searchBodyBytes, _ := io.ReadAll(searchRes.Body)
+
+	var tagDoc TagDocument
+
+	if searchRes.StatusCode == 200 {
+		var result map[string]interface{}
+		if err := json.Unmarshal(searchBodyBytes, &result); err != nil {
+			return fmt.Errorf("decode search response error: %w", err)
+		}
+
+		hits, ok := result["hits"].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("invalid search response format")
+		}
+
+		hitsList, ok := hits["hits"].([]interface{})
+		if !ok || len(hitsList) == 0 {
+			tagDoc = TagDocument{
+				ID:                   id,
+				Name:                 "",
+				Slug:                 "",
+				PrimaryID:            "",
+				SeriesID:             "",
+				TotalCollectionItems: 0,
+				TotalCollections:     0,
+				TotalPhotos:          0,
+				TotalPosts:           0,
+			}
+		} else {
+			firstHit := hitsList[0].(map[string]interface{})
+			if source, ok := firstHit["_source"].(map[string]interface{}); ok {
+				tagDoc = convertToTagDocument(source, id)
+			}
+		}
+	} else {
+		return parseErrorResponse(searchRes)
+	}
+
+	var newValue int64
+
+	switch field {
+	case "totalCollectionItems":
+		newValue = tagDoc.TotalCollectionItems - decrement
+		if newValue < 0 {
+			newValue = 0
+		}
+		tagDoc.TotalCollectionItems = newValue
+
+	case "totalCollections":
+		newValue = tagDoc.TotalCollections - decrement
+		if newValue < 0 {
+			newValue = 0
+		}
+		tagDoc.TotalCollections = newValue
+
+	case "totalPhotos":
+		newValue = tagDoc.TotalPhotos - decrement
+		if newValue < 0 {
+			newValue = 0
+		}
+		tagDoc.TotalPhotos = newValue
+
+	case "totalPosts":
+		newValue = tagDoc.TotalPosts - decrement
+		if newValue < 0 {
+			newValue = 0
+		}
+		tagDoc.TotalPosts = newValue
+
+	default:
+		return fmt.Errorf("unknown field: %s", field)
 	}
 
 	var buf strings.Builder
-	if err := json.NewEncoder(&buf).Encode(updateBody); err != nil {
-		return fmt.Errorf("error encoding decrement body: %w", err)
+	if err := json.NewEncoder(&buf).Encode(tagDoc); err != nil {
+		return fmt.Errorf("error encoding document: %w", err)
 	}
 
-	req := esapi.UpdateRequest{
+	req := esapi.IndexRequest{
 		Index:      index,
 		DocumentID: id,
 		Body:       strings.NewReader(buf.String()),
@@ -790,15 +1021,86 @@ func (es *ElasticService) DecrementField(ctx context.Context, index, id, field s
 
 	res, err := req.Do(ctx, es.client)
 	if err != nil {
-		return fmt.Errorf("decrement request error: %w", err)
+		return fmt.Errorf("index document error: %w", err)
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
 		return parseErrorResponse(res)
 	}
-
 	return nil
+}
+
+func convertToTagDocument(source map[string]interface{}, id string) TagDocument {
+	doc := TagDocument{
+		ID:                   id,
+		Name:                 "",
+		Slug:                 "",
+		PrimaryID:            "",
+		SeriesID:             "",
+		TotalCollectionItems: 0,
+		TotalCollections:     0,
+		TotalPhotos:          0,
+		TotalPosts:           0,
+	}
+
+	if v, ok := source["name"]; ok {
+		if s, isString := v.(string); isString {
+			doc.Name = s
+		}
+	}
+
+	if v, ok := source["slug"]; ok {
+		if s, isString := v.(string); isString {
+			doc.Slug = s
+		}
+	}
+
+	if v, ok := source["primaryId"]; ok {
+		if s, isString := v.(string); isString {
+			doc.PrimaryID = s
+		}
+	}
+
+	if v, ok := source["seriesId"]; ok {
+		if s, isString := v.(string); isString {
+			doc.SeriesID = s
+		}
+	}
+
+	if v, ok := source["totalCollectionItems"]; ok {
+		doc.TotalCollectionItems = toInt64(v)
+	}
+
+	if v, ok := source["totalCollections"]; ok {
+		doc.TotalCollections = toInt64(v)
+	}
+
+	if v, ok := source["totalPhotos"]; ok {
+		doc.TotalPhotos = toInt64(v)
+	}
+
+	if v, ok := source["totalPosts"]; ok {
+		doc.TotalPosts = toInt64(v)
+	}
+
+	return doc
+}
+
+func toInt64(v interface{}) int64 {
+	switch val := v.(type) {
+	case float64:
+		return int64(val)
+	case int64:
+		return val
+	case int:
+		return int64(val)
+	case json.Number:
+		if intVal, err := val.Int64(); err == nil {
+			return intVal
+		}
+	}
+	return 0
 }
 
 func (es *ElasticService) UpdateDocument(ctx context.Context, index, id string, fields map[string]interface{}) error {

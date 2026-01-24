@@ -25,9 +25,11 @@ func NewPostsController(postService services.PostsService) *PostsController {
 func (c *PostsController) CreatePost(ctx echo.Context) error {
 	var request dto.PostRequest
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 
 	authUser, ok := ctx.Get("user_login").(string)
@@ -39,9 +41,11 @@ func (c *PostsController) CreatePost(ctx echo.Context) error {
 	context := ctx.Request().Context()
 	response, err := c.postService.CreatePost(context, &request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -66,9 +70,11 @@ func (c *PostsController) GetAllPosts(ctx echo.Context) error {
 	})
 	response, err := c.postService.GetAllPosts(ctx.Request().Context(), order, limit, offset, authInfo.UserLogin)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -94,16 +100,27 @@ func (c *PostsController) GetPostsByUser(ctx echo.Context) error {
 		UserLogin       string
 	})
 	if isDraft == "true" && authInfo.UserLogin != login {
-		return ctx.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "Unauthorized. You can only get your own draft posts.",
-		})
+		return ctx.JSON(
+			http.StatusUnauthorized, map[string]string{
+				"error": "Unauthorized. You can only get your own draft posts.",
+			},
+		)
 
 	}
-	response, err := c.postService.GetPostsByUser(ctx.Request().Context(), login, limit, offset, authInfo.UserLogin, isDraft == "true")
+	response, err := c.postService.GetPostsByUser(
+		ctx.Request().Context(),
+		login,
+		limit,
+		offset,
+		authInfo.UserLogin,
+		isDraft == "true",
+	)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -125,9 +142,11 @@ func (c *PostsController) GetPostById(ctx echo.Context) error {
 	uintId, _ := strconv.ParseUint(id, 10, 64)
 	response, err := c.postService.GetPostById(ctx.Request().Context(), uintId, authInfo.UserLogin)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -148,9 +167,11 @@ func (c *PostsController) GetPostByTranslit(ctx echo.Context) error {
 	})
 	response, err := c.postService.GetPostByTranslit(ctx.Request().Context(), translit, authInfo.UserLogin)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -179,9 +200,11 @@ func (c *PostsController) React(ctx echo.Context) error {
 	}
 	response, err := c.postService.React(ctx.Request().Context(), &request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -210,9 +233,11 @@ func (c *PostsController) DeleteReact(ctx echo.Context) error {
 	}
 	response, err := c.postService.Unreact(ctx.Request().Context(), &request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -235,9 +260,11 @@ func (c *PostsController) Delete(ctx echo.Context) error {
 
 	response, err := c.postService.DeletePost(ctx.Request().Context(), uintId, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -254,9 +281,11 @@ func (c *PostsController) UpdatePost(ctx echo.Context) error {
 	var request dto.PostUpdateRequest
 	id := ctx.Param("id")
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	uintId, _ := strconv.ParseUint(id, 10, 64)
 	authUser, ok := ctx.Get("user_login").(string)
@@ -267,9 +296,11 @@ func (c *PostsController) UpdatePost(ctx echo.Context) error {
 	request.ID = uintId
 	response, err := c.postService.UpdatePost(ctx.Request().Context(), &request, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -285,15 +316,19 @@ func (c *PostsController) UpdatePost(ctx echo.Context) error {
 func (c *PostsController) IncrementViews(ctx echo.Context) error {
 	var request dto.IncrementRequestInput
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	response, err := c.postService.IncrementViews(ctx.Request().Context(), &request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }

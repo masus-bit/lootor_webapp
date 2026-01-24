@@ -90,14 +90,16 @@ func (s *FeedService) GetAllFeed(ctx context.Context, limit, offset string) (*dt
 		createdAtAsTime, _ := time.Parse(time.RFC3339, f.CreatedAt)
 		updatedAtAsTime, _ := time.Parse(time.RFC3339, f.UpdatedAt)
 
-		resultFeed = append(resultFeed, dto.Feed{
-			ID:        parsedId,
-			Type:      f.Type,
-			Date:      f.Date,
-			Content:   content,
-			CreatedAt: createdAtAsTime,
-			UpdatedAt: updatedAtAsTime,
-		})
+		resultFeed = append(
+			resultFeed, dto.Feed{
+				ID:        parsedId,
+				Type:      f.Type,
+				Date:      f.Date,
+				Content:   content,
+				CreatedAt: createdAtAsTime,
+				UpdatedAt: updatedAtAsTime,
+			},
+		)
 	}
 
 	totalInt, _ := strconv.Atoi(feed.Total)

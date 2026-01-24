@@ -29,9 +29,11 @@ func (c *CIController) CreateCollectionItem(ctx echo.Context) error {
 	var request dto.CollectionItemsRequestCreate
 
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
@@ -40,9 +42,11 @@ func (c *CIController) CreateCollectionItem(ctx echo.Context) error {
 
 	value, err := c.ciService.Create(&request, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusCreated, value)
@@ -59,16 +63,20 @@ func (c *CIController) CreateCollectionItem(ctx echo.Context) error {
 func (c *CIController) DeleteCollectionItem(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	if id == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "ID parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "ID parameter is required",
+			},
+		)
 	}
 
 	value, err := c.ciService.Delete(id, ctx.Request().Context())
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, value)
@@ -87,9 +95,11 @@ func (c *CIController) UpdateCollectionItem(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 
 	authUser, ok := ctx.Get("user_login").(string)
@@ -99,9 +109,11 @@ func (c *CIController) UpdateCollectionItem(ctx echo.Context) error {
 
 	value, err := c.enrichedService.Update(id, &request, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, value)
 }
@@ -117,9 +129,11 @@ func (c *CIController) UpdateCollectionItem(ctx echo.Context) error {
 func (c *CIController) GetCollectionItem(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	if id == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "ID parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "ID parameter is required",
+			},
+		)
 	}
 	authInfo := ctx.Get("auth_info").(struct {
 		IsAuthenticated bool
@@ -128,9 +142,11 @@ func (c *CIController) GetCollectionItem(ctx echo.Context) error {
 
 	response, err := c.enrichedService.GetByID(id, authInfo.UserLogin)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -148,16 +164,20 @@ func (c *CIController) CopyOrMoveCollectionItem(ctx echo.Context) error {
 	var request dto.CollectionItemsCopyOrMoveRequest
 
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 
 	value, err := c.ciService.CopyOrMove(request.ID, request.TargetCollectionIDs, request.SourceCollectionID)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, value)
 }
@@ -173,9 +193,11 @@ func (c *CIController) CopyOrMoveCollectionItem(ctx echo.Context) error {
 func (c *CIController) Like(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	if id == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "ID parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "ID parameter is required",
+			},
+		)
 	}
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
@@ -183,9 +205,11 @@ func (c *CIController) Like(ctx echo.Context) error {
 	}
 	response, err := c.ciService.Like(id, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -208,9 +232,11 @@ func (c *CIController) GetAll(ctx echo.Context) error {
 
 	response, err := c.ciService.GetAll(limit, offset, search)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)

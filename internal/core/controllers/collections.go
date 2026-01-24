@@ -27,16 +27,20 @@ func (c *CollectionsController) CreateCollection(ctx echo.Context) error {
 	var request dto.CollectionCreateRequest
 
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 
 	result, err := c.colService.Create(&request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusCreated, result)
@@ -45,16 +49,20 @@ func (c *CollectionsController) CreateCollection(ctx echo.Context) error {
 func (c *CollectionsController) DeleteCollection(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	if id == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "ID parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "ID parameter is required",
+			},
+		)
 	}
 
 	value, err := c.colService.Delete(id, ctx.Request().Context())
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, value)
@@ -73,16 +81,20 @@ func (c *CollectionsController) UpdateCollection(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 
 	value, err := c.colService.Update(id, &request)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, value)
 }
@@ -104,9 +116,11 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 	order := ctx.QueryParam("order")
 	search := ctx.QueryParam("search")
 	if login == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Login parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Login parameter is required",
+			},
+		)
 	}
 	authInfo := ctx.Get("auth_info").(struct {
 		IsAuthenticated bool
@@ -114,9 +128,11 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 	})
 	response, err := c.colService.GetByUserLogin(login, authInfo.UserLogin, orderBy, order, search)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -147,9 +163,11 @@ func (c *CollectionsController) GetAll(ctx echo.Context) error {
 	})
 	response, err := c.colService.GetAll(authInfo.UserLogin, orderBy, order, search, limit, offset)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -186,11 +204,24 @@ func (c *CollectionsController) GetOneByFewParams(ctx echo.Context) error {
 		UserLogin       string
 	})
 
-	response, err := c.colService.GetOne(authInfo.UserLogin, id, transliteration, userLogin, shareString, limit, offset, orderBy, order, search)
+	response, err := c.colService.GetOne(
+		authInfo.UserLogin,
+		id,
+		transliteration,
+		userLogin,
+		shareString,
+		limit,
+		offset,
+		orderBy,
+		order,
+		search,
+	)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)
@@ -207,9 +238,11 @@ func (c *CollectionsController) GetOneByFewParams(ctx echo.Context) error {
 func (c *CollectionsController) Like(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	if id == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "ID parameter is required",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "ID parameter is required",
+			},
+		)
 	}
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
@@ -217,9 +250,11 @@ func (c *CollectionsController) Like(ctx echo.Context) error {
 	}
 	response, err := c.colService.Like(id, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 
 	return ctx.JSON(http.StatusOK, response)

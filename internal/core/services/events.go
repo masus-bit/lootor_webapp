@@ -27,7 +27,16 @@ type EventsService struct {
 	photosClient        *photosclient.GRPCPhotosClient
 }
 
-func NewEventsService(userRepo *repositories.UsersRepository, eventClient *eventsclient.GRPCEventsClient, collectionRepo *repositories.CollectionsRepository, collectionItemsRepo *repositories.CiRepository, postService *postsclient.GRPCPostsClient, wishListRepo *repositories.WLRepository, tagsClient *tagsclient.GRPCTagsClient, photosClient *photosclient.GRPCPhotosClient) *EventsService {
+func NewEventsService(
+	userRepo *repositories.UsersRepository,
+	eventClient *eventsclient.GRPCEventsClient,
+	collectionRepo *repositories.CollectionsRepository,
+	collectionItemsRepo *repositories.CiRepository,
+	postService *postsclient.GRPCPostsClient,
+	wishListRepo *repositories.WLRepository,
+	tagsClient *tagsclient.GRPCTagsClient,
+	photosClient *photosclient.GRPCPhotosClient,
+) *EventsService {
 	return &EventsService{
 		userRepo:            userRepo,
 		eventClient:         eventClient,
@@ -41,22 +50,24 @@ func NewEventsService(userRepo *repositories.UsersRepository, eventClient *event
 }
 
 func (s *EventsService) AddEvent(userLogin, action, target, title string, params *dto.EventsParams) error {
-	ok, err := s.eventClient.AddEvent(context.Background(), &dto.AddEventRequest{
-		Action:          action,
-		EventTargetType: target,
-		TargetName:      title,
-		InitiatorLogin:  userLogin,
-		Params: dto.EventsParamsStrings{
-			TargetUserLogin:      params.TargetUserLogin,
-			TargetCollectionID:   params.TargetCollectionID.String(),
-			TargetItemID:         params.TargetItemID.String(),
-			TargetWLID:           params.TargetWLID.String(),
-			TargetPostID:         params.TargetPostID,
-			TargetTagID:          params.TargetTagID.String(),
-			TagRelatedEntityType: params.TagRelatedEntityType,
-			TargetPhotoID:        params.TargetPhotoID,
+	ok, err := s.eventClient.AddEvent(
+		context.Background(), &dto.AddEventRequest{
+			Action:          action,
+			EventTargetType: target,
+			TargetName:      title,
+			InitiatorLogin:  userLogin,
+			Params: dto.EventsParamsStrings{
+				TargetUserLogin:      params.TargetUserLogin,
+				TargetCollectionID:   params.TargetCollectionID.String(),
+				TargetItemID:         params.TargetItemID.String(),
+				TargetWLID:           params.TargetWLID.String(),
+				TargetPostID:         params.TargetPostID,
+				TargetTagID:          params.TargetTagID.String(),
+				TagRelatedEntityType: params.TagRelatedEntityType,
+				TargetPhotoID:        params.TargetPhotoID,
+			},
 		},
-	})
+	)
 	if err != nil {
 		return err
 	}
@@ -66,7 +77,10 @@ func (s *EventsService) AddEvent(userLogin, action, target, title string, params
 	return nil
 }
 
-func (s *EventsService) GetEvents(authUserLogin, limit, offset string, eventTargetTypes, actions []string) (*dto.EventsDataResponse, error) {
+func (s *EventsService) GetEvents(
+	authUserLogin, limit, offset string,
+	eventTargetTypes, actions []string,
+) (*dto.EventsDataResponse, error) {
 	dbUser, err := s.userRepo.GetUserByLogin(authUserLogin)
 	if err != nil {
 		return nil, err
@@ -75,14 +89,16 @@ func (s *EventsService) GetEvents(authUserLogin, limit, offset string, eventTarg
 	var totalCount int64
 	subscriptions := dbUser.Subscriptions
 	if subscriptions != nil {
-		evs, err := s.eventClient.GetEvents(context.Background(), &dto.GetEventsRequest{
-			Limit:             limit,
-			Offset:            offset,
-			Subscriptions:     subscriptions,
-			Actions:           actions,
-			EventTargetTypes:  eventTargetTypes,
-			TagsSubscriptions: dbUser.TagsSubscriptions,
-		})
+		evs, err := s.eventClient.GetEvents(
+			context.Background(), &dto.GetEventsRequest{
+				Limit:             limit,
+				Offset:            offset,
+				Subscriptions:     subscriptions,
+				Actions:           actions,
+				EventTargetTypes:  eventTargetTypes,
+				TagsSubscriptions: dbUser.TagsSubscriptions,
+			},
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -92,7 +108,10 @@ func (s *EventsService) GetEvents(authUserLogin, limit, offset string, eventTarg
 	return &dto.EventsDataResponse{Data: events, Total: totalCount}, nil
 }
 
-func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionItem, wlId, limit, offset, authUserLogin, tagId string) (*dto.EventsDataResponse, error) {
+func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionItem, wlId, limit, offset, authUserLogin, tagId string) (
+	*dto.EventsDataResponse,
+	error,
+) {
 	dbUser, _ := s.userRepo.GetUserByLogin(authUserLogin)
 	var collectionItemIDs []string
 	var err error
@@ -102,16 +121,18 @@ func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionIte
 			return nil, err
 		}
 	}
-	evs, err := s.eventClient.GetFilteredEvents(context.Background(), &dto.GetFilteredEventsRequest{
-		UserLogin:         userLogin,
-		CollectionID:      collectionId,
-		CollectionItemID:  collectionItem,
-		WishListItemID:    wlId,
-		Limit:             limit,
-		Offset:            offset,
-		CollectionItemIDs: collectionItemIDs,
-		TagID:             tagId,
-	})
+	evs, err := s.eventClient.GetFilteredEvents(
+		context.Background(), &dto.GetFilteredEventsRequest{
+			UserLogin:         userLogin,
+			CollectionID:      collectionId,
+			CollectionItemID:  collectionItem,
+			WishListItemID:    wlId,
+			Limit:             limit,
+			Offset:            offset,
+			CollectionItemIDs: collectionItemIDs,
+			TagID:             tagId,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +147,11 @@ func (s *EventsService) GetFilteredEvents(userLogin, collectionId, collectionIte
 	return &dto.EventsDataResponse{Data: events, Total: evs.Total}, nil
 }
 
-func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, authUserLogin string, isPremium bool) []dto.Events {
+func (s *EventsService) normalizeEvents(
+	events []*microservices.EventsItem,
+	authUserLogin string,
+	isPremium bool,
+) []dto.Events {
 
 	var normalizedEvents []dto.Events
 	var userLogins []string
@@ -204,9 +229,11 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		for i, id := range collectionIDs {
 			collectionIDsUUID[i], _ = uuid.Parse(id)
 		}
-		tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
-			EntityIds: collectionIDs,
-		})
+		tags, err := s.tagsClient.GetTagsByEntityIdsMap(
+			context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+				EntityIds: collectionIDs,
+			},
+		)
 		if err != nil {
 			return
 		}
@@ -216,14 +243,22 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		counts, _ := s.collectionItemsRepo.GetCountCIByIDs(collectionIDsUUID)
 		totalPrices, _ := s.collectionItemsRepo.GetSumsByCollectionIDs(collectionIDsUUID)
 		shippingCosts, _ := s.collectionItemsRepo.GetShippingCostsByCollectionIDs(collectionIDsUUID)
-		collectionsMap, _ = s.collectionsRepo.GetCollectionsByIdsMap(collectionIDs, counts, totalPrices, shippingCosts, authUserLogin)
+		collectionsMap, _ = s.collectionsRepo.GetCollectionsByIdsMap(
+			collectionIDs,
+			counts,
+			totalPrices,
+			shippingCosts,
+			authUserLogin,
+		)
 	}()
 	go func() {
 		defer wg.Done()
 		itemsMap, _ = s.collectionItemsRepo.GetCollectionItemsByIdsMap(itemIDs, authUserLogin)
-		tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
-			EntityIds: itemIDs,
-		})
+		tags, err := s.tagsClient.GetTagsByEntityIdsMap(
+			context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+				EntityIds: itemIDs,
+			},
+		)
 		if err != nil {
 			return
 		}
@@ -237,9 +272,11 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 	}()
 	go func() {
 		defer wg.Done()
-		photos, _ := s.photosClient.GetPhotosByIDsMap(context.Background(), &microservices.GetByIdsRequest{
-			Ids: photoIDs,
-		})
+		photos, _ := s.photosClient.GetPhotosByIDsMap(
+			context.Background(), &microservices.GetByIdsRequest{
+				Ids: photoIDs,
+			},
+		)
 		var authors []string
 		var collectionsPhotoIds []string
 		var collectionsPhotoMap map[string]dto.CollectionShort
@@ -268,9 +305,11 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 				}
 			}
 		}
-		tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
-			EntityIds: itemIDs,
-		})
+		tags, err := s.tagsClient.GetTagsByEntityIdsMap(
+			context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+				EntityIds: itemIDs,
+			},
+		)
 		if err != nil {
 			return
 		}
@@ -327,9 +366,11 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 		}
 		go func() {
 			defer wg.Done()
-			tagsRaw, err := s.tagsClient.GetTagsByIdsMap(context.Background(), &microservices.GetTagsByIDsRequest{
-				Ids: tagIDs,
-			})
+			tagsRaw, err := s.tagsClient.GetTagsByIdsMap(
+				context.Background(), &microservices.GetTagsByIDsRequest{
+					Ids: tagIDs,
+				},
+			)
 			if err != nil {
 				return
 			}
@@ -346,9 +387,11 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 			}
 
 		}()
-		tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
-			EntityIds: postIDs,
-		})
+		tags, err := s.tagsClient.GetTagsByEntityIdsMap(
+			context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+				EntityIds: postIDs,
+			},
+		)
 		if err != nil {
 			return
 		}
@@ -467,7 +510,13 @@ func (s *EventsService) normalizeEvents(events []*microservices.EventsItem, auth
 func toShortTags(tags []*microservices.TagItemShort) []dto.ShortTags {
 	result := make([]dto.ShortTags, len(tags))
 	for i, t := range tags {
-		result[i] = dto.ShortTags{ID: t.GetId(), Name: t.GetName(), Slug: t.GetSlug(), PrimaryID: t.GetPrimaryId(), SeriesID: t.GetSeriesId()}
+		result[i] = dto.ShortTags{
+			ID:        t.GetId(),
+			Name:      t.GetName(),
+			Slug:      t.GetSlug(),
+			PrimaryID: t.GetPrimaryId(),
+			SeriesID:  t.GetSeriesId(),
+		}
 	}
 	return result
 }

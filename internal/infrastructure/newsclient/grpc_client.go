@@ -26,14 +26,20 @@ func NewGRPCClient(addr string) (*GRPCClient, error) {
 	}, nil
 }
 
-func (c *GRPCClient) CreateNews(ctx context.Context, feedType, date string, content datatypes.JSON) (*microservices.NewsResponse, error) {
+func (c *GRPCClient) CreateNews(
+	ctx context.Context,
+	feedType, date string,
+	content datatypes.JSON,
+) (*microservices.NewsResponse, error) {
 	normalizedContent, _ := utils.GormJSONToProtoStruct(content)
 
-	resp, err := c.client.CreateNews(ctx, &microservices.CreateNewsRequest{
-		Content: normalizedContent,
-		Date:    date,
-		Type:    feedType,
-	})
+	resp, err := c.client.CreateNews(
+		ctx, &microservices.CreateNewsRequest{
+			Content: normalizedContent,
+			Date:    date,
+			Type:    feedType,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -41,9 +47,11 @@ func (c *GRPCClient) CreateNews(ctx context.Context, feedType, date string, cont
 }
 
 func (c *GRPCClient) GetNews(ctx context.Context, id string) (*microservices.GetNewsByIdResponse, error) {
-	return c.client.GetNewsById(ctx, &microservices.GetNewsByIdRequest{
-		Id: id,
-	})
+	return c.client.GetNewsById(
+		ctx, &microservices.GetNewsByIdRequest{
+			Id: id,
+		},
+	)
 }
 
 func (c *GRPCClient) GetAllNews(ctx context.Context, limit, offset string) (*microservices.GetAllNewsResponse, error) {
@@ -51,19 +59,27 @@ func (c *GRPCClient) GetAllNews(ctx context.Context, limit, offset string) (*mic
 }
 
 func (c *GRPCClient) DeleteNews(ctx context.Context, id string) (*microservices.DeleteNewsResponse, error) {
-	return c.client.DeleteNews(ctx, &microservices.DeleteNewsRequest{
-		Id: id,
-	})
+	return c.client.DeleteNews(
+		ctx, &microservices.DeleteNewsRequest{
+			Id: id,
+		},
+	)
 }
 
-func (c *GRPCClient) UpdateNews(ctx context.Context, id, feedType, date string, content datatypes.JSON) (*microservices.UpdateNewsResponse, error) {
+func (c *GRPCClient) UpdateNews(
+	ctx context.Context,
+	id, feedType, date string,
+	content datatypes.JSON,
+) (*microservices.UpdateNewsResponse, error) {
 	normalizedContent, _ := utils.GormJSONToProtoStruct(content)
-	return c.client.UpdateNews(ctx, &microservices.UpdateNewsRequest{
-		Content: normalizedContent,
-		Date:    date,
-		Id:      id,
-		Type:    feedType,
-	})
+	return c.client.UpdateNews(
+		ctx, &microservices.UpdateNewsRequest{
+			Content: normalizedContent,
+			Date:    date,
+			Id:      id,
+			Type:    feedType,
+		},
+	)
 }
 
 func (c *GRPCClient) Close() {

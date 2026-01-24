@@ -16,7 +16,10 @@ func NewFeedbackService() *FBService {
 	return &FBService{}
 }
 
-func (s *FBService) AddIssue(title string, description string, file []byte, authUserLogin string) (*dto.CommonResponse, error) {
+func (s *FBService) AddIssue(title string, description string, file []byte, authUserLogin string) (
+	*dto.CommonResponse,
+	error,
+) {
 
 	description = description + "\n\n\n__________\n\nЛогин пользователя: " + authUserLogin
 	response, err := s.SendTextTicket(title, description, false)
@@ -26,7 +29,8 @@ func (s *FBService) AddIssue(title string, description string, file []byte, auth
 
 	if file != nil {
 
-		attachReqURL := fmt.Sprintf("%s/%s/attachments",
+		attachReqURL := fmt.Sprintf(
+			"%s/%s/attachments",
 			os.Getenv("TRELLO_API_URL"),
 			response.ID,
 		)
@@ -36,7 +40,17 @@ func (s *FBService) AddIssue(title string, description string, file []byte, auth
 			"token": os.Getenv("TRELLO_TOKEN"),
 		}
 
-		_, attachErr := utils.SendRequest[any](utils.RequestOptions{Method: "POST", URL: attachReqURL, Headers: map[string]string{}, QueryParams: attachReqParams, Body: map[string]string{}, File: file, BasicAuth: nil})
+		_, attachErr := utils.SendRequest[any](
+			utils.RequestOptions{
+				Method:      "POST",
+				URL:         attachReqURL,
+				Headers:     map[string]string{},
+				QueryParams: attachReqParams,
+				Body:        map[string]string{},
+				File:        file,
+				BasicAuth:   nil,
+			},
+		)
 
 		if attachErr != nil {
 			return nil, fmt.Errorf("failed to request attach: %w", err)
@@ -46,9 +60,11 @@ func (s *FBService) AddIssue(title string, description string, file []byte, auth
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *FBService) SendTextTicket(title string, description string, isReports bool) (*struct {
-	ID string `json:"id"`
-}, error) {
+func (s *FBService) SendTextTicket(title string, description string, isReports bool) (
+	*struct {
+		ID string `json:"id"`
+	}, error,
+) {
 
 	var listID string
 	if isReports {
@@ -74,7 +90,17 @@ func (s *FBService) SendTextTicket(title string, description string, isReports b
 
 	response, err := utils.SendRequest[struct {
 		ID string `json:"id"`
-	}](utils.RequestOptions{Method: "POST", URL: os.Getenv("TRELLO_API_URL"), Headers: headers, QueryParams: reqParams, Body: reqBody, File: []byte{}, BasicAuth: nil})
+	}](
+		utils.RequestOptions{
+			Method:      "POST",
+			URL:         os.Getenv("TRELLO_API_URL"),
+			Headers:     headers,
+			QueryParams: reqParams,
+			Body:        reqBody,
+			File:        []byte{},
+			BasicAuth:   nil,
+		},
+	)
 
 	if err != nil {
 		return nil, err

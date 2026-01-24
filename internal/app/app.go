@@ -46,10 +46,12 @@ type App struct {
 }
 
 func setupMonitoring(s3Service *s3.StorageService) {
-	http.HandleFunc("/debug/stats", func(w http.ResponseWriter, r *http.Request) {
-		stats := s3Service.GetStats()
-		_ = json.NewEncoder(w).Encode(stats)
-	})
+	http.HandleFunc(
+		"/debug/stats", func(w http.ResponseWriter, r *http.Request) {
+			stats := s3Service.GetStats()
+			_ = json.NewEncoder(w).Encode(stats)
+		},
+	)
 
 	go func() {
 		srv := &http.Server{
@@ -75,34 +77,38 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 
 	e.GET("/public/swagger/*", echoSwagger.WrapHandler)
 	e.Server.MaxHeaderBytes = 1 << 20
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{
-			"https://dev.lootor.me",
-			"https://lootor.me",
-			"https://www.lootor.me",
-			"https://www.dev.lootor.me",
-			"http://localhost:3000",
-			"http://localhost:4173",
-			"*",
-		},
-		AllowMethods: []string{
-			echo.GET,
-			echo.POST,
-			echo.PUT,
-			echo.DELETE,
-			echo.OPTIONS,
-			echo.PATCH,
-		},
-		AllowHeaders: []string{
-			echo.HeaderOrigin,
-			echo.HeaderContentType,
-			echo.HeaderAccept,
-			echo.HeaderAuthorization,
-			"X-Requested-With",
-		},
-		AllowCredentials: true,
-		MaxAge:           86400,
-	}))
+	e.Use(
+		middleware.CORSWithConfig(
+			middleware.CORSConfig{
+				AllowOrigins: []string{
+					"https://dev.lootor.me",
+					"https://lootor.me",
+					"https://www.lootor.me",
+					"https://www.dev.lootor.me",
+					"http://localhost:3000",
+					"http://localhost:4173",
+					"*",
+				},
+				AllowMethods: []string{
+					echo.GET,
+					echo.POST,
+					echo.PUT,
+					echo.DELETE,
+					echo.OPTIONS,
+					echo.PATCH,
+				},
+				AllowHeaders: []string{
+					echo.HeaderOrigin,
+					echo.HeaderContentType,
+					echo.HeaderAccept,
+					echo.HeaderAuthorization,
+					"X-Requested-With",
+				},
+				AllowCredentials: true,
+				MaxAge:           86400,
+			},
+		),
+	)
 
 	// db init
 	db, err := database.InitDB(&cfg.Database)
@@ -112,15 +118,17 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		}
 	}
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:         os.Getenv("REDIS_HOST"),
-		Password:     "",
-		DB:           0,
-		PoolSize:     200,
-		MinIdleConns: 50,
-		ReadTimeout:  500 * time.Millisecond,
-		WriteTimeout: 500 * time.Millisecond,
-	})
+	redisClient := redis.NewClient(
+		&redis.Options{
+			Addr:         os.Getenv("REDIS_HOST"),
+			Password:     "",
+			DB:           0,
+			PoolSize:     200,
+			MinIdleConns: 50,
+			ReadTimeout:  500 * time.Millisecond,
+			WriteTimeout: 500 * time.Millisecond,
+		},
+	)
 	searchService, err := elasticsearch.NewElasticService(getConfigPath())
 	if err != nil {
 		return nil, err
@@ -174,7 +182,17 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	subRepo := repositories.NewSubscriptionRepository(db)
 	paymentsRepo := repositories.NewPaymentsRepository(db)
 	userRepo := repositories.NewUsersRepository(db, searchService, colRepo)
-	err = db.AutoMigrate(&models.Users{}, &models.Platforms{}, &models.Collections{}, &models.CollectionItems{}, &models.ItemTypes{}, &models.WishListItems{}, &models.Subscription{}, &models.Payments{}, &models.Migrations{})
+	err = db.AutoMigrate(
+		&models.Users{},
+		&models.Platforms{},
+		&models.Collections{},
+		&models.CollectionItems{},
+		&models.ItemTypes{},
+		&models.WishListItems{},
+		&models.Subscription{},
+		&models.Payments{},
+		&models.Migrations{},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -195,20 +213,101 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		*userRepo,
 		*tagsClient,
 	)
-	notificationsService := services.NewNotificationsService(notificationsClient, userRepo, colRepo, ciRepo, postsClient, photosClient)
-	eventsService := services.NewEventsService(userRepo, eventsClient, colRepo, ciRepo, postsClient, wlRepo, tagsClient, photosClient)
-	postsService := services.NewPostsService(postsClient, userRepo, eventsService, notificationsService, tagsClient, achievementsClient)
+	notificationsService := services.NewNotificationsService(
+		notificationsClient,
+		userRepo,
+		colRepo,
+		ciRepo,
+		postsClient,
+		photosClient,
+	)
+	eventsService := services.NewEventsService(
+		userRepo,
+		eventsClient,
+		colRepo,
+		ciRepo,
+		postsClient,
+		wlRepo,
+		tagsClient,
+		photosClient,
+	)
+	postsService := services.NewPostsService(
+		postsClient,
+		userRepo,
+		eventsService,
+		notificationsService,
+		tagsClient,
+		achievementsClient,
+	)
 	s3Service := s3.NewS3Service(redisClient)
-	photosService := services.NewPhotosService(photosClient, userRepo, tagsClient, colRepo, eventsService, s3Service, notificationsService, achievementsClient)
-	achievementsService := services.NewAchievementsService(achievementsClient, userRepo, tagsClient, colRepo, eventsService)
+	photosService := services.NewPhotosService(
+		photosClient,
+		userRepo,
+		tagsClient,
+		colRepo,
+		eventsService,
+		s3Service,
+		notificationsService,
+		achievementsClient,
+	)
+	achievementsService := services.NewAchievementsService(
+		achievementsClient,
+		userRepo,
+		tagsClient,
+		colRepo,
+		eventsService,
+	)
 
 	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootor.me>`)
-	userService := services.NewUserService(userRepo, jwtService, ciRepo, mailService, eventsService, notificationsService, colRepo, postsService, tagsClient, achievementsClient)
-	ciService := services.NewCiService(ciRepo, eventsService, colRepo, userRepo, platformRepo, s3Service, itemTypesRepo, notificationsService, tagsClient, achievementsClient)
-	colService := services.NewCollectionService(colRepo, userRepo, eventsService, ciRepo, s3Service, notificationsService, tagsClient, photosClient, achievementsClient)
+	userService := services.NewUserService(
+		userRepo,
+		jwtService,
+		ciRepo,
+		mailService,
+		eventsService,
+		notificationsService,
+		colRepo,
+		postsService,
+		tagsClient,
+		achievementsClient,
+	)
+	ciService := services.NewCiService(
+		ciRepo,
+		eventsService,
+		colRepo,
+		userRepo,
+		platformRepo,
+		s3Service,
+		itemTypesRepo,
+		notificationsService,
+		tagsClient,
+		achievementsClient,
+	)
+	colService := services.NewCollectionService(
+		colRepo,
+		userRepo,
+		eventsService,
+		ciRepo,
+		s3Service,
+		notificationsService,
+		tagsClient,
+		photosClient,
+		achievementsClient,
+	)
 	platformsService := services.NewPlatformsService(platformRepo)
 	itemTypesService := services.NewItemTypesService(itemTypesRepo)
-	tagsService := services.NewTagsService(tagsClient, userRepo, postsService, ciRepo, colRepo, eventsService, itemTypesRepo, searchService, photosService, achievementsClient)
+	tagsService := services.NewTagsService(
+		tagsClient,
+		userRepo,
+		postsService,
+		ciRepo,
+		colRepo,
+		eventsService,
+		itemTypesRepo,
+		searchService,
+		photosService,
+		achievementsClient,
+	)
 	fbService := feedback.NewFeedbackService()
 	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsService)
 	enrichedCIService := utils.NewEnrichedCIService(ciService, tagsClient)
@@ -217,13 +316,26 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	captchaService := auth.NewRecaptchaService()
 	reportsService := feedback.NewReportsService(fbService, ciRepo, userRepo, colRepo, wlRepo)
 	feedService := services.NewFeedService(newsClient)
-	commentsService := services.NewCommentsService(commentsClient, likesClient, userRepo, notificationsService, colRepo, ciRepo, postsService, photosService)
+	commentsService := services.NewCommentsService(
+		commentsClient,
+		likesClient,
+		userRepo,
+		notificationsService,
+		colRepo,
+		ciRepo,
+		postsService,
+		photosService,
+	)
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
-		Timeout: 60 * time.Second,
-	}))
+	e.Use(
+		middleware.TimeoutWithConfig(
+			middleware.TimeoutConfig{
+				Timeout: 60 * time.Second,
+			},
+		),
+	)
 
 	routes.RegisterRoutes(e, jwtService, *userService)
 	routes.TagsRouter(e, jwtService, *tagsService)
@@ -248,7 +360,13 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.HealthCheckRouter(e)
 	routes.AchievementsRouter(e, jwtService, *achievementsService)
 
-	_ = controllers.NewReindexController(searchService, userRepo, colRepo, ciRepo, tagsService).ReindexInternal(context.Background())
+	_ = controllers.NewReindexController(
+		searchService,
+		userRepo,
+		colRepo,
+		ciRepo,
+		tagsService,
+	).ReindexInternal(context.Background())
 	setupMonitoring(s3Service)
 
 	if err = migrator.RunMigrations(db); err != nil {

@@ -10,7 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/mitchellh/mapstructure"
 	"lootor/gen/go/microservices"
-	dto "lootor/internal/core/dto"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/achievementsclient"
@@ -41,12 +41,38 @@ type UserService struct {
 	achClient            *achievementsclient.GRPCAchievementsClient
 }
 
-func NewUserService(repo *repositories.UsersRepository, jwtService *auth.JWTService, ciRepo *repositories.CiRepository, mailService *mail.PostService, eventsService *EventsService, notificationsService *NotificationsService, collectionRepo *repositories.CollectionsRepository, postsService *PostsService, tagsClient *tagsclient.GRPCTagsClient, achClient *achievementsclient.GRPCAchievementsClient) *UserService {
+func NewUserService(
+	repo *repositories.UsersRepository,
+	jwtService *auth.JWTService,
+	ciRepo *repositories.CiRepository,
+	mailService *mail.PostService,
+	eventsService *EventsService,
+	notificationsService *NotificationsService,
+	collectionRepo *repositories.CollectionsRepository,
+	postsService *PostsService,
+	tagsClient *tagsclient.GRPCTagsClient,
+	achClient *achievementsclient.GRPCAchievementsClient,
+) *UserService {
 	_ = godotenv.Load()
-	return &UserService{repo: repo, jwtService: jwtService, ciRepo: ciRepo, mailService: mailService, eventsService: eventsService, notificationsService: notificationsService, collectionRepo: collectionRepo, postsService: postsService, tagsClient: tagsClient, achClient: achClient}
+	return &UserService{
+		repo:                 repo,
+		jwtService:           jwtService,
+		ciRepo:               ciRepo,
+		mailService:          mailService,
+		eventsService:        eventsService,
+		notificationsService: notificationsService,
+		collectionRepo:       collectionRepo,
+		postsService:         postsService,
+		tagsClient:           tagsClient,
+		achClient:            achClient,
+	}
 }
 
-func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthenticated bool) (*dto.DataUserResponseForSingleUser, error) {
+func (s *UserService) GetByLogin(
+	userLogin string,
+	authUser string,
+	isAuthenticated bool,
+) (*dto.DataUserResponseForSingleUser, error) {
 	dbUser, err := s.repo.GetUserByLogin(userLogin)
 	if err != nil {
 		return nil, err
@@ -85,16 +111,21 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 			return nil, err
 		}
 
-		subTags, _ := s.tagsClient.GetTagsByIDs(context.Background(), &microservices.GetTagsByIDsRequest{Ids: dbUser.TagsSubscriptions})
+		subTags, _ := s.tagsClient.GetTagsByIDs(
+			context.Background(),
+			&microservices.GetTagsByIDsRequest{Ids: dbUser.TagsSubscriptions},
+		)
 		var resultTags []dto.SubTags
 		resultTags = make([]dto.SubTags, 0)
 		if len(subTags.GetTags()) > 0 || subTags != nil {
 			for _, tag := range subTags.GetTags() {
-				resultTags = append(resultTags, dto.SubTags{
-					ID:   tag.Id,
-					Name: tag.Name,
-					Slug: tag.Slug,
-				})
+				resultTags = append(
+					resultTags, dto.SubTags{
+						ID:   tag.Id,
+						Name: tag.Name,
+						Slug: tag.Slug,
+					},
+				)
 			}
 		}
 		response.TagsSubscriptions = resultTags
@@ -148,16 +179,21 @@ func (s *UserService) GetByLogin(userLogin string, authUser string, isAuthentica
 	if err != nil {
 		return nil, err
 	}
-	subTags, _ := s.tagsClient.GetTagsByIDs(context.Background(), &microservices.GetTagsByIDsRequest{Ids: dbUser.TagsSubscriptions})
+	subTags, _ := s.tagsClient.GetTagsByIDs(
+		context.Background(),
+		&microservices.GetTagsByIDsRequest{Ids: dbUser.TagsSubscriptions},
+	)
 	var resultTags []dto.SubTags
 	resultTags = make([]dto.SubTags, 0)
 	if len(subTags.GetTags()) > 0 || subTags != nil {
 		for _, tag := range subTags.GetTags() {
-			resultTags = append(resultTags, dto.SubTags{
-				ID:   tag.Id,
-				Name: tag.Name,
-				Slug: tag.Slug,
-			})
+			resultTags = append(
+				resultTags, dto.SubTags{
+					ID:   tag.Id,
+					Name: tag.Name,
+					Slug: tag.Slug,
+				},
+			)
 		}
 	}
 	response.TagsSubscriptions = resultTags
@@ -203,7 +239,10 @@ func (s *UserService) ChangePassword(password string, login string, authUserLogi
 
 }
 
-func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, isSubscribe bool) (*dto.CommonResponse, error) {
+func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, isSubscribe bool) (
+	*dto.CommonResponse,
+	error,
+) {
 	var subscriber *models.Users
 	var subscriptionTargetUser *models.Users
 	var wg sync.WaitGroup
@@ -229,13 +268,22 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 	if isSubscribe {
 		subscriber.Subscriptions = append(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers + 1
-		subscriptionTargetUser.SubscribersLogins = append(subscriptionTargetUser.SubscribersLogins, strings.ToLower(authUserLogin))
+		subscriptionTargetUser.SubscribersLogins = append(
+			subscriptionTargetUser.SubscribersLogins,
+			strings.ToLower(authUserLogin),
+		)
 		err := s.repo.IncrementExperience(targetUserLogin, utils.UserSelfSubExp)
 
 		subscriptionTargetUser.Exp += utils.UserSelfSubExp
 
 		go func() {
-			err = s.eventsService.AddEvent(authUserLogin, utils.EventActionSubscribe, utils.EventTargetUser, targetUserLogin, &dto.EventsParams{TargetUserLogin: targetUserLogin})
+			err = s.eventsService.AddEvent(
+				authUserLogin,
+				utils.EventActionSubscribe,
+				utils.EventTargetUser,
+				targetUserLogin,
+				&dto.EventsParams{TargetUserLogin: targetUserLogin},
+			)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -247,31 +295,42 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 			err = utils.AddAchievement(s.achClient, utils.AchieveSubscribers, targetUserLogin, level, xp, subscribers+1)
 			err = s.repo.IncrementExperience(targetUserLogin, int(xp))
 		}()
-		var target dto.TargetItem = dto.TargetItem{
+		var target = dto.TargetItem{
 			ID:              targetUserLogin,
 			Name:            subscriptionTargetUser.ProfileName,
 			Transliteration: "",
 			TargetType:      "user",
 		}
 		go func() {
-			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
-				Login:       targetUserLogin,
-				TargetID:    targetUserLogin,
-				SenderLogin: authUserLogin,
-				Type:        utils.NotificationTypeUser,
-				Action:      utils.NotificationActionSubscribe,
-				Date:        time.Now().Format(time.RFC3339),
-				OwnerLogin:  targetUserLogin,
-			}, &target)
+			err = s.notificationsService.SendNotification(
+				context.Background(), &dto.NotificationsRequest{
+					Login:       targetUserLogin,
+					TargetID:    targetUserLogin,
+					SenderLogin: authUserLogin,
+					Type:        utils.NotificationTypeUser,
+					Action:      utils.NotificationActionSubscribe,
+					Date:        time.Now().Format(time.RFC3339),
+					OwnerLogin:  targetUserLogin,
+				}, &target,
+			)
 
 		}()
 	} else {
 		subscriber.Subscriptions = utils.RemoveByValue(subscriber.Subscriptions, strings.ToLower(targetUserLogin))
 		subscriptionTargetUser.Subscribers = subscriptionTargetUser.Subscribers - 1
-		subscriptionTargetUser.SubscribersLogins = utils.RemoveByValue(subscriptionTargetUser.SubscribersLogins, strings.ToLower(authUserLogin))
+		subscriptionTargetUser.SubscribersLogins = utils.RemoveByValue(
+			subscriptionTargetUser.SubscribersLogins,
+			strings.ToLower(authUserLogin),
+		)
 		go func() {
 			_ = s.notificationsService.DeleteNotification(context.Background(), targetUserLogin, authUserLogin)
-			err := s.eventsService.AddEvent(authUserLogin, utils.EventActionUnsubscribe, utils.EventTargetUser, targetUserLogin, &dto.EventsParams{TargetUserLogin: targetUserLogin})
+			err := s.eventsService.AddEvent(
+				authUserLogin,
+				utils.EventActionUnsubscribe,
+				utils.EventTargetUser,
+				targetUserLogin,
+				&dto.EventsParams{TargetUserLogin: targetUserLogin},
+			)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -370,7 +429,10 @@ func (s *UserService) SignUp(req *dto.SignUpRequest, ctx context.Context) (*dto.
 			fmt.Println(err)
 		}
 		if mode == "beta" {
-			_, err = s.achClient.AddZeroAchievements(context.Background(), &microservices.GetUserAchievementsRequest{UserLogin: req.Login})
+			_, err = s.achClient.AddZeroAchievements(
+				context.Background(),
+				&microservices.GetUserAchievementsRequest{UserLogin: req.Login},
+			)
 			err = utils.AddAchievement(s.achClient, utils.AchieveBetaTester, req.Login, 1, utils.XPBetaTester, 0)
 			err = s.repo.IncrementExperience(req.Login, utils.XPBetaTester)
 		}
@@ -437,7 +499,17 @@ func (s *UserService) VkOauth(req *dto.VkOauthRequest) (*dto.SignInResponseWithT
 		"Content-Type": "application/x-www-form-urlencoded",
 	}
 
-	response, err := utils.SendRequest[dto.VkAuthGetTokenData](utils.RequestOptions{Method: "POST", URL: "https://id.vk.com/oauth2/auth", Headers: headers, QueryParams: map[string]string{}, Body: bodyRequest, File: []byte{}, BasicAuth: nil})
+	response, err := utils.SendRequest[dto.VkAuthGetTokenData](
+		utils.RequestOptions{
+			Method:      "POST",
+			URL:         "https://id.vk.com/oauth2/auth",
+			Headers:     headers,
+			QueryParams: map[string]string{},
+			Body:        bodyRequest,
+			File:        []byte{},
+			BasicAuth:   nil,
+		},
+	)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -532,7 +604,17 @@ func (s *UserService) getUserInfo(accessToken string) (*dto.VkAuthGetUserInfo, e
 	}
 	response, err := utils.SendRequest[struct {
 		Response []dto.VkAuthGetUserInfo `json:"response"`
-	}](utils.RequestOptions{Method: "GET", URL: baseURL, Headers: map[string]string{}, Body: map[string]string{}, QueryParams: parameters, File: []byte{}, BasicAuth: nil})
+	}](
+		utils.RequestOptions{
+			Method:      "GET",
+			URL:         baseURL,
+			Headers:     map[string]string{},
+			Body:        map[string]string{},
+			QueryParams: parameters,
+			File:        []byte{},
+			BasicAuth:   nil,
+		},
+	)
 
 	if err != nil {
 		return nil, err
@@ -765,7 +847,10 @@ func (s *UserService) UpdateUser(user *dto.UserRequestUpdate, login string) (*dt
 	}, nil
 }
 
-func (s *UserService) UpdateOnlyOnce(data *dto.UserRequestUpdateFirstTime, targetUserLogin string) (*dto.CommonResponse, error) {
+func (s *UserService) UpdateOnlyOnce(data *dto.UserRequestUpdateFirstTime, targetUserLogin string) (
+	*dto.CommonResponse,
+	error,
+) {
 	userByLogin, _ := s.repo.GetUserByLogin(*data.Login)
 
 	if userByLogin != nil && userByLogin.Login == *data.Login {

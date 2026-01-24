@@ -32,11 +32,35 @@ type CiService struct {
 	achClient            *achievementsclient.GRPCAchievementsClient
 }
 
-func NewCiService(repo *repositories.CiRepository, eventsService *EventsService, collectionRepo *repositories.CollectionsRepository, userRepo *repositories.UsersRepository, platformsRepo *repositories.PlatformsRepository, s3Service *s3.StorageService, itemTypeRepo *repositories.ItemTypesRepository, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient, achClient *achievementsclient.GRPCAchievementsClient) *CiService {
-	return &CiService{repo: repo, eventsService: eventsService, collectionRepo: collectionRepo, userRepo: userRepo, platformsRepo: platformsRepo, s3Service: s3Service, itemTypeRepo: itemTypeRepo, notificationsService: notificationsService, tagsClient: tagsClient, achClient: achClient}
+func NewCiService(
+	repo *repositories.CiRepository,
+	eventsService *EventsService,
+	collectionRepo *repositories.CollectionsRepository,
+	userRepo *repositories.UsersRepository,
+	platformsRepo *repositories.PlatformsRepository,
+	s3Service *s3.StorageService,
+	itemTypeRepo *repositories.ItemTypesRepository,
+	notificationsService *NotificationsService,
+	tagsClient *tagsclient.GRPCTagsClient,
+	achClient *achievementsclient.GRPCAchievementsClient,
+) *CiService {
+	return &CiService{
+		repo:                 repo,
+		eventsService:        eventsService,
+		collectionRepo:       collectionRepo,
+		userRepo:             userRepo,
+		platformsRepo:        platformsRepo,
+		s3Service:            s3Service,
+		itemTypeRepo:         itemTypeRepo,
+		notificationsService: notificationsService,
+		tagsClient:           tagsClient,
+		achClient:            achClient,
+	}
 }
 
-func (s *CiService) Create(req *dto.CollectionItemsRequestCreate, authUserLogin string) (*dto.CollectionItemsDataResponse, error) {
+func (s *CiService) Create(
+	req *dto.CollectionItemsRequestCreate, authUserLogin string,
+) (*dto.CollectionItemsDataResponse, error) {
 	var platform *models.Platforms
 	var platformID *uuid.UUID
 	var itemType *models.ItemTypes
@@ -100,7 +124,9 @@ func (s *CiService) Create(req *dto.CollectionItemsRequestCreate, authUserLogin 
 
 		xp, level := utils.GetAchievementCollectionItemsAddData(collectionItemsCount + 1)
 
-		_ = utils.AddAchievement(s.achClient, utils.AchieveCollectionItemsAdded, authUserLogin, level, xp, collectionItemsCount+1)
+		_ = utils.AddAchievement(
+			s.achClient, utils.AchieveCollectionItemsAdded, authUserLogin, level, xp, collectionItemsCount+1,
+		)
 		_ = s.userRepo.IncrementExperience(authUserLogin, int(xp))
 	}()
 	collectionItem, err := s.repo.CreateCI(dbCollectionItem)
@@ -108,7 +134,10 @@ func (s *CiService) Create(req *dto.CollectionItemsRequestCreate, authUserLogin 
 		return nil, err
 	}
 	if !collection.IsPrivate {
-		eventError := s.eventsService.AddEvent(authUserLogin, utils.EventActionCreate, utils.EventTargetCollectionItem, req.Name, &dto.EventsParams{TargetItemID: collectionItem.ID})
+		eventError := s.eventsService.AddEvent(
+			authUserLogin, utils.EventActionCreate, utils.EventTargetCollectionItem, req.Name,
+			&dto.EventsParams{TargetItemID: collectionItem.ID},
+		)
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
@@ -136,7 +165,9 @@ func (s *CiService) Create(req *dto.CollectionItemsRequestCreate, authUserLogin 
 
 			xp, level := utils.GetAchievementCollectionsSumData(int64(collectionSum))
 
-			_ = utils.AddAchievement(s.achClient, utils.AchieveCollectionsSum, authUserLogin, level, xp, int64(collectionSum))
+			_ = utils.AddAchievement(
+				s.achClient, utils.AchieveCollectionsSum, authUserLogin, level, xp, int64(collectionSum),
+			)
 			exp += int(xp)
 		}()
 	}
@@ -146,7 +177,9 @@ func (s *CiService) Create(req *dto.CollectionItemsRequestCreate, authUserLogin 
 
 			xp, level := utils.GetAchievementCollectionsShipSumData(int64(collectionShippingSum))
 
-			_ = utils.AddAchievement(s.achClient, utils.AchieveCollectionShipSum, authUserLogin, level, xp, int64(collectionShippingSum))
+			_ = utils.AddAchievement(
+				s.achClient, utils.AchieveCollectionShipSum, authUserLogin, level, xp, int64(collectionShippingSum),
+			)
 			exp += int(xp)
 		}()
 	}
@@ -168,21 +201,39 @@ func (s *CiService) Create(req *dto.CollectionItemsRequestCreate, authUserLogin 
 	var tags *microservices.GetShortsResponse
 
 	if len(req.Tags) > 0 {
-		tags, _ = s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
-			EntityType: "collectionItem",
-			EntityId:   collectionItemResponse.ID.String(),
-			TagIds:     req.Tags,
-			Author:     authUserLogin,
-			ShowSearch: !collection.IsPrivate,
-		})
+		tags, _ = s.tagsClient.AddTagsToEntity(
+			context.Background(), &microservices.AddFewTagsToEntityRequest{
+				EntityType: "collectionItem",
+				EntityId:   collectionItemResponse.ID.String(),
+				TagIds:     req.Tags,
+				Author:     authUserLogin,
+				ShowSearch: !collection.IsPrivate,
+			},
+		)
 
 		if !collection.IsPrivate {
 			for _, tag := range tags.GetTags() {
 				tagUUID, _ := uuid.Parse(tag.GetId())
-				eventError := s.eventsService.AddEvent(collectionItemResponse.Owner.Login, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &dto.EventsParams{TargetTagID: tagUUID, TargetItemID: collectionItemResponse.ID, TagRelatedEntityType: utils.EventTargetCollectionItem})
+				eventError := s.eventsService.AddEvent(
+					collectionItemResponse.Owner.Login, utils.EventActionAddTag, utils.EventTargetTag, tag.Name,
+					&dto.EventsParams{
+						TargetTagID: tagUUID, TargetItemID: collectionItemResponse.ID,
+						TagRelatedEntityType: utils.EventTargetCollectionItem,
+					},
+				)
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
+			}
+		} else {
+			_, err = s.tagsClient.UpdateVisibleLinks(
+				context.Background(), &microservices.UpdateVisibleLinksRequest{
+					EntityIds: []string{collectionItemResponse.ID.String()},
+					Visible:   false,
+				},
+			)
+			if err != nil {
+				return nil, err
 			}
 		}
 	}
@@ -201,7 +252,10 @@ func (s *CiService) Delete(id string, ctx context.Context) (*dto.CommonResponse,
 	var result *dto.CommonResponse
 	if exists != nil {
 		if !exists.Collections[0].IsPrivate {
-			eventError := s.eventsService.AddEvent(exists.Owner.Login, utils.EventActionDelete, utils.EventTargetCollectionItem, exists.Name, &dto.EventsParams{TargetItemID: exists.ID})
+			eventError := s.eventsService.AddEvent(
+				exists.Owner.Login, utils.EventActionDelete, utils.EventTargetCollectionItem, exists.Name,
+				&dto.EventsParams{TargetItemID: exists.ID},
+			)
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -210,10 +264,12 @@ func (s *CiService) Delete(id string, ctx context.Context) (*dto.CommonResponse,
 			}()
 		}
 		go func() {
-			_, _ = s.tagsClient.RemoveEntityTags(context.Background(), &microservices.RemoveEntityTagsRequest{
-				EntityId:   id,
-				EntityType: utils.EventTargetCollectionItem,
-			})
+			_, _ = s.tagsClient.RemoveEntityTags(
+				context.Background(), &microservices.RemoveEntityTagsRequest{
+					EntityId:   id,
+					EntityType: utils.EventTargetCollectionItem,
+				},
+			)
 		}()
 		err := s.repo.DeleteCI(id)
 		if err != nil {
@@ -296,12 +352,14 @@ func (s *CiService) Update(id string, req *dto.CollectionItemsRequestUpdate) (*m
 			}
 		}
 	}
-	tags, err := s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
-		EntityType: "collectionItem",
-		EntityId:   id,
-		TagIds:     req.Tags,
-		Author:     exists.Owner.Login,
-	})
+	tags, err := s.tagsClient.UpdateTagsOfEntity(
+		context.Background(), &microservices.UpdateTagsOfEntityRequest{
+			EntityType: "collectionItem",
+			EntityId:   id,
+			TagIds:     req.Tags,
+			Author:     exists.Owner.Login,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +368,12 @@ func (s *CiService) Update(id string, req *dto.CollectionItemsRequestUpdate) (*m
 		if !exists.Collections[0].IsPrivate {
 			for _, tag := range tags.GetTags() {
 				tagUUID, _ := uuid.Parse(tag.GetId())
-				eventError := s.eventsService.AddEvent(exists.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &dto.EventsParams{TargetTagID: tagUUID, TargetItemID: exists.ID, TagRelatedEntityType: utils.EventTargetCollectionItem})
+				eventError := s.eventsService.AddEvent(
+					exists.UserLogin, utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &dto.EventsParams{
+						TargetTagID: tagUUID, TargetItemID: exists.ID,
+						TagRelatedEntityType: utils.EventTargetCollectionItem,
+					},
+				)
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -360,7 +423,9 @@ func (s *CiService) Update(id string, req *dto.CollectionItemsRequestUpdate) (*m
 
 			xp, level := utils.GetAchievementCollectionsSumData(int64(collectionSum))
 
-			_ = utils.AddAchievement(s.achClient, utils.AchieveCollectionsSum, exists.UserLogin, level, xp, int64(collectionSum))
+			_ = utils.AddAchievement(
+				s.achClient, utils.AchieveCollectionsSum, exists.UserLogin, level, xp, int64(collectionSum),
+			)
 			exp += int(xp)
 		}()
 	}
@@ -370,7 +435,9 @@ func (s *CiService) Update(id string, req *dto.CollectionItemsRequestUpdate) (*m
 
 			xp, level := utils.GetAchievementCollectionsShipSumData(int64(collectionShippingSum))
 
-			_ = utils.AddAchievement(s.achClient, utils.AchieveCollectionShipSum, exists.UserLogin, level, xp, int64(collectionShippingSum))
+			_ = utils.AddAchievement(
+				s.achClient, utils.AchieveCollectionShipSum, exists.UserLogin, level, xp, int64(collectionShippingSum),
+			)
 			exp += int(xp)
 		}()
 	}
@@ -379,7 +446,10 @@ func (s *CiService) Update(id string, req *dto.CollectionItemsRequestUpdate) (*m
 		return nil, err
 	}
 	if !exists.Collections[0].IsPrivate {
-		eventError := s.eventsService.AddEvent(exists.Owner.Login, utils.EventActionUpdate, utils.EventTargetCollectionItem, exists.Name, &dto.EventsParams{TargetItemID: exists.ID})
+		eventError := s.eventsService.AddEvent(
+			exists.Owner.Login, utils.EventActionUpdate, utils.EventTargetCollectionItem, exists.Name,
+			&dto.EventsParams{TargetItemID: exists.ID},
+		)
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
@@ -396,7 +466,9 @@ func (s *CiService) GetByID(id string, authUser string) (*models.CollectionItems
 	return exists, nil
 }
 
-func (s *CiService) CopyOrMove(id string, targetCollectionIds []string, sourceCollectionId string) (*dto.CommonResponse, error) {
+func (s *CiService) CopyOrMove(id string, targetCollectionIds []string, sourceCollectionId string) (
+	*dto.CommonResponse, error,
+) {
 	var result *dto.CommonResponse
 	if sourceCollectionId == "" {
 		collections := make([]models.Collections, 0)
@@ -464,7 +536,10 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.Collections[0].IsPrivate {
 			go func() {
-				eventError := s.eventsService.AddEvent(userLogin, utils.EventActionLike, utils.EventTargetCollectionItem, exists.Name, &dto.EventsParams{TargetItemID: exists.ID})
+				eventError := s.eventsService.AddEvent(
+					userLogin, utils.EventActionLike, utils.EventTargetCollectionItem, exists.Name,
+					&dto.EventsParams{TargetItemID: exists.ID},
+				)
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -476,7 +551,9 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 
 			xp, level := utils.GetAchievementCollectionItemsLikesData(collectionItemsLikes)
 
-			_ = utils.AddAchievement(s.achClient, utils.AchieveCollectionItemsLikes, exists.UserLogin, level, xp, collectionItemsLikes)
+			_ = utils.AddAchievement(
+				s.achClient, utils.AchieveCollectionItemsLikes, exists.UserLogin, level, xp, collectionItemsLikes,
+			)
 			exp += int(xp)
 		}()
 		err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CISelfLikeExp+exp)
@@ -491,22 +568,27 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 			TargetParentName: exists.Collections[0].Name,
 		}
 		go func() {
-			err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
-				Login:       exists.UserLogin,
-				TargetID:    id,
-				SenderLogin: userLogin,
-				Type:        utils.NotificationTypeCollectionItem,
-				Action:      utils.NotificationActionLike,
-				Date:        time.Now().Format(time.RFC3339),
-				OwnerLogin:  exists.UserLogin,
-			}, target)
+			err = s.notificationsService.SendNotification(
+				context.Background(), &dto.NotificationsRequest{
+					Login:       exists.UserLogin,
+					TargetID:    id,
+					SenderLogin: userLogin,
+					Type:        utils.NotificationTypeCollectionItem,
+					Action:      utils.NotificationActionLike,
+					Date:        time.Now().Format(time.RFC3339),
+					OwnerLogin:  exists.UserLogin,
+				}, target,
+			)
 		}()
 	} else {
 		exists.Likes = utils.RemoveByValue(exists.Likes, userLogin)
 		err = s.userRepo.DecrementExperience(exists.UserLogin, utils.CISelfLikeExp)
 		go func() {
 			_ = s.notificationsService.DeleteNotification(context.Background(), id, userLogin)
-			eventError := s.eventsService.AddEvent(userLogin, utils.EventActionDislike, utils.EventTargetCollectionItem, exists.Name, &dto.EventsParams{TargetItemID: exists.ID})
+			eventError := s.eventsService.AddEvent(
+				userLogin, utils.EventActionDislike, utils.EventTargetCollectionItem, exists.Name,
+				&dto.EventsParams{TargetItemID: exists.ID},
+			)
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
@@ -535,7 +617,9 @@ func (s *CiService) GetAll(limit, offset, search string) (*dto.CollectionItemsDa
 		collectionItemIds = append(collectionItemIds, item.ID.String())
 	}
 
-	tags, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{EntityIds: collectionItemIds})
+	tags, err := s.tagsClient.GetTagsByEntityIdsMap(
+		context.Background(), &microservices.GetTagsByEntityIdsMapRequest{EntityIds: collectionItemIds},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -550,7 +634,7 @@ func (s *CiService) GetAll(limit, offset, search string) (*dto.CollectionItemsDa
 		}
 		itemTags := tags.GetTags()[item.ID.String()]
 
-		var resultTags []dto.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
+		var resultTags = utils.NormalizeTagsShort(itemTags.GetTags())
 
 		if len(item.Collections) > 0 {
 			temp.Collection = item.Collections[0].ID

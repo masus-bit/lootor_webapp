@@ -22,7 +22,13 @@ func NewReportsService(
 	wlRepo *repositories.WLRepository,
 ) *ReportsService {
 	_ = godotenv.Load()
-	return &ReportsService{feedService: feedService, ciRepo: ciRepo, userRepo: userRepo, collectionRepo: collectionRepo, wlRepo: wlRepo}
+	return &ReportsService{
+		feedService:    feedService,
+		ciRepo:         ciRepo,
+		userRepo:       userRepo,
+		collectionRepo: collectionRepo,
+		wlRepo:         wlRepo,
+	}
 }
 
 func (s *ReportsService) ReportAnything(id string) (*dto.CommonResponse, error) {

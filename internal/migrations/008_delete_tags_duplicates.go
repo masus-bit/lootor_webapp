@@ -6,10 +6,12 @@ import (
 )
 
 func DeleteTagsDuplicates(db *gorm.DB) error {
-	return db.Transaction(func(tx *gorm.DB) error {
+	return db.Transaction(
+		func(tx *gorm.DB) error {
 
-		var duplicateCount int64
-		if err := tx.Raw(`
+			var duplicateCount int64
+			if err := tx.Raw(
+				`
 			SELECT COUNT(*) 
 			FROM (
 				SELECT name 
@@ -18,32 +20,37 @@ func DeleteTagsDuplicates(db *gorm.DB) error {
 				GROUP BY name 
 				HAVING COUNT(*) > 1
 			) AS duplicates
-		`).Scan(&duplicateCount).Error; err != nil {
-			return fmt.Errorf("ошибка проверки дубликатов: %w", err)
-		}
-
-		if duplicateCount > 0 {
-
-			if err := deleteDuplicateTags(tx); err != nil {
-				return err
+		`,
+			).Scan(&duplicateCount).Error; err != nil {
+				return fmt.Errorf("ошибка проверки дубликатов: %w", err)
 			}
-		}
 
-		if err := tx.Exec(`
+			if duplicateCount > 0 {
+
+				if err := deleteDuplicateTags(tx); err != nil {
+					return err
+				}
+			}
+
+			if err := tx.Exec(
+				`
 			CREATE UNIQUE INDEX IF NOT EXISTS idx_tags_name 
 			ON loot_tags.tags (name)
 			WHERE deleted_at IS NULL
-		`).Error; err != nil {
-			return fmt.Errorf("ошибка создания уникального индекса: %w", err)
-		}
+		`,
+			).Error; err != nil {
+				return fmt.Errorf("ошибка создания уникального индекса: %w", err)
+			}
 
-		return nil
-	})
+			return nil
+		},
+	)
 }
 
 func deleteDuplicateTags(tx *gorm.DB) error {
 
-	if err := tx.Exec(`
+	if err := tx.Exec(
+		`
 		WITH ranked_tags AS (
 			SELECT 
 				id,
@@ -61,7 +68,8 @@ func deleteDuplicateTags(tx *gorm.DB) error {
 			FROM ranked_tags 
 			WHERE rn > 1
 		)
-	`).Error; err != nil {
+	`,
+	).Error; err != nil {
 		return fmt.Errorf("ошибка удаления дубликатов: %w", err)
 	}
 

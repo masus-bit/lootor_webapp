@@ -26,9 +26,22 @@ type PostsService struct {
 	achService           *achievementsclient.GRPCAchievementsClient
 }
 
-func NewPostsService(postsClient *postsclient.GRPCPostsClient, userRepo *repositories.UsersRepository, eventsService *EventsService, notificationsService *NotificationsService, tagsClient *tagsclient.GRPCTagsClient, achService *achievementsclient.GRPCAchievementsClient) *PostsService {
+func NewPostsService(
+	postsClient *postsclient.GRPCPostsClient,
+	userRepo *repositories.UsersRepository,
+	eventsService *EventsService,
+	notificationsService *NotificationsService,
+	tagsClient *tagsclient.GRPCTagsClient,
+	achService *achievementsclient.GRPCAchievementsClient,
+) *PostsService {
 	return &PostsService{
-		postsClient: postsClient, userRepo: userRepo, eventsService: eventsService, notificationsService: notificationsService, tagsClient: tagsClient, achService: achService}
+		postsClient:          postsClient,
+		userRepo:             userRepo,
+		eventsService:        eventsService,
+		notificationsService: notificationsService,
+		tagsClient:           tagsClient,
+		achService:           achService,
+	}
 }
 
 func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest) (*dto.PostDataResponse, error) {
@@ -49,7 +62,14 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 			postsCount, _ := s.postsClient.GetPostsCountByUserLogin(context.Background(), request.Author)
 
 			xp, level := utils.GetAchievementPostsCreateData(postsCount.GetCount())
-			err = utils.AddAchievement(s.achService, utils.AchievePostsCreated, request.Author, level, xp, postsCount.GetCount())
+			err = utils.AddAchievement(
+				s.achService,
+				utils.AchievePostsCreated,
+				request.Author,
+				level,
+				xp,
+				postsCount.GetCount(),
+			)
 
 			err = s.userRepo.IncrementExperience(user.Login, utils.PostCreateExp+int(xp))
 			if err != nil {
@@ -61,7 +81,13 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 			}
 		}()
 		go func() {
-			err = s.eventsService.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, request.Title, &dto.EventsParams{TargetPostID: translit})
+			err = s.eventsService.AddEvent(
+				user.Login,
+				utils.EventActionCreate,
+				utils.EventTargetPost,
+				request.Title,
+				&dto.EventsParams{TargetPostID: translit},
+			)
 			if err != nil {
 				_ = fmt.Errorf("failed to add event: %v", err)
 			}
@@ -69,23 +95,27 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 
 	}
 
-	_, _ = s.postsClient.UpdatePost(ctx, &dto.PostUpdateRequest{
-		ID:       post.Data.Id,
-		Translit: translit,
-		Title:    post.Data.Title,
-		IsDraft:  post.Data.IsDraft,
-		Content:  content,
-	})
+	_, _ = s.postsClient.UpdatePost(
+		ctx, &dto.PostUpdateRequest{
+			ID:       post.Data.Id,
+			Translit: translit,
+			Title:    post.Data.Title,
+			IsDraft:  post.Data.IsDraft,
+			Content:  content,
+		},
+	)
 	var tags []dto.ShortTags
 	if len(request.Tags) > 0 {
 		go func() {
-			tagsAdded, err := s.tagsClient.AddTagsToEntity(context.Background(), &microservices.AddFewTagsToEntityRequest{
-				EntityType: "post",
-				EntityId:   strconv.FormatUint(post.Data.Id, 10),
-				TagIds:     request.Tags,
-				Author:     request.Author,
-				ShowSearch: !request.IsDraft,
-			})
+			tagsAdded, err := s.tagsClient.AddTagsToEntity(
+				context.Background(), &microservices.AddFewTagsToEntityRequest{
+					EntityType: "post",
+					EntityId:   strconv.FormatUint(post.Data.Id, 10),
+					TagIds:     request.Tags,
+					Author:     request.Author,
+					ShowSearch: !request.IsDraft,
+				},
+			)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -93,7 +123,17 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 				for _, tag := range tagsAdded.GetTags() {
 					tagUUID, _ := uuid.Parse(tag.GetId())
 					stringifyUINT := strconv.Itoa(int(post.GetData().GetId()))
-					eventError := s.eventsService.AddEvent(post.GetData().GetAuthor(), utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &dto.EventsParams{TargetTagID: tagUUID, TargetPostID: stringifyUINT, TagRelatedEntityType: utils.EventTargetPost})
+					eventError := s.eventsService.AddEvent(
+						post.GetData().GetAuthor(),
+						utils.EventActionAddTag,
+						utils.EventTargetTag,
+						tag.Name,
+						&dto.EventsParams{
+							TargetTagID:          tagUUID,
+							TargetPostID:         stringifyUINT,
+							TagRelatedEntityType: utils.EventTargetPost,
+						},
+					)
 					if eventError != nil {
 						log.Default().Print(eventError)
 					}
@@ -101,9 +141,11 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 			}
 
 		}()
-		respTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{
-			EntityId: strconv.FormatUint(post.Data.Id, 10),
-		})
+		respTags, err := s.tagsClient.GetTagsByEntityId(
+			context.Background(), &microservices.GetTagsByEntityIdRequest{
+				EntityId: strconv.FormatUint(post.Data.Id, 10),
+			},
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -146,7 +188,10 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 	return &result, nil
 }
 
-func (s *PostsService) GetAllPosts(ctx context.Context, order, limit, offset, authUser string) (*dto.PostsDataResponse, error) {
+func (s *PostsService) GetAllPosts(ctx context.Context, order, limit, offset, authUser string) (
+	*dto.PostsDataResponse,
+	error,
+) {
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	var authUserIsPremium bool
 	if err != nil {
@@ -163,7 +208,11 @@ func (s *PostsService) GetAllPosts(ctx context.Context, order, limit, offset, au
 
 }
 
-func (s *PostsService) GetPostsByUser(ctx context.Context, login, limit, offset, authUser string, isDraft bool) (*dto.PostsDataResponse, error) {
+func (s *PostsService) GetPostsByUser(
+	ctx context.Context,
+	login, limit, offset, authUser string,
+	isDraft bool,
+) (*dto.PostsDataResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	var authUserIsPremium bool
 	if err != nil {
@@ -195,13 +244,22 @@ func (s *PostsService) DeletePost(ctx context.Context, id uint64, authUser strin
 	}
 	if !exists.Data.IsDraft {
 		go func() {
-			eventError := s.eventsService.AddEvent(user.Login, utils.EventActionDelete, utils.EventTargetPost, result.Title, &dto.EventsParams{TargetPostID: exists.Data.Translit})
+			eventError := s.eventsService.AddEvent(
+				user.Login,
+				utils.EventActionDelete,
+				utils.EventTargetPost,
+				result.Title,
+				&dto.EventsParams{TargetPostID: exists.Data.Translit},
+			)
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
 		}()
 		go func() {
-			_ = s.notificationsService.DeleteAllNotificationsByTargetID(context.Background(), strconv.FormatUint(id, 10))
+			_ = s.notificationsService.DeleteAllNotificationsByTargetID(
+				context.Background(),
+				strconv.FormatUint(id, 10),
+			)
 		}()
 		go func() {
 			err = s.userRepo.DecrementExperience(user.Login, int(utils.PostCreateExp+result.ReactCount))
@@ -221,10 +279,12 @@ func (s *PostsService) DeletePost(ctx context.Context, id uint64, authUser strin
 
 	go func() {
 		stringId := strconv.Itoa(int(id))
-		_, _ = s.tagsClient.RemoveEntityTags(context.Background(), &microservices.RemoveEntityTagsRequest{
-			EntityId:   stringId,
-			EntityType: utils.EventTargetPost,
-		})
+		_, _ = s.tagsClient.RemoveEntityTags(
+			context.Background(), &microservices.RemoveEntityTagsRequest{
+				EntityId:   stringId,
+				EntityType: utils.EventTargetPost,
+			},
+		)
 	}()
 
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
@@ -262,7 +322,10 @@ func (s *PostsService) GetPostById(ctx context.Context, id uint64, authUser stri
 	return &dto.PostDataResponse{Data: *result}, nil
 }
 
-func (s *PostsService) GetPostByTranslit(ctx context.Context, translit string, authUser string) (*dto.PostDataResponse, error) {
+func (s *PostsService) GetPostByTranslit(ctx context.Context, translit string, authUser string) (
+	*dto.PostDataResponse,
+	error,
+) {
 	user, err := s.userRepo.GetUserByLogin(authUser)
 	var authUserIsPremium bool
 	if err != nil {
@@ -304,10 +367,20 @@ func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.C
 		return nil, err
 	}
 	go func() {
-		postsReactCount, _ := s.postsClient.GetReactionsCountByUserLogin(context.Background(), post.GetData().GetAuthor())
+		postsReactCount, _ := s.postsClient.GetReactionsCountByUserLogin(
+			context.Background(),
+			post.GetData().GetAuthor(),
+		)
 
 		xp, level := utils.GetAchievementPostsReactionsData(postsReactCount.GetCount())
-		err = utils.AddAchievement(s.achService, utils.AchievePostsReactions, post.GetData().GetAuthor(), level, xp, postsReactCount.GetCount())
+		err = utils.AddAchievement(
+			s.achService,
+			utils.AchievePostsReactions,
+			post.GetData().GetAuthor(),
+			level,
+			xp,
+			postsReactCount.GetCount(),
+		)
 		err = s.userRepo.IncrementExperience(resp.UserLogin, utils.PostReactExt+int(xp))
 		if err != nil {
 			return
@@ -324,15 +397,17 @@ func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.C
 		TargetType:      "post",
 	}
 	go func() {
-		err = s.notificationsService.SendNotification(context.Background(), &dto.NotificationsRequest{
-			Login:       post.GetData().GetAuthor(),
-			TargetID:    strconv.FormatUint(req.PostID, 10),
-			SenderLogin: req.UserLogin,
-			Type:        utils.NotificationTypePost,
-			Action:      utils.NotificationActionReact,
-			Date:        time.Now().Format(time.RFC3339),
-			OwnerLogin:  post.GetData().GetAuthor(),
-		}, target)
+		err = s.notificationsService.SendNotification(
+			context.Background(), &dto.NotificationsRequest{
+				Login:       post.GetData().GetAuthor(),
+				TargetID:    strconv.FormatUint(req.PostID, 10),
+				SenderLogin: req.UserLogin,
+				Type:        utils.NotificationTypePost,
+				Action:      utils.NotificationActionReact,
+				Date:        time.Now().Format(time.RFC3339),
+				OwnerLogin:  post.GetData().GetAuthor(),
+			}, target,
+		)
 
 	}()
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
@@ -356,7 +431,11 @@ func (s *PostsService) Unreact(ctx context.Context, req *dto.ReactRequest) (*dto
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
 
-func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateRequest, authUser string) (*dto.PostDataResponse, error) {
+func (s *PostsService) UpdatePost(
+	ctx context.Context,
+	req *dto.PostUpdateRequest,
+	authUser string,
+) (*dto.PostDataResponse, error) {
 	existPost, err := s.postsClient.GetPostById(ctx, req.ID, false)
 	if err != nil {
 		return nil, err
@@ -382,7 +461,14 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 			postsCount, _ := s.postsClient.GetPostsCountByUserLogin(context.Background(), authUser)
 
 			xp, level := utils.GetAchievementPostsCreateData(postsCount.GetCount())
-			err = utils.AddAchievement(s.achService, utils.AchievePostsCreated, authUser, level, xp, postsCount.GetCount())
+			err = utils.AddAchievement(
+				s.achService,
+				utils.AchievePostsCreated,
+				authUser,
+				level,
+				xp,
+				postsCount.GetCount(),
+			)
 
 			err = s.userRepo.IncrementExperience(user.Login, utils.PostCreateExp+int(xp))
 			if err != nil {
@@ -394,14 +480,26 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 			}
 		}()
 		go func() {
-			err = s.eventsService.AddEvent(user.Login, utils.EventActionCreate, utils.EventTargetPost, req.Title, &dto.EventsParams{TargetPostID: existPost.Data.Translit})
+			err = s.eventsService.AddEvent(
+				user.Login,
+				utils.EventActionCreate,
+				utils.EventTargetPost,
+				req.Title,
+				&dto.EventsParams{TargetPostID: existPost.Data.Translit},
+			)
 			if err != nil {
 				_ = fmt.Errorf("failed to add event: %v", err)
 			}
 		}()
 	} else if !existPost.Data.IsDraft && !req.IsDraft {
 		go func() {
-			err = s.eventsService.AddEvent(user.Login, utils.EventActionUpdate, utils.EventTargetPost, req.Title, &dto.EventsParams{TargetPostID: existPost.Data.Translit})
+			err = s.eventsService.AddEvent(
+				user.Login,
+				utils.EventActionUpdate,
+				utils.EventTargetPost,
+				req.Title,
+				&dto.EventsParams{TargetPostID: existPost.Data.Translit},
+			)
 			if err != nil {
 				_ = fmt.Errorf("failed to add event: %v", err)
 			}
@@ -409,12 +507,14 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 	}
 
 	var tags *microservices.TagsCreateResponse
-	tags, err = s.tagsClient.UpdateTagsOfEntity(context.Background(), &microservices.UpdateTagsOfEntityRequest{
-		EntityType: "post",
-		EntityId:   strconv.FormatUint(existPost.GetData().GetId(), 10),
-		TagIds:     req.Tags,
-		Author:     existPost.GetData().GetAuthor(),
-	})
+	tags, err = s.tagsClient.UpdateTagsOfEntity(
+		context.Background(), &microservices.UpdateTagsOfEntityRequest{
+			EntityType: "post",
+			EntityId:   strconv.FormatUint(existPost.GetData().GetId(), 10),
+			TagIds:     req.Tags,
+			Author:     existPost.GetData().GetAuthor(),
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -422,18 +522,22 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 		var IDs []string
 		IDs = append(IDs, strconv.FormatUint(existPost.GetData().GetId(), 10))
 		if !req.IsDraft {
-			_, err = s.tagsClient.UpdateVisibleLinks(context.Background(), &microservices.UpdateVisibleLinksRequest{
-				EntityIds: IDs,
-				Visible:   true,
-			})
+			_, err = s.tagsClient.UpdateVisibleLinks(
+				context.Background(), &microservices.UpdateVisibleLinksRequest{
+					EntityIds: IDs,
+					Visible:   true,
+				},
+			)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			_, err = s.tagsClient.UpdateVisibleLinks(context.Background(), &microservices.UpdateVisibleLinksRequest{
-				EntityIds: IDs,
-				Visible:   false,
-			})
+			_, err = s.tagsClient.UpdateVisibleLinks(
+				context.Background(), &microservices.UpdateVisibleLinksRequest{
+					EntityIds: IDs,
+					Visible:   false,
+				},
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -442,7 +546,17 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 			for _, tag := range tags.GetTags() {
 				tagUUID, _ := uuid.Parse(tag.GetId())
 				stringifyUINT := strconv.Itoa(int(req.ID))
-				eventError := s.eventsService.AddEvent(post.GetData().GetAuthor(), utils.EventActionAddTag, utils.EventTargetTag, tag.Name, &dto.EventsParams{TargetTagID: tagUUID, TargetPostID: stringifyUINT, TagRelatedEntityType: utils.EventTargetPost})
+				eventError := s.eventsService.AddEvent(
+					post.GetData().GetAuthor(),
+					utils.EventActionAddTag,
+					utils.EventTargetTag,
+					tag.Name,
+					&dto.EventsParams{
+						TargetTagID:          tagUUID,
+						TargetPostID:         stringifyUINT,
+						TagRelatedEntityType: utils.EventTargetPost,
+					},
+				)
 				if eventError != nil {
 					log.Default().Print(eventError)
 				}
@@ -454,13 +568,15 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 	resultTags = make([]dto.ShortTags, 0)
 	if tags != nil {
 		for _, tag := range tags.GetTags() {
-			resultTags = append(resultTags, dto.ShortTags{
-				ID:        tag.GetId(),
-				Name:      tag.GetName(),
-				Slug:      tag.GetSlug(),
-				PrimaryID: tag.GetPrimaryId(),
-				SeriesID:  tag.GetSeriesId(),
-			})
+			resultTags = append(
+				resultTags, dto.ShortTags{
+					ID:        tag.GetId(),
+					Name:      tag.GetName(),
+					Slug:      tag.GetSlug(),
+					PrimaryID: tag.GetPrimaryId(),
+					SeriesID:  tag.GetSeriesId(),
+				},
+			)
 		}
 	}
 
@@ -470,7 +586,10 @@ func (s *PostsService) UpdatePost(ctx context.Context, req *dto.PostUpdateReques
 	return &dto.PostDataResponse{Data: *resultPost}, nil
 }
 
-func (s *PostsService) IncrementViews(ctx context.Context, req *dto.IncrementRequestInput) (*dto.CommonResponse, error) {
+func (s *PostsService) IncrementViews(ctx context.Context, req *dto.IncrementRequestInput) (
+	*dto.CommonResponse,
+	error,
+) {
 	var uintIds []uint64
 	for _, id := range req.PostIDs {
 		idInt, _ := strconv.ParseUint(id, 10, 64)
@@ -507,14 +626,21 @@ func (s *PostsService) GetCount(ctx context.Context, userLogin string) int64 {
 	return count.GetCount()
 }
 
-func (s *PostsService) GetPostsByIDs(ctx context.Context, ids []string, authUserLogin string, isPremium bool) (*dto.PostsDataResponse, error) {
+func (s *PostsService) GetPostsByIDs(
+	ctx context.Context,
+	ids []string,
+	authUserLogin string,
+	isPremium bool,
+) (*dto.PostsDataResponse, error) {
 	resp, _ := s.postsClient.GetPostsByIds(context.Background(), ids, authUserLogin, isPremium)
 	var posts []dto.Posts
 	var postIds []string
 	postIds = append(postIds, ids...)
-	tagsMap, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
-		EntityIds: postIds,
-	})
+	tagsMap, err := s.tagsClient.GetTagsByEntityIdsMap(
+		context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+			EntityIds: postIds,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -524,7 +650,7 @@ func (s *PostsService) GetPostsByIDs(ctx context.Context, ids []string, authUser
 			var reactUsers []string
 			itemTags := tagsMap.GetTags()[strconv.FormatUint(p.Id, 10)]
 
-			var resultTags []dto.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
+			var resultTags = utils.NormalizeTagsShort(itemTags.GetTags())
 			for _, r := range p.Reactions {
 				reactUsers = append(reactUsers, r.UserLogin)
 			}
@@ -539,30 +665,32 @@ func (s *PostsService) GetPostsByIDs(ctx context.Context, ids []string, authUser
 				continue
 			}
 
-			posts = append(posts, dto.Posts{
-				ID:             postFormatted.Data.ID,
-				Title:          postFormatted.Data.Title,
-				Author:         postFormatted.Data.Author,
-				Translit:       postFormatted.Data.Translit,
-				IsDraft:        postFormatted.Data.IsDraft,
-				Content:        postFormatted.Data.Content,
-				Views:          postFormatted.Data.Views,
-				Date:           postFormatted.Data.Date,
-				CommentsCount:  postFormatted.Data.CommentsCount,
-				HeartCount:     postFormatted.Data.HeartCount,
-				FireCount:      postFormatted.Data.FireCount,
-				GlassesCount:   postFormatted.Data.GlassesCount,
-				LaughCount:     postFormatted.Data.LaughCount,
-				TearsCount:     postFormatted.Data.TearsCount,
-				PokerFaceCount: postFormatted.Data.PokerFaceCount,
-				EyesCount:      postFormatted.Data.EyesCount,
-				AngryCount:     postFormatted.Data.AngryCount,
-				ShitCount:      postFormatted.Data.ShitCount,
-				ClownCount:     postFormatted.Data.ClownCount,
-				TotalReactions: postFormatted.Data.TotalReactions,
-				Reacted:        postFormatted.Data.Reacted,
-				Tags:           resultTags,
-			})
+			posts = append(
+				posts, dto.Posts{
+					ID:             postFormatted.Data.ID,
+					Title:          postFormatted.Data.Title,
+					Author:         postFormatted.Data.Author,
+					Translit:       postFormatted.Data.Translit,
+					IsDraft:        postFormatted.Data.IsDraft,
+					Content:        postFormatted.Data.Content,
+					Views:          postFormatted.Data.Views,
+					Date:           postFormatted.Data.Date,
+					CommentsCount:  postFormatted.Data.CommentsCount,
+					HeartCount:     postFormatted.Data.HeartCount,
+					FireCount:      postFormatted.Data.FireCount,
+					GlassesCount:   postFormatted.Data.GlassesCount,
+					LaughCount:     postFormatted.Data.LaughCount,
+					TearsCount:     postFormatted.Data.TearsCount,
+					PokerFaceCount: postFormatted.Data.PokerFaceCount,
+					EyesCount:      postFormatted.Data.EyesCount,
+					AngryCount:     postFormatted.Data.AngryCount,
+					ShitCount:      postFormatted.Data.ShitCount,
+					ClownCount:     postFormatted.Data.ClownCount,
+					TotalReactions: postFormatted.Data.TotalReactions,
+					Reacted:        postFormatted.Data.Reacted,
+					Tags:           resultTags,
+				},
+			)
 		}
 	}
 	return &dto.PostsDataResponse{Data: posts}, nil
@@ -575,9 +703,11 @@ func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*d
 		id := strconv.FormatUint(p.Id, 10)
 		postIds = append(postIds, id)
 	}
-	tagsMap, err := s.tagsClient.GetTagsByEntityIdsMap(context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
-		EntityIds: postIds,
-	})
+	tagsMap, err := s.tagsClient.GetTagsByEntityIdsMap(
+		context.Background(), &microservices.GetTagsByEntityIdsMapRequest{
+			EntityIds: postIds,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -585,7 +715,7 @@ func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*d
 		content := utils.NormalizeContent(p.Content)
 		itemTags := tagsMap.GetTags()[strconv.FormatUint(p.Id, 10)]
 
-		var resultTags []dto.ShortTags = utils.NormalizeTagsShort(itemTags.GetTags())
+		var resultTags = utils.NormalizeTagsShort(itemTags.GetTags())
 		user, err := s.userRepo.GetUserByLogin(p.Author)
 		if err != nil {
 			return nil, err
@@ -646,11 +776,13 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*dto.ReactRes
 			if err != nil {
 				return nil, err
 			}
-			reacts[r.GetReaction()] = append(reacts[r.GetReaction()], dto.React{
-				ID:       reactUUID.String(),
-				User:     fullReactUsers[r.UserLogin],
-				Reaction: dto.ReactionType(r.Reaction),
-			})
+			reacts[r.GetReaction()] = append(
+				reacts[r.GetReaction()], dto.React{
+					ID:       reactUUID.String(),
+					User:     fullReactUsers[r.UserLogin],
+					Reaction: dto.ReactionType(r.Reaction),
+				},
+			)
 		}
 
 		for _, mapping := range reactionMapping {
@@ -663,15 +795,23 @@ func (s *PostsService) formatReacts(post *microservices.PostItem) (*dto.ReactRes
 	return &reactionsResult, nil
 }
 
-func (s *PostsService) fillPost(p *microservices.PostItem, content []byte, reacts *dto.ReactResponse, user *models.Users, resTags []dto.ShortTags) *dto.Posts {
+func (s *PostsService) fillPost(
+	p *microservices.PostItem,
+	content []byte,
+	reacts *dto.ReactResponse,
+	user *models.Users,
+	resTags []dto.ShortTags,
+) *dto.Posts {
 	var tags []dto.ShortTags
 	if resTags != nil {
 		tags = resTags
 	} else {
 
-		respTags, err := s.tagsClient.GetTagsByEntityId(context.Background(), &microservices.GetTagsByEntityIdRequest{
-			EntityId: strconv.FormatUint(p.Id, 10),
-		})
+		respTags, err := s.tagsClient.GetTagsByEntityId(
+			context.Background(), &microservices.GetTagsByEntityIdRequest{
+				EntityId: strconv.FormatUint(p.Id, 10),
+			},
+		)
 		if err != nil {
 			return nil
 		}

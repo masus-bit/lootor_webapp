@@ -9,7 +9,15 @@ import (
 	"lootor/internal/pkg/elasticsearch"
 )
 
-func ReindexRouter(e *echo.Echo, jwtService *auth.JWTService, esService elasticsearch.ElasticService, userRepo repositories.UsersRepository, ciRepo repositories.CiRepository, collectionRepo repositories.CollectionsRepository, tagRepo services.TagsService) {
+func ReindexRouter(
+	e *echo.Echo,
+	jwtService *auth.JWTService,
+	esService elasticsearch.ElasticService,
+	userRepo repositories.UsersRepository,
+	ciRepo repositories.CiRepository,
+	collectionRepo repositories.CollectionsRepository,
+	tagRepo services.TagsService,
+) {
 	controller := controllers.NewReindexController(&esService, &userRepo, &collectionRepo, &ciRepo, &tagRepo)
 
 	publicGroup := e.Group("/public")

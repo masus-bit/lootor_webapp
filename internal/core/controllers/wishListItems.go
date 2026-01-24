@@ -26,9 +26,11 @@ func NewWLController(wlService services.WLService) *WLController {
 func (c *WLController) AddWishListItem(ctx echo.Context) error {
 	var request dto.WishListCreateRequest
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	authUser, ok := ctx.Get("user_login").(string)
 
@@ -38,9 +40,11 @@ func (c *WLController) AddWishListItem(ctx echo.Context) error {
 
 	response, err := c.wlService.AddItem(&request, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -57,9 +61,11 @@ func (c *WLController) GetWishList(ctx echo.Context) error {
 	login := ctx.QueryParam("userLogin")
 	response, err := c.wlService.GetAllUserItems(login)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -77,9 +83,11 @@ func (c *WLController) UpdatePriority(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	var request dto.WishListItemUpdatePriority
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	authUser, ok := ctx.Get("user_login").(string)
 
@@ -89,9 +97,11 @@ func (c *WLController) UpdatePriority(ctx echo.Context) error {
 
 	response, err := c.wlService.UpdatePriority(id, request, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -109,9 +119,11 @@ func (c *WLController) Delete(ctx echo.Context) error {
 
 	response, err := c.wlService.DeleteItem(id)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -129,9 +141,11 @@ func (c *WLController) Update(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
 	var request dto.WishListUpdateRequest
 	if err := ctx.Bind(&request); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error": "Invalid request body",
+			},
+		)
 	}
 	authUser, ok := ctx.Get("user_login").(string)
 
@@ -141,9 +155,11 @@ func (c *WLController) Update(ctx echo.Context) error {
 
 	response, err := c.wlService.Update(id, request, authUser)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }

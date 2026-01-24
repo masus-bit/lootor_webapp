@@ -7,7 +7,11 @@ import (
 	"lootor/internal/pkg/auth"
 )
 
-func NotificationsRouter(e *echo.Echo, jwtService *auth.JWTService, notificationsService services.NotificationsService) {
+func NotificationsRouter(
+	e *echo.Echo,
+	jwtService *auth.JWTService,
+	notificationsService services.NotificationsService,
+) {
 	controller := controllers.NewNotificationsController(notificationsService)
 
 	publicGroup := e.Group("/public")

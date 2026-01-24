@@ -24,9 +24,11 @@ func NewAchievementsController(achievementsService services.AchievementsService)
 func (c *AchievementsController) GetAllItems(ctx echo.Context) error {
 	response, err := c.achievementsService.GetAllAchievementsItems()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -43,9 +45,11 @@ func (c *AchievementsController) GetAllUsersAchievements(ctx echo.Context) error
 	userLogin := ctx.QueryParam("login")
 	response, err := c.achievementsService.GetUserAchievements(userLogin)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
@@ -64,9 +68,11 @@ func (c *AchievementsController) GetOneAchievement(ctx echo.Context) error {
 	code := ctx.QueryParam("code")
 	response, err := c.achievementsService.GetOneAchievement(userLogin, code)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }

@@ -24,9 +24,11 @@ func NewPlatformsController(platformsService services.PlatformsService) *Platfor
 func (c *PlatformsController) GetPlatforms(ctx echo.Context) error {
 	response, err := c.platformsService.GetAllPlatforms()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return ctx.JSON(
+			http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			},
+		)
 	}
 	return ctx.JSON(http.StatusOK, response)
 }
