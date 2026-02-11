@@ -383,7 +383,6 @@ func (s *UserService) SignIn(req *dto.SignInRequest) (*dto.SignInResponse, error
 }
 
 func (s *UserService) SignUp(req *dto.SignUpRequest, ctx context.Context) (*dto.SignUpResponse, error) {
-	mode := os.Getenv("MODE")
 	userByMail, _ := s.repo.GetByEmailForSignUp(req.Email)
 	if userByMail != nil {
 		return nil, errors.New("email должен быть уникальным")
@@ -428,14 +427,12 @@ func (s *UserService) SignUp(req *dto.SignUpRequest, ctx context.Context) (*dto.
 		if err != nil {
 			fmt.Println(err)
 		}
-		if mode == "beta" {
-			_, err = s.achClient.AddZeroAchievements(
-				context.Background(),
-				&microservices.GetUserAchievementsRequest{UserLogin: req.Login},
-			)
-			err = utils.AddAchievement(s.achClient, utils.AchieveBetaTester, req.Login, 1, utils.XPBetaTester, 0)
-			err = s.repo.IncrementExperience(req.Login, utils.XPBetaTester)
-		}
+		_, err = s.achClient.AddZeroAchievements(
+			context.Background(),
+			&microservices.GetUserAchievementsRequest{UserLogin: req.Login},
+		)
+		err = utils.AddAchievement(s.achClient, utils.AchieveBetaTester, req.Login, 1, utils.XPBetaTester, 0)
+		err = s.repo.IncrementExperience(req.Login, utils.XPBetaTester)
 	}()
 
 	return &dto.SignUpResponse{

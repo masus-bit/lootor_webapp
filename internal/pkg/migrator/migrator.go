@@ -25,6 +25,7 @@ var migrationList = []struct {
 	{"008_delete_tags_duplicates", migrations.DeleteTagsDuplicates},
 	{"010_add_achievements_to_all_users", migrations.AddAchievementsToAllUsers},
 	{"011_update_user_achievements_from_existing_data", migrations.UpdateUserAchievementsFromExistingData},
+	{"012_update_beta_tester_achievement", migrations.UpdateBetaTesterAchievement},
 }
 
 func RunMigrations(db *gorm.DB) error {

@@ -121,7 +121,7 @@ func (s *AchievementsService) GetAllAchievementsItems() (*dto.AchievementsItemsR
 
 func (s *AchievementsService) convertAchievement(achievement *microservices.AchievedAchievement) *dto.AchievedAchievement {
 	var achievedDate string
-	if achievement.GetLevel() > 1 {
+	if achievement.GetLevel() > 0 {
 		achievedDate = achievement.GetUpdatedAt()
 	} else {
 		achievedDate = achievement.GetCreatedAt()
