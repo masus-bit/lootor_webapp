@@ -88,7 +88,8 @@ func (s *EventsService) GetEvents(
 	var events []dto.Events
 	var totalCount int64
 	subscriptions := dbUser.Subscriptions
-	if subscriptions != nil {
+	tagsSubscriptions := dbUser.TagsSubscriptions
+	if subscriptions != nil || tagsSubscriptions != nil {
 		evs, err := s.eventClient.GetEvents(
 			context.Background(), &dto.GetEventsRequest{
 				Limit:             limit,
