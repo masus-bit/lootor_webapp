@@ -882,8 +882,7 @@ func (s *TagsService) getEntitiesByType(
 func (s *TagsService) canActivate(authUser, role, entityID, entityType string) (bool, error) {
 	var authorLogin string
 	if entityType == "post" {
-		postId, _ := strconv.ParseUint(entityID, 10, 64)
-		postResp, _ := s.postsService.GetPostById(context.Background(), postId, authUser)
+		postResp, _ := s.postsService.GetPostById(context.Background(), entityID, authUser)
 		authorLogin = postResp.Data.Author.Login
 	}
 	if entityType == "collection" {

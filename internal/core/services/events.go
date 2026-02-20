@@ -467,7 +467,7 @@ func (s *EventsService) normalizeEvents(
 		}
 
 		if post, exists := postsMap[event.TargetPostId]; exists {
-			post.Tags = postsTagsMap[strconv.FormatUint(post.ID, 10)]
+			post.Tags = postsTagsMap[post.ID]
 			normalizedEvent.TargetPost = &post
 		}
 
@@ -487,6 +487,7 @@ func (s *EventsService) normalizeEvents(
 
 		if tag, exists := tagsMap[event.TargetTagId]; exists {
 			normalizedEvent.TargetTag = &tag
+			normalizedEvent.TargetTagSlug = tag.Slug
 			switch normalizedEvent.TagRelatedEntityType {
 			case "collection":
 				collectionRes := collectionsMap[normalizedEvent.TargetCollectionID]

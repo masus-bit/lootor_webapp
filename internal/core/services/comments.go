@@ -150,9 +150,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 			}
 		}
 	case "post":
-		targetId, _ := strconv.ParseUint(request.TargetID, 10, 64)
-
-		post, err := s.postsService.GetPostById(ctx, targetId, request.Author)
+		post, err := s.postsService.GetPostById(ctx, request.TargetID, request.Author)
 
 		if err == nil {
 			if *request.TargetUserLogin != "" {
@@ -160,7 +158,7 @@ func (s *CommentsService) CreateComment(ctx context.Context, request *dto.Commen
 			} else {
 				targetUserLogin = post.Data.Author.Login
 			}
-			_, err = s.postsService.IncrementCommentsCount(ctx, targetId)
+			_, err = s.postsService.IncrementCommentsCount(ctx, request.TargetID)
 			if err != nil {
 				return nil, err
 			}
@@ -395,12 +393,10 @@ func (s *CommentsService) DeleteComment(ctx context.Context, id, targetId, authU
 		}
 	}
 
-	targetIdUint, _ := strconv.ParseUint(targetId, 10, 64)
-
-	_, err = s.postsService.GetPostById(ctx, targetIdUint, authUserLogin)
+	_, err = s.postsService.GetPostById(ctx, targetId, authUserLogin)
 
 	if err == nil {
-		_, err = s.postsService.DecrementCommentsCount(ctx, targetIdUint)
+		_, err = s.postsService.DecrementCommentsCount(ctx, targetId)
 		if err != nil {
 			return nil, err
 		}

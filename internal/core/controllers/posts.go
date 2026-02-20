@@ -5,7 +5,6 @@ import (
 	"lootor/internal/core/dto"
 	"lootor/internal/core/services"
 	"net/http"
-	"strconv"
 )
 
 type PostsController struct {
@@ -139,8 +138,7 @@ func (c *PostsController) GetPostById(ctx echo.Context) error {
 		IsAuthenticated bool
 		UserLogin       string
 	})
-	uintId, _ := strconv.ParseUint(id, 10, 64)
-	response, err := c.postService.GetPostById(ctx.Request().Context(), uintId, authInfo.UserLogin)
+	response, err := c.postService.GetPostById(ctx.Request().Context(), id, authInfo.UserLogin)
 	if err != nil {
 		return ctx.JSON(
 			http.StatusInternalServerError, map[string]string{
@@ -191,10 +189,9 @@ func (c *PostsController) React(ctx echo.Context) error {
 	if !ok {
 		authUser = ""
 	}
-	uintId, _ := strconv.ParseUint(id, 10, 64)
 
 	request := dto.ReactRequest{
-		PostID:    uintId,
+		PostID:    id,
 		Reaction:  reaction,
 		UserLogin: authUser,
 	}
@@ -224,10 +221,9 @@ func (c *PostsController) DeleteReact(ctx echo.Context) error {
 	if !ok {
 		authUser = ""
 	}
-	uintId, _ := strconv.ParseUint(id, 10, 64)
 
 	request := dto.ReactRequest{
-		PostID:    uintId,
+		PostID:    id,
 		UserLogin: authUser,
 		Reaction:  reaction,
 	}
@@ -256,9 +252,8 @@ func (c *PostsController) Delete(ctx echo.Context) error {
 	if !ok {
 		authUser = ""
 	}
-	uintId, _ := strconv.ParseUint(id, 10, 64)
 
-	response, err := c.postService.DeletePost(ctx.Request().Context(), uintId, authUser)
+	response, err := c.postService.DeletePost(ctx.Request().Context(), id, authUser)
 	if err != nil {
 		return ctx.JSON(
 			http.StatusInternalServerError, map[string]string{
@@ -287,13 +282,12 @@ func (c *PostsController) UpdatePost(ctx echo.Context) error {
 			},
 		)
 	}
-	uintId, _ := strconv.ParseUint(id, 10, 64)
 	authUser, ok := ctx.Get("user_login").(string)
 	if !ok {
 		authUser = ""
 	}
 
-	request.ID = uintId
+	request.ID = id
 	response, err := c.postService.UpdatePost(ctx.Request().Context(), &request, authUser)
 	if err != nil {
 		return ctx.JSON(

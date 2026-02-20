@@ -13,7 +13,7 @@ import (
 type ReactRequest struct {
 	Reaction  string `json:"reaction"`
 	UserLogin string `json:"userLogin"`
-	PostID    uint64 `json:"postId"`
+	PostID    string `json:"postId"`
 }
 
 type PostsDataResponse struct {
@@ -26,7 +26,7 @@ type PostDataResponse struct {
 }
 
 type PostUpdateRequest struct {
-	ID       uint64
+	ID       string
 	Content  datatypes.JSON `json:"content"`
 	IsDraft  bool           `json:"isDraft"`
 	Title    string         `json:"title"`
@@ -44,7 +44,7 @@ type PostRequest struct {
 }
 
 type EventPosts struct {
-	ID             uint64 `gorm:"primaryKey;autoIncrement" json:"id"`
+	ID             string `json:"id"`
 	Date           string `json:"date"`
 	Author         string `json:"author"`
 	HeartCount     int    `json:"heartCount"`
@@ -65,11 +65,12 @@ type EventPosts struct {
 	Title          string `json:"title"`
 	Translit       string `json:"translit"`
 	Tags           []Tags `json:"tags"`
+	NumberID       uint64 `json:"numberId"`
 
 	Content datatypes.JSON `gorm:"type:jsonb" json:"content"`
 }
 type Posts struct {
-	ID             uint64      `gorm:"primaryKey;autoIncrement" json:"id"`
+	ID             string      `json:"id"`
 	Date           string      `json:"date"`
 	Author         SubUsers    `json:"author"`
 	HeartCount     int         `json:"heartCount"`
@@ -90,6 +91,7 @@ type Posts struct {
 	Title          string      `json:"title"`
 	Translit       string      `json:"translit"`
 	Tags           []ShortTags `json:"tags"`
+	NumberID       uint64      `json:"numberId"`
 
 	Content datatypes.JSON `gorm:"type:jsonb" json:"content"`
 
@@ -117,7 +119,7 @@ type PostReactions struct {
 	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"index"`
 
 	ID        uuid.UUID    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	PostID    uint64       `gorm:"not null;uniqueIndex:idx_user_post" json:"postId"`
+	PostID    string       `gorm:"not null;uniqueIndex:idx_user_post" json:"postId"`
 	UserLogin string       `gorm:"not null;uniqueIndex:idx_user_post" json:"userLogin"`
 	Reaction  ReactionType `json:"reaction"`
 
@@ -144,7 +146,7 @@ type ReactResponse struct {
 }
 
 type IncrementRequest struct {
-	PostIDs []uint64 `json:"postIds"`
+	PostIDs []string `json:"postIds"`
 }
 
 type IncrementRequestInput struct {

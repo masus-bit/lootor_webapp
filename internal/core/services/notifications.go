@@ -195,7 +195,7 @@ func (s *NotificationsService) GetAllNotifications(
 		}
 		for _, post := range posts.GetData() {
 			userLogins = append(userLogins, post.GetAuthor())
-			stringID := strconv.Itoa(int(post.GetId()))
+			stringID := post.GetId()
 			postsMap[stringID] = dto.Posts{
 				ID:       post.GetId(),
 				Title:    post.GetTitle(),
@@ -244,7 +244,7 @@ func (s *NotificationsService) GetAllNotifications(
 			post := postsMap[strconv.FormatUint(tId, 10)]
 			owner := users[post.Author.Login]
 			tempItem.Target = dto.TargetItem{
-				ID:              strconv.FormatUint(post.ID, 10),
+				ID:              post.ID,
 				Name:            post.Title,
 				Transliteration: post.Translit,
 				TargetType:      "post",

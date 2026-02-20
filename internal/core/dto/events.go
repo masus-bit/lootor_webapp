@@ -20,6 +20,7 @@ type Events struct {
 	TargetWishListItemID string `gorm:"type:uuid" json:"targetWishListItemId"`
 	TargetPostID         string `json:"targetPostId"`
 	TargetTagID          string `json:"targetTagId"`
+	TargetTagSlug        string `json:"targetTagSlug"`
 	TargetPhotoID        string `json:"targetPhotoId"`
 
 	TargetUser         *SubUsers                `gorm:"-" json:"targetUser"`
