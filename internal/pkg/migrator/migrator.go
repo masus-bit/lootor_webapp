@@ -27,6 +27,7 @@ var migrationList = []struct {
 	{"011_update_user_achievements_from_existing_data", migrations.UpdateUserAchievementsFromExistingData},
 	{"012_update_beta_tester_achievement", migrations.UpdateBetaTesterAchievement},
 	{"013_change_post_id_to_uuid", migrations.ChangePostIdToUUIDWithNumberID},
+	{"014_fix_posts_fk", migrations.FixPostsUUIDDefault},
 }
 
 func RunMigrations(db *gorm.DB) error {

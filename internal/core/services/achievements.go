@@ -9,6 +9,7 @@ import (
 	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/utils"
+	"sort"
 )
 
 type AchievementsService struct {
@@ -65,6 +66,11 @@ func (s *AchievementsService) GetUserAchievements(userLogin string) (*dto.Achiev
 		temp := s.convertAchievement(a)
 		achievementsResult = append(achievementsResult, *temp)
 	}
+	sort.Slice(
+		achievementsResult, func(i, j int) bool {
+			return achievementsResult[i].Level > achievementsResult[j].Level
+		},
+	)
 	return &dto.AchievementsResponse{Data: achievementsResult}, nil
 }
 
@@ -82,6 +88,11 @@ func (s *AchievementsService) GetAchievedUserAchievements(userLogin string) (*dt
 		temp := s.convertAchievement(a)
 		achievementsResult = append(achievementsResult, *temp)
 	}
+	sort.Slice(
+		achievementsResult, func(i, j int) bool {
+			return achievementsResult[i].Level > achievementsResult[j].Level
+		},
+	)
 	return &dto.AchievementsResponse{Data: achievementsResult}, nil
 }
 

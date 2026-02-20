@@ -6,9 +6,6 @@ func ChangePostIdToUUIDWithNumberID(db *gorm.DB) error {
 	return db.Transaction(
 		func(tx *gorm.DB) error {
 
-			// ------------------------------------------------
-			// uuid extension
-			// ------------------------------------------------
 			if err := tx.Exec(
 				`
 			CREATE EXTENSION IF NOT EXISTS pgcrypto
@@ -17,9 +14,6 @@ func ChangePostIdToUUIDWithNumberID(db *gorm.DB) error {
 				return err
 			}
 
-			// ------------------------------------------------
-			// 1. add uuid column to posts
-			// ------------------------------------------------
 			if err := tx.Exec(
 				`
 			ALTER TABLE loot_posts.posts
@@ -47,9 +41,6 @@ func ChangePostIdToUUIDWithNumberID(db *gorm.DB) error {
 				return err
 			}
 
-			// ------------------------------------------------
-			// 2. number_id = old bigint id
-			// ------------------------------------------------
 			if err := tx.Exec(
 				`
 			ALTER TABLE loot_posts.posts
@@ -68,9 +59,6 @@ func ChangePostIdToUUIDWithNumberID(db *gorm.DB) error {
 				return err
 			}
 
-			// ------------------------------------------------
-			// 3. reactions temp uuid fk
-			// ------------------------------------------------
 			if err := tx.Exec(
 				`
 			ALTER TABLE loot_posts.post_reactions
@@ -91,20 +79,11 @@ func ChangePostIdToUUIDWithNumberID(db *gorm.DB) error {
 				return err
 			}
 
-			// ------------------------------------------------
-			// 4. drop BOTH FKs
-			// ------------------------------------------------
 			tx.Exec(`ALTER TABLE loot_posts.post_reactions DROP CONSTRAINT IF EXISTS fk_post_reactions_post`)
 			tx.Exec(`ALTER TABLE loot_posts.post_reactions DROP CONSTRAINT IF EXISTS fk_posts_reactions`)
 
-			// ------------------------------------------------
-			// 5. drop unique index using old post_id
-			// ------------------------------------------------
 			tx.Exec(`DROP INDEX IF EXISTS loot_posts.idx_user_post`)
 
-			// ------------------------------------------------
-			// 6. drop old bigint columns
-			// ------------------------------------------------
 			if err := tx.Exec(
 				`
 			ALTER TABLE loot_posts.post_reactions
@@ -132,9 +111,6 @@ func ChangePostIdToUUIDWithNumberID(db *gorm.DB) error {
 				return err
 			}
 
-			// ------------------------------------------------
-			// 7. rename uuid columns
-			// ------------------------------------------------
 			if err := tx.Exec(
 				`
 			ALTER TABLE loot_posts.posts
@@ -153,9 +129,6 @@ func ChangePostIdToUUIDWithNumberID(db *gorm.DB) error {
 				return err
 			}
 
-			// ------------------------------------------------
-			// 8. restore PK
-			// ------------------------------------------------
 			if err := tx.Exec(
 				`
 			ALTER TABLE loot_posts.posts
@@ -165,9 +138,6 @@ func ChangePostIdToUUIDWithNumberID(db *gorm.DB) error {
 				return err
 			}
 
-			// ------------------------------------------------
-			// 9. restore FK
-			// ------------------------------------------------
 			if err := tx.Exec(
 				`
 			ALTER TABLE loot_posts.post_reactions
@@ -189,9 +159,6 @@ func ChangePostIdToUUIDWithNumberID(db *gorm.DB) error {
 				return err
 			}
 
-			// ------------------------------------------------
-			// 10. recreate unique index
-			// ------------------------------------------------
 			if err := tx.Exec(
 				`
 			CREATE UNIQUE INDEX idx_user_post
@@ -201,9 +168,6 @@ func ChangePostIdToUUIDWithNumberID(db *gorm.DB) error {
 				return err
 			}
 
-			// ------------------------------------------------
-			// 11. AUTO INCREMENT number_id
-			// ------------------------------------------------
 			if err := tx.Exec(
 				`
 			CREATE SEQUENCE IF NOT EXISTS loot_posts.posts_number_id_seq

@@ -193,7 +193,6 @@ func (s *EventsService) normalizeEvents(
 				postIDs = append(postIDs, event.TargetPostId)
 			case "photo":
 				photoIDs = append(photoIDs, event.TargetPhotoId)
-
 			}
 		}
 		if event.TargetPhotoId != "" {
@@ -210,6 +209,8 @@ func (s *EventsService) normalizeEvents(
 	var postsMap map[string]dto.Posts
 	var tagsMap map[string]dto.ShortTags
 	var photosMap map[string]dto.Photos
+
+	tagsMap = make(map[string]dto.ShortTags)
 
 	var collectionsTagsMap, itemsTagsMap, postsTagsMap, photosTagsMap map[string][]dto.ShortTags
 
