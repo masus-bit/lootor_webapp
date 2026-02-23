@@ -488,7 +488,6 @@ func (s *EventsService) normalizeEvents(
 
 		if tag, exists := tagsMap[event.TargetTagId]; exists {
 			normalizedEvent.TargetTag = &tag
-			normalizedEvent.TargetTagSlug = tag.Slug
 			switch normalizedEvent.TagRelatedEntityType {
 			case "collection":
 				collectionRes := collectionsMap[normalizedEvent.TargetCollectionID]

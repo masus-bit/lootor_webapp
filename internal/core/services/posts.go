@@ -85,7 +85,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 				user.Login,
 				utils.EventActionCreate,
 				utils.EventTargetPost,
-				request.Title,
+				post.GetData().GetId(),
 				&dto.EventsParams{TargetPostID: translit},
 			)
 			if err != nil {
@@ -247,7 +247,7 @@ func (s *PostsService) DeletePost(ctx context.Context, id string, authUser strin
 				user.Login,
 				utils.EventActionDelete,
 				utils.EventTargetPost,
-				result.Title,
+				exists.GetData().GetId(),
 				&dto.EventsParams{TargetPostID: exists.Data.Translit},
 			)
 			if eventError != nil {
@@ -482,7 +482,7 @@ func (s *PostsService) UpdatePost(
 				user.Login,
 				utils.EventActionCreate,
 				utils.EventTargetPost,
-				req.Title,
+				existPost.GetData().GetId(),
 				&dto.EventsParams{TargetPostID: existPost.Data.Translit},
 			)
 			if err != nil {
@@ -495,7 +495,7 @@ func (s *PostsService) UpdatePost(
 				user.Login,
 				utils.EventActionUpdate,
 				utils.EventTargetPost,
-				req.Title,
+				existPost.GetData().GetId(),
 				&dto.EventsParams{TargetPostID: existPost.Data.Translit},
 			)
 			if err != nil {
