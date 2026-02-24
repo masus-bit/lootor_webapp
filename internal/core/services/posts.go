@@ -85,8 +85,8 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 				user.Login,
 				utils.EventActionCreate,
 				utils.EventTargetPost,
-				post.GetData().GetId(),
-				&dto.EventsParams{TargetPostID: translit},
+				request.Title,
+				&dto.EventsParams{TargetPostID: post.GetData().GetId()},
 			)
 			if err != nil {
 				_ = fmt.Errorf("failed to add event: %v", err)
@@ -247,8 +247,8 @@ func (s *PostsService) DeletePost(ctx context.Context, id string, authUser strin
 				user.Login,
 				utils.EventActionDelete,
 				utils.EventTargetPost,
-				exists.GetData().GetId(),
-				&dto.EventsParams{TargetPostID: exists.Data.Translit},
+				result.Title,
+				&dto.EventsParams{TargetPostID: exists.Data.Id},
 			)
 			if eventError != nil {
 				log.Default().Print(eventError)
@@ -482,8 +482,8 @@ func (s *PostsService) UpdatePost(
 				user.Login,
 				utils.EventActionCreate,
 				utils.EventTargetPost,
-				existPost.GetData().GetId(),
-				&dto.EventsParams{TargetPostID: existPost.Data.Translit},
+				req.Title,
+				&dto.EventsParams{TargetPostID: existPost.Data.Id},
 			)
 			if err != nil {
 				_ = fmt.Errorf("failed to add event: %v", err)
@@ -495,8 +495,8 @@ func (s *PostsService) UpdatePost(
 				user.Login,
 				utils.EventActionUpdate,
 				utils.EventTargetPost,
-				existPost.GetData().GetId(),
-				&dto.EventsParams{TargetPostID: existPost.Data.Translit},
+				req.Title,
+				&dto.EventsParams{TargetPostID: existPost.Data.Id},
 			)
 			if err != nil {
 				_ = fmt.Errorf("failed to add event: %v", err)
