@@ -19,6 +19,7 @@ type JWTService struct {
 	refreshTokenExp time.Duration
 	userRepo        repositories.UsersRepository
 	tagsClient      tagsclient.GRPCTagsClient
+	collectionsRepo repositories.CollectionsRepository
 }
 
 type TokenPair struct {
@@ -45,6 +46,7 @@ type Claims struct {
 	Subscriptions     []dto.SubUsers `json:"subscriptions" mapstructure:"-"`
 	TagsSubscriptions []dto.SubTags  `json:"tagsSubscriptions" mapstructure:"-"`
 	Role              string         `json:"role"`
+	CollectionsCount  int            `json:"collectionsCount"`
 	jwt.RegisteredClaims
 }
 
@@ -54,6 +56,7 @@ func NewJWTService(
 	refreshExp time.Duration,
 	userRepo repositories.UsersRepository,
 	tagsClient tagsclient.GRPCTagsClient,
+	collectionsRepo repositories.CollectionsRepository,
 ) *JWTService {
 	return &JWTService{
 		secretKey:       []byte(secret),
@@ -61,6 +64,7 @@ func NewJWTService(
 		refreshTokenExp: refreshExp,
 		userRepo:        userRepo,
 		tagsClient:      tagsClient,
+		collectionsRepo: collectionsRepo,
 	}
 }
 
@@ -72,6 +76,11 @@ func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
 	}
 
 	subscriptions, err := s.userRepo.GetForSubs(userData.Subscriptions)
+	if err != nil {
+		return nil, err
+	}
+
+	collectionsCount, err := s.collectionsRepo.GetCollectionsCount(user.GetLogin())
 	if err != nil {
 		return nil, err
 	}
@@ -94,13 +103,27 @@ func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
 		}
 	}
 	// Access token
-	accessToken, err := s.generateToken(user, s.accessTokenExp, subscribersLogins, subscriptions, resultTags)
+	accessToken, err := s.generateToken(
+		user,
+		s.accessTokenExp,
+		subscribersLogins,
+		subscriptions,
+		resultTags,
+		collectionsCount,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	// Refresh token
-	refreshToken, err := s.generateToken(user, s.refreshTokenExp, subscribersLogins, subscriptions, resultTags)
+	refreshToken, err := s.generateToken(
+		user,
+		s.refreshTokenExp,
+		subscribersLogins,
+		subscriptions,
+		resultTags,
+		collectionsCount,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -116,6 +139,7 @@ func (s *JWTService) generateToken(
 	exp time.Duration,
 	subLogins, subs []dto.SubUsers,
 	tagsSubs []dto.SubTags,
+	collectionsCount int64,
 ) (string, error) {
 	claims := Claims{
 		Login:             user.GetLogin(),
@@ -136,6 +160,7 @@ func (s *JWTService) generateToken(
 		SubscribersLogins: subLogins,
 		Subscriptions:     subs,
 		TagsSubscriptions: tagsSubs,
+		CollectionsCount:  int(collectionsCount),
 		Role:              user.GetRole(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(exp)),
@@ -257,4 +282,5 @@ type tokenData struct {
 	subscriptions     []dto.SubUsers
 	tagsSubscriptions []dto.SubTags
 	role              string
+	collectionsCount  int
 }

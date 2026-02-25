@@ -212,6 +212,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		time.Duration(refreshTtl)*time.Minute,
 		*userRepo,
 		*tagsClient,
+		*colRepo,
 	)
 	notificationsService := services.NewNotificationsService(
 		notificationsClient,
