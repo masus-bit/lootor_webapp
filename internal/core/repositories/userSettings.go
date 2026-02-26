@@ -26,10 +26,7 @@ func (r *UserSettingsRepository) CreateRecord(sets *models.UserSettings) (*model
 func (r *UserSettingsRepository) FindRecordByUserLogin(userLogin string) (*models.UserSettings, error) {
 	var userSettings *models.UserSettings
 
-	err := r.db.Model(&userSettings).Where("user_login = ?", userLogin).First(&userSettings)
-	if err.Error != nil {
-		return nil, err.Error
-	}
+	_ = r.db.Model(&userSettings).Where("user_login = ?", userLogin).First(&userSettings)
 
 	return userSettings, nil
 }
