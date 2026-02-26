@@ -331,6 +331,11 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 				targetUserLogin,
 				&dto.EventsParams{TargetUserLogin: targetUserLogin},
 			)
+			subscribers, _ := s.repo.GetTotalSubscribers(targetUserLogin)
+
+			xp, level := utils.GetAchievementSubscribersData(subscribers)
+
+			err = utils.AddAchievement(s.achClient, utils.AchieveSubscribers, targetUserLogin, level, xp, subscribers-1)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -1027,3 +1032,33 @@ func (s *UserService) DeleteUser(login string) (*dto.CommonResponse, error) {
 
 	return &dto.CommonResponse{Data: dto.Resp{Success: true}}, nil
 }
+
+//func (s *UserService) CheckYearsRegisteredAchievement() {
+//	go func() {
+//		users, err := s.repo.FindAllUsers()
+//		if err != nil {
+//			return
+//		}
+//		for _, user := range users {
+//			targetDate, err := time.Parse(time.RFC3339, user.Created)
+//			if err != nil {
+//				panic(err)
+//			}
+//
+//			now := time.Now()
+//
+//			years := now.Year() - targetDate.Year()
+//
+//			if now.YearDay() < targetDate.YearDay() {
+//				years--
+//			}
+//
+//			if years < 0 {
+//				years = 0
+//			}
+//			registeredYears := years
+//			s.achClient.
+//		}
+//	}()
+//
+//}

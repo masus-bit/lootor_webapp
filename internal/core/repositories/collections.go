@@ -429,12 +429,11 @@ func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string, search 
 	return collections, totalCount, err
 }
 
-func (r *CollectionsRepository) GetAllWithoutPrivates(search, limit, offset, sortBy, order string) (
+func (r *CollectionsRepository) GetAllWithoutPrivates(search, limit, offset, sortBy, order string, showEmpty bool) (
 	[]models.Collections,
 	int64,
 	error,
 ) {
-
 	intLimit, _ := strconv.Atoi(limit)
 	intOffset, _ := strconv.Atoi(offset)
 	var totalCount int64
@@ -446,6 +445,10 @@ func (r *CollectionsRepository) GetAllWithoutPrivates(search, limit, offset, sor
 
 	if search != "" {
 		countQuery = countQuery.Where("collections.name ILIKE ?", "%"+search+"%")
+	}
+
+	if !showEmpty {
+		countQuery = countQuery.Where("EXISTS (SELECT 1 FROM collections_collection_items_collection_items WHERE collections_id = collections.id)")
 	}
 
 	err := countQuery.Count(&totalCount).Error
@@ -461,13 +464,15 @@ func (r *CollectionsRepository) GetAllWithoutPrivates(search, limit, offset, sor
 		Offset(intOffset).
 		Limit(intLimit)
 
+	if !showEmpty {
+		query = query.Where("EXISTS (SELECT 1 FROM collections_collection_items_collection_items WHERE collections_id = collections.id)")
+	}
+
 	switch sortBy {
 	case "likesCount":
 		if order == "desc" {
-
 			query = query.Order("array_length(collections.likes, 1) DESC NULLS LAST")
 		} else {
-
 			query = query.Order("array_length(collections.likes, 1) ASC NULLS FIRST")
 		}
 	case "name":

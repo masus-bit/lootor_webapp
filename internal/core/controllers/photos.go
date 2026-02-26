@@ -97,7 +97,12 @@ func (c *PhotosController) GetByUserLogin(ctx echo.Context) error {
 func (c *PhotosController) Delete(ctx echo.Context) error {
 	id := ctx.Param("id")
 
-	response, err := c.photosService.DeletePhoto(context.Background(), id)
+	authUser, ok := ctx.Get("user_login").(string)
+	if !ok {
+		authUser = ""
+	}
+
+	response, err := c.photosService.DeletePhoto(context.Background(), id, authUser)
 	if err != nil {
 		return ctx.JSON(
 			http.StatusInternalServerError, map[string]string{

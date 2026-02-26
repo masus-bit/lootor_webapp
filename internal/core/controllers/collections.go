@@ -147,6 +147,7 @@ func (c *CollectionsController) GetByUserLogin(ctx echo.Context) error {
 // @Param order query string false "порядок сортировки asc или desc"
 // @Param search query string false "поиск по именам коллекций"
 // @Param limit query string true "limit"
+// @Param showEmpty query boolean true "show empty collections"
 // @Param offset query string true "offset"
 // @Success 201 {object} dto.AllCollectionsDataResponseSwagger
 // @Router /public/collections/catalog [get]
@@ -156,12 +157,13 @@ func (c *CollectionsController) GetAll(ctx echo.Context) error {
 	search := ctx.QueryParam("search")
 	limit := ctx.QueryParam("limit")
 	offset := ctx.QueryParam("offset")
+	showEmpty := ctx.QueryParam("showEmpty")
 
 	authInfo := ctx.Get("auth_info").(struct {
 		IsAuthenticated bool
 		UserLogin       string
 	})
-	response, err := c.colService.GetAll(authInfo.UserLogin, orderBy, order, search, limit, offset)
+	response, err := c.colService.GetAll(authInfo.UserLogin, orderBy, order, search, limit, offset, showEmpty == "true")
 	if err != nil {
 		return ctx.JSON(
 			http.StatusNotFound, map[string]string{

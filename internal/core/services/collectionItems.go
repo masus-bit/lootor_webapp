@@ -299,7 +299,15 @@ func (s *CiService) Delete(id string, ctx context.Context) (*dto.CommonResponse,
 		if len(exists.CopyNumber) != 0 {
 			exp += utils.CICopyNumberExp
 		}
+		go func() {
+			collectionItemsCount, _ := s.repo.GetTotalByUserLogin(exists.Owner.Login)
 
+			xp, level := utils.GetAchievementCollectionItemsAddData(collectionItemsCount + 1)
+
+			_ = utils.AddAchievement(
+				s.achClient, utils.AchieveCollectionItemsAdded, exists.Owner.Login, level, xp, collectionItemsCount,
+			)
+		}()
 		err = s.userRepo.DecrementExperience(exists.UserLogin, exp)
 		if err != nil {
 			return nil, err
@@ -532,6 +540,8 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 		return nil, err
 	}
 	isUserLikes := slices.Contains(exists.Likes, userLogin)
+	collectionItemsLikes, _ := s.repo.GetTotalLikesByUserLogin(exists.UserLogin)
+	xp, level := utils.GetAchievementCollectionItemsLikesData(collectionItemsLikes)
 	if !isUserLikes {
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.Collections[0].IsPrivate {
@@ -547,10 +557,6 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 		}
 		exp := 0
 		go func() {
-			collectionItemsLikes, _ := s.repo.GetTotalLikesByUserLogin(exists.UserLogin)
-
-			xp, level := utils.GetAchievementCollectionItemsLikesData(collectionItemsLikes)
-
 			_ = utils.AddAchievement(
 				s.achClient, utils.AchieveCollectionItemsLikes, exists.UserLogin, level, xp, collectionItemsLikes,
 			)
@@ -592,6 +598,11 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 			if eventError != nil {
 				log.Default().Print(eventError)
 			}
+		}()
+		go func() {
+			_ = utils.AddAchievement(
+				s.achClient, utils.AchieveCollectionItemsLikes, exists.UserLogin, level, xp, collectionItemsLikes-1,
+			)
 		}()
 		if err != nil {
 			return nil, err

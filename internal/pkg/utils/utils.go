@@ -471,7 +471,7 @@ func GetAchievementDonateData(monthsDonated int64) (int64, int64) {
 
 func GetAchievementYearlyRegisterData(yearsRegistered int64) (int64, int64) {
 	if yearsRegistered >= 1 {
-		return XPYearlyRegister, 1
+		return XPYearlyRegister * yearsRegistered, yearsRegistered
 	}
 	return 0, 0
 }

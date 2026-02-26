@@ -540,12 +540,12 @@ func (s *CollectionService) GetByUserLogin(
 	return &dto.AllCollectionsDataResponse{Data: sortedCollections, Total: total, ProfileName: user.ProfileName}, nil
 }
 
-func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit, offset string) (
+func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit, offset string, showEmpty bool) (
 	*dto.AllCollectionsDataResponse,
 	error,
 ) {
 	var collections []models.Collections
-	collections, total, _ := s.repo.GetAllWithoutPrivates(search, limit, offset, orderBy, order)
+	collections, total, _ := s.repo.GetAllWithoutPrivates(search, limit, offset, orderBy, order, showEmpty)
 	result := make([]dto.CollectionsResponse, 0)
 
 	collectionIds := make([]uuid.UUID, 0)
@@ -809,6 +809,20 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 				}
 			}()
 		}
+		go func() {
+			collectionsLikes, _ := s.repo.GetLikesOfAllCollectionsUser(userLogin)
+
+			xp, level := utils.GetAchievementCollectionsLikesData(collectionsLikes)
+
+			err = utils.AddAchievement(
+				s.achClient,
+				utils.AchieveCollectionsLikes,
+				exists.UserLogin,
+				level,
+				xp,
+				collectionsLikes-1,
+			)
+		}()
 		err = s.userRepo.DecrementExperience(exists.UserLogin, utils.CollectionSelfLikeExp)
 		if err != nil {
 			return nil, err

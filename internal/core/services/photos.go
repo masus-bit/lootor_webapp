@@ -146,7 +146,7 @@ func (s *PhotosService) GetByUser(
 	return &dto.PhotosDataResponse{Data: result}, nil
 }
 
-func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.CommonResponse, error) {
+func (s *PhotosService) DeletePhoto(ctx context.Context, id, authUserLogin string) (*dto.CommonResponse, error) {
 	resp, err := s.photosClient.DeletePhoto(
 		ctx, &microservices.DeletePhotoRequest{
 			Id: s.stringToUint64(id),
@@ -163,12 +163,29 @@ func (s *PhotosService) DeletePhoto(ctx context.Context, id string) (*dto.Common
 	if !ok.Success {
 		return nil, errors.New("failed to delete photo")
 	}
+	photosCount, err := s.photosClient.GetTotalPhotosCountByUserLogin(
+		context.Background(),
+		&microservices.GetTotalPhotosCountByUserLoginRequest{AuthUserLogin: authUserLogin},
+	)
+	if err != nil {
+		return nil, err
+	}
 	go func() {
 		_, _ = s.tagsClient.RemoveEntityTags(
 			context.Background(), &microservices.RemoveEntityTagsRequest{
 				EntityId:   id,
 				EntityType: utils.EventTargetPhoto,
 			},
+		)
+		xp, level := utils.GetAchievementPhotosAddData(photosCount.GetCount() + 1)
+
+		_ = utils.AddAchievement(
+			s.achService,
+			utils.AchievePhotosAdded,
+			authUserLogin,
+			level,
+			xp,
+			photosCount.GetCount(),
 		)
 		eventError := s.eventsService.AddEvent(
 			"",
@@ -226,11 +243,12 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 	if err != nil {
 		return nil, err
 	}
+	dbCollection, err := s.collectionRepo.GetByIdWithoutCollectionItems(resp.GetCollectionId())
+	if err != nil {
+		return nil, err
+	}
+
 	if resp.GetIsLike() {
-		dbCollection, err := s.collectionRepo.GetByIdWithoutCollectionItems(resp.GetCollectionId())
-		if err != nil {
-			return nil, err
-		}
 		target := &dto.TargetItem{
 			ID:               id,
 			Name:             resp.GetPath(),
@@ -261,7 +279,7 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 
 		exp := utils.CISelfLikeExp
 		go func() {
-			xp, level := utils.GetAchievementPhotosLikesData(photosCountLikes.GetCount() + 1)
+			xp, level := utils.GetAchievementPhotosLikesData(photosCountLikes.GetCount())
 
 			_ = utils.AddAchievement(
 				s.achService,
@@ -269,12 +287,34 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 				dbCollection.UserLogin,
 				level,
 				xp,
-				photosCountLikes.GetCount()+1,
+				photosCountLikes.GetCount(),
 			)
 			exp += int(xp)
 		}()
 		err = s.userRepo.IncrementExperience(authUserLogin, exp)
 	} else {
+		photosCountLikes, err := s.photosClient.GetTotalPhotosLikesCountByUserLogin(
+			context.Background(),
+			&microservices.GetTotalPhotosLikesCountByUserLoginRequest{AuthUserLogin: dbCollection.UserLogin},
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		exp := utils.CISelfLikeExp
+		go func() {
+			xp, level := utils.GetAchievementPhotosLikesData(photosCountLikes.GetCount())
+
+			_ = utils.AddAchievement(
+				s.achService,
+				utils.AchievePhotosLikes,
+				dbCollection.UserLogin,
+				level,
+				xp,
+				photosCountLikes.GetCount(),
+			)
+			exp += int(xp)
+		}()
 		err = s.userRepo.DecrementExperience(authUserLogin, utils.CISelfLikeExp)
 		go func() {
 			_ = s.notificationsService.DeleteNotification(context.Background(), id, authUserLogin)

@@ -274,6 +274,19 @@ func (s *PostsService) DeletePost(ctx context.Context, id string, authUser strin
 				return
 			}
 		}()
+		go func() {
+			postsCount, _ := s.postsClient.GetPostsCountByUserLogin(context.Background(), authUser)
+
+			xp, level := utils.GetAchievementPostsCreateData(postsCount.GetCount() + 1)
+			err = utils.AddAchievement(
+				s.achService,
+				utils.AchievePostsCreated,
+				authUser,
+				level,
+				xp,
+				postsCount.GetCount(),
+			)
+		}()
 	}
 
 	go func() {
@@ -417,8 +430,26 @@ func (s *PostsService) Unreact(ctx context.Context, req *dto.ReactRequest) (*dto
 	if err != nil {
 		return nil, err
 	}
+	post, err := s.postsClient.GetPostById(ctx, req.PostID, false)
+	if err != nil {
+		return nil, err
+	}
 	backContext := context.Background()
 	go func() {
+		postsReactCount, _ := s.postsClient.GetReactionsCountByUserLogin(
+			context.Background(),
+			post.GetData().GetAuthor(),
+		)
+
+		xp, level := utils.GetAchievementPostsReactionsData(postsReactCount.GetCount())
+		err = utils.AddAchievement(
+			s.achService,
+			utils.AchievePostsReactions,
+			post.GetData().GetAuthor(),
+			level,
+			xp,
+			postsReactCount.GetCount(),
+		)
 		_ = s.userRepo.DecrementExperience(resp.UserLogin, utils.PostReactExt)
 
 		_ = s.userRepo.DecrementSocialScore(resp.UserLogin, 1)
