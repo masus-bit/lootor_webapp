@@ -1,5 +1,71 @@
 basePath: /
 definitions:
+  dto.AchievedAchievement:
+    properties:
+      achievedDate:
+        type: string
+      achievement:
+        $ref: '#/definitions/dto.Achievements'
+      achievementCode:
+        type: string
+      achievementId:
+        type: string
+      currentProgress:
+        type: integer
+      exp:
+        type: integer
+      id:
+        type: string
+      level:
+        type: integer
+      threshold:
+        type: integer
+      totalAchieved:
+        type: integer
+      totalAchievedPercentage:
+        type: number
+      userLogin:
+        type: string
+    type: object
+  dto.AchievementResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.AchievedAchievement'
+    type: object
+  dto.Achievements:
+    properties:
+      code:
+        type: string
+      id:
+        type: string
+    type: object
+  dto.AchievementsItemsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.Achievements'
+        type: array
+    type: object
+  dto.AchievementsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.AchievedAchievement'
+        type: array
+    type: object
+  dto.AddTagToEntityRequest:
+    properties:
+      author:
+        type: string
+      entityId:
+        type: string
+      entityType:
+        type: string
+      tagIds:
+        items:
+          type: string
+        type: array
+    type: object
   dto.AllCollectionsDataResponseSwagger:
     properties:
       data:
@@ -7,15 +73,114 @@ definitions:
           $ref: '#/definitions/dto.CollectionsResponseSwagger'
         type: array
     type: object
+  dto.ChangePasswordReset:
+    properties:
+      password:
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - password
+    - token
+    type: object
+  dto.CollectionCreateRequest:
+    properties:
+      bannerUrl:
+        type: string
+      description:
+        type: string
+      isPrivate:
+        type: boolean
+      name:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      transliteration:
+        type: string
+      userLogin:
+        type: string
+    type: object
   dto.CollectionDataResponseSwagger:
     properties:
       data:
         $ref: '#/definitions/dto.CollectionsResponseSwagger'
     type: object
+  dto.CollectionItemsCopyOrMoveRequest:
+    properties:
+      id:
+        type: string
+      sourceCollectionId:
+        type: string
+      targetCollectionIds:
+        items:
+          type: string
+        type: array
+    type: object
   dto.CollectionItemsDataResponseSwagger:
     properties:
       data:
         $ref: '#/definitions/dto.CollectionItemsResponseSwagger'
+    type: object
+  dto.CollectionItemsProps:
+    properties:
+      boardGames:
+        type: integer
+      books:
+        type: integer
+      collectibleCards:
+        type: integer
+      collectibleFigures:
+        type: integer
+      comics:
+        type: integer
+      gamingHardware:
+        type: integer
+      steelbooks:
+        type: integer
+      videoGames:
+        type: integer
+      vinyl:
+        type: integer
+    type: object
+  dto.CollectionItemsRequestCreate:
+    properties:
+      collection:
+        type: string
+      copyNumber:
+        items:
+          type: integer
+        type: array
+      description:
+        type: string
+      edition:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      itemType:
+        type: string
+      name:
+        type: string
+      platform:
+        type: string
+      purchaseDate:
+        type: string
+      purchasePrice:
+        type: number
+      rating:
+        type: number
+      sealed:
+        type: boolean
+      shippingCost:
+        type: number
+      tags:
+        items:
+          type: string
+        type: array
     type: object
   dto.CollectionItemsResponseSwagger:
     properties:
@@ -113,6 +278,23 @@ definitions:
       transliteration:
         type: string
       updatedAt:
+        type: string
+      userLogin:
+        type: string
+    type: object
+  dto.CollectionShort:
+    properties:
+      bannerUrl:
+        type: string
+      id:
+        type: string
+      isPrivate:
+        type: boolean
+      name:
+        type: string
+      shareString:
+        type: string
+      transliteration:
         type: string
       userLogin:
         type: string
@@ -247,6 +429,13 @@ definitions:
       data:
         $ref: '#/definitions/dto.UserResponseSwagger'
     type: object
+  dto.DeleteTags:
+    properties:
+      ids:
+        items:
+          type: string
+        type: array
+    type: object
   dto.EntitiesSwagger:
     properties:
       collectionItem:
@@ -337,6 +526,29 @@ definitions:
       updatedAt:
         type: string
     type: object
+  dto.GetEventsRequest:
+    properties:
+      actions:
+        items:
+          type: string
+        type: array
+      eventTargetTypes:
+        items:
+          type: string
+        type: array
+      limit:
+        type: string
+      offset:
+        type: string
+      subscriptions:
+        items:
+          type: string
+        type: array
+      tagsSubscriptions:
+        items:
+          type: string
+        type: array
+    type: object
   dto.ImagesResponse:
     properties:
       keys:
@@ -344,10 +556,40 @@ definitions:
           type: string
         type: array
     type: object
+  dto.IncrementRequest:
+    properties:
+      postIds:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.ItemTypesDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.ItemTypes'
+        type: array
+    type: object
   dto.LikeUserSwagger:
     properties:
       isLike:
         type: boolean
+    type: object
+  dto.MergeTagsRequest:
+    properties:
+      fromTagIds:
+        items:
+          type: string
+        type: array
+      toTagId:
+        type: string
+    type: object
+  dto.MoveTagLinks:
+    properties:
+      sourceId:
+        type: string
+      targetId:
+        type: string
     type: object
   dto.NotificationsReadRequest:
     properties:
@@ -356,10 +598,272 @@ definitions:
           type: string
         type: array
     type: object
+  dto.PaymentsData:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Payments'
+        type: array
+    type: object
+  dto.PhotoCreate:
+    properties:
+      collectionId:
+        type: string
+      paths:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.PhotoDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.Photos'
+    type: object
+  dto.PhotoUpdateRequest:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.Photos:
+    properties:
+      author:
+        $ref: '#/definitions/dto.SubUsers'
+      canLike:
+        type: boolean
+      collection:
+        $ref: '#/definitions/dto.CollectionShort'
+      collectionId:
+        type: string
+      commentsCount:
+        type: integer
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      isOwner:
+        type: boolean
+      likesCount:
+        type: integer
+      path:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/dto.ShortTags'
+        type: array
+      updatedAt:
+        type: string
+    type: object
+  dto.PhotosDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.Photos'
+        type: array
+      total:
+        type: integer
+    type: object
+  dto.PostUpdateRequest:
+    type: object
+  dto.PublicUpdateTag:
+    type: object
+  dto.RemoveTagsRequest:
+    properties:
+      entityId:
+        type: string
+      entityType:
+        type: string
+      tagIds:
+        items:
+          type: string
+        type: array
+    type: object
   dto.Resp:
     properties:
       success:
         type: boolean
+    type: object
+  dto.ShortTags:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      primaryId:
+        type: string
+      seriesId:
+        type: string
+      slug:
+        type: string
+      totalCollectionItems:
+        type: integer
+      totalCollections:
+        type: integer
+      totalPhotos:
+        type: integer
+      totalPosts:
+        type: integer
+      type:
+        type: string
+    type: object
+  dto.SignInRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.SignInResponse:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+  dto.SignUpRequest:
+    properties:
+      bio:
+        type: string
+      city:
+        type: string
+      email:
+        type: string
+      login:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      profileName:
+        type: string
+      userName:
+        type: string
+    required:
+    - email
+    - login
+    - password
+    - userName
+    type: object
+  dto.SignUpResponse:
+    properties:
+      data:
+        type: string
+    type: object
+  dto.SubUsers:
+    properties:
+      avatarUrl:
+        type: string
+      isPremium:
+        type: boolean
+      login:
+        type: string
+      profileName:
+        type: string
+    type: object
+  dto.TagCreateRequest:
+    type: object
+  dto.TagDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.Tags'
+      total:
+        type: integer
+    type: object
+  dto.TagLinks:
+    properties:
+      createdAt:
+        type: string
+      entityId:
+        type: string
+      entityType:
+        type: string
+      tag:
+        $ref: '#/definitions/dto.Tags'
+      tagId:
+        type: string
+    type: object
+  dto.TagUpdateRequest:
+    type: object
+  dto.Tags:
+    properties:
+      author:
+        $ref: '#/definitions/dto.SubUsers'
+      canSubscribe:
+        description: AdditionalFields datatypes.JSON `gorm:"type:jsonb" json:"additionalFields"`
+        type: boolean
+      collectionItemsProps:
+        $ref: '#/definitions/dto.CollectionItemsProps'
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      isPrimary:
+        type: boolean
+      isSeries:
+        type: boolean
+      name:
+        type: string
+      primary:
+        $ref: '#/definitions/dto.Tags'
+      primaryId:
+        type: string
+      series:
+        $ref: '#/definitions/dto.ShortTags'
+      seriesEntries:
+        items:
+          $ref: '#/definitions/dto.Tags'
+        type: array
+      seriesId:
+        type: string
+      slug:
+        type: string
+      synonyms:
+        items:
+          $ref: '#/definitions/dto.Tags'
+        type: array
+      tagLinks:
+        items:
+          $ref: '#/definitions/dto.TagLinks'
+        type: array
+      totalCollectionItems:
+        type: integer
+      totalCollections:
+        type: integer
+      totalPhotos:
+        type: integer
+      totalPosts:
+        type: integer
+    type: object
+  dto.TagsDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.Tags'
+        type: array
+      total:
+        type: integer
+    type: object
+  dto.TagsShortDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.ShortTags'
+        type: array
     type: object
   dto.TagsSwagger:
     properties:
@@ -374,6 +878,57 @@ definitions:
       name:
         type: string
       updatedAt:
+        type: string
+    type: object
+  dto.UserChoiceRequest:
+    properties:
+      feedbackScore:
+        type: integer
+      searchQuery:
+        type: string
+      selectedTagId:
+        type: string
+      sessionId:
+        type: string
+      userId:
+        type: string
+      wasCorrect:
+        type: boolean
+    type: object
+  dto.UserRequestUpdate:
+    properties:
+      avatarUrl:
+        type: string
+      backgroundUrl:
+        type: string
+      bio:
+        type: string
+      city:
+        type: string
+      email:
+        type: string
+      profileName:
+        type: string
+      userName:
+        type: string
+    type: object
+  dto.UserRequestUpdateFirstTime:
+    properties:
+      avatarUrl:
+        type: string
+      backgroundUrl:
+        type: string
+      bio:
+        type: string
+      city:
+        type: string
+      email:
+        type: string
+      login:
+        type: string
+      profileName:
+        type: string
+      userName:
         type: string
     type: object
   dto.UserResponseSwagger:
@@ -420,6 +975,8 @@ definitions:
       vkId:
         type: string
     type: object
+  dto.UserSettingsRequest:
+    type: object
   dto.UsersSwagger:
     properties:
       avatarUrl:
@@ -455,6 +1012,30 @@ definitions:
       vkId:
         type: string
     type: object
+  dto.WishListCreateRequest:
+    properties:
+      collectionItemId:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      itemName:
+        type: string
+      notes:
+        type: string
+      priority:
+        type: integer
+      purchaseLinks:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.WishListItemUpdatePriority:
+    properties:
+      priority:
+        type: integer
+    type: object
   dto.WishlistDataResponseSwagger:
     properties:
       data:
@@ -478,221 +1059,6 @@ definitions:
             type: array
         type: object
     type: object
-  models.AchievedAchievement:
-    properties:
-      achievedDate:
-        type: string
-      achievement:
-        $ref: '#/definitions/models.Achievements'
-      achievementCode:
-        type: string
-      achievementId:
-        type: string
-      currentProgress:
-        type: integer
-      exp:
-        type: integer
-      id:
-        type: string
-      level:
-        type: integer
-      threshold:
-        type: integer
-      totalAchieved:
-        type: integer
-      totalAchievedPercentage:
-        type: number
-      userLogin:
-        type: string
-    type: object
-  models.AchievementResponse:
-    properties:
-      data:
-        $ref: '#/definitions/models.AchievedAchievement'
-    type: object
-  models.Achievements:
-    properties:
-      code:
-        type: string
-      id:
-        type: string
-    type: object
-  models.AchievementsItemsResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/models.Achievements'
-        type: array
-    type: object
-  models.AchievementsResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/models.AchievedAchievement'
-        type: array
-    type: object
-  models.AddTagToEntityRequest:
-    properties:
-      author:
-        type: string
-      entityId:
-        type: string
-      entityType:
-        type: string
-      tagIds:
-        items:
-          type: string
-        type: array
-    type: object
-  models.ChangePasswordReset:
-    properties:
-      password:
-        minLength: 8
-        type: string
-      token:
-        type: string
-    required:
-    - password
-    - token
-    type: object
-  models.CollectionCreateRequest:
-    properties:
-      bannerUrl:
-        type: string
-      description:
-        type: string
-      isPrivate:
-        type: boolean
-      name:
-        type: string
-      tags:
-        items:
-          type: string
-        type: array
-      transliteration:
-        type: string
-      userLogin:
-        type: string
-    type: object
-  models.CollectionItemsCopyOrMoveRequest:
-    properties:
-      id:
-        type: string
-      sourceCollectionId:
-        type: string
-      targetCollectionIds:
-        items:
-          type: string
-        type: array
-    type: object
-  models.CollectionItemsProps:
-    properties:
-      boardGames:
-        type: integer
-      books:
-        type: integer
-      collectibleCards:
-        type: integer
-      collectibleFigures:
-        type: integer
-      comics:
-        type: integer
-      gamingHardware:
-        type: integer
-      steelbooks:
-        type: integer
-      videoGames:
-        type: integer
-      vinyl:
-        type: integer
-    type: object
-  models.CollectionItemsRequestCreate:
-    properties:
-      collection:
-        type: string
-      copyNumber:
-        items:
-          type: integer
-        type: array
-      description:
-        type: string
-      edition:
-        type: string
-      images:
-        items:
-          type: string
-        type: array
-      itemType:
-        type: string
-      name:
-        type: string
-      platform:
-        type: string
-      purchaseDate:
-        type: string
-      purchasePrice:
-        type: number
-      rating:
-        type: number
-      sealed:
-        type: boolean
-      shippingCost:
-        type: number
-      tags:
-        items:
-          type: string
-        type: array
-    type: object
-  models.CollectionShort:
-    properties:
-      bannerUrl:
-        type: string
-      id:
-        type: string
-      isPrivate:
-        type: boolean
-      name:
-        type: string
-      shareString:
-        type: string
-      transliteration:
-        type: string
-      userLogin:
-        type: string
-    type: object
-  models.DeleteTags:
-    properties:
-      ids:
-        items:
-          type: string
-        type: array
-    type: object
-  models.GetEventsRequest:
-    properties:
-      actions:
-        items:
-          type: string
-        type: array
-      eventTargetTypes:
-        items:
-          type: string
-        type: array
-      limit:
-        type: string
-      offset:
-        type: string
-      subscriptions:
-        items:
-          type: string
-        type: array
-    type: object
-  models.IncrementRequest:
-    properties:
-      postIds:
-        items:
-          type: integer
-        type: array
-    type: object
   models.ItemTypes:
     properties:
       createdAt:
@@ -706,22 +1072,6 @@ definitions:
       slug:
         type: string
       updatedAt:
-        type: string
-    type: object
-  models.ItemTypesDataResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/models.ItemTypes'
-        type: array
-    type: object
-  models.MergeTagsRequest:
-    properties:
-      fromTagIds:
-        items:
-          type: string
-        type: array
-      toTagId:
         type: string
     type: object
   models.Payments:
@@ -741,78 +1091,6 @@ definitions:
       userLogin:
         type: string
     type: object
-  models.PaymentsData:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/models.Payments'
-        type: array
-    type: object
-  models.PhotoCreate:
-    properties:
-      collectionId:
-        type: string
-      paths:
-        items:
-          type: string
-        type: array
-    type: object
-  models.PhotoDataResponse:
-    properties:
-      data:
-        $ref: '#/definitions/models.Photos'
-    type: object
-  models.PhotoUpdateRequest:
-    properties:
-      description:
-        type: string
-      id:
-        type: string
-      tags:
-        items:
-          type: string
-        type: array
-    type: object
-  models.Photos:
-    properties:
-      author:
-        $ref: '#/definitions/models.SubUsers'
-      canLike:
-        type: boolean
-      collection:
-        $ref: '#/definitions/models.CollectionShort'
-      collectionId:
-        type: string
-      commentsCount:
-        type: integer
-      createdAt:
-        type: string
-      description:
-        type: string
-      id:
-        type: integer
-      isOwner:
-        type: boolean
-      likesCount:
-        type: integer
-      path:
-        type: string
-      tags:
-        items:
-          $ref: '#/definitions/models.ShortTags'
-        type: array
-      updatedAt:
-        type: string
-    type: object
-  models.PhotosDataResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/models.Photos'
-        type: array
-      total:
-        type: integer
-    type: object
   models.Platforms:
     properties:
       createdAt:
@@ -830,274 +1108,6 @@ definitions:
         items:
           $ref: '#/definitions/models.Platforms'
         type: array
-    type: object
-  models.PostUpdateRequest:
-    type: object
-  models.RemoveTagsRequest:
-    properties:
-      entityId:
-        type: string
-      entityType:
-        type: string
-      tagIds:
-        items:
-          type: string
-        type: array
-    type: object
-  models.ShortTags:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      primaryId:
-        type: string
-      seriesId:
-        type: string
-      slug:
-        type: string
-      type:
-        type: string
-    type: object
-  models.SignInRequest:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    required:
-    - email
-    - password
-    type: object
-  models.SignInResponse:
-    properties:
-      accessToken:
-        type: string
-      refreshToken:
-        type: string
-    type: object
-  models.SignUpRequest:
-    properties:
-      bio:
-        type: string
-      city:
-        type: string
-      email:
-        type: string
-      login:
-        type: string
-      password:
-        minLength: 8
-        type: string
-      profileName:
-        type: string
-      userName:
-        type: string
-    required:
-    - email
-    - login
-    - password
-    - userName
-    type: object
-  models.SignUpResponse:
-    properties:
-      data:
-        type: string
-    type: object
-  models.SubUsers:
-    properties:
-      avatarUrl:
-        type: string
-      isPremium:
-        type: boolean
-      login:
-        type: string
-      profileName:
-        type: string
-    type: object
-  models.TagCreateRequest:
-    properties:
-      author:
-        type: string
-      entityId:
-        type: string
-      entityType:
-        type: string
-      names:
-        items:
-          type: string
-        type: array
-    type: object
-  models.TagDataResponse:
-    properties:
-      data:
-        $ref: '#/definitions/models.Tags'
-      total:
-        type: integer
-    type: object
-  models.TagLinks:
-    properties:
-      createdAt:
-        type: string
-      entityId:
-        type: string
-      entityType:
-        type: string
-      tag:
-        $ref: '#/definitions/models.Tags'
-      tagId:
-        type: string
-    type: object
-  models.TagUpdateRequest:
-    properties:
-      description:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      slug:
-        type: string
-    type: object
-  models.Tags:
-    properties:
-      author:
-        $ref: '#/definitions/models.SubUsers'
-      collectionItemsProps:
-        $ref: '#/definitions/models.CollectionItemsProps'
-      createdAt:
-        type: string
-      description:
-        type: string
-      id:
-        type: string
-      isPrimary:
-        type: boolean
-      isSeries:
-        type: boolean
-      name:
-        type: string
-      primary:
-        $ref: '#/definitions/models.Tags'
-      primaryId:
-        type: string
-      series:
-        $ref: '#/definitions/models.ShortTags'
-      seriesEntries:
-        items:
-          $ref: '#/definitions/models.Tags'
-        type: array
-      seriesId:
-        type: string
-      slug:
-        type: string
-      synonyms:
-        items:
-          $ref: '#/definitions/models.Tags'
-        type: array
-      tagLinks:
-        items:
-          $ref: '#/definitions/models.TagLinks'
-        type: array
-      totalCollectionItems:
-        type: integer
-      totalCollections:
-        type: integer
-      totalPhotos:
-        type: integer
-      totalPosts:
-        type: integer
-    type: object
-  models.TagsDataResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/models.Tags'
-        type: array
-      total:
-        type: integer
-    type: object
-  models.TagsShortDataResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/models.ShortTags'
-        type: array
-    type: object
-  models.UserChoiceRequest:
-    properties:
-      feedbackScore:
-        type: integer
-      searchQuery:
-        type: string
-      selectedTagId:
-        type: string
-      sessionId:
-        type: string
-      userId:
-        type: string
-      wasCorrect:
-        type: boolean
-    type: object
-  models.UserRequestUpdate:
-    properties:
-      avatarUrl:
-        type: string
-      backgroundUrl:
-        type: string
-      bio:
-        type: string
-      city:
-        type: string
-      email:
-        type: string
-      profileName:
-        type: string
-      userName:
-        type: string
-    type: object
-  models.UserRequestUpdateFirstTime:
-    properties:
-      avatarUrl:
-        type: string
-      backgroundUrl:
-        type: string
-      bio:
-        type: string
-      city:
-        type: string
-      email:
-        type: string
-      login:
-        type: string
-      profileName:
-        type: string
-      userName:
-        type: string
-    type: object
-  models.WishListCreateRequest:
-    properties:
-      collectionItemId:
-        type: string
-      images:
-        items:
-          type: string
-        type: array
-      itemName:
-        type: string
-      notes:
-        type: string
-      priority:
-        type: integer
-      purchaseLinks:
-        items:
-          type: string
-        type: array
-    type: object
-  models.WishListItemUpdatePriority:
-    properties:
-      priority:
-        type: integer
     type: object
   payment.ConfirmURL:
     properties:
@@ -1167,7 +1177,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.AchievementsResponse'
+            $ref: '#/definitions/dto.AchievementsResponse'
       summary: Получить все достижения юзера
       tags:
       - achievements
@@ -1181,7 +1191,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.AchievementsItemsResponse'
+            $ref: '#/definitions/dto.AchievementsItemsResponse'
       summary: Получить объекты достижений
       tags:
       - achievements
@@ -1206,7 +1216,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.AchievementResponse'
+            $ref: '#/definitions/dto.AchievementResponse'
       summary: Получить одну ачиву юзера
       tags:
       - achievements
@@ -1240,14 +1250,14 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/models.SignInRequest'
+          $ref: '#/definitions/dto.SignInRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.SignInResponse'
+            $ref: '#/definitions/dto.SignInResponse'
       summary: Авторизация
       tags:
       - users
@@ -1261,14 +1271,14 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/models.SignUpRequest'
+          $ref: '#/definitions/dto.SignUpRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.SignUpResponse'
+            $ref: '#/definitions/dto.SignUpResponse'
       summary: создание пользователя
       tags:
       - users
@@ -1632,7 +1642,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.PhotoDataResponse'
+            $ref: '#/definitions/dto.PhotoDataResponse'
       summary: получить по ид
       tags:
       - photos
@@ -1662,7 +1672,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.PhotosDataResponse'
+            $ref: '#/definitions/dto.PhotosDataResponse'
       summary: получить по ид collection
       tags:
       - photos
@@ -1692,7 +1702,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.PhotosDataResponse'
+            $ref: '#/definitions/dto.PhotosDataResponse'
       summary: получить все фото по логину юзера
       tags:
       - photos
@@ -1862,7 +1872,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.TagDataResponse'
+            $ref: '#/definitions/dto.TagDataResponse'
       summary: получить все сущности по slug тегa с фильтром
       tags:
       - tags
@@ -1981,7 +1991,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/models.ChangePasswordReset'
+          $ref: '#/definitions/dto.ChangePasswordReset'
       produces:
       - application/json
       responses:
@@ -2041,7 +2051,7 @@ paths:
         name: createRequest
         required: true
         schema:
-          $ref: '#/definitions/models.CollectionItemsRequestCreate'
+          $ref: '#/definitions/dto.CollectionItemsRequestCreate'
       produces:
       - application/json
       responses:
@@ -2062,7 +2072,7 @@ paths:
         name: createRequest
         required: true
         schema:
-          $ref: '#/definitions/models.CollectionItemsCopyOrMoveRequest'
+          $ref: '#/definitions/dto.CollectionItemsCopyOrMoveRequest'
       produces:
       - application/json
       responses:
@@ -2103,7 +2113,7 @@ paths:
         name: createRequest
         required: true
         schema:
-          $ref: '#/definitions/models.CollectionItemsRequestCreate'
+          $ref: '#/definitions/dto.CollectionItemsRequestCreate'
       produces:
       - application/json
       responses:
@@ -2124,7 +2134,7 @@ paths:
         name: createRequest
         required: true
         schema:
-          $ref: '#/definitions/models.CollectionCreateRequest'
+          $ref: '#/definitions/dto.CollectionCreateRequest'
       produces:
       - application/json
       responses:
@@ -2165,7 +2175,7 @@ paths:
         name: createRequest
         required: true
         schema:
-          $ref: '#/definitions/models.CollectionCreateRequest'
+          $ref: '#/definitions/dto.CollectionCreateRequest'
       produces:
       - application/json
       responses:
@@ -2282,7 +2292,7 @@ paths:
         name: getEvents
         required: true
         schema:
-          $ref: '#/definitions/models.GetEventsRequest'
+          $ref: '#/definitions/dto.GetEventsRequest'
       produces:
       - application/json
       responses:
@@ -2452,7 +2462,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.ItemTypesDataResponse'
+            $ref: '#/definitions/dto.ItemTypesDataResponse'
       summary: получить список типов КИ
       tags:
       - itemTypes
@@ -2531,7 +2541,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.PaymentsData'
+            $ref: '#/definitions/dto.PaymentsData'
       summary: Получить список платежей юзера
       tags:
       - payment
@@ -2545,14 +2555,14 @@ paths:
         name: addRequest
         required: true
         schema:
-          $ref: '#/definitions/models.PhotoUpdateRequest'
+          $ref: '#/definitions/dto.PhotoUpdateRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.PhotoDataResponse'
+            $ref: '#/definitions/dto.PhotoDataResponse'
       summary: update
       tags:
       - photos
@@ -2565,14 +2575,14 @@ paths:
         name: addRequest
         required: true
         schema:
-          $ref: '#/definitions/models.PhotoCreate'
+          $ref: '#/definitions/dto.PhotoCreate'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.PhotosDataResponse'
+            $ref: '#/definitions/dto.PhotosDataResponse'
       summary: Создать фотки
       tags:
       - photos
@@ -2669,7 +2679,7 @@ paths:
         name: updateRequest
         required: true
         schema:
-          $ref: '#/definitions/models.PostUpdateRequest'
+          $ref: '#/definitions/dto.PostUpdateRequest'
       produces:
       - application/json
       responses:
@@ -2730,7 +2740,7 @@ paths:
         name: updateRequest
         required: true
         schema:
-          $ref: '#/definitions/models.IncrementRequest'
+          $ref: '#/definitions/dto.IncrementRequest'
       produces:
       - application/json
       responses:
@@ -2761,6 +2771,27 @@ paths:
       summary: подать жалобу
       tags:
       - reports
+  /secured/settings:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля
+        in: body
+        name: updateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: Создание/обновление настроек юзера
+      tags:
+      - settings
   /secured/tags:
     get:
       consumes:
@@ -2777,7 +2808,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.TagsDataResponse'
+            $ref: '#/definitions/dto.TagsDataResponse'
       summary: Поиск по тегам
       tags:
       - tags
@@ -2790,7 +2821,7 @@ paths:
         name: createRequest
         required: true
         schema:
-          $ref: '#/definitions/models.TagCreateRequest'
+          $ref: '#/definitions/dto.TagCreateRequest'
       produces:
       - application/json
       responses:
@@ -2811,7 +2842,7 @@ paths:
         name: mergeRequest
         required: true
         schema:
-          $ref: '#/definitions/models.DeleteTags'
+          $ref: '#/definitions/dto.DeleteTags'
       produces:
       - application/json
       responses:
@@ -2832,7 +2863,7 @@ paths:
         name: addRequest
         required: true
         schema:
-          $ref: '#/definitions/models.AddTagToEntityRequest'
+          $ref: '#/definitions/dto.AddTagToEntityRequest'
       produces:
       - application/json
       responses:
@@ -2853,7 +2884,7 @@ paths:
         name: removeRequest
         required: true
         schema:
-          $ref: '#/definitions/models.RemoveTagsRequest'
+          $ref: '#/definitions/dto.RemoveTagsRequest'
       produces:
       - application/json
       responses:
@@ -2874,7 +2905,7 @@ paths:
         name: mergeRequest
         required: true
         schema:
-          $ref: '#/definitions/models.MergeTagsRequest'
+          $ref: '#/definitions/dto.MergeTagsRequest'
       produces:
       - application/json
       responses:
@@ -2895,7 +2926,7 @@ paths:
         name: mergeRequest
         required: true
         schema:
-          $ref: '#/definitions/models.MergeTagsRequest'
+          $ref: '#/definitions/dto.MergeTagsRequest'
       produces:
       - application/json
       responses:
@@ -2904,6 +2935,52 @@ paths:
           schema:
             $ref: '#/definitions/dto.CommonResponse'
       summary: смержить теги к одному главному тегу серии
+      tags:
+      - tags
+  /secured/tags/adm/moderate:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.TagsDataResponse'
+      summary: получить теги на модерации
+      tags:
+      - tags
+  /secured/tags/adm/move:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: необходимые поля
+        in: body
+        name: mergeRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MoveTagLinks'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CommonResponse'
+      summary: переместить связи тега
       tags:
       - tags
   /secured/tags/adm/update/{id}:
@@ -2916,7 +2993,7 @@ paths:
         name: updateRequest
         required: true
         schema:
-          $ref: '#/definitions/models.TagUpdateRequest'
+          $ref: '#/definitions/dto.TagUpdateRequest'
       produces:
       - application/json
       responses:
@@ -2948,7 +3025,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.TagsShortDataResponse'
+            $ref: '#/definitions/dto.TagsShortDataResponse'
       summary: Получить все теги
       tags:
       - tags
@@ -2962,7 +3039,7 @@ paths:
         name: addRequest
         required: true
         schema:
-          $ref: '#/definitions/models.UserChoiceRequest'
+          $ref: '#/definitions/dto.UserChoiceRequest'
       produces:
       - application/json
       responses:
@@ -2994,7 +3071,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.TagsDataResponse'
+            $ref: '#/definitions/dto.TagsDataResponse'
       summary: Поиск по тегам
       tags:
       - tags
@@ -3019,8 +3096,29 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.TagsDataResponse'
+            $ref: '#/definitions/dto.TagsDataResponse'
       summary: Получить предположения
+      tags:
+      - tags
+  /secured/tags/update:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: необходимые поля
+        in: body
+        name: mergeRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PublicUpdateTag'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.TagDataResponse'
+      summary: Обновить доп поля
       tags:
       - tags
   /secured/user/delete:
@@ -3119,7 +3217,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/models.UserRequestUpdate'
+          $ref: '#/definitions/dto.UserRequestUpdate'
       produces:
       - application/json
       responses:
@@ -3140,14 +3238,14 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/models.UserRequestUpdateFirstTime'
+          $ref: '#/definitions/dto.UserRequestUpdateFirstTime'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.SignInResponse'
+            $ref: '#/definitions/dto.SignInResponse'
       summary: смена логина после оауса
       tags:
       - users
@@ -3180,7 +3278,7 @@ paths:
         name: createRequest
         required: true
         schema:
-          $ref: '#/definitions/models.WishListCreateRequest'
+          $ref: '#/definitions/dto.WishListCreateRequest'
       produces:
       - application/json
       responses:
@@ -3206,7 +3304,7 @@ paths:
         name: priority
         required: true
         schema:
-          $ref: '#/definitions/models.WishListItemUpdatePriority'
+          $ref: '#/definitions/dto.WishListItemUpdatePriority'
       produces:
       - application/json
       responses:
@@ -3232,7 +3330,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.WishListItemUpdatePriority'
+          $ref: '#/definitions/dto.WishListItemUpdatePriority'
       produces:
       - application/json
       responses:

@@ -45,7 +45,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.AchievementsResponse"
+                            "$ref": "#/definitions/dto.AchievementsResponse"
                         }
                     }
                 }
@@ -67,7 +67,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.AchievementsItemsResponse"
+                            "$ref": "#/definitions/dto.AchievementsItemsResponse"
                         }
                     }
                 }
@@ -105,7 +105,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.AchievementResponse"
+                            "$ref": "#/definitions/dto.AchievementResponse"
                         }
                     }
                 }
@@ -161,7 +161,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.SignInRequest"
+                            "$ref": "#/definitions/dto.SignInRequest"
                         }
                     }
                 ],
@@ -169,7 +169,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.SignInResponse"
+                            "$ref": "#/definitions/dto.SignInResponse"
                         }
                     }
                 }
@@ -194,7 +194,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.SignUpRequest"
+                            "$ref": "#/definitions/dto.SignUpRequest"
                         }
                     }
                 ],
@@ -202,7 +202,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.SignUpResponse"
+                            "$ref": "#/definitions/dto.SignUpResponse"
                         }
                     }
                 }
@@ -765,7 +765,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.PhotosDataResponse"
+                            "$ref": "#/definitions/dto.PhotosDataResponse"
                         }
                     }
                 }
@@ -810,7 +810,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.PhotosDataResponse"
+                            "$ref": "#/definitions/dto.PhotosDataResponse"
                         }
                     }
                 }
@@ -841,7 +841,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.PhotoDataResponse"
+                            "$ref": "#/definitions/dto.PhotoDataResponse"
                         }
                     }
                 }
@@ -1128,7 +1128,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.TagDataResponse"
+                            "$ref": "#/definitions/dto.TagDataResponse"
                         }
                     }
                 }
@@ -1282,7 +1282,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ChangePasswordReset"
+                            "$ref": "#/definitions/dto.ChangePasswordReset"
                         }
                     }
                 ],
@@ -1346,7 +1346,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CollectionItemsRequestCreate"
+                            "$ref": "#/definitions/dto.CollectionItemsRequestCreate"
                         }
                     }
                 ],
@@ -1408,7 +1408,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CollectionItemsCopyOrMoveRequest"
+                            "$ref": "#/definitions/dto.CollectionItemsCopyOrMoveRequest"
                         }
                     }
                 ],
@@ -1472,7 +1472,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CollectionItemsRequestCreate"
+                            "$ref": "#/definitions/dto.CollectionItemsRequestCreate"
                         }
                     }
                 ],
@@ -1505,7 +1505,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CollectionCreateRequest"
+                            "$ref": "#/definitions/dto.CollectionCreateRequest"
                         }
                     }
                 ],
@@ -1569,7 +1569,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CollectionCreateRequest"
+                            "$ref": "#/definitions/dto.CollectionCreateRequest"
                         }
                     }
                 ],
@@ -1749,7 +1749,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.GetEventsRequest"
+                            "$ref": "#/definitions/dto.GetEventsRequest"
                         }
                     }
                 ],
@@ -2007,7 +2007,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.ItemTypesDataResponse"
+                            "$ref": "#/definitions/dto.ItemTypesDataResponse"
                         }
                     }
                 }
@@ -2128,7 +2128,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaymentsData"
+                            "$ref": "#/definitions/dto.PaymentsData"
                         }
                     }
                 }
@@ -2153,7 +2153,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.PhotoCreate"
+                            "$ref": "#/definitions/dto.PhotoCreate"
                         }
                     }
                 ],
@@ -2161,7 +2161,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.PhotosDataResponse"
+                            "$ref": "#/definitions/dto.PhotosDataResponse"
                         }
                     }
                 }
@@ -2184,7 +2184,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.PhotoUpdateRequest"
+                            "$ref": "#/definitions/dto.PhotoUpdateRequest"
                         }
                     }
                 ],
@@ -2192,7 +2192,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.PhotoDataResponse"
+                            "$ref": "#/definitions/dto.PhotoDataResponse"
                         }
                     }
                 }
@@ -2378,7 +2378,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.IncrementRequest"
+                            "$ref": "#/definitions/dto.IncrementRequest"
                         }
                     }
                 ],
@@ -2411,7 +2411,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.PostUpdateRequest"
+                            "$ref": "#/definitions/dto.PostUpdateRequest"
                         }
                     }
                 ],
@@ -2485,6 +2485,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/secured/settings": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "settings"
+                ],
+                "summary": "Создание/обновление настроек юзера",
+                "parameters": [
+                    {
+                        "description": "поля",
+                        "name": "updateRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/secured/tags": {
             "get": {
                 "consumes": [
@@ -2510,7 +2543,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.TagsDataResponse"
+                            "$ref": "#/definitions/dto.TagsDataResponse"
                         }
                     }
                 }
@@ -2533,7 +2566,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.TagCreateRequest"
+                            "$ref": "#/definitions/dto.TagCreateRequest"
                         }
                     }
                 ],
@@ -2566,7 +2599,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.DeleteTags"
+                            "$ref": "#/definitions/dto.DeleteTags"
                         }
                     }
                 ],
@@ -2599,7 +2632,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.AddTagToEntityRequest"
+                            "$ref": "#/definitions/dto.AddTagToEntityRequest"
                         }
                     }
                 ],
@@ -2632,7 +2665,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.RemoveTagsRequest"
+                            "$ref": "#/definitions/dto.RemoveTagsRequest"
                         }
                     }
                 ],
@@ -2665,7 +2698,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.MergeTagsRequest"
+                            "$ref": "#/definitions/dto.MergeTagsRequest"
                         }
                     }
                 ],
@@ -2698,7 +2731,78 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.MergeTagsRequest"
+                            "$ref": "#/definitions/dto.MergeTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/tags/adm/moderate": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "получить теги на модерации",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TagsDataResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/tags/adm/move": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "переместить связи тега",
+                "parameters": [
+                    {
+                        "description": "необходимые поля",
+                        "name": "mergeRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MoveTagLinks"
                         }
                     }
                 ],
@@ -2731,7 +2835,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.TagUpdateRequest"
+                            "$ref": "#/definitions/dto.TagUpdateRequest"
                         }
                     }
                 ],
@@ -2777,7 +2881,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.TagsShortDataResponse"
+                            "$ref": "#/definitions/dto.TagsShortDataResponse"
                         }
                     }
                 }
@@ -2802,7 +2906,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UserChoiceRequest"
+                            "$ref": "#/definitions/dto.UserChoiceRequest"
                         }
                     }
                 ],
@@ -2848,7 +2952,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.TagsDataResponse"
+                            "$ref": "#/definitions/dto.TagsDataResponse"
                         }
                     }
                 }
@@ -2886,7 +2990,40 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.TagsDataResponse"
+                            "$ref": "#/definitions/dto.TagsDataResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/tags/update": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "Обновить доп поля",
+                "parameters": [
+                    {
+                        "description": "необходимые поля",
+                        "name": "mergeRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PublicUpdateTag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TagDataResponse"
                         }
                     }
                 }
@@ -3044,7 +3181,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UserRequestUpdate"
+                            "$ref": "#/definitions/dto.UserRequestUpdate"
                         }
                     }
                 ],
@@ -3077,7 +3214,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UserRequestUpdateFirstTime"
+                            "$ref": "#/definitions/dto.UserRequestUpdateFirstTime"
                         }
                     }
                 ],
@@ -3085,7 +3222,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.SignInResponse"
+                            "$ref": "#/definitions/dto.SignInResponse"
                         }
                     }
                 }
@@ -3110,7 +3247,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.WishListCreateRequest"
+                            "$ref": "#/definitions/dto.WishListCreateRequest"
                         }
                     }
                 ],
@@ -3179,7 +3316,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.WishListItemUpdatePriority"
+                            "$ref": "#/definitions/dto.WishListItemUpdatePriority"
                         }
                     }
                 ],
@@ -3219,7 +3356,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.WishListItemUpdatePriority"
+                            "$ref": "#/definitions/dto.WishListItemUpdatePriority"
                         }
                     }
                 ],
@@ -3235,6 +3372,108 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.AchievedAchievement": {
+            "type": "object",
+            "properties": {
+                "achievedDate": {
+                    "type": "string"
+                },
+                "achievement": {
+                    "$ref": "#/definitions/dto.Achievements"
+                },
+                "achievementCode": {
+                    "type": "string"
+                },
+                "achievementId": {
+                    "type": "string"
+                },
+                "currentProgress": {
+                    "type": "integer"
+                },
+                "exp": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "threshold": {
+                    "type": "integer"
+                },
+                "totalAchieved": {
+                    "type": "integer"
+                },
+                "totalAchievedPercentage": {
+                    "type": "number"
+                },
+                "userLogin": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AchievementResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.AchievedAchievement"
+                }
+            }
+        },
+        "dto.Achievements": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AchievementsItemsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Achievements"
+                    }
+                }
+            }
+        },
+        "dto.AchievementsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AchievedAchievement"
+                    }
+                }
+            }
+        },
+        "dto.AddTagToEntityRequest": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "entityId": {
+                    "type": "string"
+                },
+                "entityType": {
+                    "type": "string"
+                },
+                "tagIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "dto.AllCollectionsDataResponseSwagger": {
             "type": "object",
             "properties": {
@@ -3246,6 +3485,51 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ChangePasswordReset": {
+            "type": "object",
+            "required": [
+                "password",
+                "token"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CollectionCreateRequest": {
+            "type": "object",
+            "properties": {
+                "bannerUrl": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "isPrivate": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "transliteration": {
+                    "type": "string"
+                },
+                "userLogin": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CollectionDataResponseSwagger": {
             "type": "object",
             "properties": {
@@ -3254,11 +3538,116 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CollectionItemsCopyOrMoveRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "sourceCollectionId": {
+                    "type": "string"
+                },
+                "targetCollectionIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "dto.CollectionItemsDataResponseSwagger": {
             "type": "object",
             "properties": {
                 "data": {
                     "$ref": "#/definitions/dto.CollectionItemsResponseSwagger"
+                }
+            }
+        },
+        "dto.CollectionItemsProps": {
+            "type": "object",
+            "properties": {
+                "boardGames": {
+                    "type": "integer"
+                },
+                "books": {
+                    "type": "integer"
+                },
+                "collectibleCards": {
+                    "type": "integer"
+                },
+                "collectibleFigures": {
+                    "type": "integer"
+                },
+                "comics": {
+                    "type": "integer"
+                },
+                "gamingHardware": {
+                    "type": "integer"
+                },
+                "steelbooks": {
+                    "type": "integer"
+                },
+                "videoGames": {
+                    "type": "integer"
+                },
+                "vinyl": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CollectionItemsRequestCreate": {
+            "type": "object",
+            "properties": {
+                "collection": {
+                    "type": "string"
+                },
+                "copyNumber": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "edition": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "itemType": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "purchaseDate": {
+                    "type": "string"
+                },
+                "purchasePrice": {
+                    "type": "number"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "sealed": {
+                    "type": "boolean"
+                },
+                "shippingCost": {
+                    "type": "number"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -3406,6 +3795,32 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updatedAt": {
+                    "type": "string"
+                },
+                "userLogin": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CollectionShort": {
+            "type": "object",
+            "properties": {
+                "bannerUrl": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isPrivate": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "shareString": {
+                    "type": "string"
+                },
+                "transliteration": {
                     "type": "string"
                 },
                 "userLogin": {
@@ -3610,6 +4025,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.DeleteTags": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "dto.EntitiesSwagger": {
             "type": "object",
             "properties": {
@@ -3747,6 +4173,41 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GetEventsRequest": {
+            "type": "object",
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "eventTargetTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "limit": {
+                    "type": "string"
+                },
+                "offset": {
+                    "type": "string"
+                },
+                "subscriptions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tagsSubscriptions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "dto.ImagesResponse": {
             "type": "object",
             "properties": {
@@ -3758,11 +4219,58 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.IncrementRequest": {
+            "type": "object",
+            "properties": {
+                "postIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.ItemTypesDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ItemTypes"
+                    }
+                }
+            }
+        },
         "dto.LikeUserSwagger": {
             "type": "object",
             "properties": {
                 "isLike": {
                     "type": "boolean"
+                }
+            }
+        },
+        "dto.MergeTagsRequest": {
+            "type": "object",
+            "properties": {
+                "fromTagIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "toTagId": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.MoveTagLinks": {
+            "type": "object",
+            "properties": {
+                "sourceId": {
+                    "type": "string"
+                },
+                "targetId": {
+                    "type": "string"
                 }
             }
         },
@@ -3777,11 +4285,410 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.PaymentsData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Payments"
+                    }
+                }
+            }
+        },
+        "dto.PhotoCreate": {
+            "type": "object",
+            "properties": {
+                "collectionId": {
+                    "type": "string"
+                },
+                "paths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.PhotoDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.Photos"
+                }
+            }
+        },
+        "dto.PhotoUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.Photos": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/dto.SubUsers"
+                },
+                "canLike": {
+                    "type": "boolean"
+                },
+                "collection": {
+                    "$ref": "#/definitions/dto.CollectionShort"
+                },
+                "collectionId": {
+                    "type": "string"
+                },
+                "commentsCount": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isOwner": {
+                    "type": "boolean"
+                },
+                "likesCount": {
+                    "type": "integer"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ShortTags"
+                    }
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PhotosDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Photos"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.PostUpdateRequest": {
+            "type": "object"
+        },
+        "dto.PublicUpdateTag": {
+            "type": "object"
+        },
+        "dto.RemoveTagsRequest": {
+            "type": "object",
+            "properties": {
+                "entityId": {
+                    "type": "string"
+                },
+                "entityType": {
+                    "type": "string"
+                },
+                "tagIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "dto.Resp": {
             "type": "object",
             "properties": {
                 "success": {
                     "type": "boolean"
+                }
+            }
+        },
+        "dto.ShortTags": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "primaryId": {
+                    "type": "string"
+                },
+                "seriesId": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "totalCollectionItems": {
+                    "type": "integer"
+                },
+                "totalCollections": {
+                    "type": "integer"
+                },
+                "totalPhotos": {
+                    "type": "integer"
+                },
+                "totalPosts": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SignInRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SignInResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                },
+                "refreshToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SignUpRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "login",
+                "password",
+                "userName"
+            ],
+            "properties": {
+                "bio": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "profileName": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SignUpResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SubUsers": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "isPremium": {
+                    "type": "boolean"
+                },
+                "login": {
+                    "type": "string"
+                },
+                "profileName": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.TagCreateRequest": {
+            "type": "object"
+        },
+        "dto.TagDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.Tags"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.TagLinks": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "entityId": {
+                    "type": "string"
+                },
+                "entityType": {
+                    "type": "string"
+                },
+                "tag": {
+                    "$ref": "#/definitions/dto.Tags"
+                },
+                "tagId": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.TagUpdateRequest": {
+            "type": "object"
+        },
+        "dto.Tags": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/dto.SubUsers"
+                },
+                "canSubscribe": {
+                    "description": "AdditionalFields datatypes.JSON ` + "`" + `gorm:\"type:jsonb\" json:\"additionalFields\"` + "`" + `",
+                    "type": "boolean"
+                },
+                "collectionItemsProps": {
+                    "$ref": "#/definitions/dto.CollectionItemsProps"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "isPrimary": {
+                    "type": "boolean"
+                },
+                "isSeries": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "primary": {
+                    "$ref": "#/definitions/dto.Tags"
+                },
+                "primaryId": {
+                    "type": "string"
+                },
+                "series": {
+                    "$ref": "#/definitions/dto.ShortTags"
+                },
+                "seriesEntries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Tags"
+                    }
+                },
+                "seriesId": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "synonyms": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Tags"
+                    }
+                },
+                "tagLinks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TagLinks"
+                    }
+                },
+                "totalCollectionItems": {
+                    "type": "integer"
+                },
+                "totalCollections": {
+                    "type": "integer"
+                },
+                "totalPhotos": {
+                    "type": "integer"
+                },
+                "totalPosts": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.TagsDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Tags"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.TagsShortDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ShortTags"
+                    }
                 }
             }
         },
@@ -3804,6 +4711,84 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserChoiceRequest": {
+            "type": "object",
+            "properties": {
+                "feedbackScore": {
+                    "type": "integer"
+                },
+                "searchQuery": {
+                    "type": "string"
+                },
+                "selectedTagId": {
+                    "type": "string"
+                },
+                "sessionId": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "wasCorrect": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.UserRequestUpdate": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "backgroundUrl": {
+                    "type": "string"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "profileName": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserRequestUpdateFirstTime": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "backgroundUrl": {
+                    "type": "string"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "login": {
+                    "type": "string"
+                },
+                "profileName": {
+                    "type": "string"
+                },
+                "userName": {
                     "type": "string"
                 }
             }
@@ -3873,6 +4858,9 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UserSettingsRequest": {
+            "type": "object"
+        },
         "dto.UsersSwagger": {
             "type": "object",
             "properties": {
@@ -3926,6 +4914,43 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.WishListCreateRequest": {
+            "type": "object",
+            "properties": {
+                "collectionItemId": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "itemName": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "purchaseLinks": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.WishListItemUpdatePriority": {
+            "type": "object",
+            "properties": {
+                "priority": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.WishlistDataResponseSwagger": {
             "type": "object",
             "properties": {
@@ -3962,335 +4987,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.AchievedAchievement": {
-            "type": "object",
-            "properties": {
-                "achievedDate": {
-                    "type": "string"
-                },
-                "achievement": {
-                    "$ref": "#/definitions/models.Achievements"
-                },
-                "achievementCode": {
-                    "type": "string"
-                },
-                "achievementId": {
-                    "type": "string"
-                },
-                "currentProgress": {
-                    "type": "integer"
-                },
-                "exp": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "threshold": {
-                    "type": "integer"
-                },
-                "totalAchieved": {
-                    "type": "integer"
-                },
-                "totalAchievedPercentage": {
-                    "type": "number"
-                },
-                "userLogin": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.AchievementResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/models.AchievedAchievement"
-                }
-            }
-        },
-        "models.Achievements": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.AchievementsItemsResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Achievements"
-                    }
-                }
-            }
-        },
-        "models.AchievementsResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.AchievedAchievement"
-                    }
-                }
-            }
-        },
-        "models.AddTagToEntityRequest": {
-            "type": "object",
-            "properties": {
-                "author": {
-                    "type": "string"
-                },
-                "entityId": {
-                    "type": "string"
-                },
-                "entityType": {
-                    "type": "string"
-                },
-                "tagIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "models.ChangePasswordReset": {
-            "type": "object",
-            "required": [
-                "password",
-                "token"
-            ],
-            "properties": {
-                "password": {
-                    "type": "string",
-                    "minLength": 8
-                },
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.CollectionCreateRequest": {
-            "type": "object",
-            "properties": {
-                "bannerUrl": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "isPrivate": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "transliteration": {
-                    "type": "string"
-                },
-                "userLogin": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.CollectionItemsCopyOrMoveRequest": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "sourceCollectionId": {
-                    "type": "string"
-                },
-                "targetCollectionIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "models.CollectionItemsProps": {
-            "type": "object",
-            "properties": {
-                "boardGames": {
-                    "type": "integer"
-                },
-                "books": {
-                    "type": "integer"
-                },
-                "collectibleCards": {
-                    "type": "integer"
-                },
-                "collectibleFigures": {
-                    "type": "integer"
-                },
-                "comics": {
-                    "type": "integer"
-                },
-                "gamingHardware": {
-                    "type": "integer"
-                },
-                "steelbooks": {
-                    "type": "integer"
-                },
-                "videoGames": {
-                    "type": "integer"
-                },
-                "vinyl": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.CollectionItemsRequestCreate": {
-            "type": "object",
-            "properties": {
-                "collection": {
-                    "type": "string"
-                },
-                "copyNumber": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "description": {
-                    "type": "string"
-                },
-                "edition": {
-                    "type": "string"
-                },
-                "images": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "itemType": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "platform": {
-                    "type": "string"
-                },
-                "purchaseDate": {
-                    "type": "string"
-                },
-                "purchasePrice": {
-                    "type": "number"
-                },
-                "rating": {
-                    "type": "number"
-                },
-                "sealed": {
-                    "type": "boolean"
-                },
-                "shippingCost": {
-                    "type": "number"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "models.CollectionShort": {
-            "type": "object",
-            "properties": {
-                "bannerUrl": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "isPrivate": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "shareString": {
-                    "type": "string"
-                },
-                "transliteration": {
-                    "type": "string"
-                },
-                "userLogin": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.DeleteTags": {
-            "type": "object",
-            "properties": {
-                "ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "models.GetEventsRequest": {
-            "type": "object",
-            "properties": {
-                "actions": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "eventTargetTypes": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "limit": {
-                    "type": "string"
-                },
-                "offset": {
-                    "type": "string"
-                },
-                "subscriptions": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "models.IncrementRequest": {
-            "type": "object",
-            "properties": {
-                "postIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
         "models.ItemTypes": {
             "type": "object",
             "properties": {
@@ -4310,31 +5006,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.ItemTypesDataResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ItemTypes"
-                    }
-                }
-            }
-        },
-        "models.MergeTagsRequest": {
-            "type": "object",
-            "properties": {
-                "fromTagIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "toTagId": {
                     "type": "string"
                 }
             }
@@ -4365,117 +5036,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.PaymentsData": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Payments"
-                    }
-                }
-            }
-        },
-        "models.PhotoCreate": {
-            "type": "object",
-            "properties": {
-                "collectionId": {
-                    "type": "string"
-                },
-                "paths": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "models.PhotoDataResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/models.Photos"
-                }
-            }
-        },
-        "models.PhotoUpdateRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "models.Photos": {
-            "type": "object",
-            "properties": {
-                "author": {
-                    "$ref": "#/definitions/models.SubUsers"
-                },
-                "canLike": {
-                    "type": "boolean"
-                },
-                "collection": {
-                    "$ref": "#/definitions/models.CollectionShort"
-                },
-                "collectionId": {
-                    "type": "string"
-                },
-                "commentsCount": {
-                    "type": "integer"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "isOwner": {
-                    "type": "boolean"
-                },
-                "likesCount": {
-                    "type": "integer"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ShortTags"
-                    }
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.PhotosDataResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Photos"
-                    }
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
         "models.Platforms": {
             "type": "object",
             "properties": {
@@ -4501,415 +5061,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.Platforms"
                     }
-                }
-            }
-        },
-        "models.PostUpdateRequest": {
-            "type": "object"
-        },
-        "models.RemoveTagsRequest": {
-            "type": "object",
-            "properties": {
-                "entityId": {
-                    "type": "string"
-                },
-                "entityType": {
-                    "type": "string"
-                },
-                "tagIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "models.ShortTags": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "primaryId": {
-                    "type": "string"
-                },
-                "seriesId": {
-                    "type": "string"
-                },
-                "slug": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.SignInRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.SignInResponse": {
-            "type": "object",
-            "properties": {
-                "accessToken": {
-                    "type": "string"
-                },
-                "refreshToken": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.SignUpRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "login",
-                "password",
-                "userName"
-            ],
-            "properties": {
-                "bio": {
-                    "type": "string"
-                },
-                "city": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "login": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string",
-                    "minLength": 8
-                },
-                "profileName": {
-                    "type": "string"
-                },
-                "userName": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.SignUpResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.SubUsers": {
-            "type": "object",
-            "properties": {
-                "avatarUrl": {
-                    "type": "string"
-                },
-                "isPremium": {
-                    "type": "boolean"
-                },
-                "login": {
-                    "type": "string"
-                },
-                "profileName": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.TagCreateRequest": {
-            "type": "object",
-            "properties": {
-                "author": {
-                    "type": "string"
-                },
-                "entityId": {
-                    "type": "string"
-                },
-                "entityType": {
-                    "type": "string"
-                },
-                "names": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "models.TagDataResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/models.Tags"
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.TagLinks": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "entityId": {
-                    "type": "string"
-                },
-                "entityType": {
-                    "type": "string"
-                },
-                "tag": {
-                    "$ref": "#/definitions/models.Tags"
-                },
-                "tagId": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.TagUpdateRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "slug": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Tags": {
-            "type": "object",
-            "properties": {
-                "author": {
-                    "$ref": "#/definitions/models.SubUsers"
-                },
-                "collectionItemsProps": {
-                    "$ref": "#/definitions/models.CollectionItemsProps"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "isPrimary": {
-                    "type": "boolean"
-                },
-                "isSeries": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "primary": {
-                    "$ref": "#/definitions/models.Tags"
-                },
-                "primaryId": {
-                    "type": "string"
-                },
-                "series": {
-                    "$ref": "#/definitions/models.ShortTags"
-                },
-                "seriesEntries": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Tags"
-                    }
-                },
-                "seriesId": {
-                    "type": "string"
-                },
-                "slug": {
-                    "type": "string"
-                },
-                "synonyms": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Tags"
-                    }
-                },
-                "tagLinks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.TagLinks"
-                    }
-                },
-                "totalCollectionItems": {
-                    "type": "integer"
-                },
-                "totalCollections": {
-                    "type": "integer"
-                },
-                "totalPhotos": {
-                    "type": "integer"
-                },
-                "totalPosts": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.TagsDataResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Tags"
-                    }
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.TagsShortDataResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ShortTags"
-                    }
-                }
-            }
-        },
-        "models.UserChoiceRequest": {
-            "type": "object",
-            "properties": {
-                "feedbackScore": {
-                    "type": "integer"
-                },
-                "searchQuery": {
-                    "type": "string"
-                },
-                "selectedTagId": {
-                    "type": "string"
-                },
-                "sessionId": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "string"
-                },
-                "wasCorrect": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "models.UserRequestUpdate": {
-            "type": "object",
-            "properties": {
-                "avatarUrl": {
-                    "type": "string"
-                },
-                "backgroundUrl": {
-                    "type": "string"
-                },
-                "bio": {
-                    "type": "string"
-                },
-                "city": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "profileName": {
-                    "type": "string"
-                },
-                "userName": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.UserRequestUpdateFirstTime": {
-            "type": "object",
-            "properties": {
-                "avatarUrl": {
-                    "type": "string"
-                },
-                "backgroundUrl": {
-                    "type": "string"
-                },
-                "bio": {
-                    "type": "string"
-                },
-                "city": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "login": {
-                    "type": "string"
-                },
-                "profileName": {
-                    "type": "string"
-                },
-                "userName": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.WishListCreateRequest": {
-            "type": "object",
-            "properties": {
-                "collectionItemId": {
-                    "type": "string"
-                },
-                "images": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "itemName": {
-                    "type": "string"
-                },
-                "notes": {
-                    "type": "string"
-                },
-                "priority": {
-                    "type": "integer"
-                },
-                "purchaseLinks": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "models.WishListItemUpdatePriority": {
-            "type": "object",
-            "properties": {
-                "priority": {
-                    "type": "integer"
                 }
             }
         },

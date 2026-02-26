@@ -182,6 +182,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	subRepo := repositories.NewSubscriptionRepository(db)
 	paymentsRepo := repositories.NewPaymentsRepository(db)
 	userRepo := repositories.NewUsersRepository(db, searchService, colRepo)
+	userSettingsRepo := repositories.NewUserSettingsRepository(db)
 	err = db.AutoMigrate(
 		&models.Users{},
 		&models.Platforms{},
@@ -192,6 +193,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		&models.Subscription{},
 		&models.Payments{},
 		&models.Migrations{},
+		&models.UserSettings{},
 	)
 	if err != nil {
 		return nil, err
@@ -213,6 +215,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		*userRepo,
 		*tagsClient,
 		*colRepo,
+		*userSettingsRepo,
 	)
 	notificationsService := services.NewNotificationsService(
 		notificationsClient,
@@ -327,6 +330,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		postsService,
 		photosService,
 	)
+	userSettingsService := services.NewUserSettingsService(userSettingsRepo)
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -360,6 +364,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 	routes.PhotosRouter(e, jwtService, *photosService)
 	routes.HealthCheckRouter(e)
 	routes.AchievementsRouter(e, jwtService, *achievementsService)
+	routes.UserSettingsRouter(e, jwtService, *userSettingsService)
 
 	_ = controllers.NewReindexController(
 		searchService,
