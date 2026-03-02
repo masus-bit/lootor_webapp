@@ -240,8 +240,7 @@ func (s *NotificationsService) GetAllNotifications(
 		}
 		switch n.TargetType {
 		case "post":
-			tId, _ := strconv.ParseUint(n.TargetId, 10, 64)
-			post := postsMap[strconv.FormatUint(tId, 10)]
+			post := postsMap[n.TargetId]
 			owner := users[post.Author.Login]
 			tempItem.Target = dto.TargetItem{
 				ID:              post.ID,
