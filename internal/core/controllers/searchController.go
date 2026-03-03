@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"slices"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"lootor/internal/pkg/elasticsearch"
@@ -23,6 +24,7 @@ func NewSearchController(es *elasticsearch.ElasticService) *SearchController {
 // @Produce  json
 // @Param search query string true "поисковая строка"
 // @Param limit query string true "количество результатов"
+// @Param offset query string true "ebal"
 // @Success 201 {object} elasticsearch.SearchResult
 // @Router /public/search [get]
 func (c *SearchController) Search(ctx echo.Context) error {
@@ -33,6 +35,10 @@ func (c *SearchController) Search(ctx echo.Context) error {
 	limit := ctx.QueryParam("limit")
 	if limit == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "limit query is обязателей"})
+	}
+	offset := ctx.QueryParam("offset")
+	if offset == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "offset query is обязателей"})
 	}
 	searchType := ctx.QueryParam("type")
 
@@ -47,7 +53,10 @@ func (c *SearchController) Search(ctx echo.Context) error {
 		finalIndices = indices
 	}
 
-	result, err := c.es.SearchInIndices(ctx.Request().Context(), finalIndices, query, limit)
+	intLimit, _ := strconv.Atoi(limit)
+	intOffset, _ := strconv.Atoi(offset)
+
+	result, err := c.es.SearchInIndices(ctx.Request().Context(), finalIndices, query, intLimit, intOffset)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

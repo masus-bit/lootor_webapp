@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -41,6 +40,10 @@ type IndexConfig struct {
 
 type SearchResult struct {
 	Hits struct {
+		Total struct {
+			Value    int64  `json:"value"`
+			Relation string `json:"relation"`
+		} `json:"total"`
 		Hits []struct {
 			Index  string                 `json:"_index"`
 			Source map[string]interface{} `json:"_source"`
@@ -53,6 +56,7 @@ type SearchResultFormatted struct {
 		Index  string                 `json:"_index"`
 		Source map[string]interface{} `json:"_source"`
 	} `json:"result"`
+	Total int64 `json:"total"`
 }
 
 type ElasticService struct {
@@ -125,11 +129,6 @@ func (es *ElasticService) ReindexAll(
 			es.logger.Printf("Skipping %s: no data", indexName)
 			continue
 		}
-
-		// НЕ УДАЛЯЕМ ИНДЕКС!
-		// if err := es.deleteIndexIfExists(indexName); err != nil {
-		// 	return fmt.Errorf("failed to delete index %s: %w", indexName, err)
-		// }
 	}
 
 	for indexName, provider := range dataProviders {
@@ -231,34 +230,47 @@ func (es *ElasticService) SearchInIndices(
 	ctx context.Context,
 	indices []string,
 	query string,
-	limit string,
+	limit int,
+	offset int,
 ) (*SearchResultFormatted, error) {
 	if strings.TrimSpace(query) == "" {
-		return &SearchResultFormatted{}, nil
+		return &SearchResultFormatted{
+			Result: []struct {
+				Index  string                 `json:"_index"`
+				Source map[string]interface{} `json:"_source"`
+			}{},
+			Total: 0,
+		}, nil
 	}
-	limitInt, _ := strconv.Atoi(limit)
 
-	searchQuery := es.buildSearchQuery(query, limit)
+	searchQuery := es.buildSearchQuery(query, limit, offset)
+
 	res, err := es.search(ctx, indices, searchQuery)
 	if err != nil {
 		return nil, err
 	}
 
-	var filteredHits []struct {
-		Index  string                 `json:"_index"`
-		Source map[string]interface{} `json:"_source"`
-	}
+	formattedHits := make(
+		[]struct {
+			Index  string                 `json:"_index"`
+			Source map[string]interface{} `json:"_source"`
+		}, len(res.Hits.Hits),
+	)
 
-	indexCounts := make(map[string]int)
-	for _, hit := range res.Hits.Hits {
-		if indexCounts[hit.Index] >= limitInt {
-			continue
+	for i, hit := range res.Hits.Hits {
+		formattedHits[i] = struct {
+			Index  string                 `json:"_index"`
+			Source map[string]interface{} `json:"_source"`
+		}{
+			Index:  hit.Index,
+			Source: hit.Source,
 		}
-		filteredHits = append(filteredHits, hit)
-		indexCounts[hit.Index]++
 	}
 
-	return &SearchResultFormatted{Result: filteredHits}, nil
+	return &SearchResultFormatted{
+		Result: formattedHits,
+		Total:  res.Hits.Total.Value,
+	}, nil
 }
 
 func (es *ElasticService) deleteIndexIfExists(indexName string) error {
@@ -375,8 +387,7 @@ func (es *ElasticService) bulkIndexDocuments(
 	return nil
 }
 
-func (es *ElasticService) buildSearchQuery(query string, limit string) map[string]interface{} {
-	limitInt, _ := strconv.Atoi(limit)
+func (es *ElasticService) buildSearchQuery(query string, limit int, offset int) map[string]interface{} {
 	lowerQuery := strings.ToLower(strings.TrimSpace(query))
 	queryLen := len(lowerQuery)
 
@@ -401,7 +412,7 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 		}
 	}
 
-	return map[string]interface{}{
+	queryObj := map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
 				"should": []map[string]interface{}{
@@ -533,10 +544,13 @@ func (es *ElasticService) buildSearchQuery(query string, limit string) map[strin
 				"minimum_should_match": 1,
 			},
 		},
-		"size": limitInt * 5,
+		"size":             limit,
+		"from":             offset,
+		"track_total_hits": true,
 	}
-}
 
+	return queryObj
+}
 func (es *ElasticService) search(ctx context.Context, indices []string, query map[string]interface{}) (
 	*SearchResult,
 	error,
