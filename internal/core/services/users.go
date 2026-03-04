@@ -736,6 +736,120 @@ func (s *UserService) TelegramOauth(req *dto.TelegramOauthRequest) (*dto.SignInR
 	}, nil
 }
 
+func (s *UserService) YandexSuggestOauth(
+	req *dto.YandexSuggestRequest,
+) (*dto.SignInResponseWithTmpLogin, error) {
+
+	headers := map[string]string{
+		"Authorization": "OAuth " + req.AccessToken,
+	}
+
+	userInfo, err := utils.SendRequest[dto.YandexUserInfo](
+		utils.RequestOptions{
+			Method:  "GET",
+			URL:     "https://login.yandex.ru/info?format=json",
+			Headers: headers,
+		},
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get yandex user info: %w", err)
+	}
+
+	newId := userInfo.ID
+
+	existsUser, _ := s.repo.GetByYandexId(newId)
+
+	if existsUser != nil && !existsUser.TmpLogin {
+
+		if existsUser.VerificationToken != "" {
+			return nil, errors.New("user is not verified")
+		}
+
+		tokens, err := s.jwtService.GenerateTokenPair(existsUser)
+		if err != nil {
+			return nil, fmt.Errorf("token generation error: %w", err)
+		}
+
+		return &dto.SignInResponseWithTmpLogin{
+			AccessToken:  tokens.AccessToken,
+			RefreshToken: tokens.RefreshToken,
+			TmpLogin:     false,
+		}, nil
+	}
+
+	if existsUser != nil && existsUser.TmpLogin {
+
+		tokens, err := s.jwtService.GenerateTokenPair(existsUser)
+		if err != nil {
+			return nil, fmt.Errorf("token generation error: %w", err)
+		}
+
+		return &dto.SignInResponseWithTmpLogin{
+			AccessToken:  tokens.AccessToken,
+			RefreshToken: tokens.RefreshToken,
+			TmpLogin:     true,
+		}, nil
+	}
+
+	passwordHash, err := auth.HashPassword("yandex" + newId)
+	if err != nil {
+		return nil, fmt.Errorf("password hash error: %w", err)
+	}
+
+	login := userInfo.Login
+
+	displayName := userInfo.DisplayName
+	if displayName == "" {
+		displayName = userInfo.FirstName
+	}
+
+	newUser := models.Users{
+		YandexID:     newId,
+		Login:        login,
+		Email:        userInfo.DefaultEmail,
+		UserName:     displayName,
+		ProfileName:  displayName,
+		Created:      time.Now().Format(time.RFC3339),
+		TmpLogin:     true,
+		PasswordHash: passwordHash,
+	}
+
+	if userInfo.DefaultAvatarID != "" && !userInfo.IsAvatarEmpty {
+		avatarURL := fmt.Sprintf(
+			"https://avatars.yandex.net/get-yapic/%s/islands-200",
+			userInfo.DefaultAvatarID,
+		)
+
+		newUser.AvatarURL = avatarURL
+
+		err = s.repo.IncrementExperience(login, utils.AvatarAddExt)
+		if err != nil {
+			return nil, fmt.Errorf("increment experience error: %w", err)
+		}
+	}
+
+	err = s.repo.CreateUser(&newUser)
+	if err != nil {
+		return nil, fmt.Errorf("db error: %w", err)
+	}
+
+	user, err := s.repo.GetByYandexId(newUser.YandexID)
+	if err != nil {
+		return nil, fmt.Errorf("db error: %w", err)
+	}
+
+	tokens, err := s.jwtService.GenerateTokenPair(user)
+	if err != nil {
+		return nil, fmt.Errorf("token generation error: %w", err)
+	}
+
+	return &dto.SignInResponseWithTmpLogin{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+		TmpLogin:     true,
+	}, nil
+}
 func (s *UserService) ResetPassword(email string) (*dto.CommonResponse, error) {
 	existsUser, err := s.repo.GetByEmail(email)
 	if err != nil {

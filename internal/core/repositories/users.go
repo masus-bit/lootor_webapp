@@ -229,6 +229,17 @@ func (r *UsersRepository) GetByVkId(vkId string) (*models.Users, error) {
 
 	return &user, nil
 }
+func (r *UsersRepository) GetByYandexId(yaID string) (*models.Users, error) {
+	var user models.Users
+
+	err := r.db.Where("yandex_id = ? AND deleted_at IS NULL", yaID).Preload("WishListItems").First(&user).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
 
 func (r *UsersRepository) GetByTgId(tgId string) (*models.Users, error) {
 	var user models.Users

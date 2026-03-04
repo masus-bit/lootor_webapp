@@ -217,3 +217,25 @@ type SubTags struct {
 	Name string `json:"name"`
 	Slug string `json:"slug"`
 }
+
+type YandexSuggestRequest struct {
+	AccessToken string `json:"accessToken" validate:"required"`
+}
+
+type YandexUserInfo struct {
+	Login    string `json:"login"`
+	ID       string `json:"id"`
+	ClientID string `json:"client_id"`
+	PSUID    string `json:"psuid"`
+
+	DefaultEmail string   `json:"default_email,omitempty"`
+	Emails       []string `json:"emails,omitempty"`
+
+	FirstName   string `json:"first_name,omitempty"`
+	LastName    string `json:"last_name,omitempty"`
+	DisplayName string `json:"display_name,omitempty"`
+	RealName    string `json:"real_name,omitempty"`
+
+	DefaultAvatarID string `json:"default_avatar_id,omitempty"`
+	IsAvatarEmpty   bool   `json:"is_avatar_empty,omitempty"`
+}

@@ -15,6 +15,7 @@ type Users struct {
 	PasswordHash      string          `gorm:"column:password" json:"-"`
 	VkID              string          `json:"vkId"`
 	TelegramID        string          `json:"telegramId"`
+	YandexID          string          `json:"yandexId"`
 	Email             string          `json:"email"`
 	Created           string          `json:"created"`
 	Likes             int             `json:"likes"`

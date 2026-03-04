@@ -360,6 +360,32 @@ func (c *UserController) TelegramOauth(ctx echo.Context) error {
 
 }
 
+func (c *UserController) YandexOauth(ctx echo.Context) error {
+	var request dto.YandexSuggestRequest
+
+	err := ctx.Bind(&request)
+	if err != nil {
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error бля": err.Error(),
+			},
+		)
+	}
+
+	response, err := c.userService.YandexSuggestOauth(&request)
+
+	if err != nil {
+		return ctx.JSON(
+			http.StatusBadRequest, map[string]string{
+				"error бля": err.Error(),
+			},
+		)
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+
+}
+
 // ResetPassword
 // @Summary сброс пароля
 // @Tags users
