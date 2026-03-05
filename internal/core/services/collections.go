@@ -475,7 +475,6 @@ func (s *CollectionService) GetByUserLogin(
 	var collections []models.Collections
 	var total int64
 	if authorizedUser == login {
-
 		collections, total, _ = s.repo.GetByUserIdWithoutCollectionItems(login, search)
 	} else {
 		collections, total, _ = s.repo.GetByUserIdWithoutPrivates(login, search)
@@ -587,6 +586,7 @@ func (s *CollectionService) GetAll(authorizedUser, orderBy, order, search, limit
 		temp.CanLike = utils.CanLike(dbCollection.Likes, authorizedUser, dbCollection.UserLogin)
 		temp.IsOwner = authorizedUser == temp.User.Login
 		temp.PhotosCount = photosCounts.GetData()[dbCollection.ID.String()]
+		temp.ShareString = utils.DefineShareString(authorizedUser, temp.User.Login, &dbCollection)
 
 		if err != nil {
 			return nil, err
@@ -623,11 +623,13 @@ func (s *CollectionService) GetOne(
 			order,
 			search,
 		)
-	} else if shareString != "" {
-		dbCollection, _ = s.repo.GetByShareString(shareString, ciLimit, ciOffset, orderBy, order, search)
 	}
 
 	if dbCollection == nil {
+		return nil, errors.New("collection not found")
+	}
+
+	if dbCollection.IsPrivate && dbCollection.UserLogin != userLogin && shareString == "" {
 		return nil, errors.New("collection not found")
 	}
 
