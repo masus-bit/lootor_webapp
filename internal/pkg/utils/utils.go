@@ -10,6 +10,7 @@ import (
 	"gorm.io/datatypes"
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/dto"
+	"time"
 
 	"lootor/internal/core/models"
 	"lootor/internal/infrastructure/achievementsclient"
@@ -691,4 +692,20 @@ func AddAchievement(
 		return fmt.Errorf("AddAchievement: %w", err)
 	}
 	return nil
+}
+
+func DateZFormat(input string) string {
+	parts := strings.Split(input, " ")
+	cleanInput := strings.Join(parts[:len(parts)-1], " ")
+
+	layoutInput := "2006-01-02 15:04:05.999 -0700"
+	t, err := time.Parse(layoutInput, cleanInput)
+	if err != nil {
+		panic(err)
+	}
+
+	tUTC := t.UTC()
+	output := tUTC.Format(time.RFC3339)
+
+	return output
 }

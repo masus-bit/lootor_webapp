@@ -75,7 +75,6 @@ type UserResponse struct {
 	SocialScore           int                    `json:"socialScore"`
 	TotalDonations        string                 `json:"totalDonations"`
 	PostCount             int                    `json:"postCount"`
-	PremiumExpireDate     string                 `json:"premiumExpireDate"`
 }
 
 type UserResponseForSingleUser struct {
@@ -106,7 +105,6 @@ type UserResponseForSingleUser struct {
 	SocialScore          int                    `json:"socialScore"`
 	TotalDonations       string                 `json:"totalDonations"`
 	PostCount            int                    `json:"postCount"`
-	PremiumExpireDate    string                 `json:"premiumExpireDate"`
 }
 
 type UserRequestUpdate struct {

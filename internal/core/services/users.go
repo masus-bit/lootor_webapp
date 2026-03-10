@@ -164,7 +164,6 @@ func (s *UserService) GetByLogin(
 	response.ShippingTotal = int(shippingTotal)
 	response.TotalDonations = donationsString
 	response.PostCount = int(postsCount)
-	response.PremiumExpireDate = dbUser.PremiumUntil.String()
 	e := mapstructure.Decode(dbUser, &response)
 	response.VkID = ""
 	response.TelegramID = ""

@@ -11,6 +11,7 @@ import (
 	"lootor/internal/core/dto"
 	"lootor/internal/core/repositories"
 	"lootor/internal/infrastructure/tagsclient"
+	"lootor/internal/pkg/utils"
 	"time"
 )
 
@@ -95,10 +96,10 @@ func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
 		return nil, err
 	}
 	var premiumExpireDate string
-	if userData.PremiumUntil.IsZero() {
+	if !userData.IsPremium {
 		premiumExpireDate = ""
 	} else {
-		premiumExpireDate = userData.PremiumUntil.String()
+		premiumExpireDate = utils.DateZFormat(userData.PremiumUntil.String())
 	}
 
 	subTags, _ := s.tagsClient.GetTagsByIDs(
