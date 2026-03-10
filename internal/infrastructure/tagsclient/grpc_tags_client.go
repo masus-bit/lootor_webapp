@@ -336,6 +336,13 @@ func (c *GRPCTagsClient) TriggerMoveTags(
 	return c.client.TriggerMoveTags(ctx, dto)
 }
 
+func (c *GRPCTagsClient) TriggerReindex(
+	ctx context.Context,
+	dto *microservices.TriggerReindexRequest,
+) (*microservices.ReindexStatusResponse, error) {
+	return c.client.TriggerReindex(ctx, dto)
+}
+
 func (c *GRPCTagsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"lootor/internal/core/services"
 	"lootor/internal/pkg/elasticsearch"
 	"net/http"
+	"sync"
 
 	"github.com/labstack/echo/v4"
 )
@@ -40,7 +41,25 @@ func (c *ReindexController) Reindex(ctx echo.Context) error {
 		"users":            c.getUserData,
 		"collections":      c.getCollectionData,
 		"collection_items": c.getCollectionItemData,
-		"tags":             c.getTagData,
+		//"tags":             c.getTagData,
+	}
+
+	var errTags error
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+		err := c.tagService.TriggerReindex()
+		if err != nil {
+			errTags = err
+		}
+	}()
+	wg.Wait()
+
+	if errTags != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
 	if err := c.es.ReindexAll(ctx.Request().Context(), dataProviders); err != nil {
@@ -55,8 +74,27 @@ func (c *ReindexController) ReindexInternal(ctx context.Context) error {
 		"users":            c.getUserData,
 		"collections":      c.getCollectionData,
 		"collection_items": c.getCollectionItemData,
-		"tags":             c.getTagData,
+		//"tags":             c.getTagData,
 	}
+
+	var errTags error
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+		err := c.tagService.TriggerReindex()
+		if err != nil {
+			errTags = err
+		}
+	}()
+	wg.Wait()
+
+	if errTags != nil {
+		return errTags
+	}
+
 	return c.es.ReindexAll(ctx, dataProviders)
 }
 
@@ -123,25 +161,25 @@ func (c *ReindexController) getCollectionItemData() ([]map[string]interface{}, e
 	return result, nil
 }
 
-func (c *ReindexController) getTagData() ([]map[string]interface{}, error) {
-	tags, err := c.tagService.GetAllTagsForElastic()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get tags: %w", err)
-	}
-
-	result := make([]map[string]interface{}, len(tags))
-	for i, tag := range tags {
-		result[i] = map[string]interface{}{
-			"id":                   tag.ID,
-			"name":                 tag.Name,
-			"slug":                 tag.Slug,
-			"primaryId":            tag.PrimaryID,
-			"seriesId":             tag.SeriesID,
-			"totalPosts":           tag.TotalPosts,
-			"totalCollectionItems": tag.TotalCollectionItems,
-			"totalPhotos":          tag.TotalPhotos,
-			"totalCollections":     tag.TotalCollections,
-		}
-	}
-	return result, nil
-}
+//func (c *ReindexController) getTagData() ([]map[string]interface{}, error) {
+//	tags, err := c.tagService.GetAllTagsForElastic()
+//	if err != nil {
+//		return nil, fmt.Errorf("failed to get tags: %w", err)
+//	}
+//
+//	result := make([]map[string]interface{}, len(tags))
+//	for i, tag := range tags {
+//		result[i] = map[string]interface{}{
+//			"id":                   tag.ID,
+//			"name":                 tag.Name,
+//			"slug":                 tag.Slug,
+//			"primaryId":            tag.PrimaryID,
+//			"seriesId":             tag.SeriesID,
+//			"totalPosts":           tag.TotalPosts,
+//			"totalCollectionItems": tag.TotalCollectionItems,
+//			"totalPhotos":          tag.TotalPhotos,
+//			"totalCollections":     tag.TotalCollections,
+//		}
+//	}
+//	return result, nil
+//}

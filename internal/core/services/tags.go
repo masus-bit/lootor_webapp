@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"log"
@@ -644,6 +645,18 @@ func (s *TagsService) TriggerMoveTags() error {
 		return err
 	}
 	return nil
+}
+
+func (s *TagsService) TriggerReindex() error {
+	resp, err := s.tagsClient.TriggerReindex(context.Background(), &microservices.TriggerReindexRequest{})
+	if err != nil {
+		return err
+	}
+	if resp.GetSuccess() {
+		return nil
+	} else {
+		return errors.New("failed to reindex")
+	}
 }
 
 func (s *TagsService) convertProtoToModel(

@@ -37,6 +37,14 @@ service TagsService {
   rpc MoveTagLinks(MoveTagLinksRequest) returns (MoveTagLinksResponse);
   rpc GetOnModerationTags(OnModerationTagsRequest) returns (OnModerationTagsResponse);
   rpc TriggerMoveTags(TriggerMoveTagsRequest) returns (TagsSuccessResponse);
+  rpc TriggerReindex(TriggerReindexRequest) returns (ReindexStatusResponse);
+}
+
+message ReindexStatusResponse {
+  bool success = 1;
+}
+
+message TriggerReindexRequest {
 }
 
 message TriggerMoveTagsRequest {
