@@ -746,6 +746,10 @@ func (s *TagsService) convertProtoToModel(
 			}
 		}
 		addFields := utils.NormalizeContent(tag.AdditionalFields)
+		var tempAddFields []byte
+		if tag.GetTempAdditionalFields() != nil {
+			tempAddFields = utils.NormalizeContent(tag.TempAdditionalFields)
+		}
 		return &dto.Tags{
 			ID:                   tag.Id,
 			Name:                 tag.Name,
@@ -769,6 +773,7 @@ func (s *TagsService) convertProtoToModel(
 			TotalCollectionItems: tag.TotalCollectionItems,
 			TotalPhotos:          tag.TotalPhotos,
 			CanSubscribe:         canSubscribe,
+			TempAdditionalFields: tempAddFields,
 		}
 	}
 	return &dto.Tags{}

@@ -107,20 +107,18 @@ func (s *PhotosService) CreatePhoto(
 	if err != nil {
 		return nil, err
 	}
-	if !dbCollection.IsPrivate {
-		for _, ph := range resp.GetData() {
-			stringId := strconv.Itoa(int(ph.GetId()))
-			uuidColID, _ := uuid.Parse(req.CollectionID)
-			eventError := s.eventsService.AddEvent(
-				authUserLogin,
-				utils.EventActionCreate,
-				utils.EventTargetPhoto,
-				ph.Path,
-				&dto.EventsParams{TargetPhotoID: stringId, TargetCollectionID: uuidColID},
-			)
-			if eventError != nil {
-				log.Default().Print(eventError)
-			}
+	for _, ph := range resp.GetData() {
+		stringId := strconv.Itoa(int(ph.GetId()))
+		uuidColID, _ := uuid.Parse(req.CollectionID)
+		eventError := s.eventsService.AddEvent(
+			authUserLogin,
+			utils.EventActionCreate,
+			utils.EventTargetPhoto,
+			ph.Path,
+			&dto.EventsParams{TargetPhotoID: stringId, TargetCollectionID: uuidColID, Deleted: dbCollection.IsPrivate},
+		)
+		if eventError != nil {
+			log.Default().Print(eventError)
 		}
 	}
 	result := s.convertProtoToModels(resp.GetData(), authUserLogin)
@@ -389,26 +387,26 @@ func (s *PhotosService) UpdatePhoto(
 	photo := s.convertProtoToModel(resp.GetData(), authUserLogin)
 
 	if len(req.Tags) > 0 {
-		if !dbCollection.IsPrivate {
-			for _, tag := range photo.Tags {
-				tagUUID, _ := uuid.Parse(tag.ID)
-				stringPhotoID := strconv.Itoa(int(resp.GetData().GetId()))
-				eventError := s.eventsService.AddEvent(
-					authUserLogin,
-					utils.EventActionAddTag,
-					utils.EventTargetTag,
-					tag.Name,
-					&dto.EventsParams{
-						TargetTagID:          tagUUID,
-						TargetPhotoID:        stringPhotoID,
-						TagRelatedEntityType: utils.EventTargetPhoto,
-					},
-				)
-				if eventError != nil {
-					log.Default().Print(eventError)
-				}
+		for _, tag := range photo.Tags {
+			tagUUID, _ := uuid.Parse(tag.ID)
+			stringPhotoID := strconv.Itoa(int(resp.GetData().GetId()))
+			eventError := s.eventsService.AddEvent(
+				authUserLogin,
+				utils.EventActionAddTag,
+				utils.EventTargetTag,
+				tag.Name,
+				&dto.EventsParams{
+					TargetTagID:          tagUUID,
+					TargetPhotoID:        stringPhotoID,
+					TagRelatedEntityType: utils.EventTargetPhoto,
+					Deleted:              dbCollection.IsPrivate,
+				},
+			)
+			if eventError != nil {
+				log.Default().Print(eventError)
 			}
 		}
+
 	}
 
 	return &dto.PhotoDataResponse{Data: *photo}, nil

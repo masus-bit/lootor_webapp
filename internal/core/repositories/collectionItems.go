@@ -67,14 +67,22 @@ func (r *CiRepository) GetCIByID(id string) (*models.CollectionItems, error) {
 	return &item, err
 }
 
-func (r *CiRepository) GetCountByUserLogin(login string) (int64, error) {
+func (r *CiRepository) GetCountByUserLogin(login string, initiatorIsAuth bool) (int64, error) {
 	var count int64
-	err := r.db.
-		Model(&models.CollectionItems{}).
-		Where("LOWER(user_login) = LOWER(?)", login).
-		Where("deleted_at IS NULL").
-		Count(&count).Error
 
+	query := r.db.
+		Model(&models.CollectionItems{}).
+		Where("LOWER(collection_items.user_login) = LOWER(?)", login).
+		Where("collection_items.deleted_at IS NULL")
+
+	if !initiatorIsAuth {
+		query = query.
+			Joins("LEFT JOIN collections_collection_items_collection_items AS ci_collections ON collection_items.id = ci_collections.collection_items_id").
+			Joins("LEFT JOIN collections ON ci_collections.collections_id = collections.id").
+			Where("collections.is_private IS NULL OR collections.is_private = ?", false)
+	}
+
+	err := query.Count(&count).Error
 	return count, err
 }
 

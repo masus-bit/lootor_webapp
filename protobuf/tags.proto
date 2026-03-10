@@ -296,6 +296,7 @@ message TagItem {
   int64 total_collections = 18;
   int64 total_collection_items = 19;
   int64 total_photos = 20;
+  google.protobuf.Struct temp_additional_fields = 21;
 }
 
 message GetShortsResponse {

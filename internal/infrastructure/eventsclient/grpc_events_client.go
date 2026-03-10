@@ -82,6 +82,19 @@ func (c *GRPCEventsClient) GetFilteredEvents(
 	)
 }
 
+func (c *GRPCEventsClient) UpdateCollectionEventsRequest(ctx context.Context, req *dto.UpdateCollectionEvents) error {
+	_, err := c.client.UpdateCollectionEvents(
+		ctx, &microservices.UpdateCollectionEventsRequest{
+			CollectionId: req.CollectionID,
+			Deleted:      req.Deleted,
+		},
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *GRPCEventsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

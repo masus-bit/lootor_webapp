@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
@@ -465,10 +466,13 @@ func (s *CiService) Update(id string, req *dto.CollectionItemsRequestUpdate) (*m
 	return result, nil
 }
 
-func (s *CiService) GetByID(id string, authUser string) (*models.CollectionItems, error) {
+func (s *CiService) GetByID(id, authUser, shareString string) (*models.CollectionItems, error) {
 	exists, err := s.repo.GetCIByID(id)
 	if err != nil {
 		return nil, err
+	}
+	if exists.Collections[0].IsPrivate && exists.Collections[0].UserLogin != authUser && shareString == "" {
+		return nil, errors.New("collection is private")
 	}
 
 	return exists, nil

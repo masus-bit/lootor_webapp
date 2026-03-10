@@ -407,7 +407,7 @@ func (r *CollectionsRepository) GetByUserIdWithoutPrivates(login string, search 
 
 	countQuery := r.db.
 		Model(&models.Collections{}).
-		Where("LOWER(user_login) = LOWER(?)", login).Count(&totalCount).Error
+		Where("LOWER(user_login) = LOWER(?)", login).Where("collections.is_private = ?", false).Count(&totalCount).Error
 
 	if countQuery != nil {
 		return nil, 0, countQuery
@@ -828,13 +828,17 @@ func (r *CollectionsRepository) DecrementCommentsCount(id string, amount int) er
 		Update("comments_count", gorm.Expr("GREATEST(COALESCE(comments_count, 0) - ?, 0)", amount)).Error
 }
 
-func (r *CollectionsRepository) GetCollectionsCount(login string) (int64, error) {
+func (r *CollectionsRepository) GetCollectionsCount(login string, initiatorIsAuth bool) (int64, error) {
 	var count int64
-	err := r.db.
+	query := r.db.
 		Model(&models.Collections{}).
 		Where("LOWER(user_login) = LOWER(?)", login).
-		Where("deleted_at IS NULL").
-		Count(&count).Error
+		Where("deleted_at IS NULL")
+	if !initiatorIsAuth {
+		query = query.Where("is_private = ?", false)
+	}
+
+	err := query.Count(&count).Error
 
 	return count, err
 }

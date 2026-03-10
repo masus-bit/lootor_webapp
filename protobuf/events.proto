@@ -8,6 +8,12 @@ service EventsService {
   rpc GetEvents(GetEventsRequest) returns (GetEventsResponse);
   rpc GetFilteredEvents(GetFilteredEventsRequest) returns (GetEventsResponse);
   rpc AddEvent(AddEventRequest) returns (AddEventResponse);
+  rpc UpdateCollectionEvents(UpdateCollectionEventsRequest) returns (AddEventResponse);
+}
+
+message UpdateCollectionEventsRequest {
+  bool deleted = 1;
+  string collection_id = 2;
 }
 
 message AddEventResponse {

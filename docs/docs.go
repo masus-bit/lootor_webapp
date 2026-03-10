@@ -226,6 +226,12 @@ const docTemplate = `{
                         "description": "id",
                         "name": "id",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "share",
+                        "name": "shareString",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -441,6 +447,13 @@ const docTemplate = `{
                         "type": "string",
                         "description": "limit",
                         "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "show empty collections",
+                        "name": "showEmpty",
                         "in": "query",
                         "required": true
                     },
@@ -1030,6 +1043,13 @@ const docTemplate = `{
                         "type": "string",
                         "description": "количество результатов",
                         "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ebal",
+                        "name": "offset",
                         "in": "query",
                         "required": true
                     }
@@ -2124,6 +2144,23 @@ const docTemplate = `{
                     "payment"
                 ],
                 "summary": "Получить список платежей юзера",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PaymentsData"
+                        }
+                    }
+                }
+            }
+        },
+        "/secured/payment/total": {
+            "get": {
+                "description": "summ",
+                "tags": [
+                    "payment"
+                ],
+                "summary": "Получить pizdy",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -4535,6 +4572,9 @@ const docTemplate = `{
                 "avatarUrl": {
                     "type": "string"
                 },
+                "donateTotal": {
+                    "type": "string"
+                },
                 "isPremium": {
                     "type": "boolean"
                 },
@@ -4590,7 +4630,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/dto.SubUsers"
                 },
                 "canSubscribe": {
-                    "description": "AdditionalFields datatypes.JSON ` + "`" + `gorm:\"type:jsonb\" json:\"additionalFields\"` + "`" + `",
+                    "description": "AdditionalFields     datatypes.JSON ` + "`" + `gorm:\"type:jsonb\" json:\"additionalFields\"` + "`" + `\nTempAdditionalFields datatypes.JSON ` + "`" + `gorm:\"type:jsonb\" json:\"tempAdditionalFields\"` + "`" + `",
                     "type": "boolean"
                 },
                 "collectionItemsProps": {
@@ -4980,6 +5020,17 @@ const docTemplate = `{
                                         "type": "object",
                                         "additionalProperties": true
                                     }
+                                }
+                            }
+                        },
+                        "total": {
+                            "type": "object",
+                            "properties": {
+                                "relation": {
+                                    "type": "string"
+                                },
+                                "value": {
+                                    "type": "integer"
                                 }
                             }
                         }

@@ -21,5 +21,6 @@ func PaymentRouter(e *echo.Echo, jwtService *auth.JWTService, paymentService pay
 	{
 		securedGroup.GET("/payment", controller.CreatePayment)
 		securedGroup.GET("/payment/info", controller.GetUserPayments)
+		securedGroup.GET("/payment/total", controller.GetYearDonations)
 	}
 }

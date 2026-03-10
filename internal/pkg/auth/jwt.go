@@ -50,6 +50,7 @@ type Claims struct {
 	Role              string         `json:"role"`
 	CollectionsCount  int            `json:"collectionsCount"`
 	UserSettings      datatypes.JSON `json:"userSettings"`
+	PremiumExpireDate string         `json:"premiumExpireDate"`
 	jwt.RegisteredClaims
 }
 
@@ -85,13 +86,19 @@ func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
 		return nil, err
 	}
 
-	collectionsCount, err := s.collectionsRepo.GetCollectionsCount(user.GetLogin())
+	collectionsCount, err := s.collectionsRepo.GetCollectionsCount(user.GetLogin(), true)
 	if err != nil {
 		return nil, err
 	}
 	userSettings, err := s.userSettingsRepo.FindRecordByUserLogin(user.GetLogin())
 	if err != nil {
 		return nil, err
+	}
+	var premiumExpireDate string
+	if userData.PremiumUntil.IsZero() {
+		premiumExpireDate = ""
+	} else {
+		premiumExpireDate = userData.PremiumUntil.String()
 	}
 
 	subTags, _ := s.tagsClient.GetTagsByIDs(
@@ -120,6 +127,7 @@ func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
 		resultTags,
 		collectionsCount,
 		userSettings.Settings,
+		premiumExpireDate,
 	)
 	if err != nil {
 		return nil, err
@@ -134,6 +142,7 @@ func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
 		resultTags,
 		collectionsCount,
 		userSettings.Settings,
+		premiumExpireDate,
 	)
 	if err != nil {
 		return nil, err
@@ -152,6 +161,7 @@ func (s *JWTService) generateToken(
 	tagsSubs []dto.SubTags,
 	collectionsCount int64,
 	userSettings datatypes.JSON,
+	premiumExpire string,
 ) (string, error) {
 	claims := Claims{
 		Login:             user.GetLogin(),
@@ -174,6 +184,7 @@ func (s *JWTService) generateToken(
 		TagsSubscriptions: tagsSubs,
 		CollectionsCount:  int(collectionsCount),
 		UserSettings:      userSettings,
+		PremiumExpireDate: premiumExpire,
 		Role:              user.GetRole(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(exp)),

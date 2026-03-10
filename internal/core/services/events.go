@@ -65,6 +65,7 @@ func (s *EventsService) AddEvent(userLogin, action, target, title string, params
 				TargetTagID:          params.TargetTagID.String(),
 				TagRelatedEntityType: params.TagRelatedEntityType,
 				TargetPhotoID:        params.TargetPhotoID,
+				Deleted:              params.Deleted,
 			},
 		},
 	)
@@ -72,6 +73,19 @@ func (s *EventsService) AddEvent(userLogin, action, target, title string, params
 		return err
 	}
 	if !ok.Success {
+		return err
+	}
+	return nil
+}
+
+func (s *EventsService) UpdateEventsOfCollection(collectionId string, deleted bool) error {
+	err := s.eventClient.UpdateCollectionEventsRequest(
+		context.Background(), &dto.UpdateCollectionEvents{
+			Deleted:      deleted,
+			CollectionID: collectionId,
+		},
+	)
+	if err != nil {
 		return err
 	}
 	return nil

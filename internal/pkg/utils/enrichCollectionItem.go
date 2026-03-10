@@ -12,7 +12,7 @@ import (
 
 type EnrichedCI interface {
 	Update(id string, dto *dto.CollectionItemsRequestUpdate) (*models.CollectionItems, error)
-	GetByID(id string, authUser string) (*models.CollectionItems, error)
+	GetByID(id, authUser, shareString string) (*models.CollectionItems, error)
 }
 
 type EnrichingCIService struct {
@@ -104,8 +104,8 @@ func (s *EnrichingCIService) enrichAnyItems(
 	return resultCollectionItems, nil
 }
 
-func (s *EnrichingCIService) GetByID(id string, authUser string) (*dto.CollectionItemsDataResponse, error) {
-	item, err := s.service.GetByID(id, authUser)
+func (s *EnrichingCIService) GetByID(id, authUser, shareString string) (*dto.CollectionItemsDataResponse, error) {
+	item, err := s.service.GetByID(id, authUser, shareString)
 	if err != nil {
 		return nil, err
 	}

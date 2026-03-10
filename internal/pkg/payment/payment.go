@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
 	"lootor/internal/core/services"
@@ -219,4 +220,43 @@ func (s *PayService) FindAllPaymentsByLogin(login string) (*models.PaymentsData,
 		return nil, err
 	}
 	return &models.PaymentsData{Data: payments}, nil
+}
+
+func (s *PayService) GetInfo() (*dto.PaymentsInfo, error) {
+	yearTotalDonates, payments, err := s.paymentsRepo.FindYearPayments()
+	if err != nil {
+		return nil, err
+	}
+	var userLogins []string
+	var paymentsResult []dto.PaymentDto
+	for _, payment := range payments {
+		userLogins = append(userLogins, payment.UserLogin)
+	}
+	subUsers, err := s.userRepo.GetForSubsMap(userLogins)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, payment := range payments {
+		paymentsResult = append(
+			paymentsResult, dto.PaymentDto{
+				CreatedAt:     payment.CreatedAt,
+				ID:            payment.ID.String(),
+				Amount:        payment.Amount,
+				TransactionID: payment.TransactionID,
+				InnerOrderID:  payment.InnerOrderID,
+				User:          subUsers[payment.UserLogin],
+				PaymentType:   payment.PaymentType,
+			},
+		)
+	}
+	data := struct {
+		YearDonationsSum string           `json:"yearDonationsSum"`
+		LastPayments     []dto.PaymentDto `json:"lastPayments"`
+	}{
+		YearDonationsSum: yearTotalDonates,
+		LastPayments:     paymentsResult,
+	}
+
+	return &dto.PaymentsInfo{Data: data}, nil
 }

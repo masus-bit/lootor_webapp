@@ -341,7 +341,7 @@ func (c *UserController) TelegramOauth(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(
 			http.StatusBadRequest, map[string]string{
-				"error бля": err.Error(),
+				"error": err.Error(),
 			},
 		)
 	}
@@ -351,7 +351,7 @@ func (c *UserController) TelegramOauth(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(
 			http.StatusBadRequest, map[string]string{
-				"error бля": err.Error(),
+				"error": err.Error(),
 			},
 		)
 	}
@@ -367,7 +367,7 @@ func (c *UserController) YandexOauth(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(
 			http.StatusBadRequest, map[string]string{
-				"error бля": err.Error(),
+				"error": err.Error(),
 			},
 		)
 	}
@@ -377,7 +377,7 @@ func (c *UserController) YandexOauth(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(
 			http.StatusBadRequest, map[string]string{
-				"error бля": err.Error(),
+				"error": err.Error(),
 			},
 		)
 	}

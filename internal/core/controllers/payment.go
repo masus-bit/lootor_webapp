@@ -79,3 +79,20 @@ func (c *PaymentController) GetUserPayments(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, &response)
 }
+
+// GetYearDonations
+// @Summary Получить pizdy
+// @Description summ
+// @Tags payment
+// @Success 200 {object} dto.PaymentsData
+// @Router /secured/payment/total [get]
+func (c *PaymentController) GetYearDonations(ctx echo.Context) error {
+
+	response, err := c.payService.GetInfo()
+
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+	}
+
+	return ctx.JSON(http.StatusOK, &response)
+}

@@ -124,10 +124,12 @@ func (c *CIController) UpdateCollectionItem(ctx echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param id query string false "id"
+// @Param shareString query string false "share"
 // @Success 201 {object} dto.CollectionItemsDataResponseSwagger
 // @Router /public/collection_item [get]
 func (c *CIController) GetCollectionItem(ctx echo.Context) error {
 	id := ctx.QueryParam("id")
+	shareString := ctx.QueryParam("shareString")
 	if id == "" {
 		return ctx.JSON(
 			http.StatusBadRequest, map[string]string{
@@ -140,7 +142,7 @@ func (c *CIController) GetCollectionItem(ctx echo.Context) error {
 		UserLogin       string
 	})
 
-	response, err := c.enrichedService.GetByID(id, authInfo.UserLogin)
+	response, err := c.enrichedService.GetByID(id, authInfo.UserLogin, shareString)
 	if err != nil {
 		return ctx.JSON(
 			http.StatusNotFound, map[string]string{

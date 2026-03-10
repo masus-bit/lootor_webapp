@@ -38,9 +38,10 @@ type Tags struct {
 	SeriesEntries []Tags     `gorm:"foreignKey:PrimaryID" json:"seriesEntries"`
 	Series        *ShortTags `gorm:"foreignKey:SeriesID" json:"series"`
 
-	Images           []string       `gorm:"type:text[]" json:"images"`
-	AdditionalFields datatypes.JSON `gorm:"type:jsonb" json:"additionalFields"`
-	CanSubscribe     bool           `json:"canSubscribe"`
+	Images               []string       `gorm:"type:text[]" json:"images"`
+	AdditionalFields     datatypes.JSON `gorm:"type:jsonb" json:"additionalFields"`
+	TempAdditionalFields datatypes.JSON `gorm:"type:jsonb" json:"tempAdditionalFields"`
+	CanSubscribe         bool           `json:"canSubscribe"`
 }
 
 type CollectionItemsProps struct {

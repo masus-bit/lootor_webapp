@@ -47,6 +47,7 @@ type EventsParams struct {
 	TargetTagID          uuid.UUID
 	TagRelatedEntityType string
 	TargetPhotoID        string
+	Deleted              bool
 }
 
 type EventsParamsStrings struct {
@@ -58,6 +59,7 @@ type EventsParamsStrings struct {
 	TargetTagID          string
 	TagRelatedEntityType string
 	TargetPhotoID        string
+	Deleted              bool
 }
 
 type AddEventRequest struct {
@@ -93,4 +95,9 @@ type GetFilteredEventsRequest struct {
 	CollectionItemIDs []string `json:"collectionItemIds"`
 	TagID             string   `json:"tagId"`
 	PhotoID           string   `json:"photoId"`
+}
+
+type UpdateCollectionEvents struct {
+	Deleted      bool   `json:"deleted"`
+	CollectionID string `json:"collectionId"`
 }

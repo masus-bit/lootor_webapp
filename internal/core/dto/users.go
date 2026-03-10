@@ -42,6 +42,7 @@ type SubUsers struct {
 	AvatarURL   string `json:"avatarUrl" gorm:"column:avatar_url"`
 	ProfileName string `json:"profileName" gorm:"column:profile_name"`
 	IsPremium   bool   `json:"isPremium" gorm:"column:is_premium"`
+	DonateTotal string `json:"donateTotal"`
 }
 
 type UserResponse struct {
@@ -74,6 +75,7 @@ type UserResponse struct {
 	SocialScore           int                    `json:"socialScore"`
 	TotalDonations        string                 `json:"totalDonations"`
 	PostCount             int                    `json:"postCount"`
+	PremiumExpireDate     string                 `json:"premiumExpireDate"`
 }
 
 type UserResponseForSingleUser struct {
@@ -104,6 +106,7 @@ type UserResponseForSingleUser struct {
 	SocialScore          int                    `json:"socialScore"`
 	TotalDonations       string                 `json:"totalDonations"`
 	PostCount            int                    `json:"postCount"`
+	PremiumExpireDate    string                 `json:"premiumExpireDate"`
 }
 
 type UserRequestUpdate struct {

@@ -762,6 +762,8 @@ definitions:
     properties:
       avatarUrl:
         type: string
+      donateTotal:
+        type: string
       isPremium:
         type: boolean
       login:
@@ -798,7 +800,9 @@ definitions:
       author:
         $ref: '#/definitions/dto.SubUsers'
       canSubscribe:
-        description: AdditionalFields datatypes.JSON `gorm:"type:jsonb" json:"additionalFields"`
+        description: |-
+          AdditionalFields     datatypes.JSON `gorm:"type:jsonb" json:"additionalFields"`
+          TempAdditionalFields datatypes.JSON `gorm:"type:jsonb" json:"tempAdditionalFields"`
         type: boolean
       collectionItemsProps:
         $ref: '#/definitions/dto.CollectionItemsProps'
@@ -1057,6 +1061,13 @@ definitions:
                   type: object
               type: object
             type: array
+          total:
+            properties:
+              relation:
+                type: string
+              value:
+                type: integer
+            type: object
         type: object
     type: object
   models.ItemTypes:
@@ -1291,6 +1302,10 @@ paths:
         in: query
         name: id
         type: string
+      - description: share
+        in: query
+        name: shareString
+        type: string
       produces:
       - application/json
       responses:
@@ -1436,6 +1451,11 @@ paths:
         name: limit
         required: true
         type: string
+      - description: show empty collections
+        in: query
+        name: showEmpty
+        required: true
+        type: boolean
       - description: offset
         in: query
         name: offset
@@ -1824,6 +1844,11 @@ paths:
       - description: количество результатов
         in: query
         name: limit
+        required: true
+        type: string
+      - description: ebal
+        in: query
+        name: offset
         required: true
         type: string
       produces:
@@ -2543,6 +2568,17 @@ paths:
           schema:
             $ref: '#/definitions/dto.PaymentsData'
       summary: Получить список платежей юзера
+      tags:
+      - payment
+  /secured/payment/total:
+    get:
+      description: summ
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PaymentsData'
+      summary: Получить pizdy
       tags:
       - payment
   /secured/photos:

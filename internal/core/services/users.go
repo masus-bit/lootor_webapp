@@ -87,8 +87,8 @@ func (s *UserService) GetByLogin(
 
 	if userLogin == authUser {
 		totalDonations, _ := s.repo.GetDonationsTotal(userLogin)
-		collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(userLogin)
-		collectionsCount, _ := s.collectionRepo.GetCollectionsCount(userLogin)
+		collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(userLogin, userLogin == authUser)
+		collectionsCount, _ := s.collectionRepo.GetCollectionsCount(userLogin, userLogin == authUser)
 		sum, _ := s.ciRepo.SumByUserLogin(userLogin)
 		shippingTotal, _ := s.ciRepo.ShippingSumByUserLogin(userLogin)
 		donationsString := strconv.FormatFloat(totalDonations, 'f', -1, 64)
@@ -149,8 +149,10 @@ func (s *UserService) GetByLogin(
 		response.CanSubscribe = canSubscribe
 	}
 
-	collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(userLogin)
-	collectionsCount, _ := s.collectionRepo.GetCollectionsCount(userLogin)
+	initiatorIsAuth := userLogin == authUser
+
+	collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(userLogin, initiatorIsAuth)
+	collectionsCount, _ := s.collectionRepo.GetCollectionsCount(userLogin, initiatorIsAuth)
 	sum, _ := s.ciRepo.SumByUserLogin(userLogin)
 	shippingTotal, _ := s.ciRepo.ShippingSumByUserLogin(userLogin)
 	totalDonations, _ := s.repo.GetDonationsTotal(userLogin)
@@ -162,6 +164,7 @@ func (s *UserService) GetByLogin(
 	response.ShippingTotal = int(shippingTotal)
 	response.TotalDonations = donationsString
 	response.PostCount = int(postsCount)
+	response.PremiumExpireDate = dbUser.PremiumUntil.String()
 	e := mapstructure.Decode(dbUser, &response)
 	response.VkID = ""
 	response.TelegramID = ""
@@ -221,7 +224,7 @@ func (s *UserService) ChangeRating(isLike bool, login string) (*dto.CommonRespon
 
 func (s *UserService) ChangePassword(password string, login string, authUserLogin string) (*dto.CommonResponse, error) {
 	if authUserLogin != login {
-		return nil, errors.New("ошибка смены пароля")
+		return nil, errors.New("change password error")
 	}
 
 	existsUser, err := s.repo.GetUserByLogin(login)
@@ -390,11 +393,11 @@ func (s *UserService) SignIn(req *dto.SignInRequest) (*dto.SignInResponse, error
 func (s *UserService) SignUp(req *dto.SignUpRequest, ctx context.Context) (*dto.SignUpResponse, error) {
 	userByMail, _ := s.repo.GetByEmailForSignUp(req.Email)
 	if userByMail != nil {
-		return nil, errors.New("email должен быть уникальным")
+		return nil, errors.New("email must be unique")
 	}
 	userByLogin, _ := s.repo.GetUserByLoginForSignUp(req.Login)
 	if userByLogin != nil {
-		return nil, errors.New("логин должен быть уникальным")
+		return nil, errors.New("login must be unique")
 	}
 
 	passwordHash, errorHash := auth.HashPassword(req.Password)
@@ -659,7 +662,7 @@ func (s *UserService) TelegramOauth(req *dto.TelegramOauthRequest) (*dto.SignInR
 
 	computedHash := hex.EncodeToString(hashBytes)
 	if hash != computedHash {
-		return nil, fmt.Errorf("проблемы с хэшем")
+		return nil, fmt.Errorf("hash error")
 	}
 
 	newId := fmt.Sprintf("%d", req.ID)
@@ -913,7 +916,7 @@ func (s *UserService) UpdateUser(user *dto.UserRequestUpdate, login string) (*dt
 	}
 
 	if userByEmail != nil && userByEmail.Email == *user.Email {
-		return nil, errors.New("пользователь с таким email уже существует")
+		return nil, errors.New("email already exists")
 
 	}
 
@@ -1062,7 +1065,7 @@ func (s *UserService) ActivatePremium(userLogin string, months int, years int, p
 		return err
 	}
 	if !ok {
-		return errors.New("error pizda")
+		return errors.New("premium activate error")
 	}
 	return nil
 }
@@ -1080,7 +1083,7 @@ func (s *UserService) ActivateTestPremium(userLogin string, duration time.Durati
 		return err
 	}
 	if !ok {
-		return errors.New("error pizda")
+		return errors.New("premium activate error")
 	}
 	return nil
 }
@@ -1119,8 +1122,8 @@ func (s *UserService) GetAll(search, limit, offset, order string) (*dto.DataUser
 			return nil, err
 		}
 		tempUser.TotalDonations = donateMap[user.Login]
-		collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(user.Login)
-		collectionsCount, _ := s.collectionRepo.GetCollectionsCount(user.Login)
+		collectionItemsCount, _ := s.ciRepo.GetCountByUserLogin(user.Login, false)
+		collectionsCount, _ := s.collectionRepo.GetCollectionsCount(user.Login, false)
 		sum, _ := s.ciRepo.SumByUserLogin(user.Login)
 		shippingTotal, _ := s.ciRepo.ShippingSumByUserLogin(user.Login)
 

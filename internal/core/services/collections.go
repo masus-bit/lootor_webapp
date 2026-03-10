@@ -9,6 +9,7 @@ import (
 	"log"
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/dto"
+	"strconv"
 	"sync"
 
 	"lootor/internal/core/models"
@@ -90,7 +91,7 @@ func (s *CollectionService) Create(req *dto.CollectionCreateRequest) (*dto.Colle
 		return nil, err
 	}
 
-	collectionsCount, err := s.repo.GetCollectionsCount(req.UserLogin)
+	collectionsCount, err := s.repo.GetCollectionsCount(req.UserLogin, true)
 	if err != nil {
 		return nil, err
 	}
@@ -113,18 +114,15 @@ func (s *CollectionService) Create(req *dto.CollectionCreateRequest) (*dto.Colle
 		return nil, err
 	}
 
-	if !req.IsPrivate {
-		eventError := s.eventsService.AddEvent(
-			req.UserLogin,
-			utils.EventActionCreate,
-			utils.EventTargetCollection,
-			req.Name,
-			&dto.EventsParams{TargetCollectionID: res.ID},
-		)
-		if eventError != nil {
-			log.Default().Print(eventError)
-		}
-
+	eventError := s.eventsService.AddEvent(
+		req.UserLogin,
+		utils.EventActionCreate,
+		utils.EventTargetCollection,
+		req.Name,
+		&dto.EventsParams{TargetCollectionID: res.ID, Deleted: req.IsPrivate},
+	)
+	if eventError != nil {
+		log.Default().Print(eventError)
 	}
 
 	var response dto.CollectionsResponse
@@ -236,6 +234,17 @@ func (s *CollectionService) Update(id string, req *dto.CollectionUpdateRequest) 
 		if eventError != nil {
 			log.Default().Print(eventError)
 		}
+	} else if *req.IsPrivate {
+		eventError := s.eventsService.AddEvent(
+			*req.UserLogin,
+			utils.EventActionUpdate,
+			utils.EventTargetCollection,
+			*req.Name,
+			&dto.EventsParams{TargetCollectionID: resultCollection.ID, Deleted: true},
+		)
+		if eventError != nil {
+			log.Default().Print(eventError)
+		}
 	}
 
 	var finalCollection dto.CollectionsResponse
@@ -255,10 +264,18 @@ func (s *CollectionService) Update(id string, req *dto.CollectionUpdateRequest) 
 	if err != nil {
 		return nil, err
 	}
-	var err1, err2 error
+	var err1, err2, err3 error
 	var wg sync.WaitGroup
 
-	wg.Add(2)
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		if exists.IsPrivate && !*req.IsPrivate {
+			err3 = s.eventsService.UpdateEventsOfCollection(id, false)
+		} else if !exists.IsPrivate && *req.IsPrivate {
+			err3 = s.eventsService.UpdateEventsOfCollection(id, true)
+		}
+	}()
 	go func() {
 		defer wg.Done()
 		if len(req.Tags) > 0 {
@@ -323,9 +340,29 @@ func (s *CollectionService) Update(id string, req *dto.CollectionUpdateRequest) 
 			var entitiesIDs []string
 			var collectionItemsIDs []string
 			collectionItemsIDs, err1 = s.repo.GetCollectionItemsIds(id)
+			var collectionIDs []string
+			collectionIDs = append(collectionIDs, id)
+			photos, err := s.photosClient.GetPhotosByCollectionsIds(
+				context.Background(), &microservices.GetPhotosByCollectionsIdsMapRequest{
+					CollectionsIds: collectionIDs,
+					AuthUserLogin:  exists.UserLogin,
+				},
+			)
+
+			if err != nil {
+				return
+			}
+
+			var photoIDs []string
+
+			for _, photo := range photos.GetData() {
+				stringPhotoID := strconv.Itoa(int(photo.GetId()))
+				photoIDs = append(photoIDs, stringPhotoID)
+			}
 
 			entitiesIDs = append(entitiesIDs, collectionItemsIDs...)
 			entitiesIDs = append(entitiesIDs, id)
+			entitiesIDs = append(entitiesIDs, photoIDs...)
 			_, err = s.tagsClient.UpdateVisibleLinks(
 				context.Background(), &microservices.UpdateVisibleLinksRequest{
 					EntityIds: entitiesIDs,
@@ -358,9 +395,29 @@ func (s *CollectionService) Update(id string, req *dto.CollectionUpdateRequest) 
 			var entitiesIDs []string
 			var collectionItemsIDs []string
 			collectionItemsIDs, err2 = s.repo.GetCollectionItemsIds(id)
+			var collectionIDs []string
+			collectionIDs = append(collectionIDs, id)
+			photos, err := s.photosClient.GetPhotosByCollectionsIds(
+				context.Background(), &microservices.GetPhotosByCollectionsIdsMapRequest{
+					CollectionsIds: collectionIDs,
+					AuthUserLogin:  exists.UserLogin,
+				},
+			)
+
+			if err != nil {
+				return
+			}
+
+			var photoIDs []string
+
+			for _, photo := range photos.GetData() {
+				stringPhotoID := strconv.Itoa(int(photo.GetId()))
+				photoIDs = append(photoIDs, stringPhotoID)
+			}
 
 			entitiesIDs = append(entitiesIDs, collectionItemsIDs...)
 			entitiesIDs = append(entitiesIDs, id)
+			entitiesIDs = append(entitiesIDs, photoIDs...)
 			_, err = s.tagsClient.UpdateVisibleLinks(
 				context.Background(), &microservices.UpdateVisibleLinksRequest{
 					EntityIds: entitiesIDs,
@@ -378,6 +435,9 @@ func (s *CollectionService) Update(id string, req *dto.CollectionUpdateRequest) 
 	}
 	if err2 != nil {
 		return nil, err2
+	}
+	if err3 != nil {
+		return nil, err3
 	}
 	var resultTags []dto.ShortTags
 	resultTags = make([]dto.ShortTags, 0)
@@ -629,7 +689,7 @@ func (s *CollectionService) GetOne(
 		return nil, errors.New("collection not found")
 	}
 
-	if dbCollection.IsPrivate && dbCollection.UserLogin != userLogin && shareString == "" {
+	if dbCollection.IsPrivate && dbCollection.UserLogin != authorizerUser && shareString == "" {
 		return nil, errors.New("collection not found")
 	}
 
