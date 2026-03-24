@@ -30,7 +30,7 @@ type TokenPair struct {
 	RefreshToken string `json:"refreshToken"`
 }
 type Claims struct {
-	*dto.UserResponse
+	*dto.UserResponseJwt
 	Email             string         `json:"email"`
 	Role              string         `json:"role"`
 	UserSettings      datatypes.JSON `json:"userSettings"`
@@ -170,7 +170,7 @@ func (s *JWTService) generateToken(
 		//	TagsSubscriptions: tagsSubs,
 		//	CollectionsCount:  int(collectionsCount)
 		//},
-		UserResponse: &dto.UserResponse{
+		UserResponseJwt: &dto.UserResponseJwt{
 			Login:                     user.GetLogin(),
 			UserName:                  user.GetUserName(),
 			VkID:                      user.GetVkID(),

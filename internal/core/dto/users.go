@@ -80,6 +80,38 @@ type UserResponse struct {
 	PostCount                 int                    `json:"postCount"`
 }
 
+type UserResponseJwt struct {
+	Login                     string                 `json:"login"`
+	UserName                  string                 `json:"userName"`
+	City                      string                 `json:"city"`
+	Bio                       string                 `json:"bio"`
+	VkID                      string                 `json:"vkId"`
+	TelegramID                string                 `json:"telegramId"`
+	Created                   string                 `json:"created"`
+	Likes                     int                    `json:"likes"`
+	Dislikes                  int                    `json:"dislikes"`
+	AvatarURL                 string                 `json:"avatarUrl"`
+	BackgroundURL             string                 `json:"backgroundUrl"`
+	Subscribers               int                    `json:"subscribers"`
+	Subscriptions             []string               `json:"subscriptions"`
+	TagsSubscriptions         []string               `json:"tagsSubscriptions"`
+	SubscribersLogins         []string               `json:"subscribersLogins"`
+	SubscriptionsExtended     []SubUsers             `json:"subscriptionsExtended" mapstructure:"-"`
+	SubscribersExtended       []SubUsers             `json:"subscribersExtended" mapstructure:"-"`
+	TagsSubscriptionsExtended []SubTags              `json:"tagsSubscriptionsExtended" mapstructure:"-"`
+	CanSubscribe              bool                   `json:"canSubscribe"`
+	CollectionItemsCount      int                    `json:"collectionItemsCount" default:"0"`
+	CollectionsCount          int                    `json:"collectionsCount" default:"0"`
+	TotalSum                  int                    `json:"totalSum" default:"0"`
+	WishListItems             []models.WishListItems `json:"wishListItems"`
+	WishListCount             int                    `json:"wishListCount"`
+	IsPremium                 bool                   `json:"isPremium"`
+	ShippingTotal             int                    `json:"shippingTotal"`
+	ProfileName               string                 `json:"profileName"`
+	SocialScore               int                    `json:"socialScore"`
+	TotalDonations            string                 `json:"totalDonations"`
+	PostCount                 int                    `json:"postCount"`
+}
 type UserResponseForSingleUser struct {
 	Login                string                 `json:"login"`
 	UserName             string                 `json:"userName"`
