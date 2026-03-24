@@ -30,26 +30,9 @@ type TokenPair struct {
 	RefreshToken string `json:"refreshToken"`
 }
 type Claims struct {
-	Login             string         `json:"login"`
-	UserName          string         `json:"userName"`
-	VkID              string         `json:"vkId"`
-	TelegramID        string         `json:"telegramId"`
+	*dto.UserResponse
 	Email             string         `json:"email"`
-	Created           string         `json:"created"`
-	Likes             int            `json:"likes"`
-	Dislikes          int            `json:"dislikes"`
-	AvatarURL         string         `json:"avatarUrl"`
-	BackgroundURL     string         `json:"backgroundUrl"`
-	Subscribers       int            `json:"subscribers"`
-	Bio               string         `json:"bio"`
-	City              string         `json:"city"`
-	IsPremium         bool           `json:"isPremium"`
-	ProfileName       string         `json:"profileName"`
-	SubscribersLogins []dto.SubUsers `json:"subscribersLogins" mapstructure:"-"`
-	Subscriptions     []dto.SubUsers `json:"subscriptions" mapstructure:"-"`
-	TagsSubscriptions []dto.SubTags  `json:"tagsSubscriptions" mapstructure:"-"`
 	Role              string         `json:"role"`
-	CollectionsCount  int            `json:"collectionsCount"`
 	UserSettings      datatypes.JSON `json:"userSettings"`
 	PremiumExpireDate string         `json:"premiumExpireDate"`
 	Exp               int            `json:"experience"`
@@ -166,25 +149,48 @@ func (s *JWTService) generateToken(
 	premiumExpire string,
 ) (string, error) {
 	claims := Claims{
-		Login:             user.GetLogin(),
-		UserName:          user.GetUserName(),
-		VkID:              user.GetVkID(),
-		TelegramID:        user.GetTelegramID(),
+		//&dto.UserResponse{
+		//	Login:             user.GetLogin(),
+		//	UserName:          user.GetUserName(),
+		//	VkID:              user.GetVkID(),
+		//	TelegramID:        user.GetTelegramID(),
+		//	Email:             user.GetEmail(),
+		//	Created:           user.GetCreated(),
+		//	Likes:             user.GetLikes(),
+		//	Dislikes:          user.GetDislikes(),
+		//	AvatarURL:         user.GetAvatarURL(),
+		//	BackgroundURL:     user.GetBackgroundURL(),
+		//	Subscribers:       user.GetSubscribers(),
+		//	Bio:               user.GetBio(),
+		//	City:              user.GetCity(),
+		//	IsPremium:         user.GetIsPremium(),
+		//	ProfileName:       user.GetProfileName(),
+		//	SubscribersLogins: subLogins,
+		//	Subscriptions:     subs,
+		//	TagsSubscriptions: tagsSubs,
+		//	CollectionsCount:  int(collectionsCount)
+		//},
+		UserResponse: &dto.UserResponse{
+			Login:                     user.GetLogin(),
+			UserName:                  user.GetUserName(),
+			VkID:                      user.GetVkID(),
+			TelegramID:                user.GetTelegramID(),
+			Created:                   user.GetCreated(),
+			Likes:                     user.GetLikes(),
+			Dislikes:                  user.GetDislikes(),
+			AvatarURL:                 user.GetAvatarURL(),
+			BackgroundURL:             user.GetBackgroundURL(),
+			Subscribers:               user.GetSubscribers(),
+			Bio:                       user.GetBio(),
+			City:                      user.GetCity(),
+			IsPremium:                 user.GetIsPremium(),
+			ProfileName:               user.GetProfileName(),
+			SubscribersExtended:       subLogins,
+			SubscriptionsExtended:     subs,
+			TagsSubscriptionsExtended: tagsSubs,
+			CollectionsCount:          int(collectionsCount),
+		},
 		Email:             user.GetEmail(),
-		Created:           user.GetCreated(),
-		Likes:             user.GetLikes(),
-		Dislikes:          user.GetDislikes(),
-		AvatarURL:         user.GetAvatarURL(),
-		BackgroundURL:     user.GetBackgroundURL(),
-		Subscribers:       user.GetSubscribers(),
-		Bio:               user.GetBio(),
-		City:              user.GetCity(),
-		IsPremium:         user.GetIsPremium(),
-		ProfileName:       user.GetProfileName(),
-		SubscribersLogins: subLogins,
-		Subscriptions:     subs,
-		TagsSubscriptions: tagsSubs,
-		CollectionsCount:  int(collectionsCount),
 		UserSettings:      userSettings,
 		PremiumExpireDate: premiumExpire,
 		Role:              user.GetRole(),
