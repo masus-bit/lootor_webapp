@@ -414,14 +414,16 @@ func getType(tagProto *microservices.TagItemShort) string {
 func NormalizeTagsShort(tagsProto []*microservices.TagItemShort) []dto.ShortTags {
 	tempTags := make([]dto.ShortTags, 0, len(tagsProto))
 	for _, tag := range tagsProto {
+		addFields := NormalizeContent(tag.AdditionalFields)
 		tempTags = append(
 			tempTags, dto.ShortTags{
-				ID:        tag.GetId(),
-				Name:      tag.GetName(),
-				Slug:      tag.GetSlug(),
-				PrimaryID: tag.GetPrimaryId(),
-				SeriesID:  tag.GetSeriesId(),
-				Type:      getType(tag),
+				ID:               tag.GetId(),
+				Name:             tag.GetName(),
+				Slug:             tag.GetSlug(),
+				PrimaryID:        tag.GetPrimaryId(),
+				SeriesID:         tag.GetSeriesId(),
+				Type:             getType(tag),
+				AdditionalFields: addFields,
 			},
 		)
 	}

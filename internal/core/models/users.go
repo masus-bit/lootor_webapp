@@ -66,3 +66,4 @@ func (u *Users) GetTagsSubscriptions() []string {
 	return u.TagsSubscriptions
 }
 func (u *Users) GetRole() string { return u.Role }
+func (u *Users) GetExp() int     { return u.Exp }

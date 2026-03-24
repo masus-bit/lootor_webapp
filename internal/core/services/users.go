@@ -39,6 +39,7 @@ type UserService struct {
 	postsService         *PostsService
 	tagsClient           *tagsclient.GRPCTagsClient
 	achClient            *achievementsclient.GRPCAchievementsClient
+	wlRepo               *repositories.WLRepository
 }
 
 func NewUserService(
@@ -52,6 +53,7 @@ func NewUserService(
 	postsService *PostsService,
 	tagsClient *tagsclient.GRPCTagsClient,
 	achClient *achievementsclient.GRPCAchievementsClient,
+	wlRepo *repositories.WLRepository,
 ) *UserService {
 	_ = godotenv.Load()
 	return &UserService{
@@ -65,6 +67,7 @@ func NewUserService(
 		postsService:         postsService,
 		tagsClient:           tagsClient,
 		achClient:            achClient,
+		wlRepo:               wlRepo,
 	}
 }
 
@@ -72,7 +75,7 @@ func (s *UserService) GetByLogin(
 	userLogin string,
 	authUser string,
 	isAuthenticated bool,
-) (*dto.DataUserResponseForSingleUser, error) {
+) (*dto.DataUserResponse, error) {
 	dbUser, err := s.repo.GetUserByLogin(userLogin)
 	if err != nil {
 		return nil, err
@@ -82,8 +85,14 @@ func (s *UserService) GetByLogin(
 	if authUser != "" && isAuthenticated {
 		authorizedUser, _ = s.repo.GetUserByLogin(authUser)
 	}
-	var response dto.UserResponseForSingleUser
+	var response dto.UserResponse
 	postsCount := s.postsService.GetCount(context.Background(), userLogin)
+	wlCount, err := s.wlRepo.GetCountByUserLogin(userLogin)
+	var wlCounter int
+	wlCounter = int(wlCount)
+	if err != nil {
+		wlCounter = 0
+	}
 
 	if userLogin == authUser {
 		totalDonations, _ := s.repo.GetDonationsTotal(userLogin)
@@ -105,7 +114,8 @@ func (s *UserService) GetByLogin(
 		if err != nil {
 			return nil, err
 		}
-		response.SubscribersLogins = subscribersLogins
+		response.SubscribersLogins = dbUser.SubscribersLogins
+		response.SubscribersExtended = subscribersLogins
 		subscriptions, err := s.repo.GetForSubs(dbUser.Subscriptions)
 		if err != nil {
 			return nil, err
@@ -128,13 +138,16 @@ func (s *UserService) GetByLogin(
 				)
 			}
 		}
-		response.TagsSubscriptions = resultTags
+		response.TagsSubscriptions = dbUser.TagsSubscriptions
+		response.TagsSubscriptionsExtended = resultTags
 
-		response.Subscriptions = subscriptions
+		response.Subscriptions = dbUser.Subscriptions
+		response.SubscriptionsExtended = subscriptions
+		response.WishListCount = wlCounter
 		if e != nil {
 			return nil, e
 		}
-		return &dto.DataUserResponseForSingleUser{Data: response}, nil
+		return &dto.DataUserResponse{Data: response}, nil
 	}
 
 	var subArray []string
@@ -176,7 +189,8 @@ func (s *UserService) GetByLogin(
 		return nil, err
 	}
 
-	response.SubscribersLogins = subscribersLogins
+	response.SubscribersLogins = dbUser.SubscribersLogins
+	response.SubscribersExtended = subscribersLogins
 	subscriptions, err := s.repo.GetForSubs(dbUser.Subscriptions)
 	if err != nil {
 		return nil, err
@@ -198,10 +212,14 @@ func (s *UserService) GetByLogin(
 			)
 		}
 	}
-	response.TagsSubscriptions = resultTags
-	response.Subscriptions = subscriptions
+	response.TagsSubscriptions = dbUser.TagsSubscriptions
+	response.TagsSubscriptionsExtended = resultTags
 
-	return &dto.DataUserResponseForSingleUser{Data: response}, nil
+	response.Subscriptions = dbUser.Subscriptions
+	response.SubscriptionsExtended = subscriptions
+	response.WishListCount = wlCounter
+
+	return &dto.DataUserResponse{Data: response}, nil
 }
 
 func (s *UserService) ChangeRating(isLike bool, login string) (*dto.CommonResponse, error) {

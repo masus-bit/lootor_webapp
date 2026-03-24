@@ -274,6 +274,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		postsService,
 		tagsClient,
 		achievementsClient,
+		wlRepo,
 	)
 	ciService := services.NewCiService(
 		ciRepo,
@@ -297,6 +298,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		tagsClient,
 		photosClient,
 		achievementsClient,
+		wlRepo,
 	)
 	platformsService := services.NewPlatformsService(platformRepo)
 	itemTypesService := services.NewItemTypesService(itemTypesRepo)

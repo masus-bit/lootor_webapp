@@ -73,16 +73,17 @@ type TagLinks struct {
 }
 
 type ShortTags struct {
-	ID                   string `json:"id"`
-	Name                 string `json:"name"`
-	Slug                 string `json:"slug"`
-	PrimaryID            string `json:"primaryId"`
-	SeriesID             string `json:"seriesId"`
-	Type                 string `json:"type"`
-	TotalPosts           int64  `json:"totalPosts"`
-	TotalCollections     int64  `json:"totalCollections"`
-	TotalCollectionItems int64  `json:"totalCollectionItems"`
-	TotalPhotos          int64  `json:"totalPhotos"`
+	ID                   string         `json:"id"`
+	Name                 string         `json:"name"`
+	Slug                 string         `json:"slug"`
+	PrimaryID            string         `json:"primaryId"`
+	SeriesID             string         `json:"seriesId"`
+	Type                 string         `json:"type"`
+	TotalPosts           int64          `json:"totalPosts"`
+	TotalCollections     int64          `json:"totalCollections"`
+	TotalCollectionItems int64          `json:"totalCollectionItems"`
+	TotalPhotos          int64          `json:"totalPhotos"`
+	AdditionalFields     datatypes.JSON `json:"additionalFields"`
 }
 
 type TagsDataResponse struct {

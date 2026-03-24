@@ -35,6 +35,7 @@ type CollectionService struct {
 	tagsClient           *tagsclient.GRPCTagsClient
 	photosClient         *photosclient.GRPCPhotosClient
 	achClient            *achievementsclient.GRPCAchievementsClient
+	wlRepo               *repositories.WLRepository
 }
 
 func NewCollectionService(
@@ -47,6 +48,7 @@ func NewCollectionService(
 	tagsClient *tagsclient.GRPCTagsClient,
 	photosClient *photosclient.GRPCPhotosClient,
 	achClient *achievementsclient.GRPCAchievementsClient,
+	wlRepo *repositories.WLRepository,
 ) *CollectionService {
 	return &CollectionService{
 		repo:                 repo,
@@ -58,6 +60,7 @@ func NewCollectionService(
 		tagsClient:           tagsClient,
 		photosClient:         photosClient,
 		achClient:            achClient,
+		wlRepo:               wlRepo,
 	}
 }
 
@@ -774,6 +777,14 @@ func (s *CollectionService) GetOne(
 	finalCollection.CanLike = utils.CanLike(dbCollection.Likes, authorizerUser, dbCollection.UserLogin)
 	finalCollection.IsOwner = authorizerUser == userLogin
 	finalCollection.PhotosCount = photosCount.GetCount()
+	wlCount, err := s.wlRepo.GetCountByUserLogin(userLogin)
+	var wlCounter int
+	wlCounter = int(wlCount)
+	if err != nil {
+		wlCounter = 0
+	}
+	finalCollection.User.WishListCount = wlCounter
+
 	if authUser != nil {
 		subArray = authUser.Subscriptions
 		subsExtended, _ := s.userRepo.GetForSubs(subArray)

@@ -376,12 +376,8 @@ func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string, 
 
 	countQuery := r.db.
 		Model(&models.Collections{}).
-		Where("LOWER(user_login) = LOWER(?)", login).Count(&totalCount).Error
-
-	if countQuery != nil {
-		return nil, 0, countQuery
-	}
-
+		Where("LOWER(user_login) = LOWER(?)", login).
+		Where("deleted_at IS NULL")
 	query := r.db.
 		Where("LOWER(user_login) = LOWER(?)", login).
 		Preload("User").
@@ -390,9 +386,14 @@ func (r *CollectionsRepository) GetByUserIdWithoutCollectionItems(login string, 
 
 	if search != "" {
 		query = query.Where("name ILIKE ?", "%"+search+"%")
+		countQuery = countQuery.Where("name ILIKE ?", "%"+search+"%")
 	}
 
 	err := query.Find(&collections).Error
+	countError := countQuery.Count(&totalCount).Error
+	if countError != nil {
+		return nil, 0, countError
+	}
 
 	return collections, totalCount, err
 }

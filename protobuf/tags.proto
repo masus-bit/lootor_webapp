@@ -317,6 +317,7 @@ message TagItemShort {
   string slug = 3;
   string series_id = 4;
   string primary_id = 5;
+  google.protobuf.Struct additional_fields = 6;
 }
 
 message GetEntitiesByTagRequest {

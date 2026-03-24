@@ -60,6 +60,21 @@ func (r *WLRepository) GetAllByUserLogin(userLogin string) ([]models.WishListIte
 
 }
 
+func (r *WLRepository) GetCountByUserLogin(userLogin string) (int64, error) {
+	var totalCount int64
+
+	countQuery := r.db.
+		Model(&models.WishListItems{}).
+		Where("LOWER(user_login) = LOWER(?)", userLogin).Count(&totalCount).Error
+
+	if countQuery != nil {
+		return 0, countQuery
+	}
+
+	return totalCount, nil
+
+}
+
 func (r *WLRepository) GetByID(id string) (*models.WishListItems, error) {
 	var item models.WishListItems
 	err := r.db.Where("id = ?", id).Preload("User").Preload("CollectionItem").First(&item).Error

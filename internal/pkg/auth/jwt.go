@@ -52,6 +52,7 @@ type Claims struct {
 	CollectionsCount  int            `json:"collectionsCount"`
 	UserSettings      datatypes.JSON `json:"userSettings"`
 	PremiumExpireDate string         `json:"premiumExpireDate"`
+	Exp               int            `json:"experience"`
 	jwt.RegisteredClaims
 }
 
@@ -187,6 +188,7 @@ func (s *JWTService) generateToken(
 		UserSettings:      userSettings,
 		PremiumExpireDate: premiumExpire,
 		Role:              user.GetRole(),
+		Exp:               user.GetExp(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(exp)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -308,4 +310,5 @@ type tokenData struct {
 	tagsSubscriptions []dto.SubTags
 	role              string
 	collectionsCount  int
+	experience        int
 }
