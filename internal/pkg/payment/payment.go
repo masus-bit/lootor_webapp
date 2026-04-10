@@ -69,7 +69,7 @@ func (s *PayService) StartTransaction(login string, subType string, amount strin
 		Capture: true,
 		Confirmation: Confirmation{
 			Type:      "redirect",
-			ReturnURL: "https://lootor.me/payment-success",
+			ReturnURL: "https://lootoe.space/payment-success",
 		},
 		Description: description,
 		Receipt: Receipt{

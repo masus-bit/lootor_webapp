@@ -5185,11 +5185,11 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "dev.lootor.me",
+	Host:             "dev.lootoe.space",
 	BasePath:         "/",
 	Schemes:          []string{"https"},
 	Title:            "Lootor",
-	Description:      "Документация к API Lootor.me",
+	Description:      "Документация к API lootoe.space",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

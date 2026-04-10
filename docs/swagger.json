@@ -4,7 +4,7 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "Документация к API Lootor.me",
+        "description": "Документация к API lootoe.space",
         "title": "Lootor",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {},
@@ -14,7 +14,7 @@
         },
         "version": "1.0"
     },
-    "host": "dev.lootor.me",
+    "host": "dev.lootoe.space",
     "basePath": "/",
     "paths": {
         "/public/achievements": {

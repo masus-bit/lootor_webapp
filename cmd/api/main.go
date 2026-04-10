@@ -15,13 +15,13 @@ import (
 
 // @title Lootor
 // @version 1.0
-// @description Документация к API Lootor.me
+// @description Документация к API lootoe.space
 // @termsOfService http://swagger.io/terms/
 
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host dev.lootor.me
+// @host dev.lootoe.space
 // @BasePath /
 // @schemes https
 func main() {

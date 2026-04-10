@@ -81,10 +81,10 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		middleware.CORSWithConfig(
 			middleware.CORSConfig{
 				AllowOrigins: []string{
-					"https://dev.lootor.me",
-					"https://lootor.me",
-					"https://www.lootor.me",
-					"https://www.dev.lootor.me",
+					"https://dev.lootoe.space",
+					"https://lootoe.space",
+					"https://www.lootoe.space",
+					"https://www.dev.lootoe.space",
 					"http://localhost:3000",
 					"http://localhost:4173",
 					"*",
@@ -262,7 +262,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		eventsService,
 	)
 
-	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootor.me>`)
+	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootoe.space>`)
 	userService := services.NewUserService(
 		userRepo,
 		jwtService,
