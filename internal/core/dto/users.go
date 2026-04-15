@@ -42,7 +42,7 @@ type SubUsers struct {
 	AvatarURL     string `json:"avatarUrl" gorm:"column:avatar_url"`
 	ProfileName   string `json:"profileName" gorm:"column:profile_name"`
 	IsPremium     bool   `json:"isPremium" gorm:"column:is_premium"`
-	DonateTotal   string `json:"donateTotal"`
+	DonateTotal   string `json:"totalDonations"`
 	BackgroundUrl string `json:"backgroundUrl"`
 }
 
@@ -74,7 +74,7 @@ type UserResponse struct {
 	IsPremium                 bool                   `json:"isPremium"`
 	ShippingTotal             int                    `json:"shippingTotal"`
 	ProfileName               string                 `json:"profileName"`
-	Exp                       int                    `json:"exp"`
+	Exp                       int                    `json:"experience"`
 	SocialScore               int                    `json:"socialScore"`
 	TotalDonations            string                 `json:"totalDonations"`
 	PostCount                 int                    `json:"postCount"`
@@ -136,7 +136,7 @@ type UserResponseForSingleUser struct {
 	IsPremium            bool                   `json:"isPremium"`
 	ShippingTotal        int                    `json:"shippingTotal"`
 	ProfileName          string                 `json:"profileName"`
-	Exp                  int                    `json:"exp"`
+	Exp                  int                    `json:"experience"`
 	SocialScore          int                    `json:"socialScore"`
 	TotalDonations       string                 `json:"totalDonations"`
 	PostCount            int                    `json:"postCount"`
@@ -249,9 +249,11 @@ type TelegramOauthRequest struct {
 }
 
 type SubTags struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Slug string `json:"slug"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Slug      string `json:"slug"`
+	SeriesID  string `json:"seriesId"`
+	PrimaryID string `json:"primaryId"`
 }
 
 type YandexSuggestRequest struct {

@@ -39,6 +39,7 @@ func (r *CollectionsRepository) CreateCollection(collection *models.Collections)
 			"description": collection.Description,
 			"isPrivate":   collection.IsPrivate,
 			"bannerUrl":   collection.BannerURL,
+			"owner":       collection.UserLogin,
 		}
 
 		if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
@@ -622,6 +623,7 @@ func (r *CollectionsRepository) UpdateCollection(
 			"description": result.Description,
 			"isPrivate":   result.IsPrivate,
 			"bannerUrl":   result.BannerURL,
+			"owner":       result.UserLogin,
 		}
 
 		if err = r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
@@ -683,6 +685,7 @@ func (r *CollectionsRepository) UpdateCollectionFull(existsCollection *models.Co
 			"description": result.Description,
 			"isPrivate":   result.IsPrivate,
 			"bannerUrl":   result.BannerURL,
+			"owner":       result.UserLogin,
 		}
 
 		if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {

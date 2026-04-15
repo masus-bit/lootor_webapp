@@ -24,7 +24,7 @@ func NewFeedbackController(feedService *feedback.FBService) *FeedbackController 
 // @Param title query string true "Заголовок тикета"
 // @Param description query string true "Описание тикета"
 // @Success 200 {object} dto.CommonResponse
-// @Router /secured/feedback [post]
+// @Router /public/feedback [post]
 func (c *FeedbackController) AddIssue(ctx echo.Context) error {
 	form, err := ctx.MultipartForm()
 	if err != nil {
@@ -33,10 +33,10 @@ func (c *FeedbackController) AddIssue(ctx echo.Context) error {
 
 	file := form.File["file"]
 
-	authUser, ok := ctx.Get("user_login").(string)
-	if !ok {
-		authUser = ""
-	}
+	authInfo := ctx.Get("auth_info").(struct {
+		IsAuthenticated bool
+		UserLogin       string
+	})
 
 	title := ctx.QueryParam("title")
 	description := ctx.QueryParam("description")
@@ -64,7 +64,7 @@ func (c *FeedbackController) AddIssue(ctx echo.Context) error {
 		}
 		fileBuffer = buf
 	}
-	response, err := c.feedService.AddIssue(title, description, fileBuffer, authUser)
+	response, err := c.feedService.AddIssue(title, description, fileBuffer, authInfo.UserLogin)
 
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})

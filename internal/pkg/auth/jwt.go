@@ -96,9 +96,11 @@ func (s *JWTService) GenerateTokenPair(user TokenData) (*TokenPair, error) {
 		for _, tag := range subTags.GetTags() {
 			resultTags = append(
 				resultTags, dto.SubTags{
-					ID:   tag.Id,
-					Name: tag.Name,
-					Slug: tag.Slug,
+					ID:        tag.GetId(),
+					Name:      tag.GetName(),
+					Slug:      tag.GetSlug(),
+					SeriesID:  tag.GetSeriesId(),
+					PrimaryID: tag.GetPrimaryId(),
 				},
 			)
 		}

@@ -33,22 +33,23 @@ func (r *PaymentsRepository) FindYearPayments() (string, []models.Payments, erro
 	var donations string
 	var payments []models.Payments
 	currentYear := time.Now().Year()
-	err := r.db.Where(
-		"EXTRACT(YEAR FROM created_at) = ?",
-		currentYear,
-	).Select("SUM(CAST(NULLIF(amount, '') AS NUMERIC)) as total_donations").Scan(&donations).Error
+
+	err := r.db.Model(&models.Payments{}).
+		Where("EXTRACT(YEAR FROM created_at) = ?", currentYear).
+		Select("COALESCE(SUM(CAST(NULLIF(amount, '') AS NUMERIC)), 0) as total_donations").
+		Scan(&donations).Error
 
 	if err != nil {
 		return "", payments, err
 	}
 
-	err = r.db.Table("payments").
+	err = r.db.Model(&models.Payments{}).
 		Order("created_at DESC").
-		Limit(10).Find(&payments).Error
+		Limit(10).
+		Find(&payments).Error
 	if err != nil {
 		return "", payments, err
 	}
 
 	return donations, payments, nil
-
 }

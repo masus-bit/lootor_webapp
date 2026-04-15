@@ -746,6 +746,7 @@ func (s *CollectionService) GetOne(
 		temp.LikesCount = int64(len(item.Likes))
 		temp.CanLike = utils.CanLike(item.Likes, authorizerUser, item.Owner.Login)
 		temp.CollectionTransliteration = finalCollection.Transliteration
+		temp.CollectionName = finalCollection.Name
 		if authorizerUser != "" {
 			if authorizerUser == item.Owner.Login {
 				temp.IsOwner = true

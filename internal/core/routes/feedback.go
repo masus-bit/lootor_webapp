@@ -10,9 +10,10 @@ import (
 func FeedbackRouter(e *echo.Echo, jwtService *auth.JWTService, service feedback.FBService) {
 	controller := controllers.NewFeedbackController(&service)
 
-	securedGroup := e.Group("/secured")
-	securedGroup.Use(jwtService.RequireAuthMiddleware())
+	publicGroup := e.Group("/public")
+	publicGroup.Use(jwtService.AuthInfoMiddleware())
 	{
-		securedGroup.POST("/feedback", controller.AddIssue)
+		publicGroup.POST("/feedback", controller.AddIssue)
+
 	}
 }

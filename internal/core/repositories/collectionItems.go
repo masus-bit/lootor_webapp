@@ -38,6 +38,7 @@ func (r *CiRepository) CreateCI(ci *models.CollectionItems) (*models.CollectionI
 		"name":        ci.Name,
 		"description": ci.Description,
 		"images":      ci.Images,
+		"owner":       ci.UserLogin,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "collection_items", doc); err != nil {
@@ -120,6 +121,7 @@ func (r *CiRepository) UpdateCI(
 		"name":        updated.Name,
 		"description": updated.Description,
 		"images":      updated.Images,
+		"owner":       updated.UserLogin,
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "collection_items", doc); err != nil {
@@ -189,6 +191,7 @@ func (r *CiRepository) UpdateCIFull(existsItem *models.CollectionItems) (*models
 			"name":        result.Name,
 			"description": result.Description,
 			"images":      result.Images,
+			"owner":       result.UserLogin,
 		}
 		if err := r.es.IndexDocument(context.Background(), "collection_items", doc); err != nil {
 			log.Printf("Failed to index collection item: %v", err)

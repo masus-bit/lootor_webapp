@@ -21,7 +21,10 @@ func (s *FBService) AddIssue(title string, description string, file []byte, auth
 	error,
 ) {
 
-	description = description + "\n\n\n__________\n\nЛогин пользователя: " + authUserLogin
+	if authUserLogin != "" {
+		description = description + "\n\n\n__________\n\nЛогин пользователя: " + authUserLogin
+	}
+
 	response, err := s.SendTextTicket(title, description, false)
 	if err != nil {
 		return nil, err

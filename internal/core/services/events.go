@@ -493,10 +493,11 @@ func (s *EventsService) normalizeEvents(
 
 		if initiator, exists := usersMap[event.InitiatorLogin]; exists {
 			normalizedEvent.Initiator = &dto.SubUsers{
-				Login:       initiator.Login,
-				AvatarURL:   initiator.AvatarURL,
-				ProfileName: initiator.ProfileName,
-				IsPremium:   initiator.IsPremium,
+				Login:         initiator.Login,
+				AvatarURL:     initiator.AvatarURL,
+				ProfileName:   initiator.ProfileName,
+				IsPremium:     initiator.IsPremium,
+				BackgroundUrl: initiator.BackgroundUrl,
 			}
 		}
 

@@ -136,6 +136,7 @@ func (c *ReindexController) getCollectionData() ([]map[string]interface{}, error
 				"description": collection.Description,
 				"isPrivate":   collection.IsPrivate,
 				"bannerUrl":   collection.BannerURL,
+				"owner":       collection.UserLogin,
 			}
 		}
 		continue
@@ -156,6 +157,7 @@ func (c *ReindexController) getCollectionItemData() ([]map[string]interface{}, e
 			"name":        item.Name,
 			"description": item.Description,
 			"images":      item.Images,
+			"owner":       item.UserLogin,
 		}
 	}
 	return result, nil
