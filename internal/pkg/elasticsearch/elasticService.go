@@ -646,10 +646,10 @@ func (es *ElasticService) BulkIndexDocuments(ctx context.Context, index string, 
 		return nil
 	}
 
-	ctxCheck, cancelCheck := context.WithTimeout(ctx, 5*time.Second)
-	defer cancelCheck()
+	checkCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
 
-	exists, err := es.indexExists(ctxCheck, index)
+	exists, err := es.indexExists(checkCtx, index)
 	if err != nil {
 		return fmt.Errorf("index check failed: %w", err)
 	}
@@ -661,6 +661,8 @@ func (es *ElasticService) BulkIndexDocuments(ctx context.Context, index string, 
 	}
 
 	var buf strings.Builder
+	docCount := 0
+
 	for _, doc := range docs {
 		id, ok := doc["id"].(string)
 		if !ok {
@@ -688,15 +690,16 @@ func (es *ElasticService) BulkIndexDocuments(ctx context.Context, index string, 
 		buf.WriteString("\n")
 		buf.WriteString(string(docJSON))
 		buf.WriteString("\n")
+		docCount++
 	}
 
-	if buf.Len() == 0 {
+	if docCount == 0 {
 		return fmt.Errorf("no valid documents to index")
 	}
 
 	req := esapi.BulkRequest{
 		Body:    strings.NewReader(buf.String()),
-		Refresh: "wait_for",
+		Refresh: "false", // Не "wait_for", это слишком долго
 	}
 
 	res, err := req.Do(ctx, es.client)
@@ -706,7 +709,8 @@ func (es *ElasticService) BulkIndexDocuments(ctx context.Context, index string, 
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return parseErrorResponse(res)
+		body, _ := io.ReadAll(res.Body)
+		return fmt.Errorf("bulk request failed: %s, body: %s", res.String(), string(body))
 	}
 
 	var response map[string]interface{}
@@ -718,6 +722,7 @@ func (es *ElasticService) BulkIndexDocuments(ctx context.Context, index string, 
 		log.Printf("Bulk operation completed with errors: %v", response)
 	}
 
+	log.Printf("Indexed %d documents to %s", docCount, index)
 	return nil
 }
 

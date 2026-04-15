@@ -3,11 +3,13 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"lootor/internal/core/dto"
 	"lootor/internal/core/repositories"
 	"lootor/internal/core/services"
 	"lootor/internal/pkg/elasticsearch"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -37,65 +39,109 @@ func NewReindexController(
 }
 
 func (c *ReindexController) Reindex(ctx echo.Context) error {
-	dataProviders := map[string]func() ([]map[string]interface{}, error){
-		"users":            c.getUserData,
-		"collections":      c.getCollectionData,
-		"collection_items": c.getCollectionItemData,
-		//"tags":             c.getTagData,
-	}
-
-	var errTags error
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-		err := c.tagService.TriggerReindex()
-		if err != nil {
-			errTags = err
-		}
-	}()
-	wg.Wait()
-
-	if errTags != nil {
-		return ctx.NoContent(http.StatusInternalServerError)
-	}
-
-	if err := c.es.ReindexAll(ctx.Request().Context(), dataProviders); err != nil {
+	if err := c.reindexAll(ctx.Request().Context()); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-
 	return ctx.JSON(http.StatusOK, map[string]string{"message": "Reindexing completed successfully"})
 }
 
 func (c *ReindexController) ReindexInternal(ctx context.Context) error {
+	return c.reindexAll(ctx)
+}
+
+func (c *ReindexController) reindexAll(ctx context.Context) error {
+	const batchSize = 500
+
+	// Канал для ошибок (размер = кол-во горутин + 1 для тегов)
+	errChan := make(chan error, 4)
+	var wg sync.WaitGroup
+
+	// 1. Запускаем индексацию тегов в отдельной горутине
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		if err := c.tagService.TriggerReindex(); err != nil {
+			errChan <- fmt.Errorf("failed to reindex tags: %w", err)
+		}
+	}()
+
+	// 2. Запускаем индексацию остальных сущностей
 	dataProviders := map[string]func() ([]map[string]interface{}, error){
 		"users":            c.getUserData,
 		"collections":      c.getCollectionData,
 		"collection_items": c.getCollectionItemData,
-		//"tags":             c.getTagData,
 	}
 
-	var errTags error
+	for entityName, provider := range dataProviders {
+		wg.Add(1)
+		go func(name string, dataProvider func() ([]map[string]interface{}, error)) {
+			defer wg.Done()
 
-	var wg sync.WaitGroup
-	wg.Add(1)
+			// Проверяем отмену контекста
+			select {
+			case <-ctx.Done():
+				errChan <- fmt.Errorf("%s: %w", name, ctx.Err())
+				return
+			default:
+			}
 
+			data, err := dataProvider()
+			if err != nil {
+				errChan <- fmt.Errorf("failed to get %s data: %w", name, err)
+				return
+			}
+
+			if len(data) == 0 {
+				return
+			}
+
+			// Индексируем пачками
+			for i := 0; i < len(data); i += batchSize {
+				// Проверяем отмену контекста перед каждой пачкой
+				select {
+				case <-ctx.Done():
+					errChan <- fmt.Errorf("%s: %w", name, ctx.Err())
+					return
+				default:
+				}
+
+				end := i + batchSize
+				if end > len(data) {
+					end = len(data)
+				}
+
+				batch := data[i:end]
+
+				if err := c.es.BulkIndexDocuments(ctx, name, batch); err != nil {
+					errChan <- fmt.Errorf("failed to index %s batch %d-%d: %w", name, i, end, err)
+					return
+				}
+
+				// Небольшая задержка между батчами, чтобы не перегружать ES
+				time.Sleep(100 * time.Millisecond)
+			}
+
+		}(entityName, provider)
+	}
+
+	// Ожидаем завершения всех горутин
 	go func() {
-		defer wg.Done()
-		err := c.tagService.TriggerReindex()
-		if err != nil {
-			errTags = err
-		}
+		wg.Wait()
+		close(errChan)
 	}()
-	wg.Wait()
 
-	if errTags != nil {
-		return errTags
+	// Собираем ошибки
+	var errors []error
+	for err := range errChan {
+		errors = append(errors, err)
 	}
 
-	return c.es.ReindexAll(ctx, dataProviders)
+	if len(errors) > 0 {
+		return fmt.Errorf("reindexing completed with errors: %v", errors)
+	}
+
+	return nil
 }
 
 func (c *ReindexController) getUserData() ([]map[string]interface{}, error) {
@@ -127,19 +173,27 @@ func (c *ReindexController) getCollectionData() ([]map[string]interface{}, error
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
 
-	result := make([]map[string]interface{}, len(collections))
-	for i, collection := range collections {
+	result := make([]map[string]interface{}, 0)
+	for _, collection := range collections {
 		if !collection.IsPrivate {
-			result[i] = map[string]interface{}{
-				"id":          collection.ID.String(),
-				"name":        collection.Name,
-				"description": collection.Description,
-				"isPrivate":   collection.IsPrivate,
-				"bannerUrl":   collection.BannerURL,
-				"owner":       collection.UserLogin,
-			}
+			result = append(
+				result, map[string]interface{}{
+					"id":          collection.ID.String(),
+					"name":        collection.Name,
+					"description": collection.Description,
+					"isPrivate":   collection.IsPrivate,
+					"bannerUrl":   collection.BannerURL,
+					"owner": dto.SubUsers{
+						Login:         collection.User.Login,
+						AvatarURL:     collection.User.AvatarURL,
+						ProfileName:   collection.User.ProfileName,
+						IsPremium:     collection.User.IsPremium,
+						DonateTotal:   "0",
+						BackgroundUrl: collection.User.BackgroundURL,
+					},
+				},
+			)
 		}
-		continue
 	}
 	return result, nil
 }
@@ -157,31 +211,15 @@ func (c *ReindexController) getCollectionItemData() ([]map[string]interface{}, e
 			"name":        item.Name,
 			"description": item.Description,
 			"images":      item.Images,
-			"owner":       item.UserLogin,
+			"owner": dto.SubUsers{
+				Login:         item.Owner.Login,
+				AvatarURL:     item.Owner.AvatarURL,
+				ProfileName:   item.Owner.ProfileName,
+				IsPremium:     item.Owner.IsPremium,
+				DonateTotal:   "0",
+				BackgroundUrl: item.Owner.BackgroundURL,
+			},
 		}
 	}
 	return result, nil
 }
-
-//func (c *ReindexController) getTagData() ([]map[string]interface{}, error) {
-//	tags, err := c.tagService.GetAllTagsForElastic()
-//	if err != nil {
-//		return nil, fmt.Errorf("failed to get tags: %w", err)
-//	}
-//
-//	result := make([]map[string]interface{}, len(tags))
-//	for i, tag := range tags {
-//		result[i] = map[string]interface{}{
-//			"id":                   tag.ID,
-//			"name":                 tag.Name,
-//			"slug":                 tag.Slug,
-//			"primaryId":            tag.PrimaryID,
-//			"seriesId":             tag.SeriesID,
-//			"totalPosts":           tag.TotalPosts,
-//			"totalCollectionItems": tag.TotalCollectionItems,
-//			"totalPhotos":          tag.TotalPhotos,
-//			"totalCollections":     tag.TotalCollections,
-//		}
-//	}
-//	return result, nil
-//}

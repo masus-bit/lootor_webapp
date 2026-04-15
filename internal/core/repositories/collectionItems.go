@@ -49,7 +49,7 @@ func (r *CiRepository) CreateCI(ci *models.CollectionItems) (*models.CollectionI
 
 func (r *CiRepository) FindAllCI() ([]models.CollectionItems, error) {
 	var items []models.CollectionItems
-	err := r.db.Find(&items).Error
+	err := r.db.Preload("Owner").Find(&items).Error
 	return items, err
 }
 

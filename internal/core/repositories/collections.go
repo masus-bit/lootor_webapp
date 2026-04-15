@@ -52,7 +52,7 @@ func (r *CollectionsRepository) CreateCollection(collection *models.Collections)
 
 func (r *CollectionsRepository) FindAllCollections() ([]models.Collections, error) {
 	var collections []models.Collections
-	err := r.db.Find(&collections).Error
+	err := r.db.Preload("User").Find(&collections).Error
 	return collections, err
 }
 
