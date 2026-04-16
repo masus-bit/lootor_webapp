@@ -39,7 +39,14 @@ func (r *CollectionsRepository) CreateCollection(collection *models.Collections)
 			"description": collection.Description,
 			"isPrivate":   collection.IsPrivate,
 			"bannerUrl":   collection.BannerURL,
-			"owner":       collection.UserLogin,
+			"owner": dto.SubUsers{
+				Login:         collection.User.Login,
+				AvatarURL:     collection.User.AvatarURL,
+				ProfileName:   collection.User.ProfileName,
+				IsPremium:     collection.User.IsPremium,
+				DonateTotal:   "0",
+				BackgroundUrl: collection.User.BackgroundURL,
+			},
 		}
 
 		if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
@@ -614,7 +621,7 @@ func (r *CollectionsRepository) UpdateCollection(
 	}
 
 	var result models.Collections
-	err := r.db.First(&result, existsCollection.ID).Error
+	err := r.db.Preload("User").First(&result, existsCollection.ID).Error
 
 	if !result.IsPrivate {
 		doc := map[string]interface{}{
@@ -623,7 +630,14 @@ func (r *CollectionsRepository) UpdateCollection(
 			"description": result.Description,
 			"isPrivate":   result.IsPrivate,
 			"bannerUrl":   result.BannerURL,
-			"owner":       result.UserLogin,
+			"owner": dto.SubUsers{
+				Login:         result.User.Login,
+				AvatarURL:     result.User.AvatarURL,
+				ProfileName:   result.User.ProfileName,
+				IsPremium:     result.User.IsPremium,
+				DonateTotal:   "0",
+				BackgroundUrl: result.User.BackgroundURL,
+			},
 		}
 
 		if err = r.es.IndexDocument(context.Background(), "collections", doc); err != nil {
@@ -685,7 +699,14 @@ func (r *CollectionsRepository) UpdateCollectionFull(existsCollection *models.Co
 			"description": result.Description,
 			"isPrivate":   result.IsPrivate,
 			"bannerUrl":   result.BannerURL,
-			"owner":       result.UserLogin,
+			"owner": dto.SubUsers{
+				Login:         result.User.Login,
+				AvatarURL:     result.User.AvatarURL,
+				ProfileName:   result.User.ProfileName,
+				IsPremium:     result.User.IsPremium,
+				DonateTotal:   "0",
+				BackgroundUrl: result.User.BackgroundURL,
+			},
 		}
 
 		if err := r.es.IndexDocument(context.Background(), "collections", doc); err != nil {

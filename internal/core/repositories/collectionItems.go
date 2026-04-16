@@ -38,7 +38,14 @@ func (r *CiRepository) CreateCI(ci *models.CollectionItems) (*models.CollectionI
 		"name":        ci.Name,
 		"description": ci.Description,
 		"images":      ci.Images,
-		"owner":       ci.UserLogin,
+		"owner": dto.SubUsers{
+			Login:         ci.Owner.Login,
+			AvatarURL:     ci.Owner.AvatarURL,
+			ProfileName:   ci.Owner.ProfileName,
+			IsPremium:     ci.Owner.IsPremium,
+			DonateTotal:   "0",
+			BackgroundUrl: ci.Owner.BackgroundURL,
+		},
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "collection_items", doc); err != nil {
@@ -116,12 +123,25 @@ func (r *CiRepository) UpdateCI(
 		return nil, err
 	}
 
+	var result models.CollectionItems
+	err := r.db.Preload("Platform").Preload("Collections").Preload("ItemType").Preload("Owner").First(
+		&result,
+		existsItem.ID,
+	).Error
+
 	doc := map[string]interface{}{
 		"id":          updated.ID.String(),
 		"name":        updated.Name,
 		"description": updated.Description,
 		"images":      updated.Images,
-		"owner":       updated.UserLogin,
+		"owner": dto.SubUsers{
+			Login:         updated.Owner.Login,
+			AvatarURL:     updated.Owner.AvatarURL,
+			ProfileName:   updated.Owner.ProfileName,
+			IsPremium:     updated.Owner.IsPremium,
+			DonateTotal:   "0",
+			BackgroundUrl: updated.Owner.BackgroundURL,
+		},
 	}
 
 	if err := r.es.IndexDocument(context.Background(), "collection_items", doc); err != nil {
@@ -129,8 +149,6 @@ func (r *CiRepository) UpdateCI(
 		// Не возвращаем ошибку, чтобы не ломать основной flow
 	}
 
-	var result models.CollectionItems
-	err := r.db.Preload("Platform").Preload("Collections").Preload("ItemType").First(&result, existsItem.ID).Error
 	return &result, err
 
 }
