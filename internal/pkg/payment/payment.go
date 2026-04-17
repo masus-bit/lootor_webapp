@@ -20,6 +20,7 @@ type PayService struct {
 	subService   *services.SubscriptionService
 	paymentsRepo *repositories.PaymentsRepository
 	achClient    *achievementsclient.GRPCAchievementsClient
+	achService   *services.AchievementsService
 }
 
 func NewPayService(
@@ -28,6 +29,7 @@ func NewPayService(
 	subService *services.SubscriptionService,
 	paymentsRepo *repositories.PaymentsRepository,
 	achClient *achievementsclient.GRPCAchievementsClient,
+	achService *services.AchievementsService,
 ) *PayService {
 	return &PayService{
 		userRepo:     userRepo,
@@ -35,6 +37,7 @@ func NewPayService(
 		subService:   subService,
 		paymentsRepo: paymentsRepo,
 		achClient:    achClient,
+		achService:   achService,
 	}
 }
 
@@ -181,8 +184,7 @@ func (s *PayService) EndTransaction(data *Notification) {
 
 	go func() {
 		if mode == "beta" {
-			err = utils.AddAchievement(
-				s.achClient,
+			err = s.achService.AddAchievement(
 				utils.AchieveBetaTesterDonate,
 				userLogin,
 				1,
@@ -199,7 +201,7 @@ func (s *PayService) EndTransaction(data *Notification) {
 			return
 		}
 		go func() {
-			err = utils.AddAchievement(s.achClient, utils.AchieveDonate, userLogin, 1, utils.XPDonateLevel1, 0)
+			err = s.achService.AddAchievement(utils.AchieveDonate, userLogin, 1, utils.XPDonateLevel1, 0)
 		}()
 
 	} else if subType == "yearly" {
@@ -208,7 +210,7 @@ func (s *PayService) EndTransaction(data *Notification) {
 			return
 		}
 		go func() {
-			err = utils.AddAchievement(s.achClient, utils.AchieveDonate, userLogin, 2, utils.XPDonateLevel2, 0)
+			err = s.achService.AddAchievement(utils.AchieveDonate, userLogin, 2, utils.XPDonateLevel2, 0)
 		}()
 	}
 }

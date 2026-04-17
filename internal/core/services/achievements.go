@@ -10,14 +10,16 @@ import (
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/utils"
 	"sort"
+	"time"
 )
 
 type AchievementsService struct {
-	achievementsClient *achievementsclient.GRPCAchievementsClient
-	userRepo           *repositories.UsersRepository
-	tagsClient         *tagsclient.GRPCTagsClient
-	collectionRepo     *repositories.CollectionsRepository
-	eventsService      *EventsService
+	achievementsClient   *achievementsclient.GRPCAchievementsClient
+	userRepo             *repositories.UsersRepository
+	tagsClient           *tagsclient.GRPCTagsClient
+	collectionRepo       *repositories.CollectionsRepository
+	eventsService        *EventsService
+	notificationsService *NotificationsService
 }
 
 func NewAchievementsService(
@@ -26,27 +28,59 @@ func NewAchievementsService(
 	tagsClient *tagsclient.GRPCTagsClient,
 	collectionRepo *repositories.CollectionsRepository,
 	eventsService *EventsService,
+	notificationsService *NotificationsService,
 ) *AchievementsService {
 
 	return &AchievementsService{
-		achievementsClient: achievementsClient,
-		userRepo:           userRepo,
-		tagsClient:         tagsClient,
-		collectionRepo:     collectionRepo,
-		eventsService:      eventsService,
+		achievementsClient:   achievementsClient,
+		userRepo:             userRepo,
+		tagsClient:           tagsClient,
+		collectionRepo:       collectionRepo,
+		eventsService:        eventsService,
+		notificationsService: notificationsService,
 	}
 }
 
-func (s *AchievementsService) AddAchievement(code, userLogin string, level, xp int64) error {
+func (s *AchievementsService) SetEventsService(eventsService *EventsService) {
+	s.eventsService = eventsService
+}
+
+func (s *AchievementsService) SetNotificationsService(notificationsService *NotificationsService) {
+	s.notificationsService = notificationsService
+}
+
+func (s *AchievementsService) AddAchievement(code, userLogin string, level, xp, value int64) error {
 	achievement := &microservices.AddOrUpdateAchievementRequest{
 		Code:      code,
 		UserLogin: userLogin,
 		Xp:        xp,
 		Level:     level,
+		Value:     value,
 	}
 	_, err := s.achievementsClient.AddOrUpdateAchievement(context.Background(), achievement)
 	if err != nil {
 		return fmt.Errorf("AddAchievement: %w", err)
+	}
+	target := &dto.TargetItem{
+		ID:               code,
+		Name:             code,
+		Transliteration:  "",
+		TargetType:       "achievement",
+		TargetParentName: "",
+	}
+	err = s.notificationsService.SendNotification(
+		context.Background(), &dto.NotificationsRequest{
+			Login:       userLogin,
+			TargetID:    code,
+			SenderLogin: userLogin,
+			Type:        utils.NotificationTypeAchievement,
+			Action:      utils.NotificationActionAchievement,
+			Date:        time.Now().Format(time.RFC3339),
+			OwnerLogin:  userLogin,
+		}, target,
+	)
+	if err != nil {
+		return err
 	}
 	return nil
 }

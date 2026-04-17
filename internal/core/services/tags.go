@@ -10,7 +10,6 @@ import (
 	"lootor/internal/core/dto"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
-	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/elasticsearch"
 	"lootor/internal/pkg/utils"
@@ -29,7 +28,7 @@ type TagsService struct {
 	eventsService  *EventsService
 	itemTypeRepo   *repositories.ItemTypesRepository
 	es             *elasticsearch.ElasticService
-	achService     *achievementsclient.GRPCAchievementsClient
+	achService     *AchievementsService
 }
 
 func NewTagsService(
@@ -42,7 +41,7 @@ func NewTagsService(
 	itemTypeRepo *repositories.ItemTypesRepository,
 	es *elasticsearch.ElasticService,
 	photosService *PhotosService,
-	achService *achievementsclient.GRPCAchievementsClient,
+	achService *AchievementsService,
 ) *TagsService {
 	return &TagsService{
 		tagsClient:     tagsClient,
@@ -87,8 +86,7 @@ func (s *TagsService) CreateTag(req *dto.TagCreateRequest, authUser string) (*dt
 			fmt.Println(err)
 		}
 		xp, level := utils.GetAchievementTagsAddData(tagsCount.GetTotalTags())
-		err = utils.AddAchievement(
-			s.achService,
+		err = s.achService.AddAchievement(
 			utils.AchieveTagsCreated,
 			authUser,
 			level,

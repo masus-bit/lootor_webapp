@@ -29,13 +29,15 @@ const (
 	NotificationTypeComment        = "comment"
 	NotificationTypeAnswer         = "answer"
 	NotificationTypePhoto          = "photo"
+	NotificationTypeAchievement    = "achievement"
 )
 
 const (
-	NotificationActionSubscribe = "subscribe"
-	NotificationActionLike      = "like"
-	NotificationActionComment   = "comment"
-	NotificationActionReact     = "react"
+	NotificationActionSubscribe   = "subscribe"
+	NotificationActionLike        = "like"
+	NotificationActionComment     = "comment"
+	NotificationActionReact       = "react"
+	NotificationActionAchievement = "received"
 )
 
 const (

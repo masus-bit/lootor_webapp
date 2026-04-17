@@ -217,6 +217,14 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		*colRepo,
 		*userSettingsRepo,
 	)
+	achievementsService := services.NewAchievementsService(
+		achievementsClient,
+		userRepo,
+		tagsClient,
+		colRepo,
+		nil,
+		nil,
+	)
 	notificationsService := services.NewNotificationsService(
 		notificationsClient,
 		userRepo,
@@ -241,7 +249,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		eventsService,
 		notificationsService,
 		tagsClient,
-		achievementsClient,
+		achievementsService,
 	)
 	s3Service := s3.NewS3Service(redisClient)
 	photosService := services.NewPhotosService(
@@ -252,14 +260,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		eventsService,
 		s3Service,
 		notificationsService,
-		achievementsClient,
-	)
-	achievementsService := services.NewAchievementsService(
-		achievementsClient,
-		userRepo,
-		tagsClient,
-		colRepo,
-		eventsService,
+		achievementsService,
 	)
 
 	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootoe.space>`)
@@ -275,6 +276,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		tagsClient,
 		achievementsClient,
 		wlRepo,
+		achievementsService,
 	)
 	ciService := services.NewCiService(
 		ciRepo,
@@ -287,6 +289,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		notificationsService,
 		tagsClient,
 		achievementsClient,
+		achievementsService,
 	)
 	colService := services.NewCollectionService(
 		colRepo,
@@ -299,6 +302,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		photosClient,
 		achievementsClient,
 		wlRepo,
+		achievementsService,
 	)
 	platformsService := services.NewPlatformsService(platformRepo)
 	itemTypesService := services.NewItemTypesService(itemTypesRepo)
@@ -312,13 +316,22 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		itemTypesRepo,
 		searchService,
 		photosService,
-		achievementsClient,
+		achievementsService,
 	)
+	achievementsService.SetEventsService(eventsService)
+	achievementsService.SetNotificationsService(notificationsService)
 	fbService := feedback.NewFeedbackService()
 	wlService := services.NewWLService(wlRepo, userRepo, ciRepo, eventsService)
 	enrichedCIService := utils.NewEnrichedCIService(ciService, tagsClient)
 	subService := services.NewSubscriptionService(subRepo)
-	paymentService := payment.NewPayService(userRepo, userService, subService, paymentsRepo, achievementsClient)
+	paymentService := payment.NewPayService(
+		userRepo,
+		userService,
+		subService,
+		paymentsRepo,
+		achievementsClient,
+		achievementsService,
+	)
 	captchaService := auth.NewRecaptchaService()
 	reportsService := feedback.NewReportsService(fbService, ciRepo, userRepo, colRepo, wlRepo)
 	feedService := services.NewFeedService(newsClient)

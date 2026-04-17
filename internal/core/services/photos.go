@@ -8,7 +8,6 @@ import (
 	"lootor/gen/go/microservices"
 	"lootor/internal/core/dto"
 	"lootor/internal/core/repositories"
-	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/photosclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/s3"
@@ -25,7 +24,7 @@ type PhotosService struct {
 	eventsService        *EventsService
 	s3Service            *s3.StorageService
 	notificationsService *NotificationsService
-	achService           *achievementsclient.GRPCAchievementsClient
+	achService           *AchievementsService
 }
 
 func NewPhotosService(
@@ -36,7 +35,7 @@ func NewPhotosService(
 	eventsService *EventsService,
 	s3Service *s3.StorageService,
 	notificationsService *NotificationsService,
-	achService *achievementsclient.GRPCAchievementsClient,
+	achService *AchievementsService,
 ) *PhotosService {
 
 	return &PhotosService{
@@ -82,8 +81,7 @@ func (s *PhotosService) CreatePhoto(
 	go func() {
 		xp, level := utils.GetAchievementPhotosAddData(photosCount.GetCount() + int64(len(req.Paths)))
 
-		_ = utils.AddAchievement(
-			s.achService,
+		_ = s.achService.AddAchievement(
 			utils.AchievePhotosAdded,
 			authUserLogin,
 			level,
@@ -177,8 +175,7 @@ func (s *PhotosService) DeletePhoto(ctx context.Context, id, authUserLogin strin
 		)
 		xp, level := utils.GetAchievementPhotosAddData(photosCount.GetCount() + 1)
 
-		_ = utils.AddAchievement(
-			s.achService,
+		_ = s.achService.AddAchievement(
 			utils.AchievePhotosAdded,
 			authUserLogin,
 			level,
@@ -279,8 +276,7 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 		go func() {
 			xp, level := utils.GetAchievementPhotosLikesData(photosCountLikes.GetCount())
 
-			_ = utils.AddAchievement(
-				s.achService,
+			_ = s.achService.AddAchievement(
 				utils.AchievePhotosLikes,
 				dbCollection.UserLogin,
 				level,
@@ -303,8 +299,7 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 		go func() {
 			xp, level := utils.GetAchievementPhotosLikesData(photosCountLikes.GetCount())
 
-			_ = utils.AddAchievement(
-				s.achService,
+			_ = s.achService.AddAchievement(
 				utils.AchievePhotosLikes,
 				dbCollection.UserLogin,
 				level,

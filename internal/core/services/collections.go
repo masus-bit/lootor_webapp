@@ -36,6 +36,7 @@ type CollectionService struct {
 	photosClient         *photosclient.GRPCPhotosClient
 	achClient            *achievementsclient.GRPCAchievementsClient
 	wlRepo               *repositories.WLRepository
+	achService           *AchievementsService
 }
 
 func NewCollectionService(
@@ -49,6 +50,7 @@ func NewCollectionService(
 	photosClient *photosclient.GRPCPhotosClient,
 	achClient *achievementsclient.GRPCAchievementsClient,
 	wlRepo *repositories.WLRepository,
+	achService *AchievementsService,
 ) *CollectionService {
 	return &CollectionService{
 		repo:                 repo,
@@ -61,6 +63,7 @@ func NewCollectionService(
 		photosClient:         photosClient,
 		achClient:            achClient,
 		wlRepo:               wlRepo,
+		achService:           achService,
 	}
 }
 
@@ -101,8 +104,7 @@ func (s *CollectionService) Create(req *dto.CollectionCreateRequest) (*dto.Colle
 
 	if collectionsCount == 1 {
 		go func() {
-			err = utils.AddAchievement(
-				s.achClient,
+			err = s.achService.AddAchievement(
 				utils.AchieveFirstCollectionCreate,
 				req.UserLogin,
 				1,
@@ -834,8 +836,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 
 			xp, level := utils.GetAchievementCollectionsLikesData(collectionsLikes + 1)
 
-			err = utils.AddAchievement(
-				s.achClient,
+			err = s.achService.AddAchievement(
 				utils.AchieveCollectionsLikes,
 				exists.UserLogin,
 				level,
@@ -888,8 +889,7 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 
 			xp, level := utils.GetAchievementCollectionsLikesData(collectionsLikes)
 
-			err = utils.AddAchievement(
-				s.achClient,
+			err = s.achService.AddAchievement(
 				utils.AchieveCollectionsLikes,
 				exists.UserLogin,
 				level,

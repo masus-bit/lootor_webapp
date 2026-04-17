@@ -40,6 +40,7 @@ type UserService struct {
 	tagsClient           *tagsclient.GRPCTagsClient
 	achClient            *achievementsclient.GRPCAchievementsClient
 	wlRepo               *repositories.WLRepository
+	achService           *AchievementsService
 }
 
 func NewUserService(
@@ -54,6 +55,7 @@ func NewUserService(
 	tagsClient *tagsclient.GRPCTagsClient,
 	achClient *achievementsclient.GRPCAchievementsClient,
 	wlRepo *repositories.WLRepository,
+	achService *AchievementsService,
 ) *UserService {
 	_ = godotenv.Load()
 	return &UserService{
@@ -68,6 +70,7 @@ func NewUserService(
 		tagsClient:           tagsClient,
 		achClient:            achClient,
 		wlRepo:               wlRepo,
+		achService:           achService,
 	}
 }
 
@@ -316,7 +319,13 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 
 			xp, level := utils.GetAchievementSubscribersData(subscribers + 1)
 
-			err = utils.AddAchievement(s.achClient, utils.AchieveSubscribers, targetUserLogin, level, xp, subscribers+1)
+			err = s.achService.AddAchievement(
+				utils.AchieveSubscribers,
+				targetUserLogin,
+				level,
+				xp,
+				subscribers+1,
+			)
 			err = s.repo.IncrementExperience(targetUserLogin, int(xp))
 		}()
 		var target = dto.TargetItem{
@@ -359,7 +368,13 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 
 			xp, level := utils.GetAchievementSubscribersData(subscribers)
 
-			err = utils.AddAchievement(s.achClient, utils.AchieveSubscribers, targetUserLogin, level, xp, subscribers-1)
+			err = s.achService.AddAchievement(
+				utils.AchieveSubscribers,
+				targetUserLogin,
+				level,
+				xp,
+				subscribers-1,
+			)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -460,7 +475,7 @@ func (s *UserService) SignUp(req *dto.SignUpRequest, ctx context.Context) (*dto.
 			context.Background(),
 			&microservices.GetUserAchievementsRequest{UserLogin: req.Login},
 		)
-		err = utils.AddAchievement(s.achClient, utils.AchieveBetaTester, req.Login, 1, utils.XPBetaTester, 0)
+		err = s.achService.AddAchievement(utils.AchieveBetaTester, req.Login, 1, utils.XPBetaTester, 0)
 		err = s.repo.IncrementExperience(req.Login, utils.XPBetaTester)
 	}()
 

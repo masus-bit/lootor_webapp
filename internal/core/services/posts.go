@@ -9,7 +9,6 @@ import (
 	"lootor/internal/core/dto"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
-	"lootor/internal/infrastructure/achievementsclient"
 	"lootor/internal/infrastructure/postsclient"
 	"lootor/internal/infrastructure/tagsclient"
 	"lootor/internal/pkg/utils"
@@ -23,7 +22,7 @@ type PostsService struct {
 	eventsService        *EventsService
 	notificationsService *NotificationsService
 	tagsClient           *tagsclient.GRPCTagsClient
-	achService           *achievementsclient.GRPCAchievementsClient
+	achService           *AchievementsService
 }
 
 func NewPostsService(
@@ -32,7 +31,7 @@ func NewPostsService(
 	eventsService *EventsService,
 	notificationsService *NotificationsService,
 	tagsClient *tagsclient.GRPCTagsClient,
-	achService *achievementsclient.GRPCAchievementsClient,
+	achService *AchievementsService,
 ) *PostsService {
 	return &PostsService{
 		postsClient:          postsClient,
@@ -62,8 +61,7 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 			postsCount, _ := s.postsClient.GetPostsCountByUserLogin(context.Background(), request.Author)
 
 			xp, level := utils.GetAchievementPostsCreateData(postsCount.GetCount())
-			err = utils.AddAchievement(
-				s.achService,
+			err = s.achService.AddAchievement(
 				utils.AchievePostsCreated,
 				request.Author,
 				level,
@@ -278,8 +276,7 @@ func (s *PostsService) DeletePost(ctx context.Context, id string, authUser strin
 			postsCount, _ := s.postsClient.GetPostsCountByUserLogin(context.Background(), authUser)
 
 			xp, level := utils.GetAchievementPostsCreateData(postsCount.GetCount() + 1)
-			err = utils.AddAchievement(
-				s.achService,
+			err = s.achService.AddAchievement(
 				utils.AchievePostsCreated,
 				authUser,
 				level,
@@ -384,8 +381,7 @@ func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.C
 		)
 
 		xp, level := utils.GetAchievementPostsReactionsData(postsReactCount.GetCount())
-		err = utils.AddAchievement(
-			s.achService,
+		err = s.achService.AddAchievement(
 			utils.AchievePostsReactions,
 			post.GetData().GetAuthor(),
 			level,
@@ -442,8 +438,7 @@ func (s *PostsService) Unreact(ctx context.Context, req *dto.ReactRequest) (*dto
 		)
 
 		xp, level := utils.GetAchievementPostsReactionsData(postsReactCount.GetCount())
-		err = utils.AddAchievement(
-			s.achService,
+		err = s.achService.AddAchievement(
 			utils.AchievePostsReactions,
 			post.GetData().GetAuthor(),
 			level,
@@ -490,8 +485,7 @@ func (s *PostsService) UpdatePost(
 			postsCount, _ := s.postsClient.GetPostsCountByUserLogin(context.Background(), authUser)
 
 			xp, level := utils.GetAchievementPostsCreateData(postsCount.GetCount())
-			err = utils.AddAchievement(
-				s.achService,
+			err = s.achService.AddAchievement(
 				utils.AchievePostsCreated,
 				authUser,
 				level,
