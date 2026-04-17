@@ -263,7 +263,7 @@ func NewEchoApp(cfg *config.Config) (*App, error) {
 		achievementsService,
 	)
 
-	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <noreply@lootoe.space>`)
+	mailService := mail.NewMailService(host, portInt, user, password, `"Lootor" <no-reply@lootoe.space>`)
 	userService := services.NewUserService(
 		userRepo,
 		jwtService,
