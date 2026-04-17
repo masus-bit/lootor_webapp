@@ -1135,6 +1135,16 @@ func (s *UserService) GetAll(search, limit, offset, order string) (*dto.DataUser
 	}
 
 	var result []dto.UserResponse
+	var logins []string
+
+	for _, user := range users {
+		logins = append(logins, user.Login)
+	}
+
+	countsMap, err := s.postsService.GetPostCountsByLogins(logins)
+	if err != nil {
+		fmt.Errorf("error: %v", err)
+	}
 
 	for _, user := range users {
 		var tempUser dto.UserResponse
@@ -1152,6 +1162,8 @@ func (s *UserService) GetAll(search, limit, offset, order string) (*dto.DataUser
 		tempUser.CollectionItemsCount = int(collectionItemsCount)
 		tempUser.CollectionsCount = int(collectionsCount)
 		tempUser.ShippingTotal = int(shippingTotal)
+		tempUser.PostCount = int(countsMap[user.Login])
+
 		result = append(result, tempUser)
 	}
 

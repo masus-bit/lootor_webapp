@@ -221,6 +221,20 @@ func (c *GRPCPostsClient) GetReactionsCountByUserLogin(
 	)
 }
 
+func (c *GRPCPostsClient) GetPostsCountsByUserLogins(
+	ctx context.Context,
+	logins []string,
+) (*microservices.GetPostsCountsByUserLoginsResponse, error) {
+	counts, err := c.client.GetPostsCountsByUserLogins(
+		ctx,
+		&microservices.GetPostsCountsByUserLoginsRequest{UserLogins: logins},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &microservices.GetPostsCountsByUserLoginsResponse{Data: counts.GetData()}, nil
+}
+
 func (c *GRPCPostsClient) Close() {
 	err := c.conn.Close()
 	if err != nil {

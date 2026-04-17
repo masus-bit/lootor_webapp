@@ -719,6 +719,14 @@ func (s *PostsService) GetPostsByIDs(
 	return &dto.PostsDataResponse{Data: posts}, nil
 }
 
+func (s *PostsService) GetPostCountsByLogins(logins []string) (map[string]int64, error) {
+	counts, err := s.postsClient.GetPostsCountsByUserLogins(context.Background(), logins)
+	if err != nil {
+		return nil, err
+	}
+	return counts.GetData(), nil
+}
+
 func (s *PostsService) formatPosts(posts *microservices.GetAllPostsResponse) (*dto.PostsDataResponse, error) {
 	var result []dto.Posts
 	var postIds []string
