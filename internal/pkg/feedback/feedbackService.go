@@ -16,13 +16,17 @@ func NewFeedbackService() *FBService {
 	return &FBService{}
 }
 
-func (s *FBService) AddIssue(title string, description string, file []byte, authUserLogin string) (
+func (s *FBService) AddIssue(title string, description string, file []byte, authUserLogin, commMethod string) (
 	*dto.CommonResponse,
 	error,
 ) {
 
 	if authUserLogin != "" {
 		description = description + "\n\n\n__________\n\nЛогин пользователя: " + authUserLogin
+	}
+
+	if commMethod != "" {
+		description = description + "\n\n\n__________\n\nСпособ связи: " + commMethod
 	}
 
 	response, err := s.SendTextTicket(title, description, false)

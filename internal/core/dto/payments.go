@@ -31,5 +31,5 @@ type PaymentsInfo struct {
 	Data struct {
 		YearDonationsSum string       `json:"yearDonationsSum"`
 		LastPayments     []PaymentDto `json:"lastPayments"`
-	}
+	} `json:"data"`
 }

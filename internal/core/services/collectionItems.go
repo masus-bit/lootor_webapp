@@ -153,6 +153,7 @@ func (s *CiService) Create(
 	collectionItemResponse.LikesCount = int64(len(collectionItem.Likes))
 	collectionItemResponse.CanLike = true
 	collectionItemResponse.IsOwner = true
+	collectionItemResponse.CollectionTransliteration = collection.Transliteration
 
 	exp := utils.CIExp
 

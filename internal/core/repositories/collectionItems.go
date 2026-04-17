@@ -56,7 +56,7 @@ func (r *CiRepository) CreateCI(ci *models.CollectionItems) (*models.CollectionI
 
 func (r *CiRepository) FindAllCI() ([]models.CollectionItems, error) {
 	var items []models.CollectionItems
-	err := r.db.Preload("Owner").Find(&items).Error
+	err := r.db.Preload("Owner").Where("deleted_at IS NULL").Find(&items).Error
 	return items, err
 }
 

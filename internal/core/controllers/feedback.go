@@ -23,6 +23,7 @@ func NewFeedbackController(feedService *feedback.FBService) *FeedbackController 
 // @Param file formData file true "Файл для загрузки"
 // @Param title query string true "Заголовок тикета"
 // @Param description query string true "Описание тикета"
+// @Param commMethod query string true "способ связи"
 // @Success 200 {object} dto.CommonResponse
 // @Router /public/feedback [post]
 func (c *FeedbackController) AddIssue(ctx echo.Context) error {
@@ -40,6 +41,7 @@ func (c *FeedbackController) AddIssue(ctx echo.Context) error {
 
 	title := ctx.QueryParam("title")
 	description := ctx.QueryParam("description")
+	commMethod := ctx.QueryParam("commMethod")
 
 	if title == "" {
 		return ctx.JSON(http.StatusBadRequest, echo.Map{"error": "title обязателен"})
@@ -64,7 +66,7 @@ func (c *FeedbackController) AddIssue(ctx echo.Context) error {
 		}
 		fileBuffer = buf
 	}
-	response, err := c.feedService.AddIssue(title, description, fileBuffer, authInfo.UserLogin)
+	response, err := c.feedService.AddIssue(title, description, fileBuffer, authInfo.UserLogin, commMethod)
 
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})

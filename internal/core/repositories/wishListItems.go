@@ -23,7 +23,6 @@ func (r *WLRepository) AddItem(item *models.WishListItems) (*models.WishListItem
 
 	err = r.db.Where("id = ?", item.ID).Preload("User").Preload("CollectionItem").
 		Preload("CollectionItem.Platform").
-		Preload("CollectionItem.Entities").
 		Preload("CollectionItem.Owner").
 		Preload("CollectionItem.ItemType").
 		Preload("CollectionItem.Collections").
@@ -48,10 +47,10 @@ func (r *WLRepository) GetAllByUserLogin(userLogin string) ([]models.WishListIte
 
 	err := r.db.Where("LOWER(user_login) = LOWER(?)", userLogin).Preload("User").Preload("CollectionItem").
 		Preload("CollectionItem.Platform").
-		Preload("CollectionItem.Entities").
 		Preload("CollectionItem.Owner").
 		Preload("CollectionItem.ItemType").
 		Preload("CollectionItem.Collections").
+		Where("deleted_at is NULL").
 		Order("priority ASC").Find(&items)
 	if err.Error != nil {
 		return nil, 0, err.Error
