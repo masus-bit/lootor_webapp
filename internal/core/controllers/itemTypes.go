@@ -20,7 +20,7 @@ func NewItemTypesController(itemTypesService services.ItemTypesService) *ItemTyp
 // @Accept  json
 // @Produce  json
 // @Success 201 {object} dto.ItemTypesDataResponse
-// @Router /secured/item_types [get]
+// @Router /public/item_types [get]
 func (c *ItemTypesController) GetItemTypes(ctx echo.Context) error {
 	response, err := c.itemTypesService.GetAllTypes()
 	if err != nil {
