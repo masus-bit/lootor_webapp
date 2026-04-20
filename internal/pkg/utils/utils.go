@@ -438,17 +438,52 @@ func CanLike(likes []string, user, owner string) bool {
 	return !slices.Contains(likes, user)
 }
 
-func GetAchievementSubscribersData(current int64) (int64, int64) {
+func GetAchievementSubscribersData(current int64) (int64, int64, bool) {
+	var currentLevel int64
 	switch {
 	case current >= SubscribersLevel1 && current < SubscribersLevel2:
-		return XPSubscribersLevel1, 1
+		currentLevel = 1
 	case current >= SubscribersLevel2 && current < SubscribersLevel3:
-		return XPSubscribersLevel2, 2
+		currentLevel = 2
 	case current >= SubscribersLevel3:
-		return XPSubscribersLevel3, 3
+		currentLevel = 3
 	default:
-		return 0, 0
+		currentLevel = 0
 	}
+
+	var previousLevel int64
+	previous := current - 1
+	switch {
+	case previous >= SubscribersLevel1 && previous < SubscribersLevel2:
+		previousLevel = 1
+	case previous >= SubscribersLevel2 && previous < SubscribersLevel3:
+		previousLevel = 2
+	case previous >= SubscribersLevel3:
+		previousLevel = 3
+	default:
+		previousLevel = 0
+	}
+
+	var xp int64
+	var level int64
+	switch {
+	case current >= SubscribersLevel1 && current < SubscribersLevel2:
+		xp = XPSubscribersLevel1
+		level = 1
+	case current >= SubscribersLevel2 && current < SubscribersLevel3:
+		xp = XPSubscribersLevel2
+		level = 2
+	case current >= SubscribersLevel3:
+		xp = XPSubscribersLevel3
+		level = 3
+	default:
+		xp = 0
+		level = 0
+	}
+
+	levelUpdated := currentLevel > previousLevel
+
+	return xp, level, levelUpdated
 }
 
 func GetAchievementBetaTesterData() (int64, int64) {
@@ -479,134 +514,475 @@ func GetAchievementYearlyRegisterData(yearsRegistered int64) (int64, int64) {
 	return 0, 0
 }
 
-func GetAchievementCollectionItemsAddData(current int64) (int64, int64) {
+func GetAchievementCollectionItemsAddData(current int64) (int64, int64, bool) {
+	var currentLevel int64
 	switch {
 	case current >= CollectionItemsAddLevel1 && current < CollectionItemsAddLevel2:
-		return XPCollectionItemsAddLevel1, 1
+		currentLevel = 1
 	case current >= CollectionItemsAddLevel2 && current < CollectionItemsAddLevel3:
-		return XPCollectionItemsAddLevel2, 2
+		currentLevel = 2
 	case current >= CollectionItemsAddLevel3:
-		return XPCollectionItemsAddLevel3, 3
+		currentLevel = 3
 	default:
-		return 0, 0
+		currentLevel = 0
 	}
+
+	var previousLevel int64
+	previous := current - 1
+	switch {
+	case previous >= CollectionItemsAddLevel1 && previous < CollectionItemsAddLevel2:
+		previousLevel = 1
+	case previous >= CollectionItemsAddLevel2 && previous < CollectionItemsAddLevel3:
+		previousLevel = 2
+	case previous >= CollectionItemsAddLevel3:
+		previousLevel = 3
+	default:
+		previousLevel = 0
+	}
+
+	var xp int64
+	var level int64
+	switch {
+	case current >= CollectionItemsAddLevel1 && current < CollectionItemsAddLevel2:
+		xp = XPCollectionItemsAddLevel1
+		level = 1
+	case current >= CollectionItemsAddLevel2 && current < CollectionItemsAddLevel3:
+		xp = XPCollectionItemsAddLevel2
+		level = 2
+	case current >= CollectionItemsAddLevel3:
+		xp = XPCollectionItemsAddLevel3
+		level = 3
+	default:
+		xp = 0
+		level = 0
+	}
+
+	levelUpdated := currentLevel > previousLevel
+
+	return xp, level, levelUpdated
 }
 
-func GetAchievementPhotosAddData(current int64) (int64, int64) {
+func GetAchievementPhotosAddData(current int64) (int64, int64, bool) {
+	var currentLevel int64
 	switch {
 	case current >= PhotosAddLevel1 && current < PhotosAddLevel2:
-		return XPPhotosAddLevel1, 1
+		currentLevel = 1
 	case current >= PhotosAddLevel2 && current < PhotosAddLevel3:
-		return XPPhotosAddLevel2, 2
+		currentLevel = 2
 	case current >= PhotosAddLevel3:
-		return XPPhotosAddLevel3, 3
+		currentLevel = 3
 	default:
-		return 0, 0
+		currentLevel = 0
 	}
+
+	var previousLevel int64
+	previous := current - 1
+	switch {
+	case previous >= PhotosAddLevel1 && previous < PhotosAddLevel2:
+		previousLevel = 1
+	case previous >= PhotosAddLevel2 && previous < PhotosAddLevel3:
+		previousLevel = 2
+	case previous >= PhotosAddLevel3:
+		previousLevel = 3
+	default:
+		previousLevel = 0
+	}
+
+	var xp int64
+	var level int64
+	switch {
+	case current >= PhotosAddLevel1 && current < PhotosAddLevel2:
+		xp = XPPhotosAddLevel1
+		level = 1
+	case current >= PhotosAddLevel2 && current < PhotosAddLevel3:
+		xp = XPPhotosAddLevel2
+		level = 2
+	case current >= PhotosAddLevel3:
+		xp = XPPhotosAddLevel3
+		level = 3
+	default:
+		xp = 0
+		level = 0
+	}
+
+	levelUpdated := currentLevel > previousLevel
+	return xp, level, levelUpdated
 }
 
-func GetAchievementTagsAddData(current int64) (int64, int64) {
+func GetAchievementTagsAddData(current int64) (int64, int64, bool) {
+	var currentLevel int64
 	switch {
 	case current >= TagsAddLevel1 && current < TagsAddLevel2:
-		return XPTagsAddLevel1, 1
+		currentLevel = 1
 	case current >= TagsAddLevel2 && current < TagsAddLevel3:
-		return XPTagsAddLevel2, 2
+		currentLevel = 2
 	case current >= TagsAddLevel3:
-		return XPTagsAddLevel3, 3
+		currentLevel = 3
 	default:
-		return 0, 0
+		currentLevel = 0
 	}
+
+	var previousLevel int64
+	previous := current - 1
+	switch {
+	case previous >= TagsAddLevel1 && previous < TagsAddLevel2:
+		previousLevel = 1
+	case previous >= TagsAddLevel2 && previous < TagsAddLevel3:
+		previousLevel = 2
+	case previous >= TagsAddLevel3:
+		previousLevel = 3
+	default:
+		previousLevel = 0
+	}
+
+	var xp int64
+	var level int64
+	switch {
+	case current >= TagsAddLevel1 && current < TagsAddLevel2:
+		xp = XPTagsAddLevel1
+		level = 1
+	case current >= TagsAddLevel2 && current < TagsAddLevel3:
+		xp = XPTagsAddLevel2
+		level = 2
+	case current >= TagsAddLevel3:
+		xp = XPTagsAddLevel3
+		level = 3
+	default:
+		xp = 0
+		level = 0
+	}
+
+	levelUpdated := currentLevel > previousLevel
+	return xp, level, levelUpdated
 }
 
-func GetAchievementPostsCreateData(current int64) (int64, int64) {
+func GetAchievementPostsCreateData(current int64) (int64, int64, bool) {
+	var currentLevel int64
 	switch {
 	case current >= PostsCreateLevel1 && current < PostsCreateLevel2:
-		return XPPostsCreateLevel1, 1
+		currentLevel = 1
 	case current >= PostsCreateLevel2 && current < PostsCreateLevel3:
-		return XPPostsCreateLevel2, 2
+		currentLevel = 2
 	case current >= PostsCreateLevel3:
-		return XPPostsCreateLevel3, 3
+		currentLevel = 3
 	default:
-		return 0, 0
+		currentLevel = 0
 	}
+
+	var previousLevel int64
+	previous := current - 1
+	switch {
+	case previous >= PostsCreateLevel1 && previous < PostsCreateLevel2:
+		previousLevel = 1
+	case previous >= PostsCreateLevel2 && previous < PostsCreateLevel3:
+		previousLevel = 2
+	case previous >= PostsCreateLevel3:
+		previousLevel = 3
+	default:
+		previousLevel = 0
+	}
+
+	var xp int64
+	var level int64
+	switch {
+	case current >= PostsCreateLevel1 && current < PostsCreateLevel2:
+		xp = XPPostsCreateLevel1
+		level = 1
+	case current >= PostsCreateLevel2 && current < PostsCreateLevel3:
+		xp = XPPostsCreateLevel2
+		level = 2
+	case current >= PostsCreateLevel3:
+		xp = XPPostsCreateLevel3
+		level = 3
+	default:
+		xp = 0
+		level = 0
+	}
+
+	levelUpdated := currentLevel > previousLevel
+	return xp, level, levelUpdated
 }
 
-func GetAchievementCollectionsLikesData(current int64) (int64, int64) {
+func GetAchievementCollectionsLikesData(current int64) (int64, int64, bool) {
+	var currentLevel int64
 	switch {
 	case current >= CollectionsLikesLevel1 && current < CollectionsLikesLevel2:
-		return XPCollectionsLikesLevel1, 1
+		currentLevel = 1
 	case current >= CollectionsLikesLevel2 && current < CollectionsLikesLevel3:
-		return XPCollectionsLikesLevel2, 2
+		currentLevel = 2
 	case current >= CollectionsLikesLevel3:
-		return XPCollectionsLikesLevel3, 3
+		currentLevel = 3
 	default:
-		return 0, 0
+		currentLevel = 0
 	}
+
+	var previousLevel int64
+	previous := current - 1
+	switch {
+	case previous >= CollectionsLikesLevel1 && previous < CollectionsLikesLevel2:
+		previousLevel = 1
+	case previous >= CollectionsLikesLevel2 && previous < CollectionsLikesLevel3:
+		previousLevel = 2
+	case previous >= CollectionsLikesLevel3:
+		previousLevel = 3
+	default:
+		previousLevel = 0
+	}
+
+	var xp int64
+	var level int64
+	switch {
+	case current >= CollectionsLikesLevel1 && current < CollectionsLikesLevel2:
+		xp = XPCollectionsLikesLevel1
+		level = 1
+	case current >= CollectionsLikesLevel2 && current < CollectionsLikesLevel3:
+		xp = XPCollectionsLikesLevel2
+		level = 2
+	case current >= CollectionsLikesLevel3:
+		xp = XPCollectionsLikesLevel3
+		level = 3
+	default:
+		xp = 0
+		level = 0
+	}
+
+	levelUpdated := currentLevel > previousLevel
+	return xp, level, levelUpdated
 }
 
-func GetAchievementCollectionItemsLikesData(current int64) (int64, int64) {
+func GetAchievementCollectionItemsLikesData(current int64) (int64, int64, bool) {
+	var currentLevel int64
 	switch {
 	case current >= CollectionItemsLikesLevel1 && current < CollectionItemsLikesLevel2:
-		return XPCollectionItemsLikesLevel1, 1
+		currentLevel = 1
 	case current >= CollectionItemsLikesLevel2 && current < CollectionItemsLikesLevel3:
-		return XPCollectionItemsLikesLevel2, 2
+		currentLevel = 2
 	case current >= CollectionItemsLikesLevel3:
-		return XPCollectionItemsLikesLevel3, 3
+		currentLevel = 3
 	default:
-		return 0, 0
+		currentLevel = 0
 	}
+
+	var previousLevel int64
+	previous := current - 1
+	switch {
+	case previous >= CollectionItemsLikesLevel1 && previous < CollectionItemsLikesLevel2:
+		previousLevel = 1
+	case previous >= CollectionItemsLikesLevel2 && previous < CollectionItemsLikesLevel3:
+		previousLevel = 2
+	case previous >= CollectionItemsLikesLevel3:
+		previousLevel = 3
+	default:
+		previousLevel = 0
+	}
+
+	var xp int64
+	var level int64
+	switch {
+	case current >= CollectionItemsLikesLevel1 && current < CollectionItemsLikesLevel2:
+		xp = XPCollectionItemsLikesLevel1
+		level = 1
+	case current >= CollectionItemsLikesLevel2 && current < CollectionItemsLikesLevel3:
+		xp = XPCollectionItemsLikesLevel2
+		level = 2
+	case current >= CollectionItemsLikesLevel3:
+		xp = XPCollectionItemsLikesLevel3
+		level = 3
+	default:
+		xp = 0
+		level = 0
+	}
+
+	levelUpdated := currentLevel > previousLevel
+	return xp, level, levelUpdated
 }
 
-func GetAchievementPhotosLikesData(current int64) (int64, int64) {
+func GetAchievementPhotosLikesData(current int64) (int64, int64, bool) {
+	var currentLevel int64
 	switch {
 	case current >= PhotosLikesLevel1 && current < PhotosLikesLevel2:
-		return XPPhotosLikesLevel1, 1
+		currentLevel = 1
 	case current >= PhotosLikesLevel2 && current < PhotosLikesLevel3:
-		return XPPhotosLikesLevel2, 2
+		currentLevel = 2
 	case current >= PhotosLikesLevel3:
-		return XPPhotosLikesLevel3, 3
+		currentLevel = 3
 	default:
-		return 0, 0
+		currentLevel = 0
 	}
+
+	var previousLevel int64
+	previous := current - 1
+	switch {
+	case previous >= PhotosLikesLevel1 && previous < PhotosLikesLevel2:
+		previousLevel = 1
+	case previous >= PhotosLikesLevel2 && previous < PhotosLikesLevel3:
+		previousLevel = 2
+	case previous >= PhotosLikesLevel3:
+		previousLevel = 3
+	default:
+		previousLevel = 0
+	}
+
+	var xp int64
+	var level int64
+	switch {
+	case current >= PhotosLikesLevel1 && current < PhotosLikesLevel2:
+		xp = XPPhotosLikesLevel1
+		level = 1
+	case current >= PhotosLikesLevel2 && current < PhotosLikesLevel3:
+		xp = XPPhotosLikesLevel2
+		level = 2
+	case current >= PhotosLikesLevel3:
+		xp = XPPhotosLikesLevel3
+		level = 3
+	default:
+		xp = 0
+		level = 0
+	}
+
+	levelUpdated := currentLevel > previousLevel
+	return xp, level, levelUpdated
 }
 
-func GetAchievementPostsReactionsData(current int64) (int64, int64) {
+func GetAchievementPostsReactionsData(current int64) (int64, int64, bool) {
+	var currentLevel int64
 	switch {
 	case current >= PostsReactionsLevel1 && current < PostsReactionsLevel2:
-		return XPPostsReactionsLevel1, 1
+		currentLevel = 1
 	case current >= PostsReactionsLevel2 && current < PostsReactionsLevel3:
-		return XPPostsReactionsLevel2, 2
+		currentLevel = 2
 	case current >= PostsReactionsLevel3:
-		return XPPostsReactionsLevel3, 3
+		currentLevel = 3
 	default:
-		return 0, 0
+		currentLevel = 0
 	}
+
+	var previousLevel int64
+	previous := current - 1
+	switch {
+	case previous >= PostsReactionsLevel1 && previous < PostsReactionsLevel2:
+		previousLevel = 1
+	case previous >= PostsReactionsLevel2 && previous < PostsReactionsLevel3:
+		previousLevel = 2
+	case previous >= PostsReactionsLevel3:
+		previousLevel = 3
+	default:
+		previousLevel = 0
+	}
+
+	var xp int64
+	var level int64
+	switch {
+	case current >= PostsReactionsLevel1 && current < PostsReactionsLevel2:
+		xp = XPPostsReactionsLevel1
+		level = 1
+	case current >= PostsReactionsLevel2 && current < PostsReactionsLevel3:
+		xp = XPPostsReactionsLevel2
+		level = 2
+	case current >= PostsReactionsLevel3:
+		xp = XPPostsReactionsLevel3
+		level = 3
+	default:
+		xp = 0
+		level = 0
+	}
+
+	levelUpdated := currentLevel > previousLevel
+	return xp, level, levelUpdated
 }
 
-func GetAchievementCollectionsSumData(current int64) (int64, int64) {
+func GetAchievementCollectionsSumData(current int64) (int64, int64, bool) {
+	var currentLevel int64
 	switch {
 	case current >= CollectionsSumLevel1 && current < CollectionsSumLevel2:
-		return XPCollectionsSumLevel1, 1
+		currentLevel = 1
 	case current >= CollectionsSumLevel2 && current < CollectionsSumLevel3:
-		return XPCollectionsSumLevel2, 2
+		currentLevel = 2
 	case current >= CollectionsSumLevel3:
-		return XPCollectionsSumLevel3, 3
+		currentLevel = 3
 	default:
-		return 0, 0
+		currentLevel = 0
 	}
+
+	var previousLevel int64
+	previous := current - 1
+	switch {
+	case previous >= CollectionsSumLevel1 && previous < CollectionsSumLevel2:
+		previousLevel = 1
+	case previous >= CollectionsSumLevel2 && previous < CollectionsSumLevel3:
+		previousLevel = 2
+	case previous >= CollectionsSumLevel3:
+		previousLevel = 3
+	default:
+		previousLevel = 0
+	}
+
+	var xp int64
+	var level int64
+	switch {
+	case current >= CollectionsSumLevel1 && current < CollectionsSumLevel2:
+		xp = XPCollectionsSumLevel1
+		level = 1
+	case current >= CollectionsSumLevel2 && current < CollectionsSumLevel3:
+		xp = XPCollectionsSumLevel2
+		level = 2
+	case current >= CollectionsSumLevel3:
+		xp = XPCollectionsSumLevel3
+		level = 3
+	default:
+		xp = 0
+		level = 0
+	}
+
+	levelUpdated := currentLevel > previousLevel
+	return xp, level, levelUpdated
 }
 
-func GetAchievementCollectionsShipSumData(current int64) (int64, int64) {
+func GetAchievementCollectionsShipSumData(current int64) (int64, int64, bool) {
+	var currentLevel int64
 	switch {
 	case current >= CollectionsShipSumLevel1 && current < CollectionsShipSumLevel2:
-		return XPCollectionsShipSumLevel1, 1
+		currentLevel = 1
 	case current >= CollectionsShipSumLevel2 && current < CollectionsShipSumLevel3:
-		return XPCollectionsShipSumLevel2, 2
+		currentLevel = 2
 	case current >= CollectionsShipSumLevel3:
-		return XPCollectionsShipSumLevel3, 3
+		currentLevel = 3
 	default:
-		return 0, 0
+		currentLevel = 0
 	}
+
+	var previousLevel int64
+	previous := current - 1
+	switch {
+	case previous >= CollectionsShipSumLevel1 && previous < CollectionsShipSumLevel2:
+		previousLevel = 1
+	case previous >= CollectionsShipSumLevel2 && previous < CollectionsShipSumLevel3:
+		previousLevel = 2
+	case previous >= CollectionsShipSumLevel3:
+		previousLevel = 3
+	default:
+		previousLevel = 0
+	}
+
+	var xp int64
+	var level int64
+	switch {
+	case current >= CollectionsShipSumLevel1 && current < CollectionsShipSumLevel2:
+		xp = XPCollectionsShipSumLevel1
+		level = 1
+	case current >= CollectionsShipSumLevel2 && current < CollectionsShipSumLevel3:
+		xp = XPCollectionsShipSumLevel2
+		level = 2
+	case current >= CollectionsShipSumLevel3:
+		xp = XPCollectionsShipSumLevel3
+		level = 3
+	default:
+		xp = 0
+		level = 0
+	}
+
+	levelUpdated := currentLevel > previousLevel
+	return xp, level, levelUpdated
 }
 
 func min(a, b int64) int64 {

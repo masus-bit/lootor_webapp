@@ -79,14 +79,14 @@ func (s *PhotosService) CreatePhoto(
 		return nil, err
 	}
 	go func() {
-		xp, level := utils.GetAchievementPhotosAddData(photosCount.GetCount() + int64(len(req.Paths)))
+		xp, level, levelChanged := utils.GetAchievementPhotosAddData(photosCount.GetCount() + int64(len(req.Paths)))
 
 		_ = s.achService.AddAchievement(
 			utils.AchievePhotosAdded,
 			authUserLogin,
 			level,
 			xp,
-			photosCount.GetCount()+int64(len(req.Paths)),
+			photosCount.GetCount()+int64(len(req.Paths)), levelChanged,
 		)
 		_ = s.userRepo.IncrementExperience(authUserLogin, int(xp))
 	}()
@@ -173,14 +173,14 @@ func (s *PhotosService) DeletePhoto(ctx context.Context, id, authUserLogin strin
 				EntityType: utils.EventTargetPhoto,
 			},
 		)
-		xp, level := utils.GetAchievementPhotosAddData(photosCount.GetCount() + 1)
+		xp, level, levelChanged := utils.GetAchievementPhotosAddData(photosCount.GetCount() + 1)
 
 		_ = s.achService.AddAchievement(
 			utils.AchievePhotosAdded,
 			authUserLogin,
 			level,
 			xp,
-			photosCount.GetCount(),
+			photosCount.GetCount(), levelChanged,
 		)
 		eventError := s.eventsService.AddEvent(
 			"",
@@ -274,14 +274,14 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 
 		exp := utils.CISelfLikeExp
 		go func() {
-			xp, level := utils.GetAchievementPhotosLikesData(photosCountLikes.GetCount())
+			xp, level, levelChanged := utils.GetAchievementPhotosLikesData(photosCountLikes.GetCount())
 
 			_ = s.achService.AddAchievement(
 				utils.AchievePhotosLikes,
 				dbCollection.UserLogin,
 				level,
 				xp,
-				photosCountLikes.GetCount(),
+				photosCountLikes.GetCount(), levelChanged,
 			)
 			exp += int(xp)
 		}()
@@ -297,14 +297,14 @@ func (s *PhotosService) LikePhoto(ctx context.Context, id string, authUserLogin 
 
 		exp := utils.CISelfLikeExp
 		go func() {
-			xp, level := utils.GetAchievementPhotosLikesData(photosCountLikes.GetCount())
+			xp, level, levelChanged := utils.GetAchievementPhotosLikesData(photosCountLikes.GetCount())
 
 			_ = s.achService.AddAchievement(
 				utils.AchievePhotosLikes,
 				dbCollection.UserLogin,
 				level,
 				xp,
-				photosCountLikes.GetCount(),
+				photosCountLikes.GetCount(), levelChanged,
 			)
 			exp += int(xp)
 		}()

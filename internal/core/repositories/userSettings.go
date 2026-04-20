@@ -34,7 +34,10 @@ func (r *UserSettingsRepository) FindRecordByUserLogin(userLogin string) (*model
 func (r *UserSettingsRepository) UpdateFull(existsSets *models.UserSettings) (*models.UserSettings, error) {
 	err := r.db.Transaction(
 		func(tx *gorm.DB) error {
-			if err := tx.Model(existsSets).Select("*").Updates(existsSets).Error; err != nil {
+			if err := tx.Model(existsSets).Where(
+				"user_login = ?",
+				existsSets.UserLogin,
+			).Select("*").Updates(existsSets).Error; err != nil {
 				return err
 			}
 			return nil

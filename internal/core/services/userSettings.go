@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/google/uuid"
 	"lootor/internal/core/dto"
 	"lootor/internal/core/models"
 	"lootor/internal/core/repositories"
@@ -42,7 +43,7 @@ func (s *UserSettingsService) UpdateSettings(userLogin string, settings *dto.Use
 ) {
 	existsSettings, _ := s.userSettingsRepo.FindRecordByUserLogin(userLogin)
 
-	if existsSettings == nil {
+	if existsSettings.ID == uuid.Nil {
 		var userSettings *models.UserSettings
 
 		userSettings = &models.UserSettings{

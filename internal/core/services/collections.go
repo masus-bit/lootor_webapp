@@ -109,7 +109,7 @@ func (s *CollectionService) Create(req *dto.CollectionCreateRequest) (*dto.Colle
 				req.UserLogin,
 				1,
 				utils.XPFirstCollectionCreate,
-				1,
+				1, true,
 			)
 		}()
 	}
@@ -834,14 +834,14 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		go func() {
 			collectionsLikes, _ := s.repo.GetLikesOfAllCollectionsUser(userLogin)
 
-			xp, level := utils.GetAchievementCollectionsLikesData(collectionsLikes + 1)
+			xp, level, levelChanged := utils.GetAchievementCollectionsLikesData(collectionsLikes + 1)
 
 			err = s.achService.AddAchievement(
 				utils.AchieveCollectionsLikes,
 				exists.UserLogin,
 				level,
 				xp,
-				collectionsLikes+1,
+				collectionsLikes+1, levelChanged,
 			)
 			err = s.userRepo.IncrementExperience(exists.UserLogin, utils.CollectionSelfLikeExp+int(xp))
 		}()
@@ -887,14 +887,14 @@ func (s *CollectionService) Like(id string, userLogin string) (*dto.CommonRespon
 		go func() {
 			collectionsLikes, _ := s.repo.GetLikesOfAllCollectionsUser(userLogin)
 
-			xp, level := utils.GetAchievementCollectionsLikesData(collectionsLikes)
+			xp, level, levelChanged := utils.GetAchievementCollectionsLikesData(collectionsLikes)
 
 			err = s.achService.AddAchievement(
 				utils.AchieveCollectionsLikes,
 				exists.UserLogin,
 				level,
 				xp,
-				collectionsLikes-1,
+				collectionsLikes-1, levelChanged,
 			)
 		}()
 		err = s.userRepo.DecrementExperience(exists.UserLogin, utils.CollectionSelfLikeExp)

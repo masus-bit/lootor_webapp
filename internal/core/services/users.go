@@ -317,14 +317,14 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 
 			subscribers, _ := s.repo.GetTotalSubscribers(targetUserLogin)
 
-			xp, level := utils.GetAchievementSubscribersData(subscribers + 1)
+			xp, level, levelChanged := utils.GetAchievementSubscribersData(subscribers + 1)
 
 			err = s.achService.AddAchievement(
 				utils.AchieveSubscribers,
 				targetUserLogin,
 				level,
 				xp,
-				subscribers+1,
+				subscribers+1, levelChanged,
 			)
 			err = s.repo.IncrementExperience(targetUserLogin, int(xp))
 		}()
@@ -366,14 +366,14 @@ func (s *UserService) Subscribe(targetUserLogin string, authUserLogin string, is
 			)
 			subscribers, _ := s.repo.GetTotalSubscribers(targetUserLogin)
 
-			xp, level := utils.GetAchievementSubscribersData(subscribers)
+			xp, level, levelChanged := utils.GetAchievementSubscribersData(subscribers)
 
 			err = s.achService.AddAchievement(
 				utils.AchieveSubscribers,
 				targetUserLogin,
 				level,
 				xp,
-				subscribers-1,
+				subscribers-1, levelChanged,
 			)
 			if err != nil {
 				fmt.Println(err)
@@ -475,7 +475,7 @@ func (s *UserService) SignUp(req *dto.SignUpRequest, ctx context.Context) (*dto.
 			context.Background(),
 			&microservices.GetUserAchievementsRequest{UserLogin: req.Login},
 		)
-		err = s.achService.AddAchievement(utils.AchieveBetaTester, req.Login, 1, utils.XPBetaTester, 0)
+		err = s.achService.AddAchievement(utils.AchieveBetaTester, req.Login, 1, utils.XPBetaTester, 0, true)
 		err = s.repo.IncrementExperience(req.Login, utils.XPBetaTester)
 	}()
 

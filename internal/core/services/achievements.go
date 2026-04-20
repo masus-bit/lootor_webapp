@@ -49,7 +49,7 @@ func (s *AchievementsService) SetNotificationsService(notificationsService *Noti
 	s.notificationsService = notificationsService
 }
 
-func (s *AchievementsService) AddAchievement(code, userLogin string, level, xp, value int64) error {
+func (s *AchievementsService) AddAchievement(code, userLogin string, level, xp, value int64, levelChanged bool) error {
 	achievement := &microservices.AddOrUpdateAchievementRequest{
 		Code:      code,
 		UserLogin: userLogin,
@@ -68,19 +68,21 @@ func (s *AchievementsService) AddAchievement(code, userLogin string, level, xp, 
 		TargetType:       "achievement",
 		TargetParentName: "",
 	}
-	err = s.notificationsService.SendNotification(
-		context.Background(), &dto.NotificationsRequest{
-			Login:       userLogin,
-			TargetID:    code,
-			SenderLogin: userLogin,
-			Type:        utils.NotificationTypeAchievement,
-			Action:      utils.NotificationActionAchievement,
-			Date:        time.Now().Format(time.RFC3339),
-			OwnerLogin:  userLogin,
-		}, target,
-	)
-	if err != nil {
-		return err
+	if levelChanged {
+		err = s.notificationsService.SendNotification(
+			context.Background(), &dto.NotificationsRequest{
+				Login:       userLogin,
+				TargetID:    code,
+				SenderLogin: userLogin,
+				Type:        utils.NotificationTypeAchievement,
+				Action:      utils.NotificationActionAchievement,
+				Date:        time.Now().Format(time.RFC3339),
+				OwnerLogin:  userLogin,
+			}, target,
+		)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

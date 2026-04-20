@@ -128,7 +128,7 @@ func (s *PayService) StartTransaction(login string, subType string, amount strin
 
 func (s *PayService) EndTransaction(data *Notification) {
 	userLogin := data.Object.Metadata.UserLogin
-	mode := os.Getenv("MODE")
+	//mode := os.Getenv("MODE")
 
 	if data.Event != "payment.succeeded" {
 		fmt.Println("expected notification: payment.succeeded")
@@ -182,18 +182,31 @@ func (s *PayService) EndTransaction(data *Notification) {
 		fmt.Println(err)
 	}
 
-	go func() {
-		if mode == "beta" {
-			err = s.achService.AddAchievement(
-				utils.AchieveBetaTesterDonate,
-				userLogin,
-				1,
-				utils.XPBetaTesterDonate,
-				0,
-			)
-			err = s.userRepo.IncrementExperience(userLogin, utils.XPBetaTesterDonate)
+	//go func() {
+	//	if mode == "beta" {
+	//		err = s.achService.AddAchievement(
+	//			utils.AchieveBetaTesterDonate,
+	//			userLogin,
+	//			1,
+	//			utils.XPBetaTesterDonate,
+	//			0, true,
+	//		)
+	//		err = s.userRepo.IncrementExperience(userLogin, utils.XPBetaTesterDonate)
+	//	}
+	//}()
+
+	dataPayments, _ := s.paymentsRepo.FindAllPaymentsByLogin(userLogin)
+	monthlyHas := false
+	yearlyHas := false
+	if dataPayments != nil {
+		for _, p := range dataPayments {
+			if p.PaymentType == "monthly" {
+				monthlyHas = true
+			} else if p.PaymentType == "yearly" {
+				yearlyHas = true
+			}
 		}
-	}()
+	}
 
 	if subType == "monthly" {
 		err = s.userRepo.IncrementExperience(userLogin, utils.MonthlyDonateExp+utils.MonthlyDonateExp)
@@ -201,7 +214,7 @@ func (s *PayService) EndTransaction(data *Notification) {
 			return
 		}
 		go func() {
-			err = s.achService.AddAchievement(utils.AchieveDonate, userLogin, 1, utils.XPDonateLevel1, 0)
+			err = s.achService.AddAchievement(utils.AchieveDonate, userLogin, 1, utils.XPDonateLevel1, 0, !monthlyHas)
 		}()
 
 	} else if subType == "yearly" {
@@ -210,7 +223,7 @@ func (s *PayService) EndTransaction(data *Notification) {
 			return
 		}
 		go func() {
-			err = s.achService.AddAchievement(utils.AchieveDonate, userLogin, 2, utils.XPDonateLevel2, 0)
+			err = s.achService.AddAchievement(utils.AchieveDonate, userLogin, 2, utils.XPDonateLevel2, 0, !yearlyHas)
 		}()
 	}
 }

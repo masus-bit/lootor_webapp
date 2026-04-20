@@ -296,13 +296,28 @@ func (r *CiRepository) ShippingSumByUserLogin(userLogin string) (float64, error)
 }
 
 func (r *CiRepository) DeleteCI(id string) error {
-	err := r.db.Delete(&models.CollectionItems{}, "id = ?", id).Error
+	tx := r.db.Begin()
+
+	err := tx.Exec("DELETE FROM collections_collection_items_collection_items WHERE collection_items_id = ?", id).Error
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
-	if err := r.es.DeleteDocument(context.Background(), "collection_items", id); err != nil {
+
+	err = tx.Delete(&models.CollectionItems{}, "id = ?", id).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err = tx.Commit().Error; err != nil {
+		return err
+	}
+
+	if err = r.es.DeleteDocument(context.Background(), "collection_items", id); err != nil {
 		log.Printf("Failed to delete collection item from index: %v", err)
 	}
+
 	return nil
 }
 

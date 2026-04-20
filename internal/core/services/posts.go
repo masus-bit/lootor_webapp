@@ -60,13 +60,13 @@ func (s *PostsService) CreatePost(ctx context.Context, request *dto.PostRequest)
 		go func() {
 			postsCount, _ := s.postsClient.GetPostsCountByUserLogin(context.Background(), request.Author)
 
-			xp, level := utils.GetAchievementPostsCreateData(postsCount.GetCount())
+			xp, level, levelChanged := utils.GetAchievementPostsCreateData(postsCount.GetCount())
 			err = s.achService.AddAchievement(
 				utils.AchievePostsCreated,
 				request.Author,
 				level,
 				xp,
-				postsCount.GetCount(),
+				postsCount.GetCount(), levelChanged,
 			)
 
 			err = s.userRepo.IncrementExperience(user.Login, utils.PostCreateExp+int(xp))
@@ -275,13 +275,13 @@ func (s *PostsService) DeletePost(ctx context.Context, id string, authUser strin
 		go func() {
 			postsCount, _ := s.postsClient.GetPostsCountByUserLogin(context.Background(), authUser)
 
-			xp, level := utils.GetAchievementPostsCreateData(postsCount.GetCount() + 1)
+			xp, level, levelChanged := utils.GetAchievementPostsCreateData(postsCount.GetCount() + 1)
 			err = s.achService.AddAchievement(
 				utils.AchievePostsCreated,
 				authUser,
 				level,
 				xp,
-				postsCount.GetCount(),
+				postsCount.GetCount(), levelChanged,
 			)
 		}()
 	}
@@ -380,13 +380,13 @@ func (s *PostsService) React(ctx context.Context, req *dto.ReactRequest) (*dto.C
 			post.GetData().GetAuthor(),
 		)
 
-		xp, level := utils.GetAchievementPostsReactionsData(postsReactCount.GetCount())
+		xp, level, levelChanged := utils.GetAchievementPostsReactionsData(postsReactCount.GetCount())
 		err = s.achService.AddAchievement(
 			utils.AchievePostsReactions,
 			post.GetData().GetAuthor(),
 			level,
 			xp,
-			postsReactCount.GetCount(),
+			postsReactCount.GetCount(), levelChanged,
 		)
 		err = s.userRepo.IncrementExperience(resp.UserLogin, utils.PostReactExt+int(xp))
 		if err != nil {
@@ -437,13 +437,13 @@ func (s *PostsService) Unreact(ctx context.Context, req *dto.ReactRequest) (*dto
 			post.GetData().GetAuthor(),
 		)
 
-		xp, level := utils.GetAchievementPostsReactionsData(postsReactCount.GetCount())
+		xp, level, levelChanged := utils.GetAchievementPostsReactionsData(postsReactCount.GetCount())
 		err = s.achService.AddAchievement(
 			utils.AchievePostsReactions,
 			post.GetData().GetAuthor(),
 			level,
 			xp,
-			postsReactCount.GetCount(),
+			postsReactCount.GetCount(), levelChanged,
 		)
 		_ = s.userRepo.DecrementExperience(resp.UserLogin, utils.PostReactExt)
 
@@ -484,13 +484,13 @@ func (s *PostsService) UpdatePost(
 		go func() {
 			postsCount, _ := s.postsClient.GetPostsCountByUserLogin(context.Background(), authUser)
 
-			xp, level := utils.GetAchievementPostsCreateData(postsCount.GetCount())
+			xp, level, levelChanged := utils.GetAchievementPostsCreateData(postsCount.GetCount())
 			err = s.achService.AddAchievement(
 				utils.AchievePostsCreated,
 				authUser,
 				level,
 				xp,
-				postsCount.GetCount(),
+				postsCount.GetCount(), levelChanged,
 			)
 
 			err = s.userRepo.IncrementExperience(user.Login, utils.PostCreateExp+int(xp))

@@ -85,13 +85,13 @@ func (s *TagsService) CreateTag(req *dto.TagCreateRequest, authUser string) (*dt
 		if err != nil {
 			fmt.Println(err)
 		}
-		xp, level := utils.GetAchievementTagsAddData(tagsCount.GetTotalTags())
+		xp, level, levelChanged := utils.GetAchievementTagsAddData(tagsCount.GetTotalTags())
 		err = s.achService.AddAchievement(
 			utils.AchieveTagsCreated,
 			authUser,
 			level,
 			xp,
-			tagsCount.GetTotalTags(),
+			tagsCount.GetTotalTags(), levelChanged,
 		)
 		_ = s.userRepo.IncrementExperience(authUser, exp+int(xp))
 	}()

@@ -126,10 +126,10 @@ func (s *CiService) Create(
 	go func() {
 		collectionItemsCount, _ := s.repo.GetTotalByUserLogin(authUserLogin)
 
-		xp, level := utils.GetAchievementCollectionItemsAddData(collectionItemsCount + 1)
+		xp, level, levelChanged := utils.GetAchievementCollectionItemsAddData(collectionItemsCount + 1)
 
 		_ = s.achService.AddAchievement(
-			utils.AchieveCollectionItemsAdded, authUserLogin, level, xp, collectionItemsCount+1,
+			utils.AchieveCollectionItemsAdded, authUserLogin, level, xp, collectionItemsCount+1, levelChanged,
 		)
 		_ = s.userRepo.IncrementExperience(authUserLogin, int(xp))
 	}()
@@ -168,10 +168,10 @@ func (s *CiService) Create(
 		go func() {
 			collectionSum, _ := s.repo.SumByUserLogin(authUserLogin)
 
-			xp, level := utils.GetAchievementCollectionsSumData(int64(collectionSum))
+			xp, level, levelChanged := utils.GetAchievementCollectionsSumData(int64(collectionSum))
 
 			_ = s.achService.AddAchievement(
-				utils.AchieveCollectionsSum, authUserLogin, level, xp, int64(collectionSum),
+				utils.AchieveCollectionsSum, authUserLogin, level, xp, int64(collectionSum), levelChanged,
 			)
 			exp += int(xp)
 		}()
@@ -180,10 +180,10 @@ func (s *CiService) Create(
 		go func() {
 			collectionShippingSum, _ := s.repo.ShippingSumByUserLogin(authUserLogin)
 
-			xp, level := utils.GetAchievementCollectionsShipSumData(int64(collectionShippingSum))
+			xp, level, levelChanged := utils.GetAchievementCollectionsShipSumData(int64(collectionShippingSum))
 
 			_ = s.achService.AddAchievement(
-				utils.AchieveCollectionShipSum, authUserLogin, level, xp, int64(collectionShippingSum),
+				utils.AchieveCollectionShipSum, authUserLogin, level, xp, int64(collectionShippingSum), levelChanged,
 			)
 			exp += int(xp)
 		}()
@@ -307,10 +307,10 @@ func (s *CiService) Delete(id string, ctx context.Context) (*dto.CommonResponse,
 		go func() {
 			collectionItemsCount, _ := s.repo.GetTotalByUserLogin(exists.Owner.Login)
 
-			xp, level := utils.GetAchievementCollectionItemsAddData(collectionItemsCount + 1)
+			xp, level, levelChanged := utils.GetAchievementCollectionItemsAddData(collectionItemsCount + 1)
 
 			_ = s.achService.AddAchievement(
-				utils.AchieveCollectionItemsAdded, exists.Owner.Login, level, xp, collectionItemsCount,
+				utils.AchieveCollectionItemsAdded, exists.Owner.Login, level, xp, collectionItemsCount, levelChanged,
 			)
 		}()
 		err = s.userRepo.DecrementExperience(exists.UserLogin, exp)
@@ -434,10 +434,10 @@ func (s *CiService) Update(id string, req *dto.CollectionItemsRequestUpdate) (*m
 		go func() {
 			collectionSum, _ := s.repo.SumByUserLogin(exists.UserLogin)
 
-			xp, level := utils.GetAchievementCollectionsSumData(int64(collectionSum))
+			xp, level, levelChanged := utils.GetAchievementCollectionsSumData(int64(collectionSum))
 
 			_ = s.achService.AddAchievement(
-				utils.AchieveCollectionsSum, exists.UserLogin, level, xp, int64(collectionSum),
+				utils.AchieveCollectionsSum, exists.UserLogin, level, xp, int64(collectionSum), levelChanged,
 			)
 			exp += int(xp)
 		}()
@@ -446,10 +446,10 @@ func (s *CiService) Update(id string, req *dto.CollectionItemsRequestUpdate) (*m
 		go func() {
 			collectionShippingSum, _ := s.repo.ShippingSumByUserLogin(exists.UserLogin)
 
-			xp, level := utils.GetAchievementCollectionsShipSumData(int64(collectionShippingSum))
+			xp, level, levelChanged := utils.GetAchievementCollectionsShipSumData(int64(collectionShippingSum))
 
 			_ = s.achService.AddAchievement(
-				utils.AchieveCollectionShipSum, exists.UserLogin, level, xp, int64(collectionShippingSum),
+				utils.AchieveCollectionShipSum, exists.UserLogin, level, xp, int64(collectionShippingSum), levelChanged,
 			)
 			exp += int(xp)
 		}()
@@ -549,7 +549,7 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 	}
 	isUserLikes := slices.Contains(exists.Likes, userLogin)
 	collectionItemsLikes, _ := s.repo.GetTotalLikesByUserLogin(exists.UserLogin)
-	xp, level := utils.GetAchievementCollectionItemsLikesData(collectionItemsLikes)
+	xp, level, levelChanged := utils.GetAchievementCollectionItemsLikesData(collectionItemsLikes)
 	if !isUserLikes {
 		exists.Likes = append(exists.Likes, userLogin)
 		if !exists.Collections[0].IsPrivate {
@@ -566,7 +566,7 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 		exp := 0
 		go func() {
 			_ = s.achService.AddAchievement(
-				utils.AchieveCollectionItemsLikes, exists.UserLogin, level, xp, collectionItemsLikes,
+				utils.AchieveCollectionItemsLikes, exists.UserLogin, level, xp, collectionItemsLikes, levelChanged,
 			)
 			exp += int(xp)
 		}()
@@ -609,7 +609,7 @@ func (s *CiService) Like(id string, userLogin string) (*dto.CommonResponse, erro
 		}()
 		go func() {
 			_ = s.achService.AddAchievement(
-				utils.AchieveCollectionItemsLikes, exists.UserLogin, level, xp, collectionItemsLikes-1,
+				utils.AchieveCollectionItemsLikes, exists.UserLogin, level, xp, collectionItemsLikes-1, levelChanged,
 			)
 		}()
 		if err != nil {
